@@ -21,14 +21,17 @@ tracks *done/todo state* and hands off between sessions. Work one phase per sess
 - **Last session (2026-08-13):** wrote root `README.md` (Stripe-style, flattened layout);
   updated the design doc to the flattened layout (Decision 2 block, revision note, path
   fixes, Next-steps rewrite); created this index; wrote root `CLAUDE.md` (commits, comments,
-  docs voice, layout, invariants).
-- **Done:** `agentic` working repo exists locally; `README.md`; `CLAUDE.md`;
+  docs voice, layout, invariants); created the public GitHub repo `v1nvn/agentic`, made the
+  initial commit `chore: scaffold repo`, added root `.gitignore`.
+- **Done:** public GitHub repo `v1nvn/agentic` (https://github.com/v1nvn/agentic), initial
+  commit pushed (`chore: scaffold repo`); `README.md`; `CLAUDE.md`; `.gitignore`;
   `plugin-collection.md`; this index.
-- **Not started:** GitHub remote, server migration, npm rebind, collection layer, CI, teardown.
-- **Active phase:** Phase 0.
-- **Next action:** create the `v1nvn/agentic` GitHub repo + remote, make the initial commit
-  (docs + README + CLAUDE.md + index), add root `.gitignore`, create the empty skeleton dirs
-  (`plugins/`, `shared/bin/`, `.github/workflows/`; `server/` is filled in Phase 1).
+- **Not started:** server migration, npm rebind, collection layer, CI, teardown.
+- **Active phase:** Phase 0 complete — Phase 1 next.
+- **Next action:** start Phase 1 — move the readability server source from
+  `~/git/readability-mcp/` into `server/` (`src/`, `test/`, `package.json`, configs,
+  `yarn.lock`, `Makefile`), then rewire the four workflows + `Dockerfile` + `smithery.yaml`
+  + `package.json` `repository.url`.
 - **Blockers:** none. (The irreversible step arrives in Phase 2 — see Critical path.)
 
 ## Critical path — do not violate
@@ -93,15 +96,17 @@ v1nvn/agentic/
 
 ## Tasks
 
-### Phase 0 — Scaffold & docs  · in progress
+### Phase 0 — Scaffold & docs  · done
 
 - [x] Write root `README.md` (Stripe-style, flattened layout)
 - [x] Update `plugin-collection.md` to flattened layout (Decision 2 + revision note + path fixes)
 - [x] Create this index
 - [x] Create root `CLAUDE.md` (commits, comments, docs voice, layout, invariants)
-- [ ] Create GitHub repo `v1nvn/agentic`; add as remote; initial commit (docs + README + CLAUDE.md + index)
-- [ ] Add root `.gitignore`
-- [ ] Create empty skeleton dirs: `plugins/`, `shared/bin/`, `.github/workflows/`
+- [x] Create GitHub repo `v1nvn/agentic`; add as remote; initial commit `chore: scaffold repo` (public)
+- [x] Add root `.gitignore`
+- [x] ~~Create empty skeleton dirs~~ — skipped: git doesn't track empty dirs and `.gitkeep` is
+      cruft; `plugins/`, `shared/bin/`, `.github/workflows/` are created when their content
+      lands (Phases 1 & 3)
 
 ### Phase 1 — Move the readability server into `server/`
 
