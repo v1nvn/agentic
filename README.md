@@ -32,6 +32,6 @@ Start Claude Code and run the command shown above for the plugin you installed.
 ```
 .claude-plugin/marketplace.json     Claude marketplace manifest; sources point into plugins/
 plugins/<name>/                     the four plugins
-server/                             the readability MCP server (published to npm as readability-mcp)
+readability-mcp/                             the readability MCP server (published to npm as readability-mcp)
 shared/bin/                         scripts shared across plugins
 ```

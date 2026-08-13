@@ -102,7 +102,7 @@ conceptual skill content — context7 does *not* run a `shared/bin → per-agent
 
 | | Shape A — grow *this* repo | Shape B — new agent-neutral repo |
 |---|---|---|
-| What | Move server under `server/`, add `agents/`+`shared/`, rename repo | New repo: `agents/<agent>/` + `shared/bin/` + `strategies/`; readability keeps publishing from its own repo; the Claude adapter references `npx -y readability-mcp` |
+| What | Move server under `readability-mcp/`, add `agents/`+`shared/`, rename repo | New repo: `agents/<agent>/` + `shared/bin/` + `strategies/`; readability keeps publishing from its own repo; the Claude adapter references `npx -y readability-mcp` |
 | Pros | One repo to browse; mirrors context7 (`packages/mcp/` + `plugins/<agent>/`) | **Zero migration** — `release.yml`, npm provenance, tags, repo URL, README, smithery.yaml, Dockerfile all keep working; agent-neutral name from day one; multi-agent from day one; all DRY/UX wins land now |
 | Cons | **Migrates a published, provenance-signed npm package** (re-wire `release.yml`, risk a publish gap); the name `readability-mcp` is a misfit for a multi-plugin home and renames break every install (`npx -y readability-mcp`, README links, smithery, Dockerfile); must exclude `agents/`/`shared/`/`strategies/` from the npm tarball; co-locating source buys nothing technically — the adapter references the published package anyway | Two repos to keep conceptually aligned (low-frequency: the contract is stable — `extract` + `diagnostics.readerable`) |
 
@@ -110,7 +110,7 @@ conceptual skill content — context7 does *not* run a `shared/bin → per-agent
 delete `readability-mcp`.** This supersedes the earlier "Shape B, server stays put" stance.
 `agentic` keeps Shape B's agent-neutral name and multi-plugin layout but absorbs Shape A's
 migration: the readability server source, its four workflows, `smithery.yaml`, and
-`Dockerfile` move in under `server/`; the `readability-mcp` GitHub repo is deleted once
+`Dockerfile` move in under `readability-mcp/`; the `readability-mcp` GitHub repo is deleted once
 `agentic` publishes successfully. Accepted trade-off: a publish gap during migration (worth
 it — no double code/repos). The npm package `readability-mcp` — name and version trajectory
 from v0.10.2 — is preserved; only its source repo moves. See *Migration & deletion* below
@@ -130,13 +130,13 @@ re-pointed:
   npmjs.com to `v1nvn/agentic`. A package has one publish source, so this *moves* the
   ability — the old repo can't publish afterward.
 - **Safe sequence (never lose publish ability):** create `agentic` → move the server into
-  `server/` and rewire `release.yml`/`test.yml`/`bench.yml`/`readability-versions.yml`
-  (`working-directory: server`), the `Dockerfile` (build context), and `smithery.yaml`
+  `readability-mcp/` and rewire `release.yml`/`test.yml`/`bench.yml`/`readability-versions.yml`
+  (`working-directory: readability-mcp`), the `Dockerfile` (build context), and `smithery.yaml`
   (paths) → rebind npm OIDC → push the existing tags so the "skip if tag
   exists" guard (`release.yml:22-30`) still works → verify a real publish from `agentic`
   → **then** delete `readability-mcp`.
 - **`repository.url`** (`package.json:32`) points here — update to `v1nvn/agentic` with a
-  `directory: "server"` field, or the npm page links to a deleted repo.
+  `directory: "readability-mcp"` field, or the npm page links to a deleted repo.
 - **Tags / GitHub Releases** are lost on deletion unless pushed first (above).
 - **Smithery** — `readability-mcp` is not registered on smithery.ai (confirmed), so
   nothing external to re-point; the in-repo `smithery.yaml` just moves with the server.
@@ -145,16 +145,17 @@ re-pointed:
 
 ```
 v1nvn/agentic/                      # agent-neutral home
-  server/                           # readability MCP server, moved from readability-mcp
+  readability-mcp/                           # readability MCP server, moved from readability-mcp
     package.json                    # name readability-mcp; files:["dist"] keeps the npm tarball clean
-    smithery.yaml  Dockerfile       # server-publish artifacts, rewired to server/ paths
-    src/  test/  README.md  docs/design/   # schema-synced server README + this design doc travel here
+    smithery.yaml  Dockerfile       # server-publish artifacts; context-relative, no path edits
+    src/  test/  README.md          # schema-synced server README (design docs are repo-root)
   shared/bin/last-reply             # single source for the one shared script
   .claude-plugin/marketplace.json   # one marketplace, four plugins (root = where `marketplace add` discovers it)
   plugins/{readability,rm,md,zai}/  # .claude-plugin/plugin.json + .mcp.json/skills/hooks/commands
+  docs/design/                      # plugin-collection.md (spec) + plugin-collection-index.md (handoff)
   .github/workflows/
     build.yml                       # collection CI: validate manifests + identity-check shared files
-    test.yml  bench.yml  release.yml  readability-versions.yml   # server CI, scoped to server/
+    test.yml  bench.yml  release.yml  readability-versions.yml   # server CI, scoped to readability-mcp/
 ```
 
 > **Revised 2026-08-13 — drop the `agents/claude/` wrapper.** Plugins live at root `plugins/`;
@@ -172,10 +173,11 @@ canonical: a single `marketplace.json` lists every plugin in its `plugins[]` arr
 (`name` + `source` each); reserved marketplace names like `claude-plugins-official` are
 off-limits (`code.claude.com/docs/en/plugin-marketplaces`).
 
-This design doc (`docs/design/plugin-collection.md`) moves into `agentic` with the server
-(under `server/docs/design/`) — there is no second repo. The read-url strategy is carried
-by the skill at `.claude/skills/read-url/SKILL.md` (gate validated 2026-08-12); it ships
-inside the readability plugin as `plugins/readability/skills/read-url/SKILL.md`.
+This design doc (`docs/design/plugin-collection.md`) stays at repo-root `docs/design/` — it
+is a repo-level concern (marketplace + collection + migration), not server-specific, so it does
+not live under `readability-mcp/`. There is no second repo. The read-url strategy is carried by
+the skill at `.claude/skills/read-url/SKILL.md` (gate validated 2026-08-12); it ships inside the
+readability plugin as `plugins/readability/skills/read-url/SKILL.md`.
 
 ### Decision 3 — workspace tooling
 
@@ -210,7 +212,7 @@ lint), not the copy/identity concern. Do not conflate them.
   no-fetch invariant ([read-url skill](/plugins/readability/skills/read-url/SKILL.md)) holds because the only network call is
   `curl` issued by the host shell at the skill's instruction.
 - **One author identity** (`v1nvn`) across all four `plugin.json`s.
-- The server README (schema-synced, per project `CLAUDE.md`) moves to `server/README.md`;
+- The server README (schema-synced, per project `CLAUDE.md`) moves to `readability-mcp/README.md`;
   `agentic`'s root README describes the marketplace.
 
 ## Open questions
@@ -218,9 +220,11 @@ lint), not the copy/identity concern. Do not conflate them.
 None remaining — the three below were ratified 2026-08-12:
 
 - **Repo name → `v1nvn/agentic`.** Agent-neutral; not `claude-plugins`.
-- **`docs/design/` moves into `agentic` with the server** (under `server/docs/design/`) —
-  there is no second repo once `readability-mcp` is deleted. The read-url strategy lives in
-  the skill (`plugins/readability/skills/read-url/SKILL.md`), not a separate design doc.
+- **`docs/design/` stays at repo root.** These docs are repo-level (marketplace + collection +
+  migration), not server-specific, so they live at root `docs/design/`, not under
+  `readability-mcp/`. There is no second repo once `readability-mcp` is deleted. The read-url
+  strategy lives in the skill (`plugins/readability/skills/read-url/SKILL.md`), not a separate
+  design doc.
 - **Other harnesses deferred.** Claude Code is the only target for now; codex/opencode/pi
   land later, in their own native packaging. The per-agent directory layout (e.g. an
   `agents/<agent>/` wrapper) is decided when the second agent actually arrives — not
@@ -228,10 +232,10 @@ None remaining — the three below were ratified 2026-08-12:
 
 ## Next steps (when picked up)
 
-1. Create `v1nvn/agentic`. Move the readability server in under `server/` (source, tests,
-   `smithery.yaml`, `Dockerfile`, schema-synced `README.md`, `docs/design/`). Rewire the
-   four server workflows to `working-directory: server`; update `repository.url` +
-   `directory: "server"` (`package.json:32`).
+1. Create `v1nvn/agentic`. Move the readability server in under `readability-mcp/` (source, tests,
+   `smithery.yaml`, `Dockerfile`, schema-synced `README.md`). Rewire the
+   four server workflows to `working-directory: readability-mcp`; update `repository.url` +
+   `directory: "readability-mcp"` (`package.json:32`).
 2. Rebind npm trusted publishing to `v1nvn/agentic` on npmjs.com; push the 10 tags; verify
    a real publish from `agentic` before deleting anything.
 3. Add the collection layer: `shared/bin/last-reply`; root

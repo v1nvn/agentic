@@ -1,0 +1,198 @@
+import type { SanitizationDiagnostics } from '../pipeline/context.js';
+import type { ToolHandle } from '../server.js';
+
+import { toErrorResult } from '../errors.js';
+import { logger } from '../logger.js';
+import { formatPayload } from '../output/format.js';
+import { buildDocument } from '../pipeline/dom.js';
+import {
+  applySelectors,
+  normalizeDocument,
+  resolveLazyImages,
+} from '../pipeline/normalize.js';
+import { sanitizeHtml } from '../pipeline/sanitize.js';
+import { toMarkdown } from '../pipeline/turndown.js';
+import { assembleDiagnostics, TraceCollector } from '../policy/diagnostics.js';
+import { computeTextMetrics, nonEmpty } from '../policy/text.js';
+import { truncateMarkdown } from '../policy/truncate.js';
+import { readHtmlFile } from './html-source.js';
+import { outputSchemaShape } from './output-schema.js';
+import {
+  type HtmlToMarkdownFromHtmlInput,
+  type HtmlToMarkdownInput,
+  htmlToMarkdownInputSchema,
+  htmlToMarkdownInputShape,
+} from './schemas.js';
+
+import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
+
+const EXTRACTED_NODE = 'fragment';
+
+export function htmlToMarkdown(rawArgs: unknown): CallToolResult {
+  const { localPath, ...rest } = htmlToMarkdownInputSchema.parse(rawArgs);
+  return htmlToMarkdownFromHtml({ html: readHtmlFile(localPath), ...rest });
+}
+
+// Schema defaults for callers that pass only a subset of the knobs.
+const DEFAULTS: Omit<HtmlToMarkdownInput, 'localPath'> =
+  htmlToMarkdownInputSchema.parse({ localPath: '' });
+
+export function htmlToMarkdownFromHtml(
+  input: Readonly<HtmlToMarkdownFromHtmlInput>,
+): CallToolResult {
+  const {
+    html,
+    baseUrl,
+    selectors,
+    format,
+    metadataMode,
+    gfm,
+    headingStyle,
+    codeBlockStyle,
+    images,
+    sanitize: shouldSanitize,
+    maxChars,
+    wordsPerMinute,
+    cleanChrome,
+    tables,
+    debug,
+  } = { ...DEFAULTS, ...input };
+
+  const trace = new TraceCollector(debug);
+
+  const { document, window } = buildDocument(html, baseUrl);
+
+  const {
+    documentElementCount,
+    normalizeCounts,
+    imagesResolved,
+    textContent,
+    rawHtml,
+  } = trace.run('normalize', () => {
+    const documentElementCount = document.querySelectorAll('*').length;
+    const normalizeCounts = normalizeDocument(document, { cleanChrome });
+    const imagesResolved = resolveLazyImages(document);
+    applySelectors(document, selectors);
+    const body = document.body;
+    return {
+      documentElementCount,
+      imagesResolved,
+      normalizeCounts,
+      rawHtml: body.innerHTML,
+      textContent: body.textContent,
+    };
+  });
+
+  const { html: sanitizedHtml, counts: sanitizeCounts } = trace.run(
+    'sanitize',
+    (): { counts: SanitizationDiagnostics; html: string } => {
+      if (!shouldSanitize) {
+        return { counts: { iframes: 0, scripts: 0 }, html: rawHtml };
+      }
+      const res = sanitizeHtml(rawHtml, window);
+      return {
+        counts: { iframes: res.iframesRemoved, scripts: res.scriptsRemoved },
+        html: res.html,
+      };
+    },
+  );
+  const markdown = trace.run('turndown', () =>
+    toMarkdown(sanitizedHtml, {
+      codeBlockStyle,
+      gfm,
+      headingStyle,
+      images,
+      tables,
+      baseUrl,
+    }),
+  );
+
+  const { metadata } = trace.run('metadata', () => {
+    const firstHeading = nonEmpty(
+      document.body.querySelector('h1, h2, h3, h4, h5, h6')?.textContent,
+    );
+    const metadata = {
+      title: firstHeading,
+      baseUrl,
+      ...computeTextMetrics(textContent, wordsPerMinute),
+    };
+    return { metadata };
+  });
+
+  const sanitization: SanitizationDiagnostics = {
+    iframes: normalizeCounts.iframes + sanitizeCounts.iframes,
+    scripts: normalizeCounts.scripts + sanitizeCounts.scripts,
+  };
+  const baseDiagnostics = assembleDiagnostics({
+    articleHtml: sanitizedHtml,
+    boilerplateRemoved: normalizeCounts.boilerplateRemoved,
+    chromeRemoved: normalizeCounts.chromeRemoved,
+    documentElementCount,
+    extractedNode: EXTRACTED_NODE,
+    fallbackUsed: true,
+    imagesResolved,
+    sanitization,
+    trace: trace.collect(),
+    truncated: false,
+    window,
+  });
+
+  let payload = formatPayload({
+    diagnostics: baseDiagnostics,
+    format,
+    markdown,
+    metadata,
+    metadataMode,
+    sanitizedHtml,
+    textContent,
+  });
+
+  let truncated = false;
+  if (maxChars !== undefined && (format === 'markdown' || format === 'text')) {
+    const res = truncateMarkdown(payload, maxChars);
+    payload = res.text;
+    truncated = res.truncated;
+  }
+  const diagnostics = truncated
+    ? { ...baseDiagnostics, truncated }
+    : baseDiagnostics;
+
+  return {
+    content: [{ text: payload, type: 'text' }],
+    structuredContent: {
+      schemaVersion: 1,
+      content: payload,
+      metadata,
+      diagnostics,
+    },
+  };
+}
+
+export const HTML_TO_MARKDOWN_TOOL_DESCRIPTION = `Convert an arbitrary HTML fragment to Markdown WITHOUT Readability article extraction (e.g. a snippet already isolated via chrome-devtools). Same Turndown + DOMPurify path as \`extract\`. The server fetches nothing: \`localPath\` is the only source, and \`baseUrl\` (optional) absolutizes relative links.`;
+
+export function htmlToMarkdownHandler(args: unknown): CallToolResult {
+  try {
+    return htmlToMarkdown(args);
+  } catch (err) {
+    logger.error(
+      `html_to_markdown failed: ${
+        err instanceof Error ? err.message : String(err)
+      }`,
+    );
+    return toErrorResult(err);
+  }
+}
+
+export function registerHtmlToMarkdownTool(server: McpServer): ToolHandle {
+  return server.registerTool(
+    'html_to_markdown',
+    {
+      title: 'Convert HTML fragment to Markdown',
+      description: HTML_TO_MARKDOWN_TOOL_DESCRIPTION,
+      inputSchema: htmlToMarkdownInputShape,
+      outputSchema: outputSchemaShape,
+    },
+    htmlToMarkdownHandler,
+  );
+}

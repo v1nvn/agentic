@@ -1,0 +1,64 @@
+name: release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: readability-mcp
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Resolve release tag
+        id: version
+        run: echo "tag=v$(jq -r .version package.json)" >> "$GITHUB_OUTPUT"
+
+      - name: Skip if this version is already released
+        id: check
+        run: |
+          if gh release view "${{ steps.version.outputs.tag }}" >/dev/null 2>&1; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::${{ steps.version.outputs.tag }} already exists; nothing to publish."
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Enable Corepack
+        if: steps.check.outputs.skip == 'false'
+        run: corepack enable
+      - uses: actions/setup-node@v6
+        if: steps.check.outputs.skip == 'false'
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+          cache: yarn
+          cache-dependency-path: readability-mcp/yarn.lock
+      - run: yarn install --immutable
+        if: steps.check.outputs.skip == 'false'
+      - run: yarn build
+        if: steps.check.outputs.skip == 'false'
+
+      - name: Publish to npm via trusted publishing
+        if: steps.check.outputs.skip == 'false'
+        run: yarn npm publish --provenance
+
+      - name: Create GitHub Release
+        if: steps.check.outputs.skip == 'false'
+        uses: ncipollo/release-action@2c591bcc8ecdcd2db72b97d6147f871fcd833ba5
+        with:
+          name: ${{ steps.version.outputs.tag }}
+          tag: ${{ steps.version.outputs.tag }}
+          commit: ${{ github.ref_name }}
+          generateReleaseNotes: true
+          skipIfReleaseExists: true

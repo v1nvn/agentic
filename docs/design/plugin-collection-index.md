@@ -1,6 +1,6 @@
 # Plugin collection migration — progress & handoff
 
-Status: migration not started · Phase 0 in progress · Last updated 2026-08-13
+Status: Phase 1 complete · Last updated 2026-08-13
 
 Tracks the migration of `readability` + `rm`/`md`/`zai` into one repo, `v1nvn/agentic`
 (flattened layout — see [plugin-collection.md](./plugin-collection.md) Decision 2 + its
@@ -18,21 +18,22 @@ tracks *done/todo state* and hands off between sessions. Work one phase per sess
 
 ## Current state
 
-- **Last session (2026-08-13):** wrote root `README.md` (Stripe-style, flattened layout);
-  updated the design doc to the flattened layout (Decision 2 block, revision note, path
-  fixes, Next-steps rewrite); created this index; wrote root `CLAUDE.md` (commits, comments,
-  docs voice, layout, invariants); created the public GitHub repo `v1nvn/agentic`, made the
-  initial commit `chore: scaffold repo`, added root `.gitignore`.
-- **Done:** public GitHub repo `v1nvn/agentic` (https://github.com/v1nvn/agentic), initial
-  commit pushed (`chore: scaffold repo`); `README.md`; `CLAUDE.md`; `.gitignore`;
-  `plugin-collection.md`; this index.
-- **Not started:** server migration, npm rebind, collection layer, CI, teardown.
-- **Active phase:** Phase 0 complete — Phase 1 next.
-- **Next action:** start Phase 1 — move the readability server source from
-  `~/git/readability-mcp/` into `server/` (`src/`, `test/`, `package.json`, configs,
-  `yarn.lock`, `Makefile`), then rewire the four workflows + `Dockerfile` + `smithery.yaml`
-  + `package.json` `repository.url`.
-- **Blockers:** none. (The irreversible step arrives in Phase 2 — see Critical path.)
+- **Last session (2026-08-13):** moved the readability server into `readability-mcp/` (renamed
+  from `server/` — descriptive, no premature `packages/` wrapper, consistent with dropping
+  `agents/`); rewired the four workflows (`working-directory: readability-mcp`,
+  `cache-dependency-path: readability-mcp/yarn.lock`) and `package.json` (`repository.url` →
+  `v1nvn/agentic`, `directory: "readability-mcp"`); verified `yarn install/typecheck/build/test`
+  green (56 files, 495 tests). Dockerfile + smithery.yaml needed no edits (context-relative).
+  Resolved doc-location: design docs stay at repo-root `docs/design/`.
+- **Done:** public repo `v1nvn/agentic` (https://github.com/v1nvn/agentic); `README.md`;
+  `CLAUDE.md`; `.gitignore`; `readability-mcp/` (server — builds + tests green);
+  `.github/workflows/{release,test,bench,readability-versions}.yml`; `plugin-collection.md`; this index.
+- **Not started:** npm rebind, collection layer (plugins + marketplace), CI, teardown.
+- **Active phase:** Phase 1 complete — Phase 2 next.
+- **Next action:** Phase 2 — rebind npm trusted publishing on npmjs.com from
+  `v1nvn/readability-mcp` → `v1nvn/agentic`, push the 10 tags, bump version, verify a real
+  provenance publish from `agentic`.
+- **Blockers:** none. Phase 2 holds the irreversible step (npm OIDC rebind) — see Critical path.
 
 ## Critical path — do not violate
 
@@ -62,7 +63,7 @@ publish gap with no safe recovery.
 
 ## Source locations (verified 2026-08-12 / 2026-08-13)
 
-- **readability server:** `~/git/readability-mcp/` → `agentic/server/`
+- **readability server:** `~/git/readability-mcp/` → `agentic/readability-mcp/`
   - workflows: `.github/workflows/{release,test,bench,readability-versions}.yml`
   - tags (10): v0.2.0, v0.3.0, v0.4.0, v0.5.0, v0.9.0, v0.9.1, v0.9.2, v0.10.0, v0.10.1, v0.10.2
   - `release.yml`: `id-token: write` (L10), skip-if-tag-exists guard (L22-30), `--provenance`
@@ -88,7 +89,7 @@ publish gap with no safe recovery.
 v1nvn/agentic/
   .claude-plugin/marketplace.json     # root manifest; sources point into plugins/
   plugins/{readability,rm,md,zai}/    # each: .claude-plugin/plugin.json + .mcp.json/skills/hooks/commands
-  server/                             # readability MCP server → npm readability-mcp
+  readability-mcp/                  # readability MCP server → npm readability-mcp
   shared/bin/last-reply               # the one shared script
   docs/design/{plugin-collection.md, plugin-collection-index.md}
   README.md
@@ -108,24 +109,24 @@ v1nvn/agentic/
       cruft; `plugins/`, `shared/bin/`, `.github/workflows/` are created when their content
       lands (Phases 1 & 3)
 
-### Phase 1 — Move the readability server into `server/`
+### Phase 1 — Move the readability server into `readability-mcp/`  · done
 
-- [ ] Copy server source into `server/`: `src/`, `test/`, `package.json`, `vite.config.ts`,
+- [x] Copy server source into `readability-mcp/`: `src/`, `test/`, `package.json`, `vite.config.ts`,
       `tsconfig.json`, `eslint.config.js`, `prettier.config.js`, `yarn.lock`, `Makefile`
-- [ ] Move schema-synced `README.md` → `server/README.md`
-- [ ] Move `smithery.yaml` + `Dockerfile` into `server/`; rewire paths to the `server/` build context
-- [ ] Update `server/package.json`: keep `name: readability-mcp`, `files: ["dist"]`,
-      `bin: dist/index.js`; set `repository.url` → `v1nvn/agentic` with `directory: "server"` (was L32)
-- [ ] Move the four workflows to `.github/workflows/`; add `working-directory: server` to every job
-- [ ] Verify `yarn test` + `yarn build` pass from `server/` before any publish wiring
-- [ ] Relocate these design docs (see Open questions first)
+- [x] Move schema-synced `README.md` → `readability-mcp/README.md`
+- [x] Move `smithery.yaml` + `Dockerfile` into `readability-mcp/` — no path edits (context-relative)
+- [x] Update `readability-mcp/package.json`: `repository.url` → `v1nvn/agentic`, `directory: "readability-mcp"`
+- [x] Move the four workflows to `.github/workflows/`; `working-directory: readability-mcp` +
+      `cache-dependency-path: readability-mcp/yarn.lock` per job
+- [x] Verify `yarn install` + `typecheck` + `build` + `test` from `readability-mcp/` (495 tests green)
+- [x] ~~Relocate design docs~~ — resolved: docs stay at repo-root `docs/design/` (repo-level, not server-specific)
 
 ### Phase 2 — Rebind npm publishing  · critical path
 
 - [ ] On npmjs.com, rebind trusted-publishing OIDC: `v1nvn/readability-mcp` → `v1nvn/agentic`
       + the new `release.yml` path (`id-token: write`)
 - [ ] Push the 10 existing tags to `agentic`
-- [ ] Bump `server/package.json` version; trigger `release.yml`; confirm a real provenance publish
+- [ ] Bump `readability-mcp/package.json` version; trigger `release.yml`; confirm a real provenance publish
 - [ ] Smoke-test `npx -y readability-mcp` installs the newly published version
 
 ### Phase 3 — Collection layer + adapters
@@ -158,8 +159,5 @@ v1nvn/agentic/
 
 ## Open questions
 
-- **Doc location.** Decision 2 says `plugin-collection.md` travels under `server/docs/design/`
-  (it originated in the readability-mcp repo). But this index and the design doc describe the
-  *whole* agentic repo — marketplace, collection, migration — not just the server. Consider
-  keeping both at repo-root `docs/design/` instead of moving them under `server/`. Decide
-  before completing the Phase 1 "relocate docs" task.
+None. Doc location resolved 2026-08-13: design docs stay at repo-root `docs/design/` (they're
+repo-level — marketplace + collection + migration — not server-specific). Decision 2 updated.
