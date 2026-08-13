@@ -1,6 +1,6 @@
 # Plugin collection migration — progress & handoff
 
-Status: Phase 1 complete · Last updated 2026-08-13
+Status: Phase 2 complete · Last updated 2026-08-13
 
 Tracks the migration of `readability` + `rm`/`md`/`zai` into one repo, `v1nvn/agentic`
 (flattened layout — see [plugin-collection.md](./plugin-collection.md) Decision 2 + its
@@ -18,38 +18,43 @@ tracks *done/todo state* and hands off between sessions. Work one phase per sess
 
 ## Current state
 
-- **Last session (2026-08-13):** moved the readability server into `readability-mcp/` (renamed
-  from `server/` — descriptive, no premature `packages/` wrapper, consistent with dropping
-  `agents/`); rewired the four workflows (`working-directory: readability-mcp`,
-  `cache-dependency-path: readability-mcp/yarn.lock`) and `package.json` (`repository.url` →
-  `v1nvn/agentic`, `directory: "readability-mcp"`); verified `yarn install/typecheck/build/test`
-  green (56 files, 495 tests). Dockerfile + smithery.yaml needed no edits (context-relative).
-  Resolved doc-location: design docs stay at repo-root `docs/design/`.
+- **This session (2026-08-13):** user rebound npm trusted publishing on npmjs.com from
+  `v1nvn/readability-mcp` → `v1nvn/agentic`. Corrected a plan misread: the release guard is
+  release-based (`gh release view`, release.yml:28), not tag-based — so "push the 10 tags" neither
+  satisfies the guard nor ports faithfully (the tags point at commits absent from `agentic`).
+  Bumped `readability-mcp` 0.10.2 → 0.10.3 and pushed main; `release.yml` published 0.10.3 with
+  SLSA v1 provenance and created GitHub Release v0.10.3; smoke-tested `npx -y
+  readability-mcp@0.10.3` (MCP `initialize` returns `serverInfo.version 0.10.3`). The earlier
+  failed run (31671248063) was OIDC-not-yet-bound (`YN0033`) — now resolved.
 - **Done:** public repo `v1nvn/agentic` (https://github.com/v1nvn/agentic); `README.md`;
-  `CLAUDE.md`; `.gitignore`; `readability-mcp/` (server — builds + tests green);
-  `.github/workflows/{release,test,bench,readability-versions}.yml`; `plugin-collection.md`; this index.
-- **Not started:** npm rebind, collection layer (plugins + marketplace), CI, teardown.
-- **Active phase:** Phase 1 complete — Phase 2 next.
-- **Next action:** Phase 2 — rebind npm trusted publishing on npmjs.com from
-  `v1nvn/readability-mcp` → `v1nvn/agentic`, push the 10 tags, bump version, verify a real
-  provenance publish from `agentic`.
-- **Blockers:** none. Phase 2 holds the irreversible step (npm OIDC rebind) — see Critical path.
+  `CLAUDE.md`; `.gitignore`; `readability-mcp/` (server — builds + tests green, publishes from
+  `agentic`); `.github/workflows/{release,test,bench,readability-versions}.yml`;
+  `plugin-collection.md`; this index. npm `readability-mcp@0.10.3` live with provenance.
+- **Not started:** collection layer (plugins + marketplace), collection CI, teardown.
+- **Active phase:** Phase 2 complete — Phase 3 next.
+- **Next action:** Phase 3 — create `shared/bin/last-reply`, move `rm`/`md`/`zai` into `plugins/`,
+  normalize author to `v1nvn`, build the `readability` plugin + root marketplace manifest.
+- **Blockers:** none. The irreversible npm step is done and verified (see Critical path). The old
+  repo's GitHub Releases (v0.2.0–v0.10.2) are not ported — accepted; they are lost when the
+  `readability-mcp` repo is deleted in Phase 5 (npm artifacts remain).
 
-## Critical path — do not violate
+## Critical path — executed through the publish step
 
-The npm sequence is the one step that can lose the ability to publish. Order is mandatory:
+The npm sequence was the one step that could lose the ability to publish. Steps 1–3 are done;
+only the Phase 5 repo deletion remains, and it is now safe (publish verified).
 
-1. Move the server + rewire workflows (Phase 1).
-2. Rebind npm trusted publishing on npmjs.com from `v1nvn/readability-mcp` → `v1nvn/agentic`
-   (Phase 2). A package has one publish source — this *moves* the ability; the old repo can't
-   publish afterward.
-3. Push the 10 existing tags so the "skip if tag exists" guard (`release.yml:22-30`) holds.
-4. Verify a real provenance publish from `agentic` succeeds.
-5. **Only then** delete the `readability-mcp` GitHub repo (Phase 5). The npm package is
-   unaffected by repo deletion; tags must be pushed first or GitHub Releases are lost.
-
-Deleting too early = old repo can't publish (OIDC moved) and new repo not yet verified = a
-publish gap with no safe recovery.
+1. ✅ Move the server + rewire workflows (Phase 1).
+2. ✅ Rebind npm trusted publishing on npmjs.com from `v1nvn/readability-mcp` → `v1nvn/agentic`
+   (Phase 2). A package has one publish source — this *moved* the ability; the old repo can no
+   longer publish.
+3. ✅ Verify a real provenance publish from `agentic`. Originally "push the 10 tags so the guard
+   holds" — dropped: the guard is `gh release view` (release-based, release.yml:28), not
+   tag-based, and the 10 tags point at commits absent from `agentic`. Bumping to 0.10.3 and
+   publishing fresh is what verified the path. Result: `readability-mcp@0.10.3` live on npm with
+   SLSA v1 provenance, GitHub Release v0.10.3 created, `npx` smoke test passes.
+4. ⏳ Delete the `readability-mcp` GitHub repo (Phase 5) — only now, post-verification. The npm
+   package is unaffected by repo deletion. The old repo's Releases (v0.2.0–v0.10.2) are not
+   ported and will be lost — accepted trade-off; the npm artifacts remain.
 
 ## Invariants to preserve
 
@@ -121,13 +126,18 @@ v1nvn/agentic/
 - [x] Verify `yarn install` + `typecheck` + `build` + `test` from `readability-mcp/` (495 tests green)
 - [x] ~~Relocate design docs~~ — resolved: docs stay at repo-root `docs/design/` (repo-level, not server-specific)
 
-### Phase 2 — Rebind npm publishing  · critical path
+### Phase 2 — Rebind npm publishing  · done
 
-- [ ] On npmjs.com, rebind trusted-publishing OIDC: `v1nvn/readability-mcp` → `v1nvn/agentic`
+- [x] On npmjs.com, rebind trusted-publishing OIDC: `v1nvn/readability-mcp` → `v1nvn/agentic`
       + the new `release.yml` path (`id-token: write`)
-- [ ] Push the 10 existing tags to `agentic`
-- [ ] Bump `readability-mcp/package.json` version; trigger `release.yml`; confirm a real provenance publish
-- [ ] Smoke-test `npx -y readability-mcp` installs the newly published version
+- [x] ~~Push the 10 existing tags to `agentic`~~ — dropped: the release guard is `gh release
+      view` (release-based, release.yml:28), not tag-based, and the 10 tags point at commits
+      absent from `agentic`. Bump-and-publish verified the path instead. Old Releases
+      (v0.2.0–v0.10.2) stay on the `readability-mcp` repo; lost on Phase 5 deletion (accepted).
+- [x] Bump `readability-mcp/package.json` version (0.10.2 → 0.10.3); trigger `release.yml`;
+      confirmed a real provenance publish (SLSA v1) — run 31674960388
+- [x] Smoke-test `npx -y readability-mcp@0.10.3` installs the newly published version (MCP
+      `initialize` returns `serverInfo.version 0.10.3`)
 
 ### Phase 3 — Collection layer + adapters
 
