@@ -1,6 +1,6 @@
 # Plugin collection — one agent-neutral home for readability, rm, md, zai
 
-Status: migration not started · Captured 2026-08-09 · Last researched 2026-08-12
+Status: migration complete · 2026-08-13
 Scope: a **to-be-created** agent-neutral repo — `v1nvn/agentic` (see Decision 1, ratified
 2026-08-12). Claude Code only for now; other harnesses deferred. The readability server
 (source + npm publishing) consolidates into `agentic`; the `readability-mcp` GitHub repo

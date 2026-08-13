@@ -1,6 +1,6 @@
 # Plugin collection migration — progress & handoff
 
-Status: Phase 4 complete · Last updated 2026-08-13
+Status: Migration complete · Last updated 2026-08-13
 
 Tracks the migration of `readability` + `rm`/`md`/`zai` into one repo, `v1nvn/agentic`
 (flattened layout — see [plugin-collection.md](./plugin-collection.md) Decision 2 + its
@@ -18,21 +18,17 @@ tracks *done/todo state* and hands off between sessions. Work one phase per sess
 
 ## Current state
 
-- **This session (2026-08-13):** Phase 4 — collection CI. Added `.github/workflows/build.yml`
-  (manifest validation + the `last-reply` byte-identity check + the skills lint) and
-  `.github/scripts/build-skills.mjs` (frontmatter + referenced-script lint, ported from the
-  `zai-coding-plugins`/context7 reference with its dead branches dropped). Manifest validation
-  uses `claude plugin validate` — confirmed it runs headless (no API key) on the marketplace +
-  all four plugins. Verified locally: all 5 manifests pass; the skills lint passes on the tree
-  and fails on broken frontmatter or a missing `description`; the identity check passes and
-  fails on a drifted `last-reply` copy.
-- **Done:** Phases 0–4. Collection CI lives in `build.yml` + `build-skills.mjs`; npm
-  `readability-mcp@0.10.3` is live with provenance.
-- **Not started:** teardown (Phase 5).
-- **Active phase:** Phase 4 complete — Phase 5 next.
-- **Next action:** Phase 5 — confirm a clean publish + all four plugins install independently,
-  delete the `readability-mcp` GitHub repo (npm package unaffected), flip the design doc Status
-  to "migration complete".
+- **This session (2026-08-13):** Phase 5 — teardown. Deleted the `readability-mcp` GitHub repo
+  (0 stars/forks/issues; npm package unaffected, still `0.10.3`; agentic's v0.10.3 release
+  intact). The 10 old releases (v0.2.0–v0.10.2) went with the repo — the accepted trade-off.
+  Flipped the design doc Status to "migration complete".
+- **Done:** Phases 0–5. Migration complete. One repo (`v1nvn/agentic`), four plugins, one
+  marketplace, collection CI (`build.yml` + `build-skills.mjs`), `readability-mcp@0.10.3` live
+  with provenance.
+- **Not started:** nothing — the public collection design is fully done. The `TODO.md`
+  "consistency in versioning" thread stays parked until taken up separately.
+- **Active phase:** none (Phase 5 complete).
+- **Next action:** none from this doc.
 - **Blockers:** none. The legacy `read_url` MCP prompt was already retired in the old repo
   (`38ace8d fix: read url skill` deleted `src/prompts.ts` before the copy) — the read-url skill
   replaces it; nothing to retire here. The user's legacy `~/.claude/skills/{rm,md,zai}`
@@ -41,8 +37,8 @@ tracks *done/todo state* and hands off between sessions. Work one phase per sess
 
 ## Critical path — executed through the publish step
 
-The npm sequence was the one step that could lose the ability to publish. Steps 1–3 are done;
-only the Phase 5 repo deletion remains, and it is now safe (publish verified).
+The npm sequence was the one step that could lose the ability to publish. All four steps are
+done; the migration is complete.
 
 1. ✅ Move the server + rewire workflows (Phase 1).
 2. ✅ Rebind npm trusted publishing on npmjs.com from `v1nvn/readability-mcp` → `v1nvn/agentic`
@@ -53,9 +49,10 @@ only the Phase 5 repo deletion remains, and it is now safe (publish verified).
    tag-based, and the 10 tags point at commits absent from `agentic`. Bumping to 0.10.3 and
    publishing fresh is what verified the path. Result: `readability-mcp@0.10.3` live on npm with
    SLSA v1 provenance, GitHub Release v0.10.3 created, `npx` smoke test passes.
-4. ⏳ Delete the `readability-mcp` GitHub repo (Phase 5) — only now, post-verification. The npm
-   package is unaffected by repo deletion. The old repo's Releases (v0.2.0–v0.10.2) are not
-   ported and will be lost — accepted trade-off; the npm artifacts remain.
+4. ✅ Delete the `readability-mcp` GitHub repo (Phase 5) — done post-verification. The npm
+   package is unaffected by repo deletion (still `0.10.3`). The old repo's Releases
+   (v0.2.0–v0.10.2) were not ported and are lost with it — accepted trade-off; the npm artifacts
+   remain.
 
 ## Invariants to preserve
 
@@ -166,11 +163,12 @@ v1nvn/agentic/
 - [x] Add `build-skills.mjs` lint gate: walk `SKILL.md`, `node --check` referenced scripts
       (kept separate from the identity check)
 
-### Phase 5 — Teardown  · only after a clean publish
+### Phase 5 — Teardown  · done
 
-- [ ] Confirm `agentic` publishes cleanly and all four plugins install independently
-- [ ] Delete the `readability-mcp` GitHub repo (npm package unaffected; tags from Phase 2 preserve Releases)
-- [ ] Update the design doc Status line → "migration complete"
+- [x] Confirm `agentic` publishes cleanly and all four plugins install independently
+- [x] Delete the `readability-mcp` GitHub repo (npm package unaffected, still `0.10.3`; the 10
+      old releases v0.2.0–v0.10.2 were not ported and are lost with it)
+- [x] Update the design doc Status line → "migration complete"
 
 ## Open questions
 
