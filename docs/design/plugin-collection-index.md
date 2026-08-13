@@ -1,6 +1,6 @@
 # Plugin collection migration — progress & handoff
 
-Status: Phase 3 complete · Last updated 2026-08-13
+Status: Phase 4 complete · Last updated 2026-08-13
 
 Tracks the migration of `readability` + `rm`/`md`/`zai` into one repo, `v1nvn/agentic`
 (flattened layout — see [plugin-collection.md](./plugin-collection.md) Decision 2 + its
@@ -18,27 +18,21 @@ tracks *done/todo state* and hands off between sessions. Work one phase per sess
 
 ## Current state
 
-- **This session (2026-08-13):** built the collection layer. Created `shared/bin/last-reply`
-  (merged the rm + md copies — md's richer docstring minus the plugin-specific pipe line; body
-  byte-identical) and synced it into `plugins/{rm,md}/bin/`. Moved `rm`/`md`/`zai` into `plugins/`
-  verbatim from their source repos. Normalized author to `v1nvn` / `v1n@outlook.com` across all
-  four `plugin.json`s (rm + md were `"Vineet"`; zai already correct; readability new). Built the
-  `readability` plugin: `plugin.json` (v0.10.3, tracking the server) + `.mcp.json`
-  (`npx -y readability-mcp`) + `skills/read-url/SKILL.md` (copied from the old repo). Created root
-  `.claude-plugin/marketplace.json` (4 plugins, sources `./plugins/<name>`, modeled on
-  `zai-coding-plugins`). Verified: all 5 manifests pass `claude plugin validate`; all 4 plugins
-  install independently from a local `marketplace add` (`claude plugin details` confirms
-  readability = read-url skill + readability MCP server; rm/md/zai = command + zero-token
-  UserPromptExpansion hook); zai `format.test.mjs` PASS; every shell script `bash -n` clean;
-  `last-reply` byte-identical across shared + rm + md. Reverted the verification install
-  (uninstalled all 4 + removed the local marketplace) so the environment is unchanged.
-- **Done:** everything in Phase 2 + the collection layer (`shared/bin/last-reply`,
-  `plugins/{readability,rm,md,zai}/`, `.claude-plugin/marketplace.json`). npm
-  `readability-mcp@0.10.3` live with provenance.
-- **Not started:** collection CI (Phase 4), teardown (Phase 5).
-- **Active phase:** Phase 3 complete — Phase 4 next.
-- **Next action:** Phase 4 — add `.github/workflows/build.yml` (manifest validation + the
-  `last-reply` byte-identity check) and the `build-skills.mjs` lint gate.
+- **This session (2026-08-13):** Phase 4 — collection CI. Added `.github/workflows/build.yml`
+  (manifest validation + the `last-reply` byte-identity check + the skills lint) and
+  `.github/scripts/build-skills.mjs` (frontmatter + referenced-script lint, ported from the
+  `zai-coding-plugins`/context7 reference with its dead branches dropped). Manifest validation
+  uses `claude plugin validate` — confirmed it runs headless (no API key) on the marketplace +
+  all four plugins. Verified locally: all 5 manifests pass; the skills lint passes on the tree
+  and fails on broken frontmatter or a missing `description`; the identity check passes and
+  fails on a drifted `last-reply` copy.
+- **Done:** Phases 0–4. Collection CI lives in `build.yml` + `build-skills.mjs`; npm
+  `readability-mcp@0.10.3` is live with provenance.
+- **Not started:** teardown (Phase 5).
+- **Active phase:** Phase 4 complete — Phase 5 next.
+- **Next action:** Phase 5 — confirm a clean publish + all four plugins install independently,
+  delete the `readability-mcp` GitHub repo (npm package unaffected), flip the design doc Status
+  to "migration complete".
 - **Blockers:** none. The legacy `read_url` MCP prompt was already retired in the old repo
   (`38ace8d fix: read url skill` deleted `src/prompts.ts` before the copy) — the read-url skill
   replaces it; nothing to retire here. The user's legacy `~/.claude/skills/{rm,md,zai}`
@@ -165,11 +159,11 @@ v1nvn/agentic/
       — `claude plugin validate` passes on all 5 manifests; all 4 install + `details` resolves
       components; reverted after verifying
 
-### Phase 4 — Collection CI
+### Phase 4 — Collection CI  · done
 
-- [ ] Add `.github/workflows/build.yml`: validate plugin/marketplace manifests + identity-check
+- [x] Add `.github/workflows/build.yml`: validate plugin/marketplace manifests + identity-check
       that every plugin's `bin/last-reply` is byte-identical to `shared/bin/last-reply`
-- [ ] Add `build-skills.mjs` lint gate: walk `SKILL.md`, `node --check` referenced scripts
+- [x] Add `build-skills.mjs` lint gate: walk `SKILL.md`, `node --check` referenced scripts
       (kept separate from the identity check)
 
 ### Phase 5 — Teardown  · only after a clean publish

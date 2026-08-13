@@ -1,0 +1,40 @@
+name: build
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Install Claude Code CLI
+        run: npm install -g @anthropic-ai/claude-code
+      - name: Validate plugin + marketplace manifests
+        run: |
+          claude plugin validate .claude-plugin/marketplace.json
+          for p in readability rm md zai; do
+            claude plugin validate "plugins/$p/.claude-plugin/plugin.json"
+          done
+      - name: Check shared scripts stay in sync
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          status=0
+          for copy in plugins/*/bin/last-reply; do
+            if ! cmp -s shared/bin/last-reply "$copy"; then
+              echo "::error::$copy differs from shared/bin/last-reply — re-sync from the shared source"
+              status=1
+            fi
+          done
+          exit "$status"
+      - name: Lint skills
+        run: node .github/scripts/build-skills.mjs
