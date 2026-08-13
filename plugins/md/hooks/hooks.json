@@ -1,0 +1,17 @@
+{
+  "description": "Zero-token send of the last reply to the Markdown-Viewer",
+  "hooks": {
+    "UserPromptExpansion": [
+      {
+        "matcher": "^md:send$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/send-to-md.sh",
+            "args": []
+          }
+        ]
+      }
+    ]
+  }
+}

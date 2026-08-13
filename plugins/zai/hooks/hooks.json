@@ -1,0 +1,17 @@
+{
+  "description": "Zero-token usage query for GLM Coding Plan",
+  "hooks": {
+    "UserPromptExpansion": [
+      {
+        "matcher": "^zai:usage$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/usage.sh",
+            "args": []
+          }
+        ]
+      }
+    ]
+  }
+}

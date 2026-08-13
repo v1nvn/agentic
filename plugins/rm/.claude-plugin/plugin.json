@@ -1,0 +1,6 @@
+{
+  "name": "rm",
+  "version": "0.1.0",
+  "description": "Beam the last Claude reply to the reMarkable as EPUB — zero-token /rm:send.",
+  "author": { "name": "v1nvn", "email": "v1n@outlook.com" }
+}

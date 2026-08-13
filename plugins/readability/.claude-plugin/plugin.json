@@ -1,0 +1,6 @@
+{
+  "name": "readability",
+  "version": "0.10.3",
+  "description": "Read a live URL to clean Markdown via the readability MCP server — the host shell fetches with curl, the server never touches the network.",
+  "author": { "name": "v1nvn", "email": "v1n@outlook.com" }
+}

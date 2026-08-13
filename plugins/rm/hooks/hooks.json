@@ -1,0 +1,17 @@
+{
+  "description": "Zero-token beam of the last reply to the reMarkable",
+  "hooks": {
+    "UserPromptExpansion": [
+      {
+        "matcher": "^rm:send$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/send-to-remarkable.sh",
+            "args": []
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# Emit the last assistant text reply from a Claude Code session, reproducing
+# Claude Code's `/copy` byte-for-byte (verified):
+#   - the last assistant JSONL entry that contains a `text` block
+#   - only the `text` block(s); tool_use / thinking are dropped
+#   - text blocks joined with a blank line; NO trailing newline
+#
+# Usage:
+#   last-reply               # newest session for the current project (= live session)
+#   last-reply <session-id>  # a specific session UUID
+#   last-reply <path.jsonl>  # an explicit transcript file
+set -euo pipefail
+
+CLAUDE_DIR="${CLAUDE_DIR:-$HOME/.claude}"
+
+# Claude Code keys transcripts under the project root with "/" → "-".
+# Prefer $CLAUDE_PROJECT_DIR (exported to hook processes) over $PWD.
+proj="$(printf '%s' "${CLAUDE_PROJECT_DIR:-$PWD}" | tr '/' '-')"
+proj_dir="$CLAUDE_DIR/projects/$proj"
+
+if [[ $# -ge 1 ]]; then
+    # Explicit transcript file (e.g. from a hook's transcript_path),
+    # else a session UUID under the project dir.
+    if [[ -f "$1" ]]; then file="$1"; else file="$proj_dir/$1.jsonl"; fi
+else
+    file="$(ls -t "$proj_dir"/*.jsonl 2>/dev/null | head -n 1 || true)"
+fi
+
+if [[ -z "${file:-}" || ! -f "$file" ]]; then
+    echo "no session transcript found in $proj_dir" >&2
+    exit 1
+fi
+
+jq -rc 'select(.type=="assistant" and (.message.content|type=="array") and (.message.content|any(.type=="text")))' "$file" \
+    | tail -n 1 \
+    | jq -j '.message.content | map(select(.type=="text").text) | join("\n\n")'

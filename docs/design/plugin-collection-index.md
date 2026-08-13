@@ -1,6 +1,6 @@
 # Plugin collection migration — progress & handoff
 
-Status: Phase 2 complete · Last updated 2026-08-13
+Status: Phase 3 complete · Last updated 2026-08-13
 
 Tracks the migration of `readability` + `rm`/`md`/`zai` into one repo, `v1nvn/agentic`
 (flattened layout — see [plugin-collection.md](./plugin-collection.md) Decision 2 + its
@@ -18,25 +18,32 @@ tracks *done/todo state* and hands off between sessions. Work one phase per sess
 
 ## Current state
 
-- **This session (2026-08-13):** user rebound npm trusted publishing on npmjs.com from
-  `v1nvn/readability-mcp` → `v1nvn/agentic`. Corrected a plan misread: the release guard is
-  release-based (`gh release view`, release.yml:28), not tag-based — so "push the 10 tags" neither
-  satisfies the guard nor ports faithfully (the tags point at commits absent from `agentic`).
-  Bumped `readability-mcp` 0.10.2 → 0.10.3 and pushed main; `release.yml` published 0.10.3 with
-  SLSA v1 provenance and created GitHub Release v0.10.3; smoke-tested `npx -y
-  readability-mcp@0.10.3` (MCP `initialize` returns `serverInfo.version 0.10.3`). The earlier
-  failed run (31671248063) was OIDC-not-yet-bound (`YN0033`) — now resolved.
-- **Done:** public repo `v1nvn/agentic` (https://github.com/v1nvn/agentic); `README.md`;
-  `CLAUDE.md`; `.gitignore`; `readability-mcp/` (server — builds + tests green, publishes from
-  `agentic`); `.github/workflows/{release,test,bench,readability-versions}.yml`;
-  `plugin-collection.md`; this index. npm `readability-mcp@0.10.3` live with provenance.
-- **Not started:** collection layer (plugins + marketplace), collection CI, teardown.
-- **Active phase:** Phase 2 complete — Phase 3 next.
-- **Next action:** Phase 3 — create `shared/bin/last-reply`, move `rm`/`md`/`zai` into `plugins/`,
-  normalize author to `v1nvn`, build the `readability` plugin + root marketplace manifest.
-- **Blockers:** none. The irreversible npm step is done and verified (see Critical path). The old
-  repo's GitHub Releases (v0.2.0–v0.10.2) are not ported — accepted; they are lost when the
-  `readability-mcp` repo is deleted in Phase 5 (npm artifacts remain).
+- **This session (2026-08-13):** built the collection layer. Created `shared/bin/last-reply`
+  (merged the rm + md copies — md's richer docstring minus the plugin-specific pipe line; body
+  byte-identical) and synced it into `plugins/{rm,md}/bin/`. Moved `rm`/`md`/`zai` into `plugins/`
+  verbatim from their source repos. Normalized author to `v1nvn` / `v1n@outlook.com` across all
+  four `plugin.json`s (rm + md were `"Vineet"`; zai already correct; readability new). Built the
+  `readability` plugin: `plugin.json` (v0.10.3, tracking the server) + `.mcp.json`
+  (`npx -y readability-mcp`) + `skills/read-url/SKILL.md` (copied from the old repo). Created root
+  `.claude-plugin/marketplace.json` (4 plugins, sources `./plugins/<name>`, modeled on
+  `zai-coding-plugins`). Verified: all 5 manifests pass `claude plugin validate`; all 4 plugins
+  install independently from a local `marketplace add` (`claude plugin details` confirms
+  readability = read-url skill + readability MCP server; rm/md/zai = command + zero-token
+  UserPromptExpansion hook); zai `format.test.mjs` PASS; every shell script `bash -n` clean;
+  `last-reply` byte-identical across shared + rm + md. Reverted the verification install
+  (uninstalled all 4 + removed the local marketplace) so the environment is unchanged.
+- **Done:** everything in Phase 2 + the collection layer (`shared/bin/last-reply`,
+  `plugins/{readability,rm,md,zai}/`, `.claude-plugin/marketplace.json`). npm
+  `readability-mcp@0.10.3` live with provenance.
+- **Not started:** collection CI (Phase 4), teardown (Phase 5).
+- **Active phase:** Phase 3 complete — Phase 4 next.
+- **Next action:** Phase 4 — add `.github/workflows/build.yml` (manifest validation + the
+  `last-reply` byte-identity check) and the `build-skills.mjs` lint gate.
+- **Blockers:** none. The legacy `read_url` MCP prompt was already retired in the old repo
+  (`38ace8d fix: read url skill` deleted `src/prompts.ts` before the copy) — the read-url skill
+  replaces it; nothing to retire here. The user's legacy `~/.claude/skills/{rm,md,zai}`
+  (`@skills-dir`) still provide duplicate `rm:send`/`md:send`/`zai:usage`; removing them is the
+  user's cutover call, not a migration step.
 
 ## Critical path — executed through the publish step
 
@@ -139,20 +146,24 @@ v1nvn/agentic/
 - [x] Smoke-test `npx -y readability-mcp@0.10.3` installs the newly published version (MCP
       `initialize` returns `serverInfo.version 0.10.3`)
 
-### Phase 3 — Collection layer + adapters
+### Phase 3 — Collection layer + adapters  · done
 
-- [ ] Create `shared/bin/last-reply` (dedupe the rm + md copies)
-- [ ] Move `rm` → `plugins/rm/`; drop in the shared `bin/last-reply`
-- [ ] Move `md` → `plugins/md/`; drop in the shared `bin/last-reply`
-- [ ] Move `zai` → `plugins/zai/` (no `last-reply`)
-- [ ] Normalize author to `v1nvn` / `v1n@outlook.com` across all four `plugin.json`s
-- [ ] Create root `.claude-plugin/marketplace.json` (4 plugins, `source: ./plugins/<name>`)
-- [ ] Build the `readability` plugin at `plugins/readability/`: `.mcp.json`
+- [x] Create `shared/bin/last-reply` (dedupe the rm + md copies)
+- [x] Move `rm` → `plugins/rm/`; drop in the shared `bin/last-reply`
+- [x] Move `md` → `plugins/md/`; drop in the shared `bin/last-reply`
+- [x] Move `zai` → `plugins/zai/` (no `last-reply`)
+- [x] Normalize author to `v1nvn` / `v1n@outlook.com` across all four `plugin.json`s
+- [x] Create root `.claude-plugin/marketplace.json` (4 plugins, `source: ./plugins/<name>`)
+- [x] Build the `readability` plugin at `plugins/readability/`: `.mcp.json`
       (`npx -y readability-mcp`) + `skills/read-url/SKILL.md`
-- [ ] Retire the legacy `read_url` MCP prompt (the skill replaces it)
-- [ ] Confirm each hook's `bin` fallback resolves source-or-installed:
-      `${CLAUDE_PLUGIN_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}/bin`
-- [ ] Locally verify all four plugins install independently (`marketplace add` + `install <name>`)
+- [x] Retire the legacy `read_url` MCP prompt (the skill replaces it) — already done in the old
+      repo (`38ace8d` deleted `src/prompts.ts` before the copy); nothing to retire here
+- [x] Confirm each hook's `bin` fallback resolves source-or-installed:
+      `${CLAUDE_PLUGIN_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}/bin` — present in all three
+      hook `.sh` files
+- [x] Locally verify all four plugins install independently (`marketplace add` + `install <name>`)
+      — `claude plugin validate` passes on all 5 manifests; all 4 install + `details` resolves
+      components; reverted after verifying
 
 ### Phase 4 — Collection CI
 

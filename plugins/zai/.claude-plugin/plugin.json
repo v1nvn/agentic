@@ -1,0 +1,9 @@
+{
+  "name": "zai",
+  "description": "Query quota and usage statistics for GLM Coding Plan — zero-token via UserPromptExpansion hook",
+  "version": "0.0.2",
+  "author": {
+    "name": "v1nvn",
+    "email": "v1n@outlook.com"
+  }
+}

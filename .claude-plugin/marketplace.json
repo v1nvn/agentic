@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "agentic",
+  "version": "0.1.0",
+  "description": "Four independent Claude Code plugins — readability (MCP server), rm (reMarkable), md (Markdown-Viewer), zai (GLM usage).",
+  "owner": {
+    "name": "v1nvn",
+    "email": "v1n@outlook.com"
+  },
+  "plugins": [
+    {
+      "name": "readability",
+      "source": "./plugins/readability",
+      "category": "development",
+      "description": "Read a live URL to clean Markdown via the readability MCP server."
+    },
+    {
+      "name": "rm",
+      "source": "./plugins/rm",
+      "category": "productivity",
+      "description": "Beam the last reply to a reMarkable as EPUB."
+    },
+    {
+      "name": "md",
+      "source": "./plugins/md",
+      "category": "productivity",
+      "description": "Send the last reply to a Markdown-Viewer as a #share= URL."
+    },
+    {
+      "name": "zai",
+      "source": "./plugins/zai",
+      "category": "productivity",
+      "description": "Query GLM Coding Plan quota and usage."
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# Beam the last Claude reply (or a given Markdown file) to the reMarkable.
+# Designed for Claude Code's `!` prefix so it runs client-side with NO model tokens:
+#
+#   !rm-send              # last agent reply (reproduces /copy) → device
+#   !rm-send path.md      # a specific Markdown file → device
+set -euo pipefail
+dir="$(cd "$(dirname "$0")" && pwd)"
+
+if [[ $# -ge 1 ]]; then
+    exec "$dir/send-to-remarkable" "$1"
+else
+    "$dir/last-reply" | "$dir/send-to-remarkable" -
+fi

@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+# Send the last Claude reply (or a given Markdown file) to the self-hosted
+# Markdown-Viewer as a #share= URL — opens it in the browser and copies the URL.
+# Designed for Claude Code's `!` prefix so it runs client-side with NO model tokens:
+#
+#   !md-send              # last agent reply (reproduces /copy) → viewer
+#   !md-send path.md      # a specific Markdown file → viewer
+#   !md-send -            # from stdin (used by the /md:send hook pipeline)
+#
+# Env knobs: MD_VIEWER_URL (default: https://md.v1n.space), MD_NO_OPEN=1 (skip browser).
+#
+# NOTE: the viewer takes the ENTIRE hash after `#share=` as the base64url token — it
+# does NOT split on `&`, so the URL carries content only. There is no title channel;
+# appending `&title=` (or any param) corrupts the token and the link fails to decode.
+set -euo pipefail
+dir="$(cd "$(dirname "$0")" && pwd)"
+
+BASE="${MD_VIEWER_URL:-https://md.v1n.space}"
+BASE="${BASE%/}"   # tolerate a trailing slash in the override
+
+tmp="$(mktemp -t md-XXXX).md"
+trap 'rm -f "$tmp"' EXIT
+
+if [[ $# -ge 1 && "$1" != "-" ]]; then
+    [[ -f "$1" ]] || { echo "no such file: $1" >&2; exit 1; }
+    cp "$1" "$tmp"
+elif [[ $# -ge 1 && "$1" == "-" ]]; then
+    cat > "$tmp"
+else
+    "$dir/last-reply" > "$tmp"
+fi
+
+token="$("$dir/encode-share" "$tmp")"
+url="${BASE}/#share=${token}"
+
+# Copy the link silently (useful for sharing), then open the viewer.
+copied=0
+if command -v pbcopy >/dev/null 2>&1; then
+    if printf '%s' "$url" | pbcopy; then copied=1; fi
+fi
+
+opened=0
+if [[ -z "${MD_NO_OPEN:-}" ]] && command -v open >/dev/null 2>&1; then
+    if open "$url"; then opened=1; fi
+fi
+
+# Concise status — the URL itself is never printed.
+if [[ $opened -eq 1 && $copied -eq 1 ]]; then
+    echo "Opened in Markdown-Viewer (link copied)."
+elif [[ $opened -eq 1 ]]; then
+    echo "Opened in Markdown-Viewer."
+elif [[ $copied -eq 1 ]]; then
+    echo "Markdown-Viewer link copied to clipboard."
+else
+    echo "Markdown-Viewer link ready."
+fi
