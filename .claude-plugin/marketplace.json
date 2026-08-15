@@ -1,8 +1,8 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
   "name": "agentic",
-  "version": "0.1.0",
-  "description": "Four independent Claude Code plugins — readability (MCP server), rm (reMarkable), md (Markdown-Viewer), zai (GLM usage).",
+  "version": "0.2.0",
+  "description": "Five independent Claude Code plugins — readability (MCP server), rm (reMarkable), md (Markdown-Viewer), zai (GLM usage), tokens (local token usage).",
   "owner": {
     "name": "v1nvn",
     "email": "v1n@outlook.com"
@@ -31,6 +31,12 @@
       "source": "./plugins/zai",
       "category": "productivity",
       "description": "Query GLM Coding Plan quota and usage."
+    },
+    {
+      "name": "tokens",
+      "source": "./plugins/tokens",
+      "category": "productivity",
+      "description": "Per-model token usage and cache hit rate from local transcripts."
     }
   ]
 }

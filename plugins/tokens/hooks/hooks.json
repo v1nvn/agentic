@@ -1,0 +1,17 @@
+{
+  "description": "Zero-token token-usage report from local transcripts",
+  "hooks": {
+    "UserPromptExpansion": [
+      {
+        "matcher": "^tokens:usage$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/report.sh",
+            "args": []
+          }
+        ]
+      }
+    ]
+  }
+}

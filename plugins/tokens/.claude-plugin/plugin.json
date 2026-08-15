@@ -1,0 +1,9 @@
+{
+  "name": "tokens",
+  "description": "Per-model token usage and cache hit rate from local session transcripts — zero-token via UserPromptExpansion hook",
+  "version": "0.0.1",
+  "author": {
+    "name": "v1nvn",
+    "email": "v1n@outlook.com"
+  }
+}
