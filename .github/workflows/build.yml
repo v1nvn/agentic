@@ -21,7 +21,7 @@ jobs:
       - name: Validate plugin + marketplace manifests
         run: |
           claude plugin validate .claude-plugin/marketplace.json
-          for p in readability rm md zai; do
+          for p in readability rm md zai tokens; do
             claude plugin validate "plugins/$p/.claude-plugin/plugin.json"
           done
       - name: Check shared scripts stay in sync
@@ -29,12 +29,16 @@ jobs:
           set -euo pipefail
           shopt -s nullglob
           status=0
-          for copy in plugins/*/bin/last-reply; do
-            if ! cmp -s shared/bin/last-reply "$copy"; then
-              echo "::error::$copy differs from shared/bin/last-reply — re-sync from the shared source"
-              status=1
-            fi
-          done
+          check() {
+            for copy in $1; do
+              if ! cmp -s "$2" "$copy"; then
+                echo "::error::$copy differs from $2 — re-sync from the shared source"
+                status=1
+              fi
+            done
+          }
+          check 'plugins/*/bin/last-reply' shared/bin/last-reply
+          check 'plugins/*/bin/text-format.mjs' shared/bin/text-format.mjs
           exit "$status"
       - name: Lint skills
         run: node .github/scripts/build-skills.mjs
