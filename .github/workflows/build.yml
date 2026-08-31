@@ -21,8 +21,21 @@ jobs:
       - name: Validate plugin + marketplace manifests
         run: |
           claude plugin validate .claude-plugin/marketplace.json
-          for p in readability rm md zai tokens; do
+          for p in readability omlx rm md zai tokens; do
             claude plugin validate "plugins/$p/.claude-plugin/plugin.json"
+          done
+      - name: Check package versions ride the repo version
+        run: |
+          set -euo pipefail
+          repo="$(jq -r .version .claude-plugin/marketplace.json)"
+          for f in readability-mcp/package.json omlx-mcp/package.json \
+                   plugins/readability/.claude-plugin/plugin.json \
+                   plugins/omlx/.claude-plugin/plugin.json; do
+            v="$(jq -r .version "$f")"
+            if [ "$v" != "$repo" ]; then
+              echo "::error::$f version $v does not ride the repo version $repo"
+              exit 1
+            fi
           done
       - name: Check shared scripts stay in sync
         run: |
