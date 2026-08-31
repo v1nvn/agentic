@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "omlx": {
+      "command": "npx",
+      "args": ["-y", "omlx-mcp"]
+    }
+  }
+}

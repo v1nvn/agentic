@@ -2,7 +2,7 @@
   "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
   "name": "agentic",
   "version": "0.2.0",
-  "description": "Five independent Claude Code plugins — readability (MCP server), rm (reMarkable), md (Markdown-Viewer), zai (GLM usage), tokens (local token usage).",
+  "description": "Six independent Claude Code plugins — readability (MCP server), omlx (local inference MCP server), rm (reMarkable), md (Markdown-Viewer), zai (GLM usage), tokens (local token usage).",
   "owner": {
     "name": "v1nvn",
     "email": "v1n@outlook.com"
@@ -13,6 +13,12 @@
       "source": "./plugins/readability",
       "category": "development",
       "description": "Read a live URL to clean Markdown via the readability MCP server."
+    },
+    {
+      "name": "omlx",
+      "source": "./plugins/omlx",
+      "category": "development",
+      "description": "Delegate bulk work to a local omlx inference server."
     },
     {
       "name": "rm",
