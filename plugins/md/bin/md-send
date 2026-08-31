@@ -9,9 +9,9 @@
 #
 # Env knobs: MD_VIEWER_URL (default: https://md.v1n.space), MD_NO_OPEN=1 (skip browser).
 #
-# NOTE: the viewer takes the ENTIRE hash after `#share=` as the base64url token — it
-# does NOT split on `&`, so the URL carries content only. There is no title channel;
-# appending `&title=` (or any param) corrupts the token and the link fails to decode.
+# The viewer splits the hash on the first `&`: `#share=<token>&edit=1&title=...`.
+# Without `edit=1` it opens the snapshot read-only — preview pane only, with edit
+# and split disabled. (Markdown-Viewer script.js: loadFromShareHash)
 set -euo pipefail
 dir="$(cd "$(dirname "$0")" && pwd)"
 
@@ -31,7 +31,7 @@ else
 fi
 
 token="$("$dir/encode-share" "$tmp")"
-url="${BASE}/#share=${token}"
+url="${BASE}/#share=${token}&edit=1"
 
 # Copy the link silently (useful for sharing), then open the viewer.
 copied=0
