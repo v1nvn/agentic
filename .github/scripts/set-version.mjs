@@ -1,14 +1,19 @@
 #!/usr/bin/env node
 // The repo version lives in .claude-plugin/marketplace.json and every package
-// and plugin manifest mirrors it (lockstep release train — release.yml
-// publishes every package on it). One command bumps all nine; CI runs --check
-// so a missed mirror fails the build.
+// manifest, plugin manifest, and npx pin mirrors it (lockstep release train —
+// release.yml publishes every package on it). One command bumps all of them;
+// CI runs --check so a missed mirror or stale pin fails the build.
 import { readFileSync, writeFileSync } from 'node:fs';
 
 const SOURCE = '.claude-plugin/marketplace.json';
 const MIRRORS = [
   'packages/readability-mcp/package.json',
   'packages/omlx-mcp/package.json',
+  'packages/core/package.json',
+  'packages/zai/package.json',
+  'packages/tokens/package.json',
+  'packages/rm/package.json',
+  'packages/md/package.json',
   'plugins/readability/.claude-plugin/plugin.json',
   'plugins/omlx/.claude-plugin/plugin.json',
   'plugins/rm/.claude-plugin/plugin.json',
@@ -17,10 +22,22 @@ const MIRRORS = [
   'plugins/tokens/.claude-plugin/plugin.json',
 ];
 
+// Plugin configs invoke the published bins via npx; every @v1nvn/<pkg>@<version>
+// pin must ride the train with everything else.
+const PINNED_CONFIGS = [
+  'plugins/readability/.mcp.json',
+  'plugins/omlx/.mcp.json',
+  'plugins/rm/hooks/hooks.json',
+  'plugins/md/hooks/hooks.json',
+  'plugins/zai/hooks/hooks.json',
+  'plugins/tokens/hooks/hooks.json',
+];
+
 // Replace the single "version" key without reflowing the rest of the file —
 // these manifests are hand-formatted (literal em-dashes, one-line objects),
 // and a JSON round-trip would churn every line.
 const VERSION_KEY = /"version"\s*:\s*"[^"]*"/;
+const PIN = /(@v1nvn\/[a-z0-9-]+)@\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?/g;
 const SEMVER = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/;
 
 function fail(messages) {
@@ -50,12 +67,37 @@ function writeVersion(path, version) {
   writeFileSync(path, updated);
 }
 
+function pinDrift(path, version) {
+  const contents = readFileSync(path, 'utf8');
+  const pins = contents.match(PIN) ?? [];
+  if (pins.length === 0) {
+    return `${path}: no @v1nvn/<pkg>@<version> pin found`;
+  }
+  const stale = pins.filter(pin => !pin.endsWith(`@${version}`));
+  if (stale.length > 0) {
+    return `${path}: pin ${stale[0]} != repo version ${version}`;
+  }
+  return null;
+}
+
+function rewritePins(path, version) {
+  const updated = readFileSync(path, 'utf8').replace(PIN, `$1@${version}`);
+  JSON.parse(updated); // the edit must leave valid JSON
+  writeFileSync(path, updated);
+}
+
 const check = process.argv[2] === '--check';
 if (check) {
   const repo = readVersion(SOURCE);
-  const drifted = MIRRORS.filter(path => readVersion(path) !== repo);
-  if (drifted.length > 0) {
-    fail(drifted.map(path => `${path}: ${readVersion(path)} != repo version ${repo}`));
+  const messages = MIRRORS.filter(path => readVersion(path) !== repo).map(
+    path => `${path}: ${readVersion(path)} != repo version ${repo}`,
+  );
+  for (const path of PINNED_CONFIGS) {
+    messages.push(pinDrift(path, repo));
+  }
+  const errors = messages.filter(Boolean);
+  if (errors.length > 0) {
+    fail(errors);
   }
   console.log(`all versions consistent at ${repo}`);
   process.exit(0);
@@ -68,4 +110,9 @@ if (!SEMVER.test(version ?? '')) {
 for (const path of [SOURCE, ...MIRRORS]) {
   writeVersion(path, version);
 }
-console.log(`${[SOURCE, ...MIRRORS].length} manifests now at ${version}`);
+for (const path of PINNED_CONFIGS) {
+  rewritePins(path, version);
+}
+console.log(
+  `${[SOURCE, ...MIRRORS].length} manifests and ${PINNED_CONFIGS.length} config pins now at ${version}`,
+);
