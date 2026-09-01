@@ -1,0 +1,44 @@
+{
+  "name": "@v1nvn/agentic-core",
+  "version": "0.13.0",
+  "description": "Shared runtime for the @v1nvn agent tools — last-reply transcript reader and fixed-width text formatting.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "vite build",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "keywords": [
+    "claude-code",
+    "transcripts",
+    "cli"
+  ],
+  "author": "v1nvn",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/v1nvn/agentic.git",
+    "directory": "packages/core"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "devDependencies": {
+    "vite": "^8.1.4",
+    "vitest": "^4.1.10"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
