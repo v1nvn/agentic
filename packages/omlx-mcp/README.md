@@ -5,7 +5,7 @@ inference server — one-shot prompts, schema-constrained extraction, and model
 status. Free, private, unlimited; no quota, nothing leaves the machine.
 
 ```sh
-npx omlx-mcp            # stdio MCP server, talks to 127.0.0.1:6659
+npx @v1nvn/omlx-mcp            # stdio MCP server, talks to 127.0.0.1:6659
 omlx serve              # the inference server, if it is not already up
 ```
 

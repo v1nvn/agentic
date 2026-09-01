@@ -7,15 +7,15 @@ The key idea: **rendering and extraction are decoupled.** A real browser (chrome
 ## Install
 
 ```bash
-npm install readability-mcp
+npm install @v1nvn/readability-mcp
 # or run on demand:
-npx readability-mcp
+npx @v1nvn/readability-mcp
 ```
 
 Requires Node >= 22. Build from source:
 
 ```bash
-git clone <repo> && cd readability-mcp
+git clone <repo> && cd packages/readability-mcp
 yarn install
 yarn build         # bundles to dist/index.js
 node dist/index.js # starts the stdio MCP server
@@ -26,7 +26,8 @@ node dist/index.js # starts the stdio MCP server
 A `Dockerfile` (multi-stage `node:22-bookworm-slim`, runs as non-root `node`) and a `smithery.yaml` (stdio runtime) are included for container and [Smithery](https://smithery.ai) deployment:
 
 ```bash
-docker build -t readability-mcp .
+# from the repo root — the workspace installs from root manifests
+docker build -f packages/readability-mcp/Dockerfile -t readability-mcp .
 docker run --rm -i readability-mcp            # stdio MCP server on stdin/stdout
 docker run --rm -i readability-mcp extract --format md < page.html
 ```
@@ -62,7 +63,7 @@ Add to your MCP client config (Claude Code, Claude Desktop, etc.):
   "mcpServers": {
     "readability": {
       "command": "npx",
-      "args": ["-y", "readability-mcp"]
+      "args": ["-y", "@v1nvn/readability-mcp"]
     }
   }
 }

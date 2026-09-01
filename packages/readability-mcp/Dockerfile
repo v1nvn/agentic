@@ -1,17 +1,22 @@
 # syntax=docker/dockerfile:1
+#
+# Build context is the REPO ROOT (the workspace installs from root manifests):
+#   docker build -f packages/readability-mcp/Dockerfile -t readability-mcp .
 
 FROM node:22-bookworm-slim AS build
 WORKDIR /app
 COPY package.json yarn.lock .yarnrc.yml ./
+COPY packages/readability-mcp/package.json packages/readability-mcp/
 RUN corepack enable && yarn install --immutable
-COPY . .
-RUN yarn build
+COPY packages/readability-mcp/ ./packages/readability-mcp/
+RUN yarn workspace @v1nvn/readability-mcp run build
 
 FROM node:22-bookworm-slim AS runtime
 WORKDIR /app
 COPY package.json yarn.lock .yarnrc.yml ./
-RUN corepack enable && yarn workspaces focus --all --production && yarn cache clean
-COPY --from=build /app/dist ./dist
+COPY packages/readability-mcp/package.json packages/readability-mcp/
+RUN corepack enable && yarn workspaces focus @v1nvn/readability-mcp --production && yarn cache clean
+COPY --from=build /app/packages/readability-mcp/dist ./packages/readability-mcp/dist
 ENV NODE_ENV=production
 USER node
-CMD ["node", "dist/index.js"]
+CMD ["node", "packages/readability-mcp/dist/index.js"]
