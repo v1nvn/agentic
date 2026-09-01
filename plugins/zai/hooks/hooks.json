@@ -7,8 +7,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/usage.sh",
-            "args": []
+            "command": "npx",
+            "args": ["-y", "@v1nvn/zai@0.13.0", "--hook"]
           }
         ]
       }
