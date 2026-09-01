@@ -51,8 +51,8 @@ jobs:
         run: |
           version="$(jq -r .version .claude-plugin/marketplace.json)"
           yarn install --immutable
-          yarn workspaces foreach --all --topological run build
-          for pkg in packages/readability-mcp packages/omlx-mcp; do
+          yarn build
+          for pkg in packages/*; do
             name="$(jq -r .name "$pkg/package.json")"
             if npm view "$name@$version" version >/dev/null 2>&1; then
               echo "::notice::$name@$version already on npm; skipping."
