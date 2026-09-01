@@ -9,7 +9,7 @@ afterEach(() => {
 describe('loadConfig', () => {
   it('falls back to loopback defaults', () => {
     const config = loadConfig({});
-    expect(config.url).toBe('http://127.0.0.1:8000');
+    expect(config.url).toBe('http://127.0.0.1:6659');
     expect(config.model).toBe('Qwen3.8-27B-oQ4e-mtp');
     expect(config.timeoutMs).toBe(600_000);
   });

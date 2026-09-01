@@ -5,7 +5,7 @@ inference server — one-shot prompts, schema-constrained extraction, and model
 status. Free, private, unlimited; no quota, nothing leaves the machine.
 
 ```sh
-npx omlx-mcp            # stdio MCP server, talks to 127.0.0.1:8000
+npx omlx-mcp            # stdio MCP server, talks to 127.0.0.1:6659
 omlx serve              # the inference server, if it is not already up
 ```
 
@@ -27,7 +27,7 @@ Every field is documented on the wire; `reasoning_effort` accepts
 
 | Env | Default | Purpose |
 |---|---|---|
-| `OMLX_URL` | `http://127.0.0.1:8000` | server base URL |
+| `OMLX_URL` | `http://127.0.0.1:6659` | server base URL |
 | `OMLX_MODEL` | `Qwen3.8-27B-oQ4e-mtp` | default model for `ask` / `ask_structured` |
 | `OMLX_TIMEOUT_MS` | `600000` | the first call after idle may load a ~17GB model for 30-60s |
 

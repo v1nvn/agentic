@@ -17,7 +17,7 @@ Six Claude Code plugins, installed independently from one marketplace.
 
 - Claude Code
 - Node.js, for `readability`, `omlx`, `zai`, and `tokens`
-- A running [omlx](https://github.com/jundot/omlx) server on `127.0.0.1:8000`, for `omlx` (`omlx serve`)
+- A running [omlx](https://github.com/jundot/omlx) server on `127.0.0.1:6659`, for `omlx` (`omlx serve`)
 
 ## Install
 

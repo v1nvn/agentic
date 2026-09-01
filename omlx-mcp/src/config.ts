@@ -14,14 +14,14 @@ export interface ServerConfig extends OmlxConfig {
   readonly version: string;
 }
 
-const DEFAULT_URL = 'http://127.0.0.1:8000';
+const DEFAULT_URL = 'http://127.0.0.1:6659';
 const DEFAULT_MODEL = 'Qwen3.8-27B-oQ4e-mtp';
 const DEFAULT_TIMEOUT_MS = 600_000;
 
 const SERVER_TITLE = 'omlx MCP';
 
 const SERVER_DESCRIPTION =
-  'Delegate work to a local omlx inference server on this machine — one-shot prompts, schema-constrained extraction, and installed-model status. Loopback only: the server talks to OMLX_URL (default http://127.0.0.1:8000) and nothing else; /v1 and /health only, never the admin API.';
+  'Delegate work to a local omlx inference server on this machine — one-shot prompts, schema-constrained extraction, and installed-model status. Loopback only: the server talks to OMLX_URL (default http://127.0.0.1:6659) and nothing else; /v1 and /health only, never the admin API.';
 
 const SERVER_INSTRUCTIONS = `Delegate coding-agent busywork to the local model — free, private, unlimited, no quota. Default model Qwen3.8-27B-oQ4e-mtp: ~28 tok/s with MTP speculative decoding, 256K context window, 32768 max output tokens per call. The first call after idle may block ~30-60s while the 17GB model loads.
 

@@ -14,7 +14,7 @@ Comments explain *why*, not *what*. The default is no comment. Write one only wh
 # Shape of this server
 
 - Thin HTTP wrapper: curation, defaults, and routing descriptions. No inference logic, no prompt templating, no retry loops, no response post-processing beyond the documented empty-answer fallback. omlx owns semantics.
-- The server talks only to `OMLX_URL` (default `http://127.0.0.1:8000`) — loopback, no outbound network beyond it. `/v1/*` and `/health` only; the admin API (`/api/*`, `/admin/*`) mutates server state and carries the auth secret and must never be called from here.
+- The server talks only to `OMLX_URL` (default `http://127.0.0.1:6659`) — loopback, no outbound network beyond it. `/v1/*` and `/health` only; the admin API (`/api/*`, `/admin/*`) mutates server state and carries the auth secret and must never be called from here.
 - All tools share one fetch client (`omlx.ts`); error mapping (connection refused → the `omlx serve` hint, non-2xx → server `detail`) lives there once, not per tool.
 
 # MCP documentation

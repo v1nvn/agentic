@@ -122,7 +122,7 @@ describe('ask', () => {
     const result = await askHandler({ prompt: 'hi' });
     expect(result.isError).toBe(true);
     expect(textOf(result)).toContain(
-      'omlx unreachable at http://127.0.0.1:8000 (ECONNREFUSED) — start it with: omlx serve',
+      'omlx unreachable at http://127.0.0.1:6659 (ECONNREFUSED) — start it with: omlx serve',
     );
   });
 

@@ -75,8 +75,8 @@ describe('models', () => {
     });
     // Both endpoints were consulted.
     expect(stub.calls.map(call => call.url)).toEqual([
-      'http://127.0.0.1:8000/v1/models',
-      'http://127.0.0.1:8000/v1/models/status',
+      'http://127.0.0.1:6659/v1/models',
+      'http://127.0.0.1:6659/v1/models/status',
     ]);
     expect(textOf(result)).toContain(
       'Qwen3.8-27B-oQ4e-mtp  loaded  vlm  context 262144  out 32768  size 17.8 GB',
