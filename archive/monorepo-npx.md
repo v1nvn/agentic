@@ -113,14 +113,27 @@ byte-identical zai render against the old mjs, and all four built bins exercised
 end-to-end (zai against the live API; md/rm/tokens hook modes against a fixture
 transcript). Remaining on the branch: the `v0.14.0` train bump.
 
-**Owner-side after merge.** Trusted-publisher entries on npmjs.com for the seven
-`@v1nvn/*` names (new on npm); the old unscoped `readability-mcp` / `omlx-mcp` freeze
+**Owner-side npm bootstrap (procedure verified 2026-09-01).** npm has no
+pre-registration for never-published names — npm/cli#8544 is still open, and both the
+docs and the `npm trust` CLI require the package to exist. So the seven first
+publishes ride a one-time manual pass; from v0.15.0 release.yml is keyless:
+
+1. `npm login` on the branch checkout; `yarn install && yarn build`.
+2. Publish the seven — `yarn npm publish` per package dir (rewrites `workspace:^`;
+   `publishConfig.access: public` already set everywhere):
+   `for p in core readability-mcp omlx-mcp zai tokens rm md; do (cd packages/$p && yarn npm publish); done`
+3. Add the seven trusted publishers in one bulk pass (npm ≥ 11.15.0; 2FA once, take
+   the 5-minute skip): `for p in agentic-core readability-mcp omlx-mcp zai tokens rm md; do npm trust github "@v1nvn/$p" --file release.yml --repo v1nvn/agentic --allow-publish --yes; sleep 2; done`
+4. Merge PR #1 — the release run finds all seven on npm, skips publishing, cuts the
+   v0.14.0 GitHub release. Green first try.
+
+The old unscoped `readability-mcp` / `omlx-mcp` freeze
 at 0.13.0 with no deprecation pointers; Smithery needs re-registering for the
 monorepo layout if that deployment is still wanted (its yaml has no package-name
 references; only the build layout changed).
 
-**Next step.** Review + merge PR #1; add the seven npm trusted-publisher entries first
-(release.yml fails until they exist).
+**Next step.** None — thread closed. Bootstrap executed 2026-09-01 (final log entry);
+this file moves to `archive/` and PR #1 merges with that commit.
 
 **Log.**
 - 2026-09-01 — scoped in conversation after the version-train fix; constraints negotiated:
@@ -159,3 +172,20 @@ references; only the build layout changed).
   (zai hit the real monitor API; md/tokens/rm hook modes against a fixture transcript,
   including the `send failed:` failure contract). One mid-flight repair: the `packages/`
   move initially missed `set-version.mjs`'s mirror paths (caught by its own `--check`).
+- 2026-09-01 — publish path verified against sources, no release.yml change needed.
+  Yarn ≥ 4.10.0 exchanges the Actions OIDC token itself (audience
+  `npm:registry.npmjs.org`, per-package exchange endpoint; 4.10.3 fixed scoped
+  packages) — repo pins 4.17.1. Auth order is npmAuthToken before OIDC, so no token
+  may ever sit in .yarnrc.yml/CI env on the publish path. npm side: no pending
+  trusted publishers (issue open; docs + `npm trust` both require the package to
+  exist) → one-time manual publish, then `npm trust` bulk loop (npm ≥ 11.15.0).
+  Correction to the yarn-release-workflow-doc entry above: staged publishing composes
+  with trusted publishing (`--allow-stage-publish`), it is not N/A — still not
+  wanted here.
+- 2026-09-01 — bootstrap executed by the owner. All seven `@v1nvn/*@0.14.0`
+  published manually, one `yarn npm publish` per package in the owner's terminal
+  (browser 2FA per publish — npm rate-limits batched OTP checks, so the
+  tight-loop-with-one-code idea dies on the third package). Seven `npm trust
+  github` entries added (file `release.yml`, repo `v1nvn/agentic`, publish
+  permission) and verified with `npm trust list`. From v0.15.0 the train
+  publishes fully keyless from CI with automatic provenance.
