@@ -40,7 +40,7 @@ export default defineConfig([
       perfectionist.configs['recommended-natural'],
       eslintConfigPrettier,
     ],
-    files: ['*/src/**/*.{ts,tsx}'],
+    files: ['packages/*/src/**/*.{ts,tsx}'],
     languageOptions: {
       ecmaVersion: 2020,
       globals: globals.node,
