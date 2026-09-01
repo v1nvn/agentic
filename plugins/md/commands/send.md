@@ -7,7 +7,7 @@ report the result.
 
 Run this exactly:
 
-    md-send
+    npx -y @v1nvn/md
 
 Report the single status line it prints (e.g. "Opened in Markdown-Viewer (link copied).") —
 the page is opened in the browser and the link is copied to the clipboard. (A

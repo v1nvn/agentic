@@ -7,8 +7,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/report.sh",
-            "args": []
+            "command": "npx",
+            "args": ["-y", "@v1nvn/tokens@0.13.0", "--hook"]
           }
         ]
       }
