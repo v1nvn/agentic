@@ -1,7 +1,9 @@
 # agentic — rules
 
-A Claude Code plugin marketplace: `readability` (an MCP server) and `rm`, `md`, `zai`
-(zero-token hook plugins) — four independently-installable plugins in one repo.
+A Claude Code plugin marketplace: `readability` and `omlx` (MCP servers) plus `rm`,
+`md`, `zai`, `tokens` (zero-token hook plugins) — six independently-installable
+plugins in one repo. The code lives in seven npm packages (`@v1nvn/*`) under
+`packages/`; each plugin directory is only a manifest plus config wrapper.
 
 ## Philosophy
 
@@ -42,13 +44,17 @@ Surface a real impasse; do not hack past it.
 
 ## Layout
 
-- **Flattened.** Plugins live at root `plugins/<name>/`; the marketplace manifest sits at root
-  `.claude-plugin/marketplace.json` — that is where `claude plugin marketplace add` discovers
-  it. No `agents/<agent>/` wrapper until a second agent actually arrives; scaffold it then,
-  not now.
-- **Four independent plugins, one marketplace.** Never collapse them into a mega-plugin; each
-  installs and runs on its own.
-- **One author identity:** `v1nvn` / `v1n@outlook.com` in every `plugin.json`.
+- **Code in `packages/`, manifests in `plugins/`.** One yarn workspace at the root
+  (`"workspaces": ["packages/*"]`); each package builds with vite and publishes to npm
+  under `@v1nvn/*`. A plugin directory holds only `plugin.json`, `commands/`, and a
+  hooks/mcp config whose `npx` invocations are version-pinned to the train — no code
+  ever lives under `plugins/`.
+- **Scripts resolve binaries only from deps the workspace declares.** Each package
+  declares the tools its scripts invoke (`vite`, `vitest`); the root declares the
+  root-run tools (eslint stack, prettier, typescript).
+- **Six independent plugins, one marketplace.** Never collapse them into a
+  mega-plugin; each installs and runs on its own.
+- **One author identity:** `v1nvn` / `v1n@outlook.com` in every manifest.
 
 ## Invariants
 

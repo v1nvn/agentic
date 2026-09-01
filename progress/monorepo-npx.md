@@ -107,11 +107,19 @@ CI workflow steps and readability-mcp's Makefile/Dockerfile — dev tooling, nev
 ~0.3–0.5 s vs a direct `node` call — accepted for mechanism consistency. A brand-new install
 running its first hook offline fails (marketplace install needs network anyway).
 
-**Current state.** Plan final, both decisions landed — nothing executed yet. Predecessor
-landed: the version train now carries all six plugin manifests (`9313a11`), so every plugin
-already updates on a bump.
+**Current state.** Steps 1–9 executed on branch `monorepo-npx` (one commit per step);
+every step verified locally — install, root typecheck/lint/build, all workspace tests,
+byte-identical zai render against the old mjs, and all four built bins exercised
+end-to-end (zai against the live API; md/rm/tokens hook modes against a fixture
+transcript). Remaining on the branch: the `v0.14.0` train bump.
 
-**Next step.** Step 1 (root workspace), on the owner's go.
+**Owner-side after merge.** Trusted-publisher entries on npmjs.com for the seven
+`@v1nvn/*` names (new on npm); the old unscoped `readability-mcp` / `omlx-mcp` freeze
+at 0.13.0 with no deprecation pointers; Smithery needs re-registering for the
+monorepo layout if that deployment is still wanted (its yaml has no package-name
+references; only the build layout changed).
+
+**Next step.** `set-version.mjs 0.14.0` on the branch, then the PR.
 
 **Log.**
 - 2026-09-01 — scoped in conversation after the version-train fix; constraints negotiated:
@@ -137,3 +145,16 @@ already updates on a bump.
   *declare* them, so each package declares the tools its scripts invoke (vite, vitest,
   vite-node); the root keeps the root-run tools (eslint stack, prettier, typescript,
   @types/node).
+- 2026-09-01 — owner pointed the train at yarn's release-workflow doc before step 6;
+  read it plus the version plugin's CLI surface (`version apply --all`, `version check`).
+  It solves per-package independent versioning (deferred bump records, per-PR CI gate,
+  strategy-derived versions); the train needs one exact number written into 13 version
+  fields + 6 npx pins that no yarn pass touches. Lockstep re-affirmed — set-version.mjs
+  stays the single mechanism; nothing borrowed (staged publishing N/A under trusted
+  publishing, workspace:^ ranges need no auto-update, `version check` ceremony changes
+  no outcome when every change rides the train anyway).
+- 2026-09-01 — steps 1–9 executed on `monorepo-npx`. Verification highlights: zai TS
+  render byte-identical to the old mjs across 5 cases; built bins exercised live
+  (zai hit the real monitor API; md/tokens/rm hook modes against a fixture transcript,
+  including the `send failed:` failure contract). One mid-flight repair: the `packages/`
+  move initially missed `set-version.mjs`'s mirror paths (caught by its own `--check`).
