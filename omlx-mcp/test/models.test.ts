@@ -1,13 +1,20 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { modelsHandler } from '../src/tools/models.js';
-import { type FetchStub, jsonResponse, stubFetch, textOf } from './helpers.js';
+import {
+  type FetchStub,
+  jsonResponse,
+  MISSING_SETTINGS,
+  stubFetch,
+  textOf,
+} from './helpers.js';
 
 let stub: FetchStub;
 
 beforeEach(() => {
   vi.unstubAllGlobals();
   vi.unstubAllEnvs();
+  vi.stubEnv('OMLX_SETTINGS', MISSING_SETTINGS);
 });
 
 afterEach(() => {

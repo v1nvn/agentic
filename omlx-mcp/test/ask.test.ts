@@ -5,7 +5,13 @@ import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { askHandler } from '../src/tools/ask.js';
-import { jsonResponse, textOf, type FetchStub, stubFetch } from './helpers.js';
+import {
+  jsonResponse,
+  MISSING_SETTINGS,
+  textOf,
+  type FetchStub,
+  stubFetch,
+} from './helpers.js';
 
 // Minimal valid 1x1 PNG.
 const PNG_BASE64 =
@@ -17,6 +23,7 @@ let imageDir: string;
 beforeEach(() => {
   vi.unstubAllGlobals();
   vi.unstubAllEnvs();
+  vi.stubEnv('OMLX_SETTINGS', MISSING_SETTINGS);
   stub = stubFetch(() =>
     jsonResponse({
       choices: [{ message: { content: 'the answer', reasoning_content: 'why' } }],
@@ -47,6 +54,23 @@ describe('ask', () => {
       model: 'Qwen3.8-27B-oQ4e-mtp',
       reasoning_fallback: false,
     });
+  });
+
+  it('sends no Authorization header without a configured key', async () => {
+    await askHandler({ prompt: 'hi' });
+    const headers = new Headers(
+      stub.calls[0]?.init?.headers as HeadersInit | undefined,
+    );
+    expect(headers.get('authorization')).toBeNull();
+  });
+
+  it('sends the configured api key as a bearer token', async () => {
+    vi.stubEnv('OMLX_API_KEY', 'omlx-secret');
+    await askHandler({ prompt: 'hi' });
+    const headers = new Headers(
+      stub.calls[0]?.init?.headers as HeadersInit | undefined,
+    );
+    expect(headers.get('authorization')).toBe('Bearer omlx-secret');
   });
 
   it('honors env and explicit overrides', async () => {
@@ -132,6 +156,20 @@ describe('ask', () => {
     expect(result.isError).toBe(true);
     expect(textOf(result)).toBe(
       'omlx returned 404 for /v1/chat/completions: model not found',
+    );
+  });
+
+  it('names the api-key remedy on 401', async () => {
+    stubFetch(() =>
+      jsonResponse(
+        { error: { message: 'API key required', type: 'authentication_error' } },
+        401,
+      ),
+    );
+    const result = await askHandler({ prompt: 'hi' });
+    expect(result.isError).toBe(true);
+    expect(textOf(result)).toBe(
+      'omlx requires an API key for /v1/chat/completions (401: API key required) — set OMLX_API_KEY, or auth.api_key in ~/.omlx/settings.json',
     );
   });
 

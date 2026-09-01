@@ -1,13 +1,20 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { askStructuredHandler } from '../src/tools/ask_structured.js';
-import { type FetchStub, jsonResponse, stubFetch, textOf } from './helpers.js';
+import {
+  type FetchStub,
+  jsonResponse,
+  MISSING_SETTINGS,
+  stubFetch,
+  textOf,
+} from './helpers.js';
 
 let stub: FetchStub;
 
 beforeEach(() => {
   vi.unstubAllGlobals();
   vi.unstubAllEnvs();
+  vi.stubEnv('OMLX_SETTINGS', MISSING_SETTINGS);
   stub = stubFetch(() =>
     jsonResponse({ choices: [{ message: { content: '{"files":["a.ts"]}' } }] }),
   );

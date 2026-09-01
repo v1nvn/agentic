@@ -2,16 +2,21 @@ import type { OmlxConfig } from './config.js';
 
 import { OmlxError } from './errors.js';
 
-interface FastApiError {
+interface ErrorBody {
   detail?: unknown;
+  error?: { message?: unknown };
 }
 
 async function parseDetail(response: Response): Promise<string> {
-  let body: FastApiError = {};
+  let body: ErrorBody = {};
   try {
-    body = (await response.json()) as FastApiError;
+    body = (await response.json()) as ErrorBody;
   } catch {
     // Non-JSON error body; fall through to status text.
+  }
+  // /v1 endpoints answer with the OpenAI error shape; the admin API with detail.
+  if (typeof body.error?.message === 'string') {
+    return body.error.message;
   }
   if (typeof body.detail === 'string') {
     return body.detail;
@@ -38,12 +43,18 @@ async function request<T>(
   body?: unknown,
 ): Promise<T> {
   let response: Response;
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  if (config.apiKey) {
+    headers.Authorization = `Bearer ${config.apiKey}`;
+  }
   try {
     response = await fetch(`${config.url}${path}`, {
       method,
       body: body === undefined ? undefined : JSON.stringify(body),
       signal: AbortSignal.timeout(config.timeoutMs),
-      headers: { 'Content-Type': 'application/json' },
+      headers,
     });
   } catch (err) {
     if (err instanceof Error && err.name === 'TimeoutError') {
@@ -63,6 +74,11 @@ async function request<T>(
     throw err;
   }
   if (!response.ok) {
+    if (response.status === 401) {
+      throw new OmlxError(
+        `omlx requires an API key for ${path} (401: ${await parseDetail(response)}) — set OMLX_API_KEY, or auth.api_key in ~/.omlx/settings.json`,
+      );
+    }
     throw new OmlxError(
       `omlx returned ${response.status} for ${path}: ${await parseDetail(response)}`,
     );

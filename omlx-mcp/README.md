@@ -25,11 +25,19 @@ Every field is documented on the wire; `reasoning_effort` accepts
 
 ## Config
 
+Each value resolves in order: env → `~/.omlx/settings.json` → built-in default.
+
 | Env | Default | Purpose |
 |---|---|---|
 | `OMLX_URL` | `http://127.0.0.1:6659` | server base URL |
 | `OMLX_MODEL` | `Qwen3.8-27B-oQ4e-mtp` | default model for `ask` / `ask_structured` |
 | `OMLX_TIMEOUT_MS` | `600000` | the first call after idle may load a ~17GB model for 30-60s |
+| `OMLX_API_KEY` | — | bearer token for `/v1/*`; the server answers 401 without it |
+| `OMLX_SETTINGS` | `~/.omlx/settings.json` | omlx settings file to fall back to |
+
+From the settings file the server reads `server.host` + `server.port` (base URL)
+and `auth.api_key` — the same credential `omlx serve` issues, so a standard
+install configures this client without any env vars.
 
 ## Boundaries
 
