@@ -1,6 +1,6 @@
 {
   "name": "@v1nvn/rm",
-  "version": "0.13.0",
+  "version": "0.14.0",
   "description": "Beam a Markdown reply to a reMarkable as EPUB — the rm-send CLI behind the rm plugin.",
   "type": "module",
   "bin": {
