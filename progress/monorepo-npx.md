@@ -119,7 +119,8 @@ at 0.13.0 with no deprecation pointers; Smithery needs re-registering for the
 monorepo layout if that deployment is still wanted (its yaml has no package-name
 references; only the build layout changed).
 
-**Next step.** `set-version.mjs 0.14.0` on the branch, then the PR.
+**Next step.** Review + merge PR #1; add the seven npm trusted-publisher entries first
+(release.yml fails until they exist).
 
 **Log.**
 - 2026-09-01 — scoped in conversation after the version-train fix; constraints negotiated:
