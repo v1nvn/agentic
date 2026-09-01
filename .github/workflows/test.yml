@@ -11,9 +11,6 @@ permissions:
 jobs:
   unit:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: readability-mcp
     steps:
       - uses: actions/checkout@v7
       - run: corepack enable
@@ -21,7 +18,7 @@ jobs:
         with:
           node-version: '24'
           cache: yarn
-          cache-dependency-path: readability-mcp/yarn.lock
+          cache-dependency-path: yarn.lock
       - run: yarn install --immutable
       - run: yarn typecheck
       - run: yarn build

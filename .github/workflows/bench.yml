@@ -22,6 +22,6 @@ jobs:
         with:
           node-version: '24'
           cache: yarn
-          cache-dependency-path: readability-mcp/yarn.lock
+          cache-dependency-path: yarn.lock
       - run: yarn install --immutable
       - run: yarn bench

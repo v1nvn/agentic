@@ -42,9 +42,7 @@ jobs:
           node-version: '24'
           registry-url: 'https://registry.npmjs.org'
           cache: yarn
-          cache-dependency-path: |
-            readability-mcp/yarn.lock
-            omlx-mcp/yarn.lock
+          cache-dependency-path: yarn.lock
 
       # Per-package skip makes re-runs safe: a version already on npm is never
       # republished, so a failed second half leaves a clean retry.
@@ -52,12 +50,14 @@ jobs:
         if: steps.check.outputs.skip == 'false'
         run: |
           version="$(jq -r .version .claude-plugin/marketplace.json)"
+          yarn install --immutable
+          yarn workspaces foreach --all --topological run build
           for pkg in readability-mcp omlx-mcp; do
             name="$(jq -r .name "$pkg/package.json")"
             if npm view "$name@$version" version >/dev/null 2>&1; then
               echo "::notice::$name@$version already on npm; skipping."
             else
-              (cd "$pkg" && yarn install --immutable && yarn build && yarn npm publish --provenance)
+              (cd "$pkg" && yarn npm publish --provenance)
             fi
           done
 
