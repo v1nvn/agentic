@@ -8,7 +8,7 @@
           {
             "type": "command",
             "command": "npx",
-            "args": ["-y", "@v1nvn/rm@0.14.0", "--hook"]
+            "args": ["-y", "@v1nvn/rm@0.14.1", "--hook"]
           }
         ]
       }

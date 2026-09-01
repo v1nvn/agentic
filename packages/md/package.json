@@ -1,6 +1,6 @@
 {
   "name": "@v1nvn/md",
-  "version": "0.14.0",
+  "version": "0.14.1",
   "description": "Send a Markdown reply to a self-hosted Markdown-Viewer as a #share= URL — the md-send CLI behind the md plugin.",
   "type": "module",
   "bin": {
