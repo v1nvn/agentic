@@ -1,6 +1,6 @@
 {
   "name": "omlx-mcp",
-  "version": "0.12.0",
+  "version": "0.13.0",
   "description": "MCP server exposing a local omlx inference server (chat, structured output, model status) so coding agents can delegate bulk work to a local model.",
   "type": "module",
   "main": "dist/index.js",

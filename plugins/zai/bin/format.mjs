@@ -46,16 +46,6 @@ export function shiftSlot(s, fromOffsetMin, toOffsetMin) {
   };
 }
 
-/** Minutes → "2h 30m" / "2h" / "30m". */
-export function fmtDur(mins) {
-  mins = Math.max(0, Math.round(mins));
-  const h = Math.floor(mins / 60);
-  const m = mins % 60;
-  if (h && m) return `${h}h ${m}m`;
-  if (h) return `${h}h`;
-  return `${m}m`;
-}
-
 function friendlyTool(code) {
   switch ((code || '').toLowerCase()) {
     case 'search-prime': return 'web search';
@@ -105,12 +95,12 @@ export function isPeakBucket(s) {
   return wd >= 1 && wd <= 5 && h >= 14 && h <= 17;
 }
 
-/** Local-time label for the 14:00–18:00 Beijing peak window (e.g. "11:30–15:30"). */
+/** Local-time start/end of the 14:00–18:00 Beijing peak window (e.g. 11:30 / 15:30). */
 function localPeakWindow(apiOffsetMin, toOffsetMin) {
   const a = shiftSlot('2000-01-03 14:00', apiOffsetMin, toOffsetMin);
   const b = shiftSlot('2000-01-03 18:00', apiOffsetMin, toOffsetMin);
   if (!a || !b) return null;
-  return `${a.time}–${b.time}`;
+  return { start: a.time, end: b.time };
 }
 
 // ---- vertical hourly chart ----------------------------------------------
@@ -310,14 +300,14 @@ export function render({ platform, model, tool, quota, apiOffsetMin = 480, local
     }
   }
   const peakWinPct = total > 0 ? (peakWinTokens / total) * 100 : 0;
-  const winLabel = localPeakWindow(apiOffsetMin, toOffset);
+  const peakWin = localPeakWindow(apiOffsetMin, toOffset);
 
   out.push('');
   out.push(` Peak     ${padR(peakSlot ? peakSlot.day + ' ' + peakSlot.time : '—', 15)}${padL(fmtTokens(peakTok), 7)} tokens · ${padL(fmtNum(peakCalls), 5)} calls`);
   out.push(` Active   ${padR(activeHours + ' / ' + nh + ' hours', 15)}${longest ? idleLabel(longest, x, convertSlot) : 'no idle gaps'}`);
   out.push(` Tools    ${padR(toolTotal + ' calls', 15)}${searchN} searches · ${readN} reads${zreadN ? ' · ' + zreadN + ' zread' : ''}`);
-  if (winLabel) {
-    out.push(` Peak hrs Mon–Fri ${winLabel} · GLM-5.2 3× · ${peakWinActive}h active · ${fmtTokens(peakWinTokens)} (${Math.round(peakWinPct)}%)`);
+  if (peakWin) {
+    out.push(` Peak hrs Mon–Fri ${peakWin.start}–${peakWin.end} · GLM-5.2 3× · ${peakWinActive}h active · ${fmtTokens(peakWinTokens)} (${Math.round(peakWinPct)}%)`);
   }
 
   // ---- hourly chart (vertical bars) ----
@@ -350,15 +340,18 @@ export function render({ platform, model, tool, quota, apiOffsetMin = 480, local
   out.push('');
   out.push(' Limits ' + '─'.repeat(Math.max(0, W - 8)));
 
-  // Live peak-window status. The window is defined in Beijing (apiOffsetMin)
-  // wall-clock; "time left" is a duration, so it needs no timezone for display.
+  // Peak-window row, always present under Limits. The bar is now's progress
+  // through the 14:00–18:00 Beijing window: empty before it opens, full after
+  // it closes, and no fill on weekends, when the window does not bill. The
+  // start/end labels come from peakWin, already shifted to the caller's offset.
   const bj = new Date(now.getTime() + apiOffsetMin * 60000);
   const bjDay = bj.getUTCDay();
-  const peakElapsedMin = (bj.getUTCHours() - 14) * 60 + bj.getUTCMinutes();
-  const inPeakNow = bjDay >= 1 && bjDay <= 5 && peakElapsedMin >= 0 && peakElapsedMin < 240;
-  if (inPeakNow) {
-    const pctElapsed = Math.round((peakElapsedMin / 240) * 100);
-    out.push(`   ${padR('Peak now', 17)}${padL(pctElapsed + '%', 4)}  ${meter(pctElapsed, 22)}  ${fmtDur(240 - peakElapsedMin)} left`);
+  const inWindow = bjDay >= 1 && bjDay <= 5;
+  const elapsedMin = inWindow
+    ? Math.max(0, Math.min(240, (bj.getUTCHours() - 14) * 60 + bj.getUTCMinutes()))
+    : 0;
+  if (peakWin) {
+    out.push(`   ${padR('Peak', 16)}${padL(peakWin.start, 5)}  ${meter(Math.round((elapsedMin / 240) * 100), 22)}  ${peakWin.end}`);
   }
 
   const limits = (quota && quota.limits) || [];
@@ -366,16 +359,16 @@ export function render({ platform, model, tool, quota, apiOffsetMin = 480, local
   const tok5 = limits.find((l) => /token/i.test(l.type || ''));
   if (tok5) {
     const reset = new Date(tok5.nextResetTime).toLocaleTimeString("en-IN")
-    out.push(`   ${padR('Tokens · 5h', 17)}${padL((tok5.percentage || 0) + '%', 4)}  ${meter(tok5.percentage, 22)}  ${reset}`);
+    out.push(`   ${padR('Tokens · 5h', 16)}${padL((tok5.percentage || 0) + '%', 5)}  ${meter(tok5.percentage, 22)}  ${reset}`);
   }
-  
+
   if (tok5 && mcp) {
     out.push('')
   }
 
   if (mcp) {
     const reset = new Date(mcp.nextResetTime).toLocaleString("en-IN")
-    out.push(`   ${padR('MCP · this month', 17)}${padL((mcp.percentage || 0) + '%', 4)}  ${meter(mcp.percentage, 22)}  ${reset}`);
+    out.push(`   ${padR('MCP · this month', 16)}${padL((mcp.percentage || 0) + '%', 5)}  ${meter(mcp.percentage, 22)}  ${reset}`);
     const det = mcp.usageDetails || [];
     const parts = det.map((d) => `${friendlyTool(d.modelCode)} ${fmtNum(d.usage)}`).join('  ');
     if (parts) out.push(`   ${fmtNum(mcp.currentUsage)}M / ${fmtNum(mcp.totol)}M · ${parts}`);

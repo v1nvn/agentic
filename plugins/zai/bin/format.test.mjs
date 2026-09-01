@@ -102,7 +102,6 @@ assert(out.includes('75.6M'), 'tokens burned inside the peak window');
 assert(out.includes('22%'), 'peak-window share of total tokens');
 assert(out.includes('↑'), 'peak-window buckets marked in the chart');
 assert(!out.includes('UTC+8'), 'no foreign timezone displayed');
-assert(!out.includes('Peak now'), 'no live peak bar outside the window');
 assert(!out.includes('**'), 'no markdown bold leaked into plain text');
 
 // Beijing (UTC+8) → IST (UTC+5:30) conversion, deterministic regardless of host tz.
@@ -112,11 +111,23 @@ assert(ist.includes('Jul 16 17:30'), 'peak Beijing 20:00 → IST 17:30');
 assert(ist.includes('Jul 17 08:30'), 'last bucket Beijing 11:00 → IST 08:30');
 assert(ist.includes('11:30–15:30'), 'peak window Beijing 14:00–18:00 → IST 11:30–15:30');
 
-// Live peak-window bar in the Limits section — only when inside the window.
+// Peak-window row under Limits — always present; the bar is now's progress
+// through the 14:00–18:00 Beijing window. NOW_IN = Beijing 15:30 Mon →
+// 90 of 240 min elapsed → 8 of 22 meter cells filled.
 const inPeak = render({ platform: 'ZAI', model, tool, quota, apiOffsetMin: 480, localOffsetMin: 480, now: NOW_IN });
-assert(inPeak.includes('Peak now'), 'limits shows the live peak bar inside the window');
-assert(inPeak.includes('38%'), 'bar fill = elapsed share of the 4h window');
-assert(inPeak.includes('2h 30m left'), 'time remaining in the peak window');
+assert(/^ {3}Peak {12}14:00  █{8}░{14}  18:00$/m.test(inPeak), 'limits peak row: local start, elapsed meter, end time');
+assert(!inPeak.includes(' left'), 'no duration text in the limits peak row');
+
+// The peak-row times must shift with the local offset, not just echo Beijing.
+const inPeakIst = render({ platform: 'ZAI', model, tool, quota, apiOffsetMin: 480, localOffsetMin: 330, now: NOW_IN });
+assert(/^ {3}Peak {12}11:30  █{8}░{14}  15:30$/m.test(inPeakIst), 'limits peak row times shift to the local offset');
+
+// Empty before the window opens, full after it closes, no fill on a weekend.
+assert(/^ {3}Peak {12}14:00  ░{22}  18:00$/m.test(out), 'limits peak row empty before the window opens');
+const afterPeak = render({ platform: 'ZAI', model, tool, quota, apiOffsetMin: 480, localOffsetMin: 480, now: new Date(Date.UTC(2026, 6, 13, 12, 0)) });
+assert(/^ {3}Peak {12}14:00  █{22}  18:00$/m.test(afterPeak), 'limits peak row full after the window closes');
+const weekendPeak = render({ platform: 'ZAI', model, tool, quota, apiOffsetMin: 480, localOffsetMin: 480, now: new Date(Date.UTC(2026, 6, 18, 7, 30)) });
+assert(/^ {3}Peak {12}14:00  ░{22}  18:00$/m.test(weekendPeak), 'limits peak row carries no fill on a weekend');
 
 console.log('\n' + (failures === 0 ? 'PASS' : `FAIL (${failures})`));
 process.exit(failures === 0 ? 0 : 1);
