@@ -49,11 +49,12 @@ that already exist. Zero vendored code under `plugins/`.
 **Target layout.**
 
 ```
-package.json                # workspaces: readability-mcp, omlx-mcp, core, zai, tokens, rm, md
-readability-mcp/            # dir stays; package renames to @v1nvn/readability-mcp
-omlx-mcp/                   # dir stays; package renames to @v1nvn/omlx-mcp
-core/                       # @v1nvn/agentic-core — last-reply (ported bash+jq → TS) + text-format
-zai/  tokens/  rm/  md/     # TS ports of plugins/<n>/bin, each building a bin: { … } into dist/
+package.json                # workspaces: ["packages/*"] — the seven packages
+packages/
+  readability-mcp/          # package renames to @v1nvn/readability-mcp
+  omlx-mcp/                 # package renames to @v1nvn/omlx-mcp
+  core/                     # @v1nvn/agentic-core — last-reply (ported bash+jq → TS) + text-format
+  zai/  tokens/  rm/  md/   # TS ports of plugins/<n>/bin, each building a bin: { … } into dist/
 plugins/
   readability/  omlx/       # .mcp.json (pinned npx) + plugin.json        (unchanged shape)
   zai/  tokens/  rm/  md/   # hooks.json → "npx -y @v1nvn/<n>@<ver> --hook" + plugin.json + commands/
@@ -129,3 +130,10 @@ already updates on a bump.
   package named `core/` → `@v1nvn/agentic-core`; all five new packages confirmed TypeScript
   (mirroring the MCP packages — vite build, vitest). Shell sweep verified: the four
   `hooks/*.sh` + bash `last-reply` are the repo's only shell scripts, all replaced.
+- 2026-09-01 — owner, on execution: all node packages move under a top-level `packages/`
+  (yarn's documented `workspaces: ["packages/*"]` shape; `plugins/` keeps the six manifest
+  wrappers — code vs. manifest split at the root). Same session learned the toolchain rule
+  from the yarn workspaces doc: a script's binaries resolve only for workspaces that
+  *declare* them, so each package declares the tools its scripts invoke (vite, vitest,
+  vite-node); the root keeps the root-run tools (eslint stack, prettier, typescript,
+  @types/node).

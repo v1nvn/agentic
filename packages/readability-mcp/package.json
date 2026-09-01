@@ -27,7 +27,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/v1nvn/agentic.git",
-    "directory": "readability-mcp"
+    "directory": "packages/readability-mcp"
   },
   "files": [
     "dist"
@@ -53,6 +53,10 @@
   },
   "devDependencies": {
     "@types/mdast": "^4.0.4",
-    "@types/turndown": "^5.0.6"
+    "@types/turndown": "^5.0.6",
+    "@vitest/coverage-v8": "^4.1.10",
+    "vite": "^8.1.4",
+    "vite-node": "^6.0.0",
+    "vitest": "^4.1.10"
   }
 }

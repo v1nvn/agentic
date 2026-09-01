@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: readability-mcp
+        working-directory: packages/readability-mcp
     steps:
       - uses: actions/checkout@v7
       - run: corepack enable

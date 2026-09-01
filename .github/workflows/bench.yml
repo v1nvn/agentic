@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: readability-mcp
+        working-directory: packages/readability-mcp
     continue-on-error: true
     steps:
       - uses: actions/checkout@v7
