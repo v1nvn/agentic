@@ -13,5 +13,5 @@
 
 ---
 
-- [HIGH] Yarn monorepo: all six plugins ride pinned-npx packages, CLIs on npm → progress/monorepo-npx.md — steps 1–9 executed on branch `monorepo-npx`; remaining: v0.14.0 bump + PR
+- [HIGH] Yarn monorepo: all six plugins ride pinned-npx packages, CLIs on npm → progress/monorepo-npx.md — executed + v0.14.0 bump on PR #1; awaiting review + owner's npm trusted-publisher entries
 
