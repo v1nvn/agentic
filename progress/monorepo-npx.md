@@ -1,0 +1,131 @@
+# Yarn monorepo + pinned-npx plugins
+
+**Goal.** One yarn workspace at the repo root; every plugin's code lives in a publishable
+package and runs through **pinned** `npx` — inside Claude Code hooks and in plain shells.
+Plugin dirs shrink to manifest + config wrappers, identical in shape to the two MCP wrappers
+that already exist. Zero vendored code under `plugins/`.
+
+**Decisions (scoped 2026-09-01, conversation with owner).**
+
+- **Pinned npx, never `@latest`, on the hook path.** `npx -y <pkg>@<version>` runs from the
+  npx cache once downloaded: warm runs instant, offline works, one download per version
+  change. `@latest` resolves the dist-tag through the registry on *every* run — the
+  per-invocation network hit that would kill the zero-token hook UX. Version pins are
+  rewritten by `set-version.mjs`, so the marketplace refresh stays the single update channel.
+- **Consistency of mechanism:** all six plugins work the same way — thin plugin dir, npm
+  package behind it, npx in between. In-Claude and in-shell run the same bins.
+- **Dedup via real dependencies.** Code moves out of `plugins/` into workspace packages;
+  `rm`/`md`/`zai`/`tokens` depend on the shared package properly. The `shared/bin` copies and
+  the build.yml `cmp` sync check exist only because installed plugins had to be
+  self-contained; with no code left in plugin dirs, that constraint — and the duplication —
+  goes away.
+- **sh+jq wrappers die.** Each package bin grows a `--hook` mode that prints
+  `{"decision":"block","reason":…}` itself. Only runtime dep becomes node/npx — every hook
+  becomes Windows-safe.
+- **All TypeScript, no JS/TS split** (resolved 2026-09-01). The five new packages mirror
+  the two MCP packages: `src/*.ts` → `dist` via vite, vitest tests, bins pointing at built
+  files with `#!/usr/bin/env node`. The four tools gain a build step they never had; one
+  root `yarn build` covers all seven.
+- **npm identity: `@v1nvn/*` everywhere** (resolved 2026-09-01, over unscoped descriptive and
+  the `agentic-*` prefix runner-up; the `@agentic` org is taken by someone else's 73-package
+  SDK). All seven packages scope under the owner's npm account — the scope is the account,
+  so future repos may share it freely. `readability-mcp` and `omlx-mcp` **rename**: old
+  names simply freeze at 0.13.0 — no deprecation pointers or move notes (owner: no
+  backwards compatibility wanted); smithery / Dockerfile / READMEs re-pointed; users on
+  old `@latest` pins ride the frozen final release until a marketplace refresh delivers
+  the new pinned scope name.
+- **Pin everything, `.mcp.json` included** (resolved 2026-09-01). All six plugin config
+  files carry `@<train-version>` pins rewritten by `set-version.mjs`; the marketplace
+  refresh is the single update channel. Reverses the 2026-08-31 `@latest` choice recorded
+  in `archive/version-consistency.md`.
+- **Lockstep stays** (re-affirmed 2026-09-01 when the monorepo reopened the question).
+  One train version across all seven packages and six plugin manifests; every train
+  publishes every package even when a package's diff is empty. Per-package semver ×7
+  reintroduces the which-version-goes-where bookkeeping that stranded four plugins at
+  0.1.0, and the exact pins in hooks.json/.mcp.json would each need independent tracking.
+  A version that bumps with no changes is cosmetic noise; a missed bump is the bug already
+  fixed once (`9313a11`).
+
+**Target layout.**
+
+```
+package.json                # workspaces: readability-mcp, omlx-mcp, core, zai, tokens, rm, md
+readability-mcp/            # dir stays; package renames to @v1nvn/readability-mcp
+omlx-mcp/                   # dir stays; package renames to @v1nvn/omlx-mcp
+core/                       # @v1nvn/agentic-core — last-reply (ported bash+jq → TS) + text-format
+zai/  tokens/  rm/  md/     # TS ports of plugins/<n>/bin, each building a bin: { … } into dist/
+plugins/
+  readability/  omlx/       # .mcp.json (pinned npx) + plugin.json        (unchanged shape)
+  zai/  tokens/  rm/  md/   # hooks.json → "npx -y @v1nvn/<n>@<ver> --hook" + plugin.json + commands/
+```
+
+**Migration steps** (each roughly one commit; land the train as `v0.14.0`).
+
+1. **Root workspace.** Root `package.json` with the seven workspaces; delete the two
+   per-package `yarn.lock`s, generate one root lock. Hoist `prettier.config.js` (identical
+   today); `eslint.config.js` / `tsconfig.json` / `vite.config.ts` differ by 1–2 lines each —
+   reconcile while moving. CI: one `yarn install --immutable`, one cache path.
+2. **`core/` package — `@v1nvn/agentic-core`.** Port `shared/bin/last-reply` (bash+jq,
+   36 lines) to TS — its header claims byte-for-byte `/copy` semantics; the port must
+   preserve that contract. `text-format.mjs` ports alongside it. Published, since the
+   tool packages depend on it.
+3. **Four tool packages.** Port `plugins/<n>/bin/*.mjs` to TS under `<n>/src/`; absorb the
+   remaining shell glue (rm `send-to-remarkable.sh`, md `encode-share` + `send-to-md.sh`,
+   zai `usage.sh`, tokens `report.sh`) into TS. Packages `@v1nvn/zai`, `@v1nvn/tokens`,
+   `@v1nvn/rm`, `@v1nvn/md`; bins `zai-usage`, `tokens-report`, `rm-send`, `md-send`
+   (bins are what users type — the scope never appears at the CLI). Each depends on
+   `@v1nvn/agentic-core`. The hand-rolled `format.test.mjs` suites become vitest tests in
+   the workspace run.
+4. **`--hook` mode.** Same contract the sh wrappers held: run the query, print the block
+   JSON with the output as `reason`, exit 0.
+5. **Plugins shrink.** Delete `plugins/{zai,tokens,rm,md}/bin/` and `hooks/*.sh`; rewrite
+   `hooks.json` commands to the pinned-npx form; keep `plugin.json`, `commands/`, READMEs.
+6. **Version train extends.** `set-version.mjs` gains the four tool-package mirrors **and**
+   a pin-rewrite pass over the six plugin config files (`hooks.json` ×4, `.mcp.json` ×2) —
+   every `@v1nvn/<pkg>@x.y.z` pin moves with the train.
+7. **release.yml + rename.** Publish loop becomes `yarn workspaces foreach` over all seven
+   packages, same per-package already-on-npm skip. All seven scoped names are new on npm —
+   trusted-publisher entries for each on npmjs.com (owner). Package `name` fields in
+   `readability-mcp` / `omlx-mcp` flip to the scope; smithery.yaml, Dockerfile, Makefile,
+   READMEs re-pointed. The old unscoped names freeze at 0.13.0 — no deprecation pointers
+   (owner: no backwards compatibility).
+8. **build.yml / test.yml.** Drop the shared-scripts `cmp` check and `shared/`; single root
+   install; workspace tests subsume the format tests.
+9. **READMEs + CLAUDE.md** move with the surface: root gains the in-shell `npx` story
+   (`npx zai-usage`, `npx tokens-report`, `npx rm-send`, `npx md-send`), plugin READMEs in
+   the same step. CLAUDE.md's Layout section still describes the pre-monorepo shape
+   ("flattened", "four independent plugins") — rewrite it for workspaces + thin plugin
+   wrappers, and re-check the Invariants section still holds.
+
+**What dies.** `shared/` + the cmp sync check · `plugins/*/bin/` · every shell script in the
+repo (`hooks/*.sh` ×4, bash `last-reply`) · the jq dependency · two per-package lockfiles ·
+the orphaned-test state. The shipped surface becomes pure node+TS; the only shell left is
+CI workflow steps and readability-mcp's Makefile/Dockerfile — dev tooling, never shipped.
+
+**Accepted costs.** First hook run after each bump downloads (~seconds, once). Warm npx adds
+~0.3–0.5 s vs a direct `node` call — accepted for mechanism consistency. A brand-new install
+running its first hook offline fails (marketplace install needs network anyway).
+
+**Current state.** Plan final, both decisions landed — nothing executed yet. Predecessor
+landed: the version train now carries all six plugin manifests (`9313a11`), so every plugin
+already updates on a bump.
+
+**Next step.** Step 1 (root workspace), on the owner's go.
+
+**Log.**
+- 2026-09-01 — scoped in conversation after the version-train fix; constraints negotiated:
+  owner rejected npx-at-hook-time concerns (accepted with the pinned-version refinement),
+  accepted first-run download cost for mechanism consistency. Plan written.
+- 2026-09-01 — decisions closed with the owner: pin everything incl. `.mcp.json`; npm
+  identity `@v1nvn/*` everywhere, accepting the two-package rename. Rejected: unscoped
+  descriptive (no family), `agentic-*` prefix (runner-up), mixed scope (permanent
+  inconsistency), `@agentic` org (taken). npm facts verified live: bare `rm`/`zai`/`tokens`/
+  `md` all taken; user scope is the owner's account; a scope adds no user visibility beyond
+  the profile page that already aggregates every publish.
+- 2026-09-01 — owner: no backwards compatibility — deprecation pointers and move notes
+  dropped; old unscoped names just freeze at 0.13.0. Lockstep re-affirmed against
+  per-package versions (see Decisions).
+- 2026-09-01 — plan finalized with the owner: lockstep agreed after discussion; shared
+  package named `core/` → `@v1nvn/agentic-core`; all five new packages confirmed TypeScript
+  (mirroring the MCP packages — vite build, vitest). Shell sweep verified: the four
+  `hooks/*.sh` + bash `last-reply` are the repo's only shell scripts, all replaced.

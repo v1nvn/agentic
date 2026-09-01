@@ -11,3 +11,7 @@
 >
 > **PRIORITY:** `CRITICAL` · `HIGH` · `MEDIUM` · `LOW` — how bad it is to leave unfixed; untagged = untriaged. When a thread lands, its file moves to `archive/` and its line is deleted — no completion history in this file.
 
+---
+
+- [HIGH] Yarn monorepo: all six plugins ride pinned-npx packages, CLIs on npm → progress/monorepo-npx.md — plan final (@v1nvn/* everywhere, all pins on the train); ready to execute
+
