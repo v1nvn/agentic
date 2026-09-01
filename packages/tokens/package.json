@@ -1,0 +1,43 @@
+{
+  "name": "@v1nvn/tokens",
+  "version": "0.13.0",
+  "description": "Per-model token usage and cache hit rate from local Claude Code transcripts — the tokens-report CLI behind the tokens plugin.",
+  "type": "module",
+  "bin": {
+    "tokens-report": "dist/index.js"
+  },
+  "scripts": {
+    "build": "vite build",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "keywords": [
+    "claude-code",
+    "tokens",
+    "cache",
+    "transcripts"
+  ],
+  "author": "v1nvn",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/v1nvn/agentic.git",
+    "directory": "packages/tokens"
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@v1nvn/agentic-core": "workspace:^"
+  },
+  "devDependencies": {
+    "vite": "^8.1.4",
+    "vitest": "^4.1.10"
+  }
+}

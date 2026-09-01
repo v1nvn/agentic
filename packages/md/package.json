@@ -1,0 +1,43 @@
+{
+  "name": "@v1nvn/md",
+  "version": "0.13.0",
+  "description": "Send a Markdown reply to a self-hosted Markdown-Viewer as a #share= URL — the md-send CLI behind the md plugin.",
+  "type": "module",
+  "bin": {
+    "md-send": "dist/index.js"
+  },
+  "scripts": {
+    "build": "vite build",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "keywords": [
+    "markdown",
+    "markdown-viewer",
+    "share",
+    "claude-code"
+  ],
+  "author": "v1nvn",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/v1nvn/agentic.git",
+    "directory": "packages/md"
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@v1nvn/agentic-core": "workspace:^"
+  },
+  "devDependencies": {
+    "vite": "^8.1.4",
+    "vitest": "^4.1.10"
+  }
+}

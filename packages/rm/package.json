@@ -1,0 +1,42 @@
+{
+  "name": "@v1nvn/rm",
+  "version": "0.13.0",
+  "description": "Beam a Markdown reply to a reMarkable as EPUB — the rm-send CLI behind the rm plugin.",
+  "type": "module",
+  "bin": {
+    "rm-send": "dist/index.js"
+  },
+  "scripts": {
+    "build": "vite build",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "keywords": [
+    "remarkable",
+    "epub",
+    "claude-code"
+  ],
+  "author": "v1nvn",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/v1nvn/agentic.git",
+    "directory": "packages/rm"
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@v1nvn/agentic-core": "workspace:^"
+  },
+  "devDependencies": {
+    "vite": "^8.1.4",
+    "vitest": "^4.1.10"
+  }
+}
