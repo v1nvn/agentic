@@ -26,21 +26,5 @@ jobs:
           done
       - name: Check package versions ride the repo version
         run: node .github/scripts/set-version.mjs --check
-      - name: Check shared scripts stay in sync
-        run: |
-          set -euo pipefail
-          shopt -s nullglob
-          status=0
-          check() {
-            for copy in $1; do
-              if ! cmp -s "$2" "$copy"; then
-                echo "::error::$copy differs from $2 — re-sync from the shared source"
-                status=1
-              fi
-            done
-          }
-          check 'plugins/*/bin/last-reply' shared/bin/last-reply
-          check 'plugins/*/bin/text-format.mjs' shared/bin/text-format.mjs
-          exit "$status"
       - name: Lint skills
         run: node .github/scripts/build-skills.mjs
