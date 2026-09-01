@@ -13,5 +13,5 @@
 
 ---
 
-- [HIGH] Yarn monorepo: all six plugins ride pinned-npx packages, CLIs on npm → progress/monorepo-npx.md — plan final (@v1nvn/* everywhere, all pins on the train); ready to execute
+- [HIGH] Yarn monorepo: all six plugins ride pinned-npx packages, CLIs on npm → progress/monorepo-npx.md — steps 1–9 executed on branch `monorepo-npx`; remaining: v0.14.0 bump + PR
 
