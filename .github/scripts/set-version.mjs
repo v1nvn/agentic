@@ -7,8 +7,8 @@ import { readFileSync, writeFileSync } from 'node:fs';
 
 const SOURCE = '.claude-plugin/marketplace.json';
 const MIRRORS = [
-  'readability-mcp/package.json',
-  'omlx-mcp/package.json',
+  'packages/readability-mcp/package.json',
+  'packages/omlx-mcp/package.json',
   'plugins/readability/.claude-plugin/plugin.json',
   'plugins/omlx/.claude-plugin/plugin.json',
   'plugins/rm/.claude-plugin/plugin.json',
