@@ -12,12 +12,12 @@ import { defineConfig } from 'eslint/config';
 export default defineConfig([
   {
     ignores: [
-      'node_modules',
-      'dist/**',
-      'build',
-      'coverage',
+      '**/node_modules',
+      '**/dist/**',
+      '**/build',
+      '**/coverage',
       '**/.act/**',
-      'tmp/**',
+      '**/tmp/**',
       '.pnp.cjs',
       '.pnp.loader.mjs',
       '.yarn/**',
@@ -40,7 +40,7 @@ export default defineConfig([
       perfectionist.configs['recommended-natural'],
       eslintConfigPrettier,
     ],
-    files: ['src/**/*.{ts,tsx}'],
+    files: ['*/src/**/*.{ts,tsx}'],
     languageOptions: {
       ecmaVersion: 2020,
       globals: globals.node,
