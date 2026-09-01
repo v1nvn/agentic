@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-// The repo version lives in .claude-plugin/marketplace.json and the package +
-// plugin manifests below mirror it (lockstep release train — release.yml
-// publishes every package on it). One command bumps all five; CI runs --check
+// The repo version lives in .claude-plugin/marketplace.json and every package
+// and plugin manifest mirrors it (lockstep release train — release.yml
+// publishes every package on it). One command bumps all nine; CI runs --check
 // so a missed mirror fails the build.
 import { readFileSync, writeFileSync } from 'node:fs';
 
@@ -11,6 +11,10 @@ const MIRRORS = [
   'omlx-mcp/package.json',
   'plugins/readability/.claude-plugin/plugin.json',
   'plugins/omlx/.claude-plugin/plugin.json',
+  'plugins/rm/.claude-plugin/plugin.json',
+  'plugins/md/.claude-plugin/plugin.json',
+  'plugins/zai/.claude-plugin/plugin.json',
+  'plugins/tokens/.claude-plugin/plugin.json',
 ];
 
 // Replace the single "version" key without reflowing the rest of the file —
