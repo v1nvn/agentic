@@ -1,10 +1,11 @@
 /**
- * Usage query. Determines whether to call the Z.ai or ZHIPU endpoint based on
- * ANTHROPIC_BASE_URL and authenticates with ANTHROPIC_AUTH_TOKEN. Fetches model
- * usage, tool usage, and quota limits, then renders the plain-text report.
+ * Usage query. Fetches model usage, tool usage, and quota limits from the GLM
+ * Coding Plan monitor API of the resolved base URL (paths are fixed) and
+ * renders the plain-text report.
  */
 
 import type { ZaiModelUsage, ZaiQuota, ZaiToolUsage } from './format.js';
+import type { ResolvedConfig } from './resolve.js';
 
 import { render } from './format.js';
 
@@ -20,35 +21,6 @@ interface RawLimit {
 interface RawQuota {
   level?: string;
   limits?: RawLimit[];
-}
-
-function requireEnv(): { authToken: string; baseUrl: string } {
-  const baseUrl = process.env.ANTHROPIC_BASE_URL ?? '';
-  const authToken = process.env.ANTHROPIC_AUTH_TOKEN ?? '';
-
-  if (!authToken) {
-    throw new Error(
-      [
-        'Error: ANTHROPIC_AUTH_TOKEN is not set',
-        '',
-        'Set the environment variable and retry:',
-        '  export ANTHROPIC_AUTH_TOKEN="your-token-here"',
-      ].join('\n'),
-    );
-  }
-  if (!baseUrl) {
-    throw new Error(
-      [
-        'Error: ANTHROPIC_BASE_URL is not set',
-        '',
-        'Set the environment variable and retry:',
-        '  export ANTHROPIC_BASE_URL="https://api.z.ai/api/anthropic"',
-        '  or',
-        '  export ANTHROPIC_BASE_URL="https://open.bigmodel.cn/api/anthropic"',
-      ].join('\n'),
-    );
-  }
-  return { baseUrl, authToken };
 }
 
 // The monitor API labels every bucket in Beijing time; the query window runs
@@ -138,47 +110,29 @@ async function fetchJson(
   }
 }
 
-export async function fetchReport(): Promise<string> {
-  const { baseUrl, authToken } = requireEnv();
-
-  const parsedBaseUrl = new URL(baseUrl);
-  const baseDomain = `${parsedBaseUrl.protocol}//${parsedBaseUrl.host}`;
-  let platform: string;
-  let modelUsageUrl: string;
-  let toolUsageUrl: string;
-  let quotaLimitUrl: string;
-
-  if (baseUrl.includes('api.z.ai')) {
-    platform = 'ZAI';
-    modelUsageUrl = `${baseDomain}/api/monitor/usage/model-usage`;
-    toolUsageUrl = `${baseDomain}/api/monitor/usage/tool-usage`;
-    quotaLimitUrl = `${baseDomain}/api/monitor/usage/quota/limit`;
-  } else if (
-    baseUrl.includes('open.bigmodel.cn') ||
-    baseUrl.includes('dev.bigmodel.cn')
-  ) {
-    platform = 'ZHIPU';
-    modelUsageUrl = `${baseDomain}/api/monitor/usage/model-usage`;
-    toolUsageUrl = `${baseDomain}/api/monitor/usage/tool-usage`;
-    quotaLimitUrl = `${baseDomain}/api/monitor/usage/quota/limit`;
-  } else {
-    throw new Error(
-      [
-        `Error: Unrecognized ANTHROPIC_BASE_URL: ${baseUrl}`,
-        '',
-        'Supported values:',
-        '  - https://api.z.ai/api/anthropic',
-        '  - https://open.bigmodel.cn/api/anthropic',
-      ].join('\n'),
-    );
-  }
+export async function fetchReport(config: ResolvedConfig): Promise<string> {
+  const platform = config.url.includes('bigmodel') ? 'ZHIPU' : 'ZAI';
 
   const query = queryParams();
   try {
     const [model, tool, quotaRaw] = await Promise.all([
-      fetchJson(modelUsageUrl, 'Model usage', authToken, query),
-      fetchJson(toolUsageUrl, 'Tool usage', authToken, query),
-      fetchJson(quotaLimitUrl, 'Quota limit', authToken),
+      fetchJson(
+        `${config.url}/api/monitor/usage/model-usage`,
+        'Model usage',
+        config.token,
+        query,
+      ),
+      fetchJson(
+        `${config.url}/api/monitor/usage/tool-usage`,
+        'Tool usage',
+        config.token,
+        query,
+      ),
+      fetchJson(
+        `${config.url}/api/monitor/usage/quota/limit`,
+        'Quota limit',
+        config.token,
+      ),
     ]);
     return render({
       platform,

@@ -24,9 +24,34 @@ npx -y @v1nvn/zai
 ## Requirements
 
 - Node.js (the hook runs `npx`)
-- Environment variables (inherited from the Claude Code process):
-  - `ANTHROPIC_AUTH_TOKEN`
-  - `ANTHROPIC_BASE_URL` — `https://api.z.ai/api/anthropic` or `https://open.bigmodel.cn/api/anthropic`
+- An API key — see Configuration
+
+## Configuration
+
+One variable is enough; the base URL defaults to `https://api.z.ai`. Each
+setting takes the first source that provides it:
+
+| Setting | Flag | zai env | Claude Code env | Default |
+|---|---|---|---|---|
+| API key | `--auth-token` | `ZAI_AUTH_TOKEN` | `ANTHROPIC_AUTH_TOKEN` ¹ | — required |
+| Base URL | `--base-url` | `ZAI_BASE_URL` | `ANTHROPIC_BASE_URL` ¹ | `https://api.z.ai` |
+
+¹ Inherited only when the resolved base URL names a GLM host (`api.z.ai`,
+`open.bigmodel.cn`, `dev.bigmodel.cn`) — that is what proves the token belongs
+to a GLM Coding Plan. Claude Code routed elsewhere (plain Anthropic, another
+proxy) is not a zai configuration; set `ZAI_AUTH_TOKEN`.
+
+Bigmodel accounts point the base URL at their host; the monitor paths are
+identical: `ZAI_BASE_URL=https://open.bigmodel.cn`.
+
+```sh
+npx -y @v1nvn/zai                       # ZAI_AUTH_TOKEN → api.z.ai
+npx -y @v1nvn/zai --auth-token TOKEN    # on the command line (visible in ps)
+npx -y @v1nvn/zai --base-url https://open.bigmodel.cn
+```
+
+The hook reads the same env from the Claude Code process; flags are a CLI
+affordance — `hooks.json` is static.
 
 ## How it works
 
