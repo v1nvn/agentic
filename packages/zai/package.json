@@ -1,6 +1,6 @@
 {
   "name": "@v1nvn/zai",
-  "version": "0.14.1",
+  "version": "0.15.0",
   "description": "GLM Coding Plan usage and quota report — the zai-usage CLI behind the zai plugin.",
   "type": "module",
   "bin": {
