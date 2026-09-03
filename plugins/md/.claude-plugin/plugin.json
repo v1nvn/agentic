@@ -1,6 +1,6 @@
 {
   "name": "md",
-  "version": "0.15.0",
+  "version": "0.16.0",
   "description": "Send the last Claude reply to the self-hosted Markdown-Viewer as a #share= URL — zero-token /md:send.",
   "author": { "name": "v1nvn", "email": "v1n@outlook.com" }
 }
