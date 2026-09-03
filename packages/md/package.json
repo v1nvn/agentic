@@ -34,7 +34,8 @@
     "node": ">=22"
   },
   "dependencies": {
-    "@v1nvn/agentic-core": "workspace:^"
+    "@v1nvn/agentic-core": "workspace:^",
+    "commander": "^15.0.0"
   },
   "devDependencies": {
     "vite": "^8.1.4",

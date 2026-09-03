@@ -1,5 +1,5 @@
-export const USAGE =
-  'Usage: zai-usage [--auth-token TOKEN] [--base-url URL] [--hook]';
+import { parseQuietly } from '@v1nvn/agentic-core';
+import { Command, Option } from 'commander';
 
 const DEFAULT_BASE_URL = 'https://api.z.ai';
 
@@ -44,11 +44,10 @@ function resolveBaseUrl(
   flag: string | undefined,
   env: NodeJS.ProcessEnv,
 ): BaseUrl {
-  const native = flag ?? fromEnv(env.ZAI_BASE_URL);
-  if (native !== undefined) {
-    const origin = originOf(native);
+  if (flag !== undefined) {
+    const origin = originOf(flag);
     if (origin === undefined) {
-      throw new Error(`invalid base URL: ${native}`);
+      throw new Error(`invalid base URL: ${flag}`);
     }
     return { glm: isGlm(origin), origin };
   }
@@ -60,29 +59,31 @@ function resolveBaseUrl(
   return { glm: false, origin: DEFAULT_BASE_URL };
 }
 
+export function buildProgram(): Command {
+  return new Command()
+    .name('zai-usage')
+    .addOption(
+      new Option('--auth-token <token>', 'API key').env('ZAI_AUTH_TOKEN'),
+    )
+    .addOption(new Option('--base-url <url>', 'base URL').env('ZAI_BASE_URL'))
+    .option('--hook', 'emit a UserPromptExpansion block instead of printing');
+}
+
 export function parseArgs(args: readonly string[]): ParsedArgs | undefined {
-  let authToken: string | undefined;
-  let baseUrl: string | undefined;
-  let hook = false;
-  for (let i = 0; i < args.length; i++) {
-    const arg = args[i];
-    if (arg === '--hook') {
-      hook = true;
-    } else if (arg === '--auth-token' || arg === '--base-url') {
-      const value = args.at(++i);
-      if (value === undefined || value.startsWith('--')) {
-        return undefined;
-      }
-      if (arg === '--auth-token') {
-        authToken = value;
-      } else {
-        baseUrl = value;
-      }
-    } else {
-      return undefined;
-    }
+  const program = parseQuietly(buildProgram(), args);
+  if (program === undefined) {
+    return undefined;
   }
-  return { authToken, baseUrl, hook };
+  const { authToken, baseUrl, hook } = program.opts<{
+    authToken: string | undefined;
+    baseUrl: string | undefined;
+    hook: boolean | undefined;
+  }>();
+  return {
+    authToken: authToken || undefined,
+    baseUrl: baseUrl || undefined,
+    hook: hook ?? false,
+  };
 }
 
 export function resolveConfig(
@@ -92,7 +93,6 @@ export function resolveConfig(
   const base = resolveBaseUrl(parsed.baseUrl, env);
   const token =
     parsed.authToken ??
-    fromEnv(env.ZAI_AUTH_TOKEN) ??
     (base.glm ? fromEnv(env.ANTHROPIC_AUTH_TOKEN) : undefined);
   if (token === undefined) {
     throw new Error(

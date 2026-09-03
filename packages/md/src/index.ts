@@ -1,14 +1,25 @@
 import {
-  emitHookBlock,
+  hookOrPrint,
   lastReply,
-  readHookEvent,
+  parseQuietly,
+  printUsageAndExit,
   replyTarget,
 } from '@v1nvn/agentic-core';
+import { Command } from 'commander';
 import { readFileSync, statSync } from 'node:fs';
 
 import { mdSend } from './share.js';
 
-const arg = process.argv[2] as string | undefined;
+const program = new Command()
+  .name('md-send')
+  .description('Send a Markdown reply to the Markdown-Viewer as a #share= URL')
+  .argument('[file]', 'Markdown file, - for stdin; the last reply when omitted')
+  .option('--hook', 'emit a UserPromptExpansion block instead of printing');
+
+const parsed =
+  parseQuietly(program, process.argv.slice(2)) ?? printUsageAndExit(program);
+const arg = parsed.args.at(0);
+const { hook } = parsed.opts<{ hook: boolean | undefined }>();
 
 function readStdin(): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -38,22 +49,8 @@ function readMarkdown(): Promise<string> | string {
   return readFileSync(arg, 'utf8');
 }
 
-if (process.argv.includes('--hook')) {
-  const event = await readHookEvent();
-  let reason: string;
-  try {
-    reason = mdSend(lastReply(replyTarget(event)));
-  } catch (e) {
-    reason = `send failed: ${(e as Error).message}`;
-  }
-  emitHookBlock(reason);
-} else {
-  try {
-    console.log(mdSend(await readMarkdown()));
-  } catch (e) {
-    console.error((e as Error).message);
-    // CLIs report failure through the exit code; the rule targets libraries.
-    // eslint-disable-next-line n/no-process-exit
-    process.exit(1);
-  }
-}
+await hookOrPrint(hook ?? false, 'send failed', async event =>
+  mdSend(
+    event === undefined ? await readMarkdown() : lastReply(replyTarget(event)),
+  ),
+);

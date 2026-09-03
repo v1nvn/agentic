@@ -1,6 +1,6 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { parseArgs, resolveConfig, USAGE } from '../src/resolve.js';
+import { buildProgram, parseArgs, resolveConfig } from '../src/resolve.js';
 import type { ParsedArgs } from '../src/resolve.js';
 
 const env = (vars: Record<string, string>) => vars as NodeJS.ProcessEnv;
@@ -8,10 +8,19 @@ const env = (vars: Record<string, string>) => vars as NodeJS.ProcessEnv;
 // The resolve tests only use argv that parses; the parse tests cover the rest.
 const args = (argv: string[]): ParsedArgs => parseArgs(argv) as ParsedArgs;
 
+// An empty stub reads as unset, pinning a clean env where the machine exports ZAI_*.
+beforeEach(() => {
+  vi.stubEnv('ZAI_AUTH_TOKEN', '');
+  vi.stubEnv('ZAI_BASE_URL', '');
+});
+
+afterEach(() => {
+  vi.unstubAllEnvs();
+});
+
 const ZAI_ORIGIN = 'https://api.z.ai';
 const BIGMODEL_ORIGIN = 'https://open.bigmodel.cn';
 
-const zaiKey = { ZAI_AUTH_TOKEN: 'zai-key' };
 const glmPair = {
   ANTHROPIC_AUTH_TOKEN: 'cc-key',
   ANTHROPIC_BASE_URL: 'https://api.z.ai/api/anthropic',
@@ -20,6 +29,14 @@ const glmPair = {
 describe('parseArgs', () => {
   it('parses flags in any order', () => {
     expect(parseArgs(['--base-url', 'https://x', '--auth-token', 't'])).toEqual({
+      authToken: 't',
+      baseUrl: 'https://x',
+      hook: false,
+    });
+  });
+
+  it('parses the --flag=value form', () => {
+    expect(parseArgs(['--auth-token=t', '--base-url=https://x'])).toEqual({
       authToken: 't',
       baseUrl: 'https://x',
       hook: false,
@@ -42,12 +59,21 @@ describe('parseArgs', () => {
     });
   });
 
-  it('rejects a flag with no value', () => {
-    expect(parseArgs(['--auth-token'])).toBeUndefined();
+  it('folds ZAI_AUTH_TOKEN in from the environment', () => {
+    vi.stubEnv('ZAI_AUTH_TOKEN', 'env-key');
+    expect(parseArgs([])!.authToken).toBe('env-key');
   });
 
-  it('rejects a flag-like value', () => {
-    expect(parseArgs(['--base-url', '--hook'])).toBeUndefined();
+  it('lets the flag beat the environment', () => {
+    vi.stubEnv('ZAI_AUTH_TOKEN', 'env-key');
+    vi.stubEnv('ZAI_BASE_URL', 'https://open.bigmodel.cn');
+    const parsed = parseArgs(['--auth-token', 'flag-key'])!;
+    expect(parsed.authToken).toBe('flag-key');
+    expect(parsed.baseUrl).toBe('https://open.bigmodel.cn');
+  });
+
+  it('rejects a flag with no value', () => {
+    expect(parseArgs(['--auth-token'])).toBeUndefined();
   });
 
   it('rejects unknown flags', () => {
@@ -61,28 +87,19 @@ describe('parseArgs', () => {
 
 describe('resolveConfig', () => {
   it('resolves a lone zai key to the default host', () => {
-    expect(resolveConfig(env(zaiKey), args([]))).toEqual({
+    expect(resolveConfig(env({}), args(['--auth-token', 'zai-key']))).toEqual({
       token: 'zai-key',
       url: ZAI_ORIGIN,
     });
   });
 
-  it('routes to bigmodel off ZAI_BASE_URL', () => {
+  it('routes to bigmodel off a ZAI base URL', () => {
     expect(
       resolveConfig(
-        env({ ...zaiKey, ZAI_BASE_URL: 'https://open.bigmodel.cn/api/paas/v4' }),
-        args([]),
+        env({}),
+        args(['--base-url', 'https://open.bigmodel.cn/api/paas/v4', '--auth-token', 'zai-key']),
       ),
     ).toEqual({ token: 'zai-key', url: BIGMODEL_ORIGIN });
-  });
-
-  it('lets the flag beat the env for the URL', () => {
-    expect(
-      resolveConfig(
-        env({ ...zaiKey, ZAI_BASE_URL: 'https://open.bigmodel.cn' }),
-        args(['--base-url', 'https://api.z.ai']),
-      ),
-    ).toEqual({ token: 'zai-key', url: ZAI_ORIGIN });
   });
 
   it('inherits the Claude Code pair on a z.ai host', () => {
@@ -152,12 +169,10 @@ describe('resolveConfig', () => {
     ).toEqual({ token: 'cc-key', url: BIGMODEL_ORIGIN });
   });
 
-  it('crosses families: zai URL + Claude Code token', () => {
+  it('crosses the seams: ZAI_BASE_URL from env with the inherited token', () => {
+    vi.stubEnv('ZAI_BASE_URL', 'https://open.bigmodel.cn');
     expect(
-      resolveConfig(
-        env({ ...glmPair, ZAI_BASE_URL: 'https://open.bigmodel.cn' }),
-        args([]),
-      ),
+      resolveConfig(env({ ANTHROPIC_AUTH_TOKEN: 'cc-key' }), args([])),
     ).toEqual({ token: 'cc-key', url: BIGMODEL_ORIGIN });
   });
 
@@ -165,44 +180,47 @@ describe('resolveConfig', () => {
     expect(() =>
       resolveConfig(
         env({ ...glmPair, ZAI_BASE_URL: 'https://proxy.example' }),
-        args([]),
+        args(['--base-url', 'https://proxy.example']),
       ),
     ).toThrow(/ZAI_AUTH_TOKEN/);
   });
 
   it('prefers the zai key over the inherited one', () => {
     expect(
-      resolveConfig(env({ ...glmPair, ZAI_AUTH_TOKEN: 'zai-key' }), args([]))
-        .token,
+      resolveConfig(env(glmPair), args(['--auth-token', 'zai-key'])).token,
     ).toBe('zai-key');
   });
 
   it('lets the flag beat every env key', () => {
     expect(
-      resolveConfig(
-        env({ ...glmPair, ZAI_AUTH_TOKEN: 'zai-key' }),
-        args(['--auth-token', 'flag-key']),
-      ).token,
+      resolveConfig(env(glmPair), args(['--auth-token', 'flag-key'])).token,
     ).toBe('flag-key');
   });
 
   it('errors with the variable name when nothing resolves', () => {
-    expect(() => resolveConfig(env({}), args([]))).toThrow(
-      /ZAI_AUTH_TOKEN/,
-    );
+    expect(() => resolveConfig(env({}), args([]))).toThrow(/ZAI_AUTH_TOKEN/);
   });
 
   it('rejects an unparseable base URL', () => {
     expect(() =>
-      resolveConfig(env(zaiKey), args(['--base-url', 'localhost:6659'])),
+      resolveConfig(env({}), args(['--base-url', 'localhost:6659'])),
+    ).toThrow(/invalid base URL/);
+  });
+
+  it('rejects a flag-like base-url value at resolve', () => {
+    expect(() =>
+      resolveConfig(env({}), args(['--base-url', '--hook'])),
     ).toThrow(/invalid base URL/);
   });
 });
 
-describe('USAGE', () => {
-  it('names every flag', () => {
-    expect(USAGE).toContain('--auth-token');
-    expect(USAGE).toContain('--base-url');
-    expect(USAGE).toContain('--hook');
+describe('buildProgram help', () => {
+  it('names every flag and env var', () => {
+    const help = buildProgram().helpInformation();
+    expect(help).toContain('--auth-token');
+    expect(help).toContain('--base-url');
+    expect(help).toContain('--hook');
+    expect(help).toContain('ZAI_AUTH_TOKEN');
+    expect(help).toContain('ZAI_BASE_URL');
   });
 });

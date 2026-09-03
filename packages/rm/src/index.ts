@@ -1,14 +1,25 @@
 import {
-  emitHookBlock,
+  hookOrPrint,
   lastReply,
-  readHookEvent,
+  parseQuietly,
+  printUsageAndExit,
   replyTarget,
 } from '@v1nvn/agentic-core';
+import { Command } from 'commander';
 import { readFileSync, statSync } from 'node:fs';
 
 import { sendToRemarkable } from './send.js';
 
-const file = process.argv[2] as string | undefined;
+const program = new Command()
+  .name('rm-send')
+  .description('Beam a Markdown reply to the reMarkable as EPUB')
+  .argument('[file]', 'Markdown file; the last reply when omitted')
+  .option('--hook', 'emit a UserPromptExpansion block instead of printing');
+
+const parsed =
+  parseQuietly(program, process.argv.slice(2)) ?? printUsageAndExit(program);
+const file = parsed.args.at(0);
+const { hook } = parsed.opts<{ hook: boolean | undefined }>();
 
 function readMarkdown(): string {
   if (file === undefined) {
@@ -21,22 +32,8 @@ function readMarkdown(): string {
   return readFileSync(file, 'utf8');
 }
 
-if (process.argv.includes('--hook')) {
-  const event = await readHookEvent();
-  let reason: string;
-  try {
-    reason = sendToRemarkable(lastReply(replyTarget(event)));
-  } catch (e) {
-    reason = `send failed: ${(e as Error).message}`;
-  }
-  emitHookBlock(reason);
-} else {
-  try {
-    console.log(sendToRemarkable(readMarkdown()));
-  } catch (e) {
-    console.error((e as Error).message);
-    // CLIs report failure through the exit code; the rule targets libraries.
-    // eslint-disable-next-line n/no-process-exit
-    process.exit(1);
-  }
-}
+await hookOrPrint(hook ?? false, 'send failed', event =>
+  sendToRemarkable(
+    event === undefined ? readMarkdown() : lastReply(replyTarget(event)),
+  ),
+);

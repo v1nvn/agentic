@@ -30,6 +30,18 @@ describe('cli parseArgs', () => {
     });
   });
 
+  it('parses the --flag=value form', () => {
+    expect(parseArgs(['extract', '--format=json', '--max-chars=100'])).toEqual({
+      file: undefined,
+      format: 'json',
+      maxChars: 100,
+    });
+  });
+
+  it('rejects a second positional', () => {
+    expect(parseArgs(['extract', 'a.html', 'b.html'])).toBeUndefined();
+  });
+
   it('rejects an unknown format value', () => {
     expect(parseArgs(['extract', '--format', 'xml'])).toBeUndefined();
   });

@@ -47,6 +47,7 @@ identical: `ZAI_BASE_URL=https://open.bigmodel.cn`.
 ```sh
 npx -y @v1nvn/zai                       # ZAI_AUTH_TOKEN → api.z.ai
 npx -y @v1nvn/zai --auth-token TOKEN    # on the command line (visible in ps)
+npx -y @v1nvn/zai --auth-token=TOKEN    # = form works too (zsh quoting-safe)
 npx -y @v1nvn/zai --base-url https://open.bigmodel.cn
 ```
 

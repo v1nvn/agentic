@@ -1,27 +1,26 @@
-import { emitHookBlock } from '@v1nvn/agentic-core';
+import {
+  hookOrPrint,
+  parseQuietly,
+  printUsageAndExit,
+} from '@v1nvn/agentic-core';
+import { Command } from 'commander';
 
 import { render } from './format.js';
 import { scan } from './scan.js';
+
+const program = new Command()
+  .name('tokens-report')
+  .description(
+    'Per-model token usage and cache hit rate from local transcripts',
+  )
+  .option('--hook', 'emit a UserPromptExpansion block instead of printing');
+
+const parsed =
+  parseQuietly(program, process.argv.slice(2)) ?? printUsageAndExit(program);
+const { hook } = parsed.opts<{ hook: boolean | undefined }>();
 
 function report(): string {
   return render(scan());
 }
 
-if (process.argv.includes('--hook')) {
-  let reason: string;
-  try {
-    reason = report();
-  } catch (e) {
-    reason = `query failed: ${(e as Error).message}`;
-  }
-  emitHookBlock(reason);
-} else {
-  try {
-    console.log(report());
-  } catch (e) {
-    console.error((e as Error).message);
-    // CLIs report failure through the exit code; the rule targets libraries.
-    // eslint-disable-next-line n/no-process-exit
-    process.exit(1);
-  }
-}
+await hookOrPrint(hook ?? false, 'query failed', report);

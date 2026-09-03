@@ -1,3 +1,6 @@
+import { parseQuietly } from '@v1nvn/agentic-core';
+import { Command, InvalidArgumentError, Option } from 'commander';
+
 import { extractArticleFromHtml } from './tools/extract.js';
 import { readHtmlFile } from './tools/html-source.js';
 
@@ -12,53 +15,37 @@ export interface ParsedArgs {
   readonly maxChars: number | undefined;
 }
 
-const USAGE =
-  'Usage: readability-mcp extract [file.html] [--format md|json|html] [--max-chars N]';
-
 const FORMATS: readonly CliFormat[] = ['html', 'json', 'md'];
 
-function isCliFormat(value: string | undefined): value is CliFormat {
-  return value !== undefined && (FORMATS as readonly string[]).includes(value);
+function parseMaxChars(value: string): number {
+  const n = Number(value);
+  if (!Number.isInteger(n)) {
+    throw new InvalidArgumentError('must be an integer');
+  }
+  return n;
 }
 
-// `extract` is consumed by the caller; everything after it is parsed here.
-// Flag values are read with `.at()` (not `[]`) because the peek may advance
-// past the end for a trailing flag with no value; `.at()` surfaces that as
-// undefined where bracket indexing would not (noUncheckedIndexedAccess is off).
+export function buildProgram(): Command {
+  return new Command('readability-mcp extract')
+    .argument('[file]', 'HTML file; stdin when omitted')
+    .addOption(
+      new Option('--format <fmt>', 'output format')
+        .choices(FORMATS)
+        .default('md'),
+    )
+    .option('--max-chars <n>', 'truncate the output', parseMaxChars);
+}
+
 export function parseArgs(argv: readonly string[]): ParsedArgs | undefined {
-  let file: string | undefined;
-  let format: CliFormat = 'md';
-  let maxChars: number | undefined;
-
-  const rest = argv.slice(1);
-  for (let i = 0; i < rest.length; i++) {
-    const arg = rest[i];
-    if (arg === '--format') {
-      const value = rest.at(++i);
-      if (!isCliFormat(value)) {
-        return undefined;
-      }
-      format = value;
-    } else if (arg === '--max-chars') {
-      const value = rest.at(++i);
-      if (value === undefined) {
-        return undefined;
-      }
-      const n = Number(value);
-      if (!Number.isInteger(n)) {
-        return undefined;
-      }
-      maxChars = n;
-    } else if (arg.startsWith('--')) {
-      return undefined;
-    } else if (file === undefined) {
-      file = arg;
-    } else {
-      return undefined;
-    }
+  const program = parseQuietly(buildProgram(), argv.slice(1));
+  if (program === undefined) {
+    return undefined;
   }
-
-  return { file, format, maxChars };
+  const { format, maxChars } = program.opts<{
+    format: CliFormat;
+    maxChars: number | undefined;
+  }>();
+  return { file: program.args.at(0), format, maxChars };
 }
 
 // The stream is injected rather than reading process.stdin directly so the
@@ -89,13 +76,13 @@ function payloadText(result: CallToolResult): string {
 
 export async function runCli(argv: readonly string[]): Promise<number> {
   if (argv[0] !== 'extract') {
-    process.stderr.write(`${USAGE}\n`);
+    process.stderr.write(buildProgram().helpInformation());
     return 2;
   }
 
   const parsed = parseArgs(argv);
   if (parsed === undefined) {
-    process.stderr.write(`${USAGE}\n`);
+    process.stderr.write(buildProgram().helpInformation());
     return 2;
   }
 
