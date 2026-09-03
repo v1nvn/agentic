@@ -23,6 +23,14 @@ interface RawQuota {
   limits?: RawLimit[];
 }
 
+// Auth failures arrive as HTTP 200 with success false.
+interface RawEnvelope {
+  code?: number;
+  data?: unknown;
+  msg?: string;
+  success?: boolean;
+}
+
 // The monitor API labels every bucket in Beijing time; the query window runs
 // from yesterday at the current hour to the end of today's current hour.
 function queryParams(now = new Date()): string {
@@ -99,15 +107,21 @@ async function fetchJson(
   if (res.status !== 200) {
     throw new Error(`[${label}] HTTP ${res.status}\n${body}`);
   }
+  let json: RawEnvelope;
   try {
-    const json = JSON.parse(body) as { data?: unknown };
-    return json.data ?? json;
+    json = JSON.parse(body) as RawEnvelope;
   } catch (e) {
     throw new Error(
       `[${label}] could not parse response: ${(e as Error).message}`,
       { cause: e },
     );
   }
+  if (json.success === false) {
+    throw new Error(
+      `[${label}] ${json.msg ?? 'request failed'} (code ${json.code ?? '?'})`,
+    );
+  }
+  return json.data ?? json;
 }
 
 export async function fetchReport(config: ResolvedConfig): Promise<string> {
