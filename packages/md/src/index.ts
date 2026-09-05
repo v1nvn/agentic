@@ -14,12 +14,16 @@ const program = new Command()
   .name('md-send')
   .description('Send a Markdown reply to the Markdown-Viewer as a #share= URL')
   .argument('[file]', 'Markdown file, - for stdin; the last reply when omitted')
+  .option('--view', 'open the viewer read-only, without the edit pane')
   .option('--hook', 'emit a UserPromptExpansion block instead of printing');
 
 const parsed =
   parseQuietly(program, process.argv.slice(2)) ?? printUsageAndExit(program);
 const arg = parsed.args.at(0);
-const { hook } = parsed.opts<{ hook: boolean | undefined }>();
+const { hook, view } = parsed.opts<{
+  hook: boolean | undefined;
+  view: boolean | undefined;
+}>();
 
 function readStdin(): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -52,5 +56,6 @@ function readMarkdown(): Promise<string> | string {
 await hookOrPrint(hook ?? false, 'send failed', async event =>
   mdSend(
     event === undefined ? await readMarkdown() : lastReply(replyTarget(event)),
+    view ?? false,
   ),
 );

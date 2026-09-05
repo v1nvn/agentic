@@ -3,12 +3,22 @@
   "hooks": {
     "UserPromptExpansion": [
       {
-        "matcher": "^md:send$",
+        "matcher": "^md:edit$",
         "hooks": [
           {
             "type": "command",
             "command": "npx",
             "args": ["-y", "@v1nvn/md@0.16.0", "--hook"]
+          }
+        ]
+      },
+      {
+        "matcher": "^md:view$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npx",
+            "args": ["-y", "@v1nvn/md@0.16.0", "--hook", "--view"]
           }
         ]
       }

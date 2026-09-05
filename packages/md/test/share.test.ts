@@ -28,6 +28,12 @@ describe('shareUrl', () => {
     expect(shareUrl('Hi')).toBe('https://md.example.com/#share=eJzzyAQAAPsAsg&edit=1');
     delete process.env.MD_VIEWER_URL;
   });
+
+  it('builds a read-only share URL without the edit flag', () => {
+    process.env.MD_VIEWER_URL = 'https://md.example.com/';
+    expect(shareUrl('Hi', true)).toBe('https://md.example.com/#share=eJzzyAQAAPsAsg');
+    delete process.env.MD_VIEWER_URL;
+  });
 });
 
 describe('statusLine', () => {

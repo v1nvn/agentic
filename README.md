@@ -9,7 +9,7 @@ its package through version-pinned `npx`.
 | **readability** | Read a URL to clean Markdown via the readability MCP server. The host shell fetches with `curl`; the server never touches the network. | paste a URL, or "read this" |
 | **omlx** | Delegate bulk work — commit messages, docstrings, summarization, extraction, image description — to a local omlx inference server. | the agent routes on its own, or "ask the local model" |
 | **rm** | Beam the last reply to a reMarkable as EPUB. | `/rm:send` |
-| **md** | Send the last reply to a Markdown-Viewer as a `#share=` URL. | `/md:send` |
+| **md** | Send the last reply to a Markdown-Viewer as a `#share=` URL — editable or read-only. | `/md:edit`, `/md:view` |
 | **zai** | Query GLM Coding Plan quota and usage. | `/zai:usage` |
 | **tokens** | Per-model token usage and cache hit rate from local transcripts. | `/tokens:usage` |
 
@@ -40,7 +40,7 @@ The four tool CLIs run outside Claude Code too, same bins the hooks use:
 npx -y @v1nvn/zai        # GLM Coding Plan usage report
 npx -y @v1nvn/tokens     # token usage + cache hit rate from local transcripts
 npx -y @v1nvn/rm         # last reply → reMarkable (or a file: npx -y @v1nvn/rm reply.md)
-npx -y @v1nvn/md         # last reply → Markdown-Viewer (or a file: npx -y @v1nvn/md reply.md)
+npx -y @v1nvn/md         # last reply → Markdown-Viewer (--view for read-only; or a file: npx -y @v1nvn/md reply.md)
 ```
 
 `rm` needs `pandoc` plus `ssh`/`scp` access to the device (`REMARKABLE_HOST`, default

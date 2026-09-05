@@ -5,6 +5,7 @@
  *   md-send path/to/reply.md     # from a file
  *   md-send -                    # from stdin
  *   md-send                      # from the last Claude reply (core.lastReply)
+ *   md-send --view               # open read-only (no edit pane)
  *
  * Env knobs: MD_VIEWER_URL (default: https://md.v1n.space), MD_NO_OPEN=1 (skip browser).
  */
@@ -28,14 +29,15 @@ export function encodeShare(markdown: string): string {
     .replace(/=+$/, '');
 }
 
-export function shareUrl(markdown: string): string {
+export function shareUrl(markdown: string, view = false): string {
   const base = (process.env.MD_VIEWER_URL ?? 'https://md.v1n.space').replace(
     /\/+$/,
     '',
   );
+  const mode = view ? '' : '&edit=1';
   // Without `edit=1` the viewer opens the snapshot read-only — preview pane
   // only, with edit and split disabled (Markdown-Viewer script.js: loadFromShareHash).
-  return `${base}/#share=${encodeShare(markdown)}&edit=1`;
+  return `${base}/#share=${encodeShare(markdown)}${mode}`;
 }
 
 function copyToClipboard(text: string): boolean {
@@ -71,8 +73,8 @@ export function statusLine(opened: boolean, copied: boolean): string {
 }
 
 /** Shares the markdown and returns the status line; the URL itself is never printed. */
-export function mdSend(markdown: string): string {
-  const url = shareUrl(markdown);
+export function mdSend(markdown: string, view = false): string {
+  const url = shareUrl(markdown, view);
   const copied = copyToClipboard(url);
   const opened = process.env.MD_NO_OPEN === undefined && openUrl(url);
   return statusLine(opened, copied);
