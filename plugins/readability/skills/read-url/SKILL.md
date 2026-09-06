@@ -40,9 +40,13 @@ page HTML into the conversation; only the `localPath` crosses to `extract`.
    1. `navigate_page` to `<URL>`; wait for network idle / load. Scroll to trigger lazy
       content if it still looks partial.
    2. `evaluate_script` returning `document.documentElement.outerHTML`, with its `filePath`
-      argument set to an absolute path (e.g. `/tmp/read-url-rendered.html`). The tool writes
-      the HTML to that path — emit the path only, never the HTML.
-   3. Re-run `extract` with the new `localPath` (same `baseUrl`, `cache: true`).
+      argument set to an absolute path (e.g. `/tmp/read-url-rendered.json`). The tool writes
+      the return value **as a JSON string literal**, not raw HTML — unwrap before extract:
+      ```
+      python3 -c 'import json,sys; open(sys.argv[2],"w").write(json.load(open(sys.argv[1])))' /tmp/read-url-rendered.json /tmp/read-url-rendered.html
+      ```
+      Emit the path only, never the HTML.
+   3. Re-run `extract` with the unwrapped `localPath` (same `baseUrl`, `cache: true`).
 
 5. **Degrade gracefully** when the browser is needed but `chrome-devtools` is **not**
    available: return the static `extract` result (often partially useful — metadata, some
