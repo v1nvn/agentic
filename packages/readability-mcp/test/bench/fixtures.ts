@@ -68,6 +68,12 @@ export const BENCH_FIXTURES: readonly BenchFixture[] = [
     path: 'test/fixtures/dailymail-gatwick/saved.html',
     url: 'https://www.dailymail.com/news/article-16105629/All-flights-grounded-Gatwick-airport-runway-closed-plane-suffers-technical-issue.html',
   },
+  {
+    category: 'article',
+    id: 'corriere-afd',
+    path: 'test/fixtures/corriere-afd/saved.html',
+    url: 'https://www.corriere.it/esteri/26_settembre_05/germania-afd-partito-estrema-destra-eea3ed68-00f3-4741-983e-5f6bb02e6xlk.shtml',
+  },
 ];
 
 export function resolveFixturePath(fixture: BenchFixture): string {

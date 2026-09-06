@@ -14,6 +14,7 @@ export const MAIN_CONTENT_SELECTORS: Readonly<Record<string, string>> = {
   'react-spa': 'main article',
   'dailymail-a66': 'div[itemprop="articleBody"]',
   'dailymail-gatwick': 'div[itemprop="articleBody"]',
+  'corriere-afd': 'div#content-to-read',
 };
 
 export const MAIN_CONTENT_NOTES: Readonly<Record<string, string>> = {
@@ -35,4 +36,6 @@ export const MAIN_CONTENT_NOTES: Readonly<Record<string, string>> = {
     'The itemprop="articleBody" div is the article; the obvious #js-article-text also contains #reader-comments, and the channel-feed puffs dominate the rest of the capture.',
   'dailymail-gatwick':
     'The itemprop="articleBody" div is the article; the obvious #js-article-text also contains #reader-comments, and the channel-feed puffs dominate the rest of the capture.',
+  'corriere-afd':
+    'The site\'s own #content-to-read container holds the full article behind the consent-wall overlay; everything else on the capture is wall text, navigation, and offer modules.',
 };

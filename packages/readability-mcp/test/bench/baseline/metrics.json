@@ -23,6 +23,18 @@
     "fallbackUsed": false,
     "readerable": true
   },
+  "corriere-afd": {
+    "inputNodes": 1218,
+    "markdownChars": 5953,
+    "tokenEstimate": 1488,
+    "removedNodes": 1162,
+    "images": 0,
+    "tables": 0,
+    "links": 3,
+    "compressionRatio": 4.89,
+    "fallbackUsed": false,
+    "readerable": true
+  },
   "dailymail-a66": {
     "inputNodes": 4377,
     "markdownChars": 11558,
