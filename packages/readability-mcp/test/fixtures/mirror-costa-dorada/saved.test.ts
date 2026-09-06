@@ -2,6 +2,8 @@ import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { buildDocument } from '../../../src/pipeline/dom.js';
+import { detectList } from '../../../src/policy/list-detector.js';
 import { extractArticleFromHtml } from '../../../src/tools/extract.js';
 import type { ExtractFromHtmlInput } from '../../../src/tools/schemas.js';
 import type { StructuredContent } from '../../../src/tools/output-schema.js';
@@ -74,5 +76,17 @@ describe('the article-body scope applied through the real pipeline', () => {
     const structured = result.structuredContent as StructuredContent;
     expect(structured.content).not.toContain('Article continues below');
     expect(structured.content).toContain('E.coli could survive in the water');
+  });
+});
+
+// A captured page is composite: the related-article rail beside the article is
+// a real list, and the detector reports it rather than the article.
+describe('composite capture: embedded furniture', () => {
+  it('detects the related-article rail when asked for a list', () => {
+    const html = readFileSync(fixturePath, 'utf8');
+    const { document } = buildDocument(html, pageUrl);
+    const result = detectList(document, pageUrl);
+    expect(result.detected).toBe(true);
+    expect(result.itemCount).toBeGreaterThanOrEqual(3);
   });
 });

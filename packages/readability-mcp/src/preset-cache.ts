@@ -4,10 +4,19 @@
 // detector-checked per page (policy/presets.ts), so eviction here is disk
 // hygiene only.
 
-import { readdirSync, readFileSync, statSync, unlinkSync } from 'node:fs';
+import {
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  statSync,
+  unlinkSync,
+  writeFileSync,
+} from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { z } from 'zod';
+
+import type { SitePreset } from './policy/presets.js';
 
 import { logger } from './logger.js';
 import { addPreset, normalizeSiteKey } from './policy/presets.js';
@@ -75,29 +84,9 @@ export function loadPresetDir(dir: string): PresetCacheReport {
     return { loaded: 0, pruned: 0, skipped: 0 };
   }
 
-  const ranked: { mtimeMs: number; name: string }[] = [];
-  for (const name of names) {
-    try {
-      ranked.push({ name, mtimeMs: statSync(join(dir, name)).mtimeMs });
-    } catch {
-      // Vanished between readdir and stat — nothing to load or prune.
-    }
-  }
-  ranked.sort((a, b) => b.mtimeMs - a.mtimeMs);
+  const ranked = rankPresetFiles(dir, names);
 
-  let pruned = 0;
-  for (const { name } of ranked.slice(MAX_PRESET_FILES)) {
-    try {
-      unlinkSync(join(dir, name));
-      pruned++;
-    } catch (err) {
-      logger.warn(
-        `could not prune preset file ${name}: ${
-          err instanceof Error ? err.message : String(err)
-        }`,
-      );
-    }
-  }
+  const pruned = pruneRanked(dir, ranked.slice(MAX_PRESET_FILES));
 
   let loaded = 0;
   let skipped = 0;
@@ -126,6 +115,89 @@ export function loadPresets(
 ): PresetCacheReport | undefined {
   const dir = resolvePresetsDir(env);
   return dir ? loadPresetDir(dir) : undefined;
+}
+
+function rankPresetFiles(
+  dir: string,
+  names: string[],
+): { mtimeMs: number; name: string }[] {
+  const ranked: { mtimeMs: number; name: string }[] = [];
+  for (const name of names) {
+    try {
+      ranked.push({ name, mtimeMs: statSync(join(dir, name)).mtimeMs });
+    } catch {
+      // Vanished between readdir and stat — nothing to load or prune.
+    }
+  }
+  ranked.sort((a, b) => b.mtimeMs - a.mtimeMs);
+  return ranked;
+}
+
+function pruneRanked(
+  dir: string,
+  ranked: { mtimeMs: number; name: string }[],
+): number {
+  let pruned = 0;
+  for (const { name } of ranked) {
+    try {
+      unlinkSync(join(dir, name));
+      pruned++;
+    } catch (err) {
+      logger.warn(
+        `could not prune preset file ${name}: ${
+          err instanceof Error ? err.message : String(err)
+        }`,
+      );
+    }
+  }
+  return pruned;
+}
+
+export interface PersistReport {
+  readonly path?: string;
+  readonly persisted: boolean;
+  readonly reason?: string;
+}
+
+// The writer the loader was waiting for: the suggest loop saves an accepted
+// preset so the next server start loads it like any hand-placed file. A
+// failure leaves the in-memory preset working — persistence is best-effort,
+// exactly like loading.
+export function savePreset(
+  preset: SitePreset,
+  env: NodeJS.ProcessEnv = process.env,
+): PersistReport {
+  const dir = resolvePresetsDir(env);
+  if (!dir) {
+    return { persisted: false, reason: 'preset-directory-disabled' };
+  }
+  const shape = presetFileSchema.safeParse(preset);
+  if (!shape.success) {
+    return {
+      persisted: false,
+      reason: shape.error.issues[0]?.message ?? 'invalid preset shape',
+    };
+  }
+  const key = normalizeSiteKey(preset.site);
+  if (!key) {
+    return { persisted: false, reason: 'site-is-not-a-hostname' };
+  }
+  const path = join(dir, `${key}.json`);
+  try {
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(path, `${JSON.stringify(shape.data, null, 2)}\n`);
+  } catch (err) {
+    return {
+      persisted: false,
+      reason: err instanceof Error ? err.message : String(err),
+    };
+  }
+  const over = rankPresetFiles(
+    dir,
+    readdirSync(dir).filter(name => name.endsWith('.json')),
+  );
+  pruneRanked(dir, over.slice(MAX_PRESET_FILES));
+  return { path, persisted: true };
 }
 
 function loadPresetFile(path: string): boolean {

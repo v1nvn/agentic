@@ -167,7 +167,7 @@ function ancestorsUpTo(element: Element, stop: Element | undefined): Element[] {
 
 function hopWithSizes(element: Element): string {
   const own = ownTextLength(element);
-  const all = (element.textContent ?? '').length;
+  const all = element.textContent.length;
   return `${renderHop(element)} (own:${own}, all:${all})`;
 }
 
@@ -208,7 +208,7 @@ function renderHop(element: Element): string {
 }
 
 function sampleText(element: Element): string {
-  const text = (element.textContent ?? '').trim().replace(/\s+/g, ' ');
+  const text = element.textContent.trim().replace(/\s+/g, ' ');
   return text.length > SAMPLE_MAX_CHARS
     ? `${text.slice(0, SAMPLE_MAX_CHARS)}…`
     : text;

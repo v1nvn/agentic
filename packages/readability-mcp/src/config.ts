@@ -42,7 +42,7 @@ const SERVER_TITLE = 'Readability MCP';
 const SERVER_DESCRIPTION =
   'Turn already-rendered (post-JavaScript) HTML into clean, LLM-friendly Markdown plus metadata, via Mozilla Readability, Turndown, and DOMPurify. Makes no outbound requests — input is the rendered HTML, read from a file path (localPath) so the page bytes never enter the model context.';
 
-const SERVER_INSTRUCTIONS = `Eleven always-on tools, all fed a file path (localPath) holding already-rendered HTML (e.g. document.documentElement.outerHTML written to disk by a browser/devtools capture) — except \`chunk_text\`, which operates on already-extracted text. A sampling-gated \`summarize\` adds a twelfth when (and only when) the host advertises the MCP \`sampling\` capability. The server never fetches URLs.
+const SERVER_INSTRUCTIONS = `Eleven always-on tools, all fed a file path (localPath) holding already-rendered HTML (e.g. document.documentElement.outerHTML written to disk by a browser/devtools capture) — except \`chunk_text\`, which operates on already-extracted text. Sampling-gated \`summarize\` and \`suggest_preset\` add a twelfth and thirteenth when (and only when) the host advertises the MCP \`sampling\` capability. The server never fetches URLs.
 
 - extract: main tool. Runs Readability to pull the article and returns Markdown + metadata + diagnostics. Use by default for article-like pages. Pass the \`chunk\` option to also emit token-bounded chunks for RAG/embedding.
 - extract_links: return a structured list of anchor links ({text, href, rel, isExternal}) from the raw DOM — hrefs absolutized against baseUrl; pairs with chrome-devtools for crawl/navigation decisions.
@@ -58,6 +58,7 @@ const SERVER_INSTRUCTIONS = `Eleven always-on tools, all fed a file path (localP
 
 Sampling-gated (listed only when the client advertises \`sampling\` on initialize):
 - summarize: delegate to the HOST’s model via \`sampling/createMessage\` — input {text, maxTokens?}, typically the output of \`extract\`/\`html_to_markdown\`. The server embeds no model and calls no provider directly; the host picks the model and may prompt the user first.
+- suggest_preset: two-round suggest loop for a lost extraction — after \`extract\` reports gated content, a fallback, a near-empty result, or visible debris (video-player controls), the HOST model proposes {detectors, include, exclude} selectors from a copy-safe DOM outline; proposals are validated deterministically (no positional pseudos, no :contains, no generated hash classes, every selector must match) and applied through the real pipeline; a converged preset is stored in memory and persisted as <site>.json in the local preset cache so later extractions of that site apply it automatically.
 
 Rounding out the surface:
 - resources: \`extract({cache:true})\` caches results as addressable \`readability://page/{hash}\` Resources; \`diagnostics.cache = {hit, normalizedHash, originalHash}\`. Re-renders that differ only in nonce/CSP/generated-id collapse to the same key (normalized-hash keying).

@@ -71,7 +71,7 @@ Add to your MCP client config (Claude Code, Claude Desktop, etc.):
 
 ## Tools
 
-All eleven always-on tools return MCP **structured content** (`schemaVersion` plus a tool-specific payload of `metadata` / `diagnostics` / `items` / …) validated by a zod `outputSchema`, plus a human/LLM-readable payload in `content[0].text`. A sampling-capable host also sees a twelfth — `summarize` — registered after the `initialize` handshake when the client advertises the MCP `sampling` capability. Nothing throws across the wire — failures become `{ "isError": true }` results. Every input and output field carries a description in the tool's JSON schema, so clients can introspect each option without reading these docs.
+All eleven always-on tools return MCP **structured content** (`schemaVersion` plus a tool-specific payload of `metadata` / `diagnostics` / `items` / …) validated by a zod `outputSchema`, plus a human/LLM-readable payload in `content[0].text`. A sampling-capable host also sees a twelfth and a thirteenth — `summarize` and `suggest_preset` — registered after the `initialize` handshake when the client advertises the MCP `sampling` capability. Nothing throws across the wire — failures become `{ "isError": true }` results. Every input and output field carries a description in the tool's JSON schema, so clients can introspect each option without reading these docs.
 
 **`localPath` — the only HTML input.** Every HTML-input tool takes a `localPath` pointing at a file holding the already-rendered (post-JavaScript) HTML. The server reads the bytes itself, so the page never enters the model context — the model emits only a path string. The motivating hop is chrome-devtools → readability: `evaluate_script` writes `document.documentElement.outerHTML` to a file via its `filePath` arg, then the tool reads that path. Resolved relative to the server process working directory; prefer absolute paths so the chrome-devtools capture and this read agree on location.
 
@@ -124,10 +124,11 @@ Presets load at server start from a local cache directory — one `<site>.json` 
 | Aspect | Behavior |
 | --- | --- |
 | Directory | `$READABILITY_MCP_PRESETS_DIR`; else `$XDG_CACHE_HOME/readability-mcp/presets`; else `~/Library/Caches/readability-mcp/presets` (macOS) / `~/.cache/readability-mcp/presets`. Setting the variable to an empty string disables preset loading. |
-| Bound | 64 files; beyond that the oldest by mtime are deleted at load. |
+| Bound | 64 files; beyond that the oldest by mtime are deleted at load — enforced when loading and again when `suggest_preset` writes. |
 | Invalid files | Unreadable JSON, a wrong shape (no `detectors`, empty `scope`), or a non-hostname `site` is skipped with a warning; the remaining files still load. |
 | Staleness | No clock-based expiry — detectors are re-checked against every page, so a preset survives until the site redesigns. |
-| Scope | Local to the user's machine; the server never fetches or phones home. Presets land here by hand (or a future suggester) and load at the next server start. |
+| Writing | `suggest_preset` is the writer: an accepted, verified preset is stored in memory immediately and persisted as `<site>.json` after its verification extraction comes back clean. A disabled directory (empty env value) skips the write and reports `persisted: false` — the in-memory preset still applies for the session. Presets can also land by hand in this exact shape. |
+| Scope | Local to the user's machine; the server never fetches or phones home. |
 
 **Metadata cascade.** Each metadata field is resolved by priority: **JSON-LD → OpenGraph → Twitter → `<meta>`/`<time>` → Readability → `<title>`** (first non-empty value wins). When the page carries schema.org JSON-LD, `metadata.structured` exposes the parsed primary object (Recipe/Product/Event/HowTo/Article…) with `@context` stripped and `@type` normalized, so non-article content rides on `extract` without a separate tool. Alongside the bibliographic fields, `metadata` carries `wordCount`, `readingTimeMin`, and `tokenEstimate` (with `estimator: "chars/4"` naming the heuristic) — an advisory count for context budgeting; the host re-counts before sending, so a model-specific tokenizer isn't worth the weight.
 
@@ -260,6 +261,26 @@ Delegates summarization to the **host's** model via MCP `sampling/createMessage`
 | `maxTokens` | `512` | Upper bound on the summary length in tokens, forwarded as `sampling/createMessage` `maxTokens`. The host chooses the actual length. |
 
 Output shape: a single `content[0].text` entry holding the host's summary. No `structuredContent` — the server returns whatever the host model produces. A non-text response from the host (e.g. an image) surfaces as `{ "isError": true }`.
+
+### `suggest_preset` — the site-preset suggest loop (sampling-gated)
+
+For a page whose extraction was lost, asks the host's model to propose a site preset, validates it deterministically, applies it through the real pipeline, and — on convergence — stores it in memory and persists it to the preset cache directory. Call it after `extract` reports lost signals: gated content, `fallbackUsed`, a near-empty result, or visible debris (e.g. video-player control text). On a healthy page it refuses without any sampling call.
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `localPath` *(required)* | — | Path to a file holding the rendered HTML. |
+| `baseUrl` *(required)* | — | A URL of the site; its host names the preset. |
+| `maxSamplingCalls` | `4` | Budget for host-model calls. Round one (include + detectors) and round two (excludes) each consume one; rejected proposals consume retries. A budget of 1 skips round two. |
+
+The loop, in order:
+
+1. **Trigger.** A baseline `extract` runs with caching off; the lost verdict is `fallbackUsed`, a word count under 120, or a debris probe over the extracted text (`Loaded: N%` / `Duration Time m:ss` player controls, metered-barrier phrases). A gating signal alone never fires the loop — vendor SDK classes report on free articles.
+2. **Round one.** The model sees a copy-safe text-chain outline (ancestor chains of every node with ≥200 chars of own text, real attributes, hash classes already stripped) and returns `{"detectors": […], "scope": {"include": "…", "exclude": […]}}`.
+3. **Validation.** Static: no positional pseudos, no `:contains`, no generated hash identifiers. DOM: detectors and `include` must match, proposed excludes must match, and no exclude may shadow the include root. Rejections are fed back verbatim for a retry.
+4. **Round two.** The accepted `include` is applied for real; the model then sees the included subtree's remaining text blocks (grouped by chain, with samples) and proposes excludes for the debris groups.
+5. **Verification.** The candidate preset is added to the store and a verification `extract` runs through the real preset path. Converged = the preset applied **and** the extraction comes back clean; only then is `<site>.json` persisted. Non-convergence removes the preset and leaves no file.
+
+Output: `trigger` (the lost-signal verdict), `preset` (when accepted), `verification` (`applied`, `converged`, word counts before/after), `persistence` (file written, or why not), and `sampling` (calls/budget/exhausted). Every model proposal is validated — a proposal the pipeline would silently misapply never reaches it.
 
 ## Diagnostics
 

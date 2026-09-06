@@ -1,14 +1,15 @@
-// Optional, capability-gated features backed by the HOST's model via MCP
-// `sampling/createMessage` (server→client request). The server never embeds a
-// model and never calls a provider directly — every LLM call is delegated to
-// the connected client, which picks the model and may prompt the user first.
+// Optional, capability-gated tools backed by the HOST's model. The sampling
+// seam itself lives in host-sampling.ts; this file owns the family's tool
+// registrations.
 
 import { z } from 'zod';
 
 import type { ToolHandle } from './server.js';
 
 import { toErrorResult } from './errors.js';
+import { sampleText } from './host-sampling.js';
 import { logger } from './logger.js';
+import { registerSuggestPresetTool } from './tools/suggest-preset.js';
 
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
@@ -40,22 +41,11 @@ async function summarizeWithHost(
   server: McpServer,
   args: { maxTokens: number; text: string },
 ): Promise<string> {
-  const result = await server.server.createMessage({
-    messages: [
-      {
-        role: 'user',
-        content: { type: 'text', text: args.text },
-      },
-    ],
-    systemPrompt: SUMMARIZE_SYSTEM_PROMPT,
+  return sampleText(server, {
     maxTokens: args.maxTokens,
+    systemPrompt: SUMMARIZE_SYSTEM_PROMPT,
+    userText: args.text,
   });
-  if (result.content.type !== 'text') {
-    throw new Error(
-      `host sampling returned non-text content (${result.content.type}); summarize expects a text response`,
-    );
-  }
-  return result.content.text;
 }
 
 export function registerSummarizeTool(server: McpServer): ToolHandle {
@@ -86,5 +76,5 @@ export function registerSummarizeTool(server: McpServer): ToolHandle {
 // Mirrors registerTools/registerResources so the dev reload
 // loop and capability gate can treat sampling as one registration family.
 export function registerSamplingTools(server: McpServer): ToolHandle[] {
-  return [registerSummarizeTool(server)];
+  return [registerSummarizeTool(server), registerSuggestPresetTool(server)];
 }

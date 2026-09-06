@@ -3,6 +3,7 @@ import {
   type BuildExplainOptions,
   type ExplainReport,
 } from '../../src/policy/explain.js';
+import { addPreset, resetPresets } from '../../src/policy/presets.js';
 import { explainFromHtml, explainHandler } from '../../src/tools/explain.js';
 
 // Modeled on a docs page: a <main><article> with multi-paragraph prose flanked
@@ -134,5 +135,23 @@ describe('explain tool handler', () => {
     const result = explainHandler({});
     expect(result.isError).toBe(true);
     expect(result.content.length).toBeGreaterThan(0);
+  });
+
+  // Obligation from the suggest-loop design: the suggester must see the
+  // pre-preset DOM to propose an improvement, so explain never resolves
+  // presets even when one is stored for the site.
+  it('shows the pre-preset DOM — stored presets never touch the report', () => {
+    const before = reportFor(DOCS_HTML);
+    addPreset({
+      detectors: ['article'],
+      scope: { include: 'article', exclude: ['aside'] },
+      site: 'docs.example.com',
+    });
+    try {
+      const after = reportFor(DOCS_HTML);
+      expect(after).toEqual(before);
+    } finally {
+      resetPresets();
+    }
   });
 });

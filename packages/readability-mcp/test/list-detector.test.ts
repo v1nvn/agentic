@@ -76,7 +76,13 @@ describe('detectList: no false positives on article fixtures', () => {
   // furniture is a legitimate same-shape cluster, so detection on them is
   // measured — and asserted — in their own saved.test.ts.
   const listFixtures = new Set(['hn', 'search', 'blog-index']);
-  const compositeFixtures = new Set(['dailymail-gatwick', 'dailymail-a66']);
+  const compositeFixtures = new Set([
+    'dailymail-gatwick',
+    'dailymail-a66',
+    'dailymail-aa-ducttape',
+    'mirror-costa-dorada',
+    'mirror-ecoli',
+  ]);
   const articleFixtures = readdirSync(fixturesDir).filter(name => {
     if (listFixtures.has(name) || compositeFixtures.has(name)) {
       return false;

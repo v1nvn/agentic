@@ -11,7 +11,9 @@ const documentationGolden = readFileSync(
   'utf8',
 );
 
-it('snapshotFixtures writes one markdown file per fixture at the installed readability version', () => {
+// Every fixture is re-parsed at the installed version; the captured real
+// pages alone put this well past the default timeout.
+it('snapshotFixtures writes one markdown file per fixture at the installed readability version', { timeout: 60_000 }, () => {
   const outDir = mkdtempSync(join(tmpdir(), 'version-snap-'));
   const result = snapshotFixtures(outDir);
 

@@ -68,12 +68,13 @@ async function listToolNames(client: Client): Promise<string[]> {
   return result.tools.map(tool => tool.name).sort();
 }
 
-describe('summarize tool capability gating', () => {
-  it('lists summarize when the client advertises sampling', async () => {
+describe('sampling-family tool capability gating', () => {
+  it('lists the sampling tools when the client advertises sampling', async () => {
     const { client, close } = await connect({ sampling: true });
     const names = await listToolNames(client);
     expect(names).toContain('summarize');
-    // The eleven always-on tools still appear alongside it.
+    expect(names).toContain('suggest_preset');
+    // The eleven always-on tools still appear alongside them.
     expect(names).toEqual(
       expect.arrayContaining([
         'chunk_text',
@@ -88,9 +89,10 @@ describe('summarize tool capability gating', () => {
         'html_to_markdown',
         'outline',
         'summarize',
+        'suggest_preset',
       ]),
     );
-    expect(names).toHaveLength(12);
+    expect(names).toHaveLength(13);
     await close();
   });
 

@@ -1,6 +1,7 @@
 import {
   existsSync,
   mkdtempSync,
+  readdirSync,
   readFileSync,
   utimesSync,
   writeFileSync,
@@ -17,6 +18,7 @@ import {
   MAX_PRESET_FILES,
   PRESETS_DIR_ENV,
   resolvePresetsDir,
+  savePreset,
 } from '../src/preset-cache.js';
 import { presetForSite, resetPresets } from '../src/policy/presets.js';
 import { extractArticleFromHtml } from '../src/tools/extract.js';
@@ -165,5 +167,75 @@ describe('preset-cache loadPresets', () => {
     const enabled = { [PRESETS_DIR_ENV]: dir } as NodeJS.ProcessEnv;
     expect(loadPresets(enabled)).toEqual({ loaded: 1, pruned: 0, skipped: 0 });
     expect(presetForSite(A66_URL)).toBeDefined();
+  });
+});
+
+describe('preset-cache savePreset', () => {
+  let dir: string;
+
+  beforeEach(() => {
+    dir = mkdtempSync(join(tmpdir(), 'preset-cache-write-'));
+  });
+
+  afterEach(() => {
+    resetPresets();
+  });
+
+  it('writes the documented file shape and loads it back', () => {
+    const report = savePreset(DAILYMAIL_PRESET, { [PRESETS_DIR_ENV]: dir } as NodeJS.ProcessEnv);
+    expect(report.persisted).toBe(true);
+    expect(report.path).toBe(join(dir, 'dailymail.com.json'));
+    const onDisk = JSON.parse(readFileSync(join(dir, 'dailymail.com.json'), 'utf8'));
+    expect(onDisk).toEqual(DAILYMAIL_PRESET);
+    resetPresets();
+    expect(loadPresetDir(dir).loaded).toBe(1);
+    expect(presetForSite(A66_URL)).toBeDefined();
+  });
+
+  it('creates a missing directory', () => {
+    const nested = join(dir, 'one', 'two');
+    const report = savePreset(DAILYMAIL_PRESET, { [PRESETS_DIR_ENV]: nested } as NodeJS.ProcessEnv);
+    expect(report.persisted).toBe(true);
+    expect(existsSync(join(nested, 'dailymail.com.json'))).toBe(true);
+  });
+
+  it('writes nothing when the directory is disabled by an empty env value', () => {
+    const report = savePreset(DAILYMAIL_PRESET, { [PRESETS_DIR_ENV]: '' } as NodeJS.ProcessEnv);
+    expect(report).toEqual({ persisted: false, reason: 'preset-directory-disabled' });
+    expect(readdirSync(dir)).toHaveLength(0);
+  });
+
+  it('refuses a preset the loader would skip', () => {
+    const noDetectors = savePreset(
+      { ...DAILYMAIL_PRESET, detectors: [] },
+      { [PRESETS_DIR_ENV]: dir } as NodeJS.ProcessEnv,
+    );
+    expect(noDetectors.persisted).toBe(false);
+    const badSite = savePreset(
+      { ...DAILYMAIL_PRESET, site: 'not a host!' },
+      { [PRESETS_DIR_ENV]: dir } as NodeJS.ProcessEnv,
+    );
+    expect(badSite.persisted).toBe(false);
+    expect(loadPresetDir(dir).loaded).toBe(0);
+  });
+
+  it('keeps the 64-file bound after a save', () => {
+    for (let i = 0; i < MAX_PRESET_FILES; i++) {
+      const path = writePreset(dir, `site-${String(i).padStart(2, '0')}.json`, {
+        ...DAILYMAIL_PRESET,
+        site: `site-${i}.example`,
+      });
+      const t = new Date(Date.UTC(2026, 0, 1, 0, 0, i));
+      utimesSync(path, t, t);
+    }
+    savePreset(
+      { ...DAILYMAIL_PRESET, site: 'newest.example' },
+      { [PRESETS_DIR_ENV]: dir } as NodeJS.ProcessEnv,
+    );
+    expect(existsSync(join(dir, 'newest.example.json'))).toBe(true);
+    expect(existsSync(join(dir, 'site-00.json'))).toBe(false);
+    expect(
+      readdirSync(dir).filter(name => name.endsWith('.json')),
+    ).toHaveLength(MAX_PRESET_FILES);
   });
 });
