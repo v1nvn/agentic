@@ -3,6 +3,8 @@ import {
   addPreset,
   normalizeSiteKey,
   presetForSite,
+  presetGeneration,
+  removePreset,
   resetPresets,
   resolvePreset,
 } from '../../src/policy/presets.js';
@@ -70,6 +72,26 @@ describe('policy.presets store', () => {
 
   it('rejects a preset whose site names no host', () => {
     expect(() => addPreset({ ...PRESET, site: 'not a url' })).toThrow();
+  });
+
+  it('removes a preset by site and reports unknown sites', () => {
+    addPreset(PRESET);
+    expect(removePreset('https://www.example.com/x')).toBe(true);
+    expect(presetForSite('www.example.com')).toBeUndefined();
+    expect(removePreset('https://www.example.com/x')).toBe(false);
+    expect(removePreset('not a url')).toBe(false);
+  });
+
+  it('bumps the generation on every store mutation', () => {
+    const initial = presetGeneration();
+    addPreset(PRESET);
+    expect(presetGeneration()).toBe(initial + 1);
+    expect(removePreset('www.example.com')).toBe(true);
+    expect(presetGeneration()).toBe(initial + 2);
+    expect(removePreset('www.example.com')).toBe(false);
+    expect(presetGeneration()).toBe(initial + 2);
+    resetPresets();
+    expect(presetGeneration()).toBe(initial + 3);
   });
 });
 

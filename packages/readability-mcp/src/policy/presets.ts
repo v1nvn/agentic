@@ -25,8 +25,18 @@ export interface PresetResolution {
 
 const presets = new Map<string, SitePreset>();
 
+// Bumped on every store mutation so cache keys can fold in preset state
+// without hashing the resolved scope: an entry extracted before a preset
+// landed must never be served after it.
+let generation = 0;
+
+export function presetGeneration(): number {
+  return generation;
+}
+
 export function resetPresets(): void {
   presets.clear();
+  generation += 1;
 }
 
 export function addPreset(preset: SitePreset): void {
@@ -35,6 +45,16 @@ export function addPreset(preset: SitePreset): void {
     throw new Error(`invalid preset site: ${preset.site}`);
   }
   presets.set(key, preset);
+  generation += 1;
+}
+
+export function removePreset(site: string): boolean {
+  const key = normalizeSiteKey(site);
+  const removed = key !== undefined && presets.delete(key);
+  if (removed) {
+    generation += 1;
+  }
+  return removed;
 }
 
 export function presetForSite(

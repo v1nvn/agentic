@@ -11,6 +11,8 @@ import { createHash } from 'node:crypto';
 import type { ToolHandle } from './server.js';
 import type { ExtractFromHtmlInput } from './tools/schemas.js';
 
+import { presetGeneration } from './policy/presets.js';
+
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type {
   ListResourcesResult,
@@ -135,7 +137,11 @@ export function originalHashOf(html: string): string {
 
 // Output-affecting options participate in the fingerprint so the same page with
 // format:'html' vs format:'markdown' does not collide. `baseUrl` absolutizes
-// links in the output, so it must participate too.
+// links in the output, so it must participate too. The preset generation rides
+// in the fingerprint rather than the resolved scope: an entry extracted before
+// a preset landed must never be served after it, and hashing the scope would
+// need a second document parse while conflating applied and missed runs under
+// one key.
 function buildArgsFingerprint(args: ExtractFromHtmlInput): string {
   const sel = args.selectors
     ? {
@@ -166,6 +172,7 @@ function buildArgsFingerprint(args: ExtractFromHtmlInput): string {
     maxNodes: args.maxNodes ?? null,
     metadataMode: args.metadataMode,
     minArticleLength: args.minArticleLength ?? null,
+    presetGeneration: presetGeneration(),
     readabilityOverrides: args.readabilityOverrides ?? null,
     sanitize: args.sanitize,
     selectors: sel,
