@@ -13,3 +13,4 @@
 
 ---
 
+- Site-matched extraction presets for pages the pipeline loses on — HIGH — → progress/site-presets.md — step 2: preset mechanism landed (store + detector-gated apply through `selectors`); storage gated on corpus widening
