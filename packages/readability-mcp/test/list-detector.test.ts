@@ -72,10 +72,13 @@ describe('detectList: no false positives on article fixtures', () => {
   // The list-shaped fixtures are excluded explicitly; every other directory
   // under test/fixtures is treated as an article-like page that must NOT
   // trigger detection. This is the false-positive guard the acceptance bar
-  // calls out.
+  // calls out. Captured real pages (dailymail-*) are composite: their feed
+  // furniture is a legitimate same-shape cluster, so detection on them is
+  // measured — and asserted — in their own saved.test.ts.
   const listFixtures = new Set(['hn', 'search', 'blog-index']);
+  const compositeFixtures = new Set(['dailymail-gatwick']);
   const articleFixtures = readdirSync(fixturesDir).filter(name => {
-    if (listFixtures.has(name)) {
+    if (listFixtures.has(name) || compositeFixtures.has(name)) {
       return false;
     }
     return statSync(join(fixturesDir, name)).isDirectory();

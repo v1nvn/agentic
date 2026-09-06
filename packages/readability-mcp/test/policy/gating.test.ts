@@ -30,6 +30,37 @@ describe('policy.gating detectGating', () => {
     });
   });
 
+  // WIRED's real surface shape (PaywallModalWrapper-itMFEN is a generated hash
+  // class; paywall-modal is the semantic one). Camel-case splitting must keep
+  // the noun segment recognizable.
+  it('detects a camel-cased surface class from a real WIRED capture', () => {
+    const html =
+      `<body><article><h1>X</h1><p>body</p></article>` +
+      `<aside class="PaywallModalWrapper-itMFEN fkdbJh paywall-modal paywall-modal--paywall">…</aside></body>`;
+    expect(detectGating(doc(html))).toEqual({
+      likely: true,
+      reason: 'paywall overlay',
+    });
+  });
+
+  // Measured on Daily Mail free articles: the page root carries a negation
+  // marker and the furniture carries ~240 paywalled badges ABOUT OTHER articles
+  // — none of it describes this page's content as gated.
+  it('does NOT flag a free Daily Mail-shaped article', () => {
+    const html =
+      `<html class="article-page paywall-ineligible"><body>` +
+      `<article><h1>X</h1><p>body text</p></article>` +
+      `<li><span class="is-paywalled" data-content-propensity="3"></span>` +
+      `<span class="is-paywall-processed"></span></li></body></html>`;
+    expect(detectGating(doc(html))).toBeUndefined();
+  });
+
+  it('does NOT flag a non-paywall marker', () => {
+    const html =
+      '<body><article><h1>X</h1><p>body</p></article><div class="non-paywall">…</div></body>';
+    expect(detectGating(doc(html))).toBeUndefined();
+  });
+
   it('detects a metered-limit message ("You have 2 free articles left")', () => {
     const html =
       `<body><article><h1>X</h1><p>body text</p></article>` +
