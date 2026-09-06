@@ -23,6 +23,30 @@
     "fallbackUsed": false,
     "readerable": true
   },
+  "dailymail-a66": {
+    "inputNodes": 4377,
+    "markdownChars": 11558,
+    "tokenEstimate": 2890,
+    "removedNodes": 4243,
+    "images": 1,
+    "tables": 0,
+    "links": 1,
+    "compressionRatio": 2.64,
+    "fallbackUsed": false,
+    "readerable": true
+  },
+  "dailymail-gatwick": {
+    "inputNodes": 3889,
+    "markdownChars": 2766,
+    "tokenEstimate": 692,
+    "removedNodes": 3850,
+    "images": 0,
+    "tables": 0,
+    "links": 2,
+    "compressionRatio": 0.71,
+    "fallbackUsed": false,
+    "readerable": true
+  },
   "documentation": {
     "inputNodes": 20,
     "markdownChars": 586,

@@ -305,6 +305,10 @@ BENCH_UPDATE=1 yarn bench # refresh baselines (do deliberately, like UPDATE_GOLD
 
 Per-fixture fields: `inputNodes` (parsed element count), `markdownChars`/`tokens` (output size, chars/4), `compressionRatio` (output chars per input node), `removedNodes` (element delta across the pipeline), and `images`/`tables`/`links` (preserved content counts). PR fields: `precision` (fraction of extracted word tokens inside the labeled main content), `recall` (fraction of labeled tokens recovered), `f1` (harmonic mean), `extractedTokens`/`labeledTokens` (multiset sizes). Fixtures with no prose (the image-only `fallback` gallery) score N/A and are excluded from the aggregate.
 
+## Corpus fixtures
+
+Captured real pages live beside the hand-built ones under `test/fixtures/<site>-<slug>/` (`saved.html` + `saved.test.ts`). New captures are slimmed with `node scripts/trim-capture.mjs <capture.html> test/fixtures/<dir>/saved.html` — executable scripts, style payloads, and base64 data URIs are dropped; every element and attribute is kept, so DOM-level behavior is unchanged. Each capture's `saved.test.ts` asserts the failure class it proves (current debris, gating signals, applied-selector behavior). Captured pages are composite — article plus feed furniture — so the list-detector's article-fixture guard excludes them and their detection behavior is asserted in their own test.
+
 ## License
 
 MIT

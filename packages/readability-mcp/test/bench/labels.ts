@@ -12,6 +12,8 @@ export const MAIN_CONTENT_SELECTORS: Readonly<Record<string, string>> = {
   'lazy-images': 'main',
   'outline': 'main',
   'react-spa': 'main article',
+  'dailymail-a66': 'div[itemprop="articleBody"]',
+  'dailymail-gatwick': 'div[itemprop="articleBody"]',
 };
 
 export const MAIN_CONTENT_NOTES: Readonly<Record<string, string>> = {
@@ -29,4 +31,8 @@ export const MAIN_CONTENT_NOTES: Readonly<Record<string, string>> = {
     '<main> carries the only prose; there is no <article> wrapper, so main is the tightest container.',
   'react-spa':
     '<article class="post"> inside <main class="content"> is the post; the sibling <aside class="sidebar"> (newsletter, related posts) is chrome.',
+  'dailymail-a66':
+    'The itemprop="articleBody" div is the article; the obvious #js-article-text also contains #reader-comments, and the channel-feed puffs dominate the rest of the capture.',
+  'dailymail-gatwick':
+    'The itemprop="articleBody" div is the article; the obvious #js-article-text also contains #reader-comments, and the channel-feed puffs dominate the rest of the capture.',
 };

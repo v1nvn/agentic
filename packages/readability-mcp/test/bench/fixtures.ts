@@ -51,10 +51,22 @@ export const BENCH_FIXTURES: readonly BenchFixture[] = [
     url: 'https://news.example.com/world/consent-overlays',
   },
   {
-    category: 'github',
+    category: 'article',
     id: 'code-langs',
     path: 'test/fixtures/code-langs/saved.html',
     url: 'https://docs.example.com/guides/code-langs',
+  },
+  {
+    category: 'article',
+    id: 'dailymail-a66',
+    path: 'test/fixtures/dailymail-a66/saved.html',
+    url: 'https://www.dailymail.com/news/article-16104603/Headteachers-thugs-Middlesbrough-schools-close-early-funeral-A66.html',
+  },
+  {
+    category: 'article',
+    id: 'dailymail-gatwick',
+    path: 'test/fixtures/dailymail-gatwick/saved.html',
+    url: 'https://www.dailymail.com/news/article-16105629/All-flights-grounded-Gatwick-airport-runway-closed-plane-suffers-technical-issue.html',
   },
 ];
 
