@@ -5,7 +5,7 @@
 //   node scripts/trim-capture.mjs <capture.html> <fixture.html>
 import { readFileSync, writeFileSync } from 'node:fs';
 
-import { JSDOM } from 'jsdom';
+import { JSDOM, VirtualConsole } from 'jsdom';
 
 const [input, output] = process.argv.slice(2);
 if (!input || !output) {
@@ -13,7 +13,10 @@ if (!input || !output) {
   process.exit(1);
 }
 
-const dom = new JSDOM(readFileSync(input, 'utf8'));
+// Captures carry site CSS that jsdom cannot parse; the noise is not actionable.
+const virtualConsole = new VirtualConsole();
+virtualConsole.on('jsdomError', () => {});
+const dom = new JSDOM(readFileSync(input, 'utf8'), { virtualConsole });
 const { document } = dom.window;
 
 for (const el of document.querySelectorAll(
