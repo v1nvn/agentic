@@ -67,7 +67,8 @@ selector lists (gating.ts style) prove real sites fail generically; presets prov
 3. **Storage.** Local to the user's machine only — a bounded cache directory keyed by
    site (owner decision 2026-09-05: no centralized or global store). The server never
    fetches and never phones home; the cache is ordinary files. Detectors invalidate
-   stale entries on mismatch, so nothing needs to expire by clock.
+   stale entries on mismatch, so nothing needs to expire by clock. **Ran 2026-09-06 —
+   loader landed in `src/preset-cache.ts`, wired at boot; outcome in Current state.**
 4. **Suggest loop (sampling-gated).** Fires only when diagnostics say lost (gating signal,
    fallbackUsed, near-empty extraction) *and* the host advertises sampling. Loop: model
    proposes selectors → applied through the real pipeline (no toy preview) → deterministic
@@ -212,7 +213,7 @@ segment and no segment negates it.
   gates consent, not payment, and "Rifiuta e abbonati" ties refusal to paying. Owner
   policy call open; no recovery logic built.
 
-**Current state.** Steps 0–2 done. Step 2 landed the preset mechanism:
+**Current state.** Steps 0–3 done. Step 2 landed the preset mechanism:
 `src/policy/presets.ts` — the `{site, detectors, scope}` shape, an in-memory store
 (`addPreset`/`presetForSite`/`resetPresets`), site keying (lowercased host, one `www.`
 strip), and validation on the post-normalize DOM (every detector must hit; the scope
@@ -230,19 +231,42 @@ whose page fingerprints are gone, so preset resolution there could only produce 
 aggregate): precision 1.0 on both captures (default 0.998/0.936), recall 0.846/0.821 —
 recall vs the label *drops* because the label is the container **including** its
 embedded debris; the removed token delta matches step 1's measured 1882→1660 words.
-Nothing writes presets in production yet: the store fills at step 3 (file loader) and
-step 4 (suggest loop), so default server behavior is unchanged. The measured class list
-is still **debris (Daily Mail) alone**; `explain` still surfaces generated hash classes
-as top candidates (step-4 validator must run on candidates, not only final proposals).
 
-**Next step.** Storage (step 3) stays gated on corpus widening: more debris sites (The
-Sun *with* embedded video, Mirror, regional DM titles) to test transfer across site
-families, and a second pass at mis-selection. Two obligations recorded for step 4: (1)
-fold a **store-generation counter** (bumped by `addPreset`/`resetPresets`) into the
-cache args fingerprint — not the resolved scope, which would need a second document
-parse and would conflate applied vs missed runs under one key; (2) keep preset
-resolution **out of `explain`** so the suggester sees the pre-preset DOM and can
-actually propose an improvement.
+Step 3 landed storage as a **loader** (owner moved it ahead of the corpus widening the
+previous state had gated it on): `src/preset-cache.ts` reads one `<site>.json` per
+site into the same in-memory store at server start. Directory: `$READABILITY_MCP_PRESETS_DIR`,
+else `$XDG_CACHE_HOME/readability-mcp/presets`, else the platform cache root
+(`~/Library/Caches/readability-mcp/presets` on macOS, `~/.cache/…` elsewhere); an
+empty env value disables loading entirely. Files that don't parse, fail shape
+validation (non-empty `detectors`, `site` a real hostname, `scope` carrying `include`
+or `exclude` — an empty scope would apply nothing while reporting `applied:true`), or
+name a non-host site skip with a warning, never a boot failure; the directory is
+bounded at 64 files with
+oldest-by-mtime pruning at load. Staleness stays detector-based — no clock expiry —
+so a loaded stale preset reports `detectors-missed` per page exactly as an
+`addPreset` one does. Wiring: `createServer` loads before the first tool call, and
+`dev.ts` re-loads on every hot reload (the vite module runner re-evaluates the graph,
+so without the refill the store would silently empty on the first source edit).
+Verified live in both boots: built binary over stdio (preset file → `applied:true`,
+debris gone; empty dir → no preset diagnostic, debris kept) and a running `yarn dev`
+session where writing the file *between* boot and a watcher-triggered reload flips
+the next extract from no-preset to `applied:true`. Still nothing **writes** presets
+in production: files land by hand (format documented in the README) until step 4's
+suggest loop becomes the writer. The measured class list is still **debris (Daily
+Mail) alone**; `explain` still surfaces generated hash classes as top candidates
+(step-4 validator must run on candidates, not only final proposals).
+
+**Next step.** Step 4, the suggest loop — still behind the sampling seam it lands
+with, and still wanting the widened corpus (The Sun *with* embedded video, Mirror,
+regional DM titles, a second mis-selection pass) for a meaningful bench baseline.
+Two obligations already recorded for it: (1) fold a **store-generation counter**
+(bumped by `addPreset`/`resetPresets`) into the cache args fingerprint — not the
+resolved scope, which would need a second document parse and would conflate applied
+vs missed runs under one key; (2) keep preset resolution **out of `explain`** so the
+suggester sees the pre-preset DOM and can actually propose an improvement. The
+loader adds a third: the boot-time load is pre-serve, so today no cache entry can
+predate a preset landing — the counter only becomes load-bearing when step 4 starts
+writing presets mid-session.
 
 **Log.**
 - 2026-09-05 — thread opened from the readweb comparison; anchors verified in source
@@ -274,3 +298,10 @@ actually propose an improvement.
   logo example — that is what the one measured class actually keys on. Cache
   fingerprint left untouched (no mid-process writer exists; step-4 obligation recorded
   above).
+- 2026-09-06 — step 3 ran, moved ahead of the corpus widening the previous state had
+  gated it on. `preset-cache.ts`: `<site>.json` loader, env-resolved bounded
+  directory, skip-don't-die on bad files, oldest-by-mtime prune at 64; wired into
+  `createServer` and the dev reload loop. 8 tests (file → store → extract on the a66
+  fixture, env matrix, bound/prune) plus live runs against the built binary and a
+  `yarn dev` reload. Loader only — the writer is step 4; the CLI stays preset-free
+  (it never passes `baseUrl`, so it could not resolve one anyway).

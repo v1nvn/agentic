@@ -13,12 +13,15 @@ import {
   createServer as createViteServer,
 } from 'vite';
 
+import type { PresetCacheReport } from './preset-cache.js';
+
 import { logger } from './logger.js';
 
 // Loaded through Vite (not imported statically) so the runner controls its cache
 // and can re-evaluate it on change.
 interface RuntimeModule {
   createMcpServer(): McpServer;
+  loadPresets(env?: NodeJS.ProcessEnv): PresetCacheReport | undefined;
   registerCapabilityGatedTools(server: McpServer): { remove(): void }[];
   registerResources(server: McpServer): { remove(): void }[];
   registerTools(server: McpServer): { remove(): void }[];
@@ -57,6 +60,7 @@ async function main(): Promise<void> {
   // The `tools` capability registers on the first registration and must precede
   // connect (registerCapabilities throws post-connect); reloads are idempotent.
   const server = first.createMcpServer();
+  first.loadPresets();
   let handles = first.registerTools(server);
   let resourceHandles = first.registerResources(server);
   // Capability-gated tools (sampling) defer to the `initialized` notification:
@@ -97,6 +101,9 @@ async function main(): Promise<void> {
       }
       handles = next.registerTools(server);
       resourceHandles = next.registerResources(server);
+      // The re-imported module graph starts with an empty preset store; refill
+      // it alongside the re-registrations.
+      next.loadPresets();
       // The client is already past `initialized` by the time a file change
       // fires, so capabilities are populated and the gate can re-evaluate
       // directly (no second `oninitialized` to hook).

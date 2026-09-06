@@ -108,6 +108,27 @@ Extracts the main article from rendered HTML and returns Markdown + metadata + d
 
 **Site presets.** A preset pairs a site with layout fingerprints (`detectors`) and a `selectors`-shaped scope. When `baseUrl` names a site holding a preset, `extract` applies the scope through the same path as the `selectors` option — no second mechanism — after every detector still matches the document; a preset whose fingerprints no longer hit (site redesign) is discarded and the normal cascade runs, so a stale preset can never win. An explicit `selectors` argument beats the preset. `diagnostics.preset = {site, applied, reason?}` reports the outcome; the field is absent when the site has none. Other tools never resolve presets.
 
+Presets load at server start from a local cache directory — one `<site>.json` file per site, read into the preset store before the first tool call:
+
+```json
+{
+  "site": "www.dailymail.com",
+  "detectors": ["#js-article-text", ".artSplitter"],
+  "scope": {
+    "include": "div[itemprop=\"articleBody\"]",
+    "exclude": [".mol-video", ".vjs-video-container", ".artSplitter"]
+  }
+}
+```
+
+| Aspect | Behavior |
+| --- | --- |
+| Directory | `$READABILITY_MCP_PRESETS_DIR`; else `$XDG_CACHE_HOME/readability-mcp/presets`; else `~/Library/Caches/readability-mcp/presets` (macOS) / `~/.cache/readability-mcp/presets`. Setting the variable to an empty string disables preset loading. |
+| Bound | 64 files; beyond that the oldest by mtime are deleted at load. |
+| Invalid files | Unreadable JSON, a wrong shape (no `detectors`, empty `scope`), or a non-hostname `site` is skipped with a warning; the remaining files still load. |
+| Staleness | No clock-based expiry — detectors are re-checked against every page, so a preset survives until the site redesigns. |
+| Scope | Local to the user's machine; the server never fetches or phones home. Presets land here by hand (or a future suggester) and load at the next server start. |
+
 **Metadata cascade.** Each metadata field is resolved by priority: **JSON-LD → OpenGraph → Twitter → `<meta>`/`<time>` → Readability → `<title>`** (first non-empty value wins). When the page carries schema.org JSON-LD, `metadata.structured` exposes the parsed primary object (Recipe/Product/Event/HowTo/Article…) with `@context` stripped and `@type` normalized, so non-article content rides on `extract` without a separate tool. Alongside the bibliographic fields, `metadata` carries `wordCount`, `readingTimeMin`, and `tokenEstimate` (with `estimator: "chars/4"` naming the heuristic) — an advisory count for context budgeting; the host re-counts before sending, so a model-specific tokenizer isn't worth the weight.
 
 ### `html_to_markdown` — fragment path
