@@ -47,6 +47,18 @@
     "fallbackUsed": false,
     "readerable": true
   },
+  "dailymail-aa-ducttape": {
+    "inputNodes": 4012,
+    "markdownChars": 3434,
+    "tokenEstimate": 859,
+    "removedNodes": 3974,
+    "images": 0,
+    "tables": 0,
+    "links": 5,
+    "compressionRatio": 0.86,
+    "fallbackUsed": false,
+    "readerable": true
+  },
   "dailymail-gatwick": {
     "inputNodes": 3889,
     "markdownChars": 2766,
@@ -94,6 +106,30 @@
     "compressionRatio": 15.33,
     "fallbackUsed": false,
     "readerable": false
+  },
+  "mirror-costa-dorada": {
+    "inputNodes": 2543,
+    "markdownChars": 3356,
+    "tokenEstimate": 839,
+    "removedNodes": 2442,
+    "images": 2,
+    "tables": 0,
+    "links": 8,
+    "compressionRatio": 1.32,
+    "fallbackUsed": false,
+    "readerable": true
+  },
+  "mirror-ecoli": {
+    "inputNodes": 2907,
+    "markdownChars": 3940,
+    "tokenEstimate": 985,
+    "removedNodes": 2850,
+    "images": 0,
+    "tables": 0,
+    "links": 4,
+    "compressionRatio": 1.36,
+    "fallbackUsed": false,
+    "readerable": true
   },
   "outline": {
     "inputNodes": 20,

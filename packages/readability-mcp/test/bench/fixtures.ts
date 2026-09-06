@@ -76,6 +76,24 @@ export const BENCH_FIXTURES: readonly BenchFixture[] = [
     path: 'test/fixtures/corriere-afd/saved.html',
     url: 'https://www.corriere.it/esteri/26_settembre_05/germania-afd-partito-estrema-destra-eea3ed68-00f3-4741-983e-5f6bb02e6xlk.shtml',
   },
+  {
+    category: 'article',
+    id: 'mirror-costa-dorada',
+    path: 'test/fixtures/mirror-costa-dorada/saved.html',
+    url: 'https://www.mirror.co.uk/news/uk-news/costa-dorada-spain-brit-dead-37632170',
+  },
+  {
+    category: 'article',
+    id: 'mirror-ecoli',
+    path: 'test/fixtures/mirror-ecoli/saved.html',
+    url: 'https://www.mirror.co.uk/news/uk-news/e-coli-boy-dies-beach-37627608',
+  },
+  {
+    category: 'article',
+    id: 'dailymail-aa-ducttape',
+    path: 'test/fixtures/dailymail-aa-ducttape/saved.html',
+    url: 'https://www.dailymail.com/news/article-16107451/american-airlines-duct-tape-racist-tirade-divert.html',
+  },
 ];
 
 export function resolveFixturePath(fixture: BenchFixture): string {
@@ -105,6 +123,19 @@ export const PRESET_SCENARIOS: readonly PresetScenario[] = [
   },
   {
     fixtureId: 'dailymail-gatwick',
+    preset: {
+      site: 'www.dailymail.com',
+      detectors: ['#js-article-text', '.artSplitter'],
+      scope: {
+        include: 'div[itemprop="articleBody"]',
+        exclude: ['.mol-video', '.vjs-video-container', '.artSplitter'],
+      },
+    },
+  },
+  {
+    // The measured scope on a third, clean Daily Mail page: the preset must
+    // hold precision on a page that never needed fixing (dailymail-aa-ducttape).
+    fixtureId: 'dailymail-aa-ducttape',
     preset: {
       site: 'www.dailymail.com',
       detectors: ['#js-article-text', '.artSplitter'],

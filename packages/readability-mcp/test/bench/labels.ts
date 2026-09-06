@@ -15,6 +15,9 @@ export const MAIN_CONTENT_SELECTORS: Readonly<Record<string, string>> = {
   'dailymail-a66': 'div[itemprop="articleBody"]',
   'dailymail-gatwick': 'div[itemprop="articleBody"]',
   'corriere-afd': 'div#content-to-read',
+  'mirror-costa-dorada': 'article#article-body',
+  'mirror-ecoli': 'article#article-body',
+  'dailymail-aa-ducttape': 'div[itemprop="articleBody"]',
 };
 
 export const MAIN_CONTENT_NOTES: Readonly<Record<string, string>> = {
@@ -38,4 +41,10 @@ export const MAIN_CONTENT_NOTES: Readonly<Record<string, string>> = {
     'The itemprop="articleBody" div is the article; the obvious #js-article-text also contains #reader-comments, and the channel-feed puffs dominate the rest of the capture.',
   'corriere-afd':
     'The site\'s own #content-to-read container holds the full article behind the consent-wall overlay; everything else on the capture is wall text, navigation, and offer modules.',
+  'mirror-costa-dorada':
+    'Reach\'s article#article-body is the article; the breadcrumb nav and the "Preferred Source" promo are siblings inside the wrapper, and the commercial "Article continues below" boxes sit inside the container itself.',
+  'mirror-ecoli':
+    'Same Reach template as mirror-costa-dorada — article#article-body is the article, with the commercial continue-marker boxes inside it.',
+  'dailymail-aa-ducttape':
+    'The itemprop="articleBody" div is the article, as on both other Daily Mail captures; the page embeds a Connatix player and fourteen video nodes that generic extraction already scores out.',
 };
