@@ -11,8 +11,6 @@ const PAYWALL_SELECTORS = [
   '#piano',
   '.tp-modal',
   '.tp-active',
-  '[id*="piano"]',
-  '[class*="piano"]',
   '[class*="subscribe-wall"]',
   '[id*="subscribe-wall"]',
   '[class*="metered-wall"]',
@@ -23,10 +21,12 @@ const PAYWALL_SELECTORS = [
 // Class/id substring hits are verdicts, not signals. Measured on real captures:
 // Daily Mail free articles carry `<html class="… paywall-ineligible">` plus ~240
 // `is-paywalled` / `is-paywall-processed` feed badges — state about other
-// articles or processing markers, all matching `[class*="paywall"]`. Real
-// surfaces name the wall as the head noun (WIRED's `paywall-modal`, the
-// camel-cased `PaywallModalWrapper`).
-const PAYWALL_ATTR_CANDIDATES = '[class*="paywall"], [id*="paywall"]';
+// articles or processing markers, all matching `[class*="paywall"]`; Corriere's
+// free articles carry an `offer-header-piano` subscription header matching
+// `[class*="piano"]`. Real surfaces name the gate as the head noun (WIRED's
+// `paywall-modal`, the camel-cased `PaywallModalWrapper`).
+const PAYWALL_ATTR_CANDIDATES =
+  '[class*="paywall"], [id*="paywall"], [class*="piano"], [id*="piano"]';
 
 const NEGATION_SEGMENTS = new Set([
   'bypass',
@@ -42,14 +42,14 @@ const NEGATION_SEGMENTS = new Set([
   'without',
 ]);
 
-function namesPaywallSurface(classAndId: string): boolean {
+function namesGateSurface(classAndId: string, noun: string): boolean {
   for (const token of classAndId.split(/\s+/)) {
     const segments = token
       .replace(/([a-z])([A-Z])/g, '$1 $2')
       .toLowerCase()
       .split(/[^a-z]+/)
       .filter(Boolean);
-    if (segments[0] !== 'paywall') {
+    if (segments[0] !== noun) {
       continue;
     }
     if (segments.some(segment => NEGATION_SEGMENTS.has(segment))) {
@@ -69,7 +69,13 @@ const METERED_TEXT_RE =
 function findPaywallOverlay(document: Document): GatingSignal | undefined {
   for (const el of document.querySelectorAll(PAYWALL_ATTR_CANDIDATES)) {
     const classAndId = `${el.getAttribute('class') ?? ''} ${el.getAttribute('id') ?? ''}`;
-    if (el.isConnected && namesPaywallSurface(classAndId)) {
+    if (!el.isConnected) {
+      continue;
+    }
+    if (
+      namesGateSurface(classAndId, 'paywall') ||
+      namesGateSurface(classAndId, 'piano')
+    ) {
       return { likely: true, reason: 'paywall overlay' };
     }
   }

@@ -61,6 +61,24 @@ describe('policy.gating detectGating', () => {
     expect(detectGating(doc(html))).toBeUndefined();
   });
 
+  // Measured on a free Corriere capture: `offer-header-piano` is the header of
+  // a subscription-offer list module — Piano branding on furniture, not a wall.
+  it('does NOT flag a piano offer header in page furniture', () => {
+    const html =
+      `<body><article><h1>X</h1><p>body text</p></article>` +
+      `<div class="list-item has-bg-blue offer-header-piano">Abbonati</div></body>`;
+    expect(detectGating(doc(html))).toBeUndefined();
+  });
+
+  it('detects a piano surface named as the head noun', () => {
+    const html =
+      '<body><article><h1>X</h1><p>body</p></article><div class="piano-offer-container">…</div></body>';
+    expect(detectGating(doc(html))).toEqual({
+      likely: true,
+      reason: 'paywall overlay',
+    });
+  });
+
   it('detects a metered-limit message ("You have 2 free articles left")', () => {
     const html =
       `<body><article><h1>X</h1><p>body text</p></article>` +
