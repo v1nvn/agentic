@@ -213,7 +213,7 @@ segment and no segment negates it.
   gates consent, not payment, and "Rifiuta e abbonati" ties refusal to paying. Owner
   policy call open; no recovery logic built.
 
-**Current state.** Steps 0–3 done. Step 2 landed the preset mechanism:
+**Landed mechanism (steps 2–3).** Step 2 landed the preset mechanism:
 `src/policy/presets.ts` — the `{site, detectors, scope}` shape, an in-memory store
 (`addPreset`/`presetForSite`/`resetPresets`), site keying (lowercased host, one `www.`
 strip), and validation on the post-normalize DOM (every detector must hit; the scope
@@ -250,23 +250,112 @@ so without the refill the store would silently empty on the first source edit).
 Verified live in both boots: built binary over stdio (preset file → `applied:true`,
 debris gone; empty dir → no preset diagnostic, debris kept) and a running `yarn dev`
 session where writing the file *between* boot and a watcher-triggered reload flips
-the next extract from no-preset to `applied:true`. Still nothing **writes** presets
-in production: files land by hand (format documented in the README) until step 4's
-suggest loop becomes the writer. The measured class list is still **debris (Daily
-Mail) alone**; `explain` still surfaces generated hash classes as top candidates
-(step-4 validator must run on candidates, not only final proposals).
+the next extract from no-preset to `applied:true`. Files land by hand in the
+documented format, or through step 4's `suggest_preset` writer.
 
-**Next step.** Step 4, the suggest loop — still behind the sampling seam it lands
-with, and still wanting the widened corpus (The Sun *with* embedded video, Mirror,
-regional DM titles, a second mis-selection pass) for a meaningful bench baseline.
-Two obligations already recorded for it: (1) fold a **store-generation counter**
-(bumped by `addPreset`/`resetPresets`) into the cache args fingerprint — not the
-resolved scope, which would need a second document parse and would conflate applied
-vs missed runs under one key; (2) keep preset resolution **out of `explain`** so the
-suggester sees the pre-preset DOM and can actually propose an improvement. The
-loader adds a third: the boot-time load is pre-serve, so today no cache entry can
-predate a preset landing — the counter only becomes load-bearing when step 4 starts
-writing presets mid-session.
+## Step 4 outcome (2026-09-06)
+
+**Corpus widening.** Three fixtures landed alongside the loop. The Sun *with*
+embedded video stays a hunt negative: the Brightcove player sits outside the text
+container, extraction is clean (433 words), only a "Most read in The Sun" header
+and a "Comment now" link leak (~12 words). `dailymail.co.uk` is unreachable from
+this network (connection timeout) — the regional slot went to a US-desk `dailymail.com`
+capture (`dailymail-aa-ducttape`): 14 video nodes plus a Connatix player, extraction
+already clean, landed as the negative control with a `@preset` transfer row (the
+measured detectors all hit a third DM page). The Mirror is the second-site positive:
+Reach template, content complete, furniture interleaved — breadcrumb nav, a
+"Preferred Source on Google News" promo, and commercial "Article continues below"
+boxes inside `article#article-body` (baseline 420 words, ~10% junk). Scope
+`article#article-body` + `[class*="commercial"]` cleans both Mirror captures
+(420→411, 605→599 words); both landed as fixtures (`mirror-costa-dorada`,
+`mirror-ecoli` = transfer). An apparent new gating false positive on the AA page
+turned out to be the *installed* plugin server running the published (pre-step-1)
+build — the workspace code is clean; corpus baselines now run through the workspace
+worker, never the session's plugin tools.
+
+**Validators** (`policy/identifiers.ts`, `policy/selector-lint.ts`). Char-class
+transition scoring ported from readweb (22 labeled cases pass unchanged) with one
+strengthening: the whole token **and** every delimiter-separated segment must clear
+the 0.3 threshold — `BoxStyles_commercial__Wo6Z4` scores 0.252 whole but carries the
+build hash as a segment (`Wo6Z4` 1.075). Known residual: a short digit-free hash
+(`AwrJE`, 0.225) reads as a name to the transition table; the defense is upstream —
+the outline never renders such classes, so the suggester cannot copy them. Static
+rejection covers the full positional family (`:nth-*`, `:first/:last/:only-child`,
+`-of-type`) and `:contains` (nwsapi honors it silently). Propose-time DOM checks are
+stricter than runtime: include and detectors must hit, proposed excludes must hit on
+the page they were proposed from, and no exclude may shadow the include root
+(excludes run before include in `applySelectors` — an ancestor match deletes the
+root and the include then quietly no-ops). `selectorMisses` is exported from
+`presets.ts` as the one shared throw-is-a-miss predicate.
+
+**Lost signal** (`policy/lost-signal.ts`): `fallbackUsed` OR word count < 120 OR a
+debris probe over the extracted text (`Loaded: N%`, `Duration Time m:ss`, the metered
+barrier phrases). A gating signal alone never fires — the pairing the spec demands is
+enforced by construction: `gatedReason` rides as prompt/report evidence only. The
+120-word floor is anchored to the corpus (smallest healthy extract 435; smallest
+known-lost 180, caught by the barrier probe, not the size floor).
+
+**Material** (`policy/outline-chains.ts`): built from the post-normalize document,
+identically to what extraction normalizes. Round one renders the step-0 chain view
+(≥200 own chars, real attributes — `div[itemprop="articleBody"]`, never shorthand —
+hash classes filtered at render so they cannot be copied). Round two applies the
+accepted include **alone** and renders the subtree's remaining blocks (≥40 own chars)
+grouped by chain with count, range, and an 80-char sample: a66's 59 prose paragraphs
+collapse to one line while the embedded related headline (`.vjs-title-text` inside
+`.mol-video`) and the 11 caption figures stand out individually — the debris the
+200-char view measurably hides.
+
+**Loop** (`tools/suggest-preset.ts` + `host-sampling.ts`): registered inside the
+sampling-gated family (no `dev.ts` wiring). Baseline extract with caching off →
+trigger → round one (detectors + include; validator rejections fed back verbatim;
+unparseable model replies are retryable rejections) → round two (excludes) →
+`addPreset` → verification extract through the real preset path → converged iff the
+preset applied **and** the extraction comes back clean; non-convergence removes the
+preset and persists nothing. Sampling calls are bounded (budget visible in the
+output, `budgetExhausted` distinct from a clean stop). `host-sampling.ts` owns the
+`createMessage` seam (summarize converged onto it) and sets a 300s request timeout —
+the SDK's 60s default cannot host a model round.
+
+**Obligations landed:** store-generation counter (`presetGeneration()`) folded into
+the cache args fingerprint, with the load-bearing test (a cached baseline entry plus
+`addPreset` → miss, not the pre-preset result); `removePreset` for rollback; the
+explain pin test (`addPreset` → explain output deep-equal to pre-preset, including
+the snapshot).
+
+**Bench:** `@suggest` rows (`test/bench/suggest-scenarios.ts`) replay the recorded
+accepted proposals through the loop's own validators — static lint, the preset-level
+match contract (excludes parse-only: the gatwick capture legitimately lacks
+`.mol-video`, so the stricter propose-time rule does not apply to replays), and the
+material budget. Precision 1.0 on both DM captures (identical to `@preset` — the
+loop reproduces the hand-tuned outcome), 0.993/0.992 on the Mirror pair (default
+0.960/0.994). The precision-holds guard carries a 0.01 tolerance: serializations
+fuse adjacent inline nodes differently ("her son" + "07:47" → one token on one side).
+
+**Live run (built binary, real local model as suggester).** `suggest_preset` on the
+a66 fixture: trigger fired on `debris:player-controls`; the 27B model proposed
+include `div[itemprop="articleBody"]` with excludes `div#socialLinks`,
+`div#reader-comments`, `div.shareArticles`, `div.news.tabbed-headlines`,
+`div.moduleFull.mol-video`, `p.imageCaption` and detectors `#js-article-text`,
+`#content`, `.articleWide` — all validated, two sampling calls of four, 106s.
+Converged 1793→1579 words (the step-0 hand-tuned delta) and persisted. Phase 2
+booted a fresh server: the loader read the written file and the gatwick extract
+reported `applied:true` with the debris gone — live transfer, loader → writer →
+loader closed.
+
+**Current state.** Steps 0–4 done: the loop is closed end-to-end. A lost extraction
+(gating evidence, fallback, near-empty, or measured debris) can now end in a stored,
+persisted, transferable site preset proposed by the host model, validated
+deterministically, and verified through the real pipeline. The measured class list
+is **debris on two templates** (Daily Mail, Reach/Mirror). The preset file is written
+by the tool or by hand into the same bounded cache directory the loader reads.
+
+**Next step.** The thread's core loop is complete; what remains is open by decision,
+not by omission: the consent-wall recovery policy call (unchanged), multi-include
+scopes (no specimen demands it), and further same-class captures as they turn up in
+real use — the corpus grows only through the evidence standard. The residual lint
+miss (`AwrJE`-shaped digit-free hashes) is documented in the identifiers test and
+defended upstream by material filtering; revisit only if a real proposal ever
+poisons itself that way.
 
 **Log.**
 - 2026-09-05 — thread opened from the readweb comparison; anchors verified in source
@@ -305,3 +394,17 @@ writing presets mid-session.
   fixture, env matrix, bound/prune) plus live runs against the built binary and a
   `yarn dev` reload. Loader only — the writer is step 4; the CLI stays preset-free
   (it never passes `baseUrl`, so it could not resolve one anyway).
+- 2026-09-06 — step 4 ran, with the corpus widening the owner folded into it. Corpus:
+  Mirror debris pair + a clean video-heavy DM control landed as fixtures; The Sun
+  with video and `dailymail.co.uk` recorded as hunt negatives. Deterministic pieces
+  in order: store-generation counter in the cache fingerprint (with `removePreset`),
+  selector lint (positional family, `:contains`, gibberish identifiers with
+  segment-level scoring), lost-signal verdict with the debris probe, copy-safe
+  chain-outline builder (grouped round-two view), preset writer (`savePreset`).
+  Then the tool: `suggest_preset` in the sampling-gated family, two-round loop,
+  validators feeding back verbatim, verification through the real preset path,
+  persistence after convergence. Explain kept preset-free (pin test). Bench gained
+  `@suggest` rows. Live run with the local 27B as suggester: converged on a66,
+  persisted, and the fresh-boot loader transferred the preset to gatwick
+  (`applied:true`, debris gone). Sampling seam gained a 300s request timeout — the
+  SDK default could not host a model round.
