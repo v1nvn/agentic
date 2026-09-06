@@ -9,11 +9,13 @@ import {
   resolveFixturePath,
   type BenchFixture,
 } from './fixtures.js';
+import { SUGGEST_SCENARIOS } from './suggest-scenarios.js';
 import { MAIN_CONTENT_SELECTORS } from './labels.js';
 import { sampleExtraction, type FixtureMetrics } from './metrics.js';
 import {
   scoreFixture,
   scoreFixtureWithPreset,
+  scoreFixtureWithSuggest,
   type FixtureScore,
   type PrecisionRecall,
 } from './scorer.js';
@@ -94,6 +96,18 @@ function updateBaselines(): void {
       scenario.preset,
     );
     scores[`${fixture.id}@preset`] = { f1, precision, recall };
+  }
+  for (const scenario of SUGGEST_SCENARIOS) {
+    const fixture = scenarioFixture(scenario.fixtureId);
+    const selector = MAIN_CONTENT_SELECTORS[fixture.id];
+    if (!selector) continue;
+    const { f1, precision, recall } = scoreFixtureWithSuggest(
+      readFileSync(resolveFixturePath(fixture), 'utf8'),
+      fixture.url,
+      selector,
+      scenario.preset,
+    );
+    scores[`${fixture.id}@suggest`] = { f1, precision, recall };
   }
   scores.aggregate = macroAverage(aggregate);
   writeFileSync(metricsPath, serializeJson(metrics));
@@ -298,11 +312,28 @@ function run(): void {
     );
     presetScores.push({ ...score, id: `${fixture.id}@preset` });
   }
+  const suggestScores: ScoredFixture[] = [];
+  for (const scenario of SUGGEST_SCENARIOS) {
+    const fixture = scenarioFixture(scenario.fixtureId);
+    const selector = MAIN_CONTENT_SELECTORS[fixture.id];
+    if (!selector) continue;
+    const score = scoreFixtureWithSuggest(
+      readFileSync(resolveFixturePath(fixture), 'utf8'),
+      fixture.url,
+      selector,
+      scenario.preset,
+    );
+    suggestScores.push({ ...score, id: `${fixture.id}@suggest` });
+  }
   printMetricsTable(reports);
   printScoresTable(scores);
   printScoresTable(
     presetScores,
     '\nprecision/recall, site preset applied vs the same human labels',
+  );
+  printScoresTable(
+    suggestScores,
+    '\nprecision/recall, recorded suggest-loop proposals replayed through the loop validators',
   );
   printStageTimings(scores);
 }

@@ -1,6 +1,9 @@
 import type { TraceStage } from '../../src/pipeline/context.js';
 import { buildDocument } from '../../src/pipeline/dom.js';
+import { normalizeDocument, resolveLazyImages } from '../../src/pipeline/normalize.js';
 import { addPreset, resetPresets, type SitePreset } from '../../src/policy/presets.js';
+import { lintSelectorText } from '../../src/policy/selector-lint.js';
+import { buildChainOutline, OUTLINE_MAX_CHARS } from '../../src/policy/outline-chains.js';
 import { extractArticleFromHtml } from '../../src/tools/extract.js';
 import type { StructuredContent } from '../../src/tools/output-schema.js';
 
@@ -112,4 +115,54 @@ export function scoreFixtureWithPreset(
   } finally {
     resetPresets();
   }
+}
+
+// Replays a recorded suggest-loop outcome through the loop's full path, not
+// just the apply: every selector must pass the static lint, the preset must
+// satisfy the runtime match contract on THIS fixture, and the round-one
+// material must have been within budget. Excludes are checked parse-only, as
+// presetMatches does at runtime — a preset's excludes name debris that other
+// pages of the site may not carry, which is not staleness. (The stricter
+// propose-time "must match" rule lives in the live loop, where a proposal
+// names debris on the page it was proposed from.)
+export function scoreFixtureWithSuggest(
+  html: string,
+  url: string,
+  selector: string,
+  preset: SitePreset,
+): FixtureScore {
+  const { document } = buildDocument(html, url);
+  normalizeDocument(document, { cleanChrome: true });
+  resolveLazyImages(document);
+  const problems: string[] = [];
+  const selectors = [...preset.detectors, ...(preset.scope.include ? [preset.scope.include] : []), ...(preset.scope.exclude ?? [])];
+  for (const candidate of selectors) {
+    const violation = lintSelectorText(candidate);
+    if (violation) {
+      problems.push(`${violation.kind}: ${candidate}`);
+    }
+  }
+  for (const detector of preset.detectors) {
+    if (document.querySelectorAll(detector).length === 0) {
+      problems.push(`no-match detector: ${detector}`);
+    }
+  }
+  if (preset.scope.include && document.body.querySelector(preset.scope.include) === null) {
+    problems.push(`no-match include: ${preset.scope.include}`);
+  }
+  for (const candidate of preset.scope.exclude ?? []) {
+    try {
+      document.querySelectorAll(candidate);
+    } catch {
+      problems.push(`unparseable exclude: ${candidate}`);
+    }
+  }
+  if (problems.length > 0) {
+    throw new Error(`recorded proposal is not a valid preset here: ${problems.join('; ')}`);
+  }
+  const outline = buildChainOutline({ baseUrl: url, cleanChrome: true, html, mode: 'page' });
+  if (outline.text.length > OUTLINE_MAX_CHARS) {
+    throw new Error(`round-one material exceeds the budget: ${outline.text.length} chars`);
+  }
+  return scoreFixtureWithPreset(html, url, selector, preset);
 }

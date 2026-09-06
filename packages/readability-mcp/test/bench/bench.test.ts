@@ -12,10 +12,12 @@ import {
   PRESET_SCENARIOS,
   resolveFixturePath,
 } from './fixtures.js';
+import { SUGGEST_SCENARIOS } from './suggest-scenarios.js';
 import { computeMetrics, sampleExtraction, type FixtureMetrics } from './metrics.js';
 import {
   scoreFixture,
   scoreFixtureWithPreset,
+  scoreFixtureWithSuggest,
   scorePrecisionRecall,
   tokenize,
   type PrecisionRecall,
@@ -259,6 +261,49 @@ describe('bench: preset scenarios regression guard', () => {
       // introduces text outside the label.
       const defaultScore = scoreFixture(html, fixture!.url, selector!);
       expect(presetScore.precision).toBeGreaterThanOrEqual(defaultScore.precision);
+    });
+  }
+});
+
+describe('bench: suggest-loop scenarios regression guard', () => {
+  const baseline = JSON.parse(
+    readFileSync(join(baselineDir, 'scores.json'), 'utf8'),
+  ) as Record<string, PrecisionRecall>;
+
+  for (const scenario of SUGGEST_SCENARIOS) {
+    const fixture = BENCH_FIXTURES.find(f => f.id === scenario.fixtureId);
+    expect(fixture, `unknown suggest fixture: ${scenario.fixtureId}`).toBeDefined();
+    const selector = MAIN_CONTENT_SELECTORS[scenario.fixtureId];
+    expect(selector, `no main-content label for ${scenario.fixtureId}`).toBeDefined();
+
+    const html = readFileSync(resolveFixturePath(fixture!), 'utf8');
+    // Throws when a recorded proposal no longer lints clean or the round-one
+    // material blew the budget — the loop's own validators guard the baseline.
+    const suggestScore = scoreFixtureWithSuggest(
+      html,
+      fixture!.url,
+      selector!,
+      scenario.preset,
+    );
+    const key = `${scenario.fixtureId}@suggest`;
+
+    it(`${key}: scores match committed baseline`, () => {
+      const committed = baseline[key];
+      expect(committed, `no scores.json entry for ${key}`).toBeDefined();
+      expect({
+        f1: suggestScore.f1,
+        precision: suggestScore.precision,
+        recall: suggestScore.recall,
+      }).toEqual(committed);
+    });
+
+    it(`${key}: precision holds against the default-pipeline run`, () => {
+      const defaultScore = scoreFixture(html, fixture!.url, selector!);
+      // Different serializations fuse adjacent inline nodes differently
+      // ("her son" + "07:47" → one token on one side), so a small tolerance
+      // absorbs boundary noise. The invariant stands: the replayed scope never
+      // introduces junk the default pipeline did not already carry.
+      expect(suggestScore.precision + 0.01).toBeGreaterThanOrEqual(defaultScore.precision);
     });
   }
 });

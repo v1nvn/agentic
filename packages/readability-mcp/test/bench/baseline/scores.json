@@ -29,6 +29,11 @@
     "precision": 1,
     "recall": 0.8459183673469388
   },
+  "dailymail-a66@suggest": {
+    "f1": 0.9165284687672748,
+    "precision": 1,
+    "recall": 0.8459183673469388
+  },
   "dailymail-aa-ducttape": {
     "f1": 0.9013333333333333,
     "precision": 0.9980314960629921,
@@ -45,6 +50,11 @@
     "recall": 0.8624454148471615
   },
   "dailymail-gatwick@preset": {
+    "f1": 0.9016786570743405,
+    "precision": 1,
+    "recall": 0.8209606986899564
+  },
+  "dailymail-gatwick@suggest": {
     "f1": 0.9016786570743405,
     "precision": 1,
     "recall": 0.8209606986899564
@@ -69,10 +79,20 @@
     "precision": 0.9602649006622517,
     "recall": 0.8446601941747572
   },
+  "mirror-costa-dorada@suggest": {
+    "f1": 0.918580375782881,
+    "precision": 0.9932279909706546,
+    "recall": 0.8543689320388349
+  },
   "mirror-ecoli": {
     "f1": 0.8937062937062937,
     "precision": 0.9937791601866252,
     "recall": 0.8119440914866582
+  },
+  "mirror-ecoli@suggest": {
+    "f1": 0.886858749121574,
+    "precision": 0.9921383647798742,
+    "recall": 0.8017789072426937
   },
   "outline": {
     "f1": 0.9545454545454545,
