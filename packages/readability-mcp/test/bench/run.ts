@@ -3,10 +3,20 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { unifiedDiff } from './diff.js';
-import { BENCH_FIXTURES, resolveFixturePath } from './fixtures.js';
+import {
+  BENCH_FIXTURES,
+  PRESET_SCENARIOS,
+  resolveFixturePath,
+  type BenchFixture,
+} from './fixtures.js';
 import { MAIN_CONTENT_SELECTORS } from './labels.js';
 import { sampleExtraction, type FixtureMetrics } from './metrics.js';
-import { scoreFixture, type FixtureScore, type PrecisionRecall } from './scorer.js';
+import {
+  scoreFixture,
+  scoreFixtureWithPreset,
+  type FixtureScore,
+  type PrecisionRecall,
+} from './scorer.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const baselineDir = join(here, 'baseline');
@@ -33,6 +43,14 @@ function readMetricsBaseline(): Record<string, FixtureMetrics> {
   } catch {
     return {};
   }
+}
+
+function scenarioFixture(fixtureId: string): BenchFixture {
+  const fixture = BENCH_FIXTURES.find(f => f.id === fixtureId);
+  if (!fixture) {
+    throw new Error(`preset scenario names unknown fixture: ${fixtureId}`);
+  }
+  return fixture;
 }
 
 function serializeJson<T>(obj: Record<string, T>): string {
@@ -64,6 +82,18 @@ function updateBaselines(): void {
     };
     if (Number.isNaN(score.precision)) continue;
     aggregate.push({ f1: score.f1, precision: score.precision, recall: score.recall });
+  }
+  for (const scenario of PRESET_SCENARIOS) {
+    const fixture = scenarioFixture(scenario.fixtureId);
+    const selector = MAIN_CONTENT_SELECTORS[fixture.id];
+    if (!selector) continue;
+    const { f1, precision, recall } = scoreFixtureWithPreset(
+      readFileSync(resolveFixturePath(fixture), 'utf8'),
+      fixture.url,
+      selector,
+      scenario.preset,
+    );
+    scores[`${fixture.id}@preset`] = { f1, precision, recall };
   }
   scores.aggregate = macroAverage(aggregate);
   writeFileSync(metricsPath, serializeJson(metrics));
@@ -143,7 +173,10 @@ function printMetricsTable(reports: readonly FixtureReport[]): void {
   );
 }
 
-function printScoresTable(scores: readonly ScoredFixture[]): void {
+function printScoresTable(
+  scores: readonly ScoredFixture[],
+  title = '\nprecision/recall vs human-labeled main content',
+): void {
   const header = [
     'id',
     'precision',
@@ -177,7 +210,7 @@ function printScoresTable(scores: readonly ScoredFixture[]): void {
   const fmt = (cells: readonly string[]): string =>
     cells.map((c, i) => c.padEnd(widths[i])).join('  ');
 
-  console.log('\nprecision/recall vs human-labeled main content');
+  console.log(title);
   console.log(fmt(header));
   console.log(widths.map(w => '-'.repeat(w)).join('  '));
   for (let i = 0; i < rows.length; i++) {
@@ -252,8 +285,25 @@ function run(): void {
     if (!selector) continue;
     scores.push({ ...scoreFixture(html, fixture.url, selector), id: fixture.id });
   }
+  const presetScores: ScoredFixture[] = [];
+  for (const scenario of PRESET_SCENARIOS) {
+    const fixture = scenarioFixture(scenario.fixtureId);
+    const selector = MAIN_CONTENT_SELECTORS[fixture.id];
+    if (!selector) continue;
+    const score = scoreFixtureWithPreset(
+      readFileSync(resolveFixturePath(fixture), 'utf8'),
+      fixture.url,
+      selector,
+      scenario.preset,
+    );
+    presetScores.push({ ...score, id: `${fixture.id}@preset` });
+  }
   printMetricsTable(reports);
   printScoresTable(scores);
+  printScoresTable(
+    presetScores,
+    '\nprecision/recall, site preset applied vs the same human labels',
+  );
   printStageTimings(scores);
 }
 

@@ -34,6 +34,7 @@ export function extractSectionFromHtml(
       html,
       baseUrl,
       selectors: { include: selector },
+      resolvePreset: false,
     });
   }
   // The superRefine on the schema enforces selector/heading XOR, so reaching
@@ -62,6 +63,7 @@ export function extractSectionFromHtml(
     html: scoped,
     baseUrl,
     selectors: { include: SECTION_SCOPE_SELECTOR },
+    resolvePreset: false,
   });
 }
 

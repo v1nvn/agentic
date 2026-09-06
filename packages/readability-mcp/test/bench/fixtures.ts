@@ -1,6 +1,8 @@
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import type { SitePreset } from '../../src/policy/presets.js';
+
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(here, '../..');
 
@@ -79,3 +81,37 @@ export const BENCH_FIXTURES: readonly BenchFixture[] = [
 export function resolveFixturePath(fixture: BenchFixture): string {
   return join(repoRoot, fixture.path);
 }
+
+// Preset-applied variants of existing fixtures, scored as `<fixtureId>@preset`
+// in scores.json and reported in their own table. Kept out of BENCH_FIXTURES so
+// the default-pipeline aggregate never absorbs preset runs. The preset is the
+// step-0 scope, measured on both Daily Mail captures.
+export interface PresetScenario {
+  readonly fixtureId: string;
+  readonly preset: SitePreset;
+}
+
+export const PRESET_SCENARIOS: readonly PresetScenario[] = [
+  {
+    fixtureId: 'dailymail-a66',
+    preset: {
+      site: 'www.dailymail.com',
+      detectors: ['#js-article-text', '.artSplitter'],
+      scope: {
+        include: 'div[itemprop="articleBody"]',
+        exclude: ['.mol-video', '.vjs-video-container', '.artSplitter'],
+      },
+    },
+  },
+  {
+    fixtureId: 'dailymail-gatwick',
+    preset: {
+      site: 'www.dailymail.com',
+      detectors: ['#js-article-text', '.artSplitter'],
+      scope: {
+        include: 'div[itemprop="articleBody"]',
+        exclude: ['.mol-video', '.vjs-video-container', '.artSplitter'],
+      },
+    },
+  },
+];

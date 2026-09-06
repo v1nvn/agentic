@@ -1,5 +1,6 @@
 import type { GatingSignal } from '../policy/gating.js';
 import type { PaginationSignal } from '../policy/pagination.js';
+import type { PresetSignal } from '../policy/presets.js';
 import type { ReadabilityParseResult } from './readability.js';
 
 export interface StructuredData {
@@ -48,6 +49,7 @@ export interface Diagnostics {
   readonly gated?: GatingSignal;
   readonly imagesResolved?: number;
   readonly pagination?: PaginationSignal;
+  readonly preset?: PresetSignal;
   readonly readerable?: boolean;
   readonly removedNodes?: number;
   readonly sanitization?: SanitizationDiagnostics;

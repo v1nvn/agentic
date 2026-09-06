@@ -21,6 +21,7 @@ import { detectGating } from '../policy/gating.js';
 import { collectImageInventory } from '../policy/images.js';
 import { resolveMetadata } from '../policy/metadata.js';
 import { detectPagination } from '../policy/pagination.js';
+import { resolvePreset } from '../policy/presets.js';
 import { resolveReadabilityOptions } from '../policy/resolver.js';
 import { computeTextMetrics } from '../policy/text.js';
 import { truncateMarkdown } from '../policy/truncate.js';
@@ -54,8 +55,15 @@ const DEFAULTS: Omit<ExtractInput, 'localPath'> = extractInputSchema.parse({
   localPath: '',
 });
 
+// Internal worker option, never in the zod schema: the only caller that turns
+// preset resolution off is extract_section, whose re-serialized subtree document
+// carries none of the site fingerprints a preset validates against.
+export interface ExtractWorkerInput extends ExtractFromHtmlInput {
+  readonly resolvePreset?: boolean;
+}
+
 export function extractArticleFromHtml(
-  input: Readonly<ExtractFromHtmlInput>,
+  input: Readonly<ExtractWorkerInput>,
 ): CallToolResult {
   const merged = { ...DEFAULTS, ...input };
   const {
@@ -82,6 +90,7 @@ export function extractArticleFromHtml(
     chunk,
     imageInventory,
     debug,
+    resolvePreset: presetsEnabled = true,
   } = merged;
 
   // Cache hit short-circuits the pipeline. A clone is returned so the cache
@@ -129,6 +138,7 @@ export function extractArticleFromHtml(
     normalizeCounts,
     imagesResolved,
     pagination,
+    preset,
   } = trace.run('normalize', () => {
     const gating = detectGating(document);
     const documentElementCount = document.querySelectorAll('*').length;
@@ -137,7 +147,10 @@ export function extractArticleFromHtml(
     // Detect before applySelectors: a caller's selectors.include could scope the
     // body and hide pagination chrome, but "more content exists" is still true.
     const pagination = detectPagination(document, baseUrl);
-    applySelectors(document, selectors);
+    const resolution = presetsEnabled
+      ? resolvePreset(document, baseUrl, selectors !== undefined)
+      : undefined;
+    applySelectors(document, resolution?.scope ?? selectors);
     const codeBlocksCanonicalized = canonicalizeCodeBlocks(document);
     if (codeBlocksCanonicalized > 0) {
       logger.debug(
@@ -150,6 +163,7 @@ export function extractArticleFromHtml(
       imagesResolved,
       normalizeCounts,
       pagination,
+      preset: resolution?.signal,
     };
   });
 
@@ -265,6 +279,7 @@ export function extractArticleFromHtml(
     gated: gating,
     imagesResolved,
     pagination,
+    preset,
     readerable,
     sanitization,
     trace: trace.collect(),

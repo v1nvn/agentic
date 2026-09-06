@@ -7,10 +7,15 @@ import { describe, expect, it } from 'vitest';
 import { buildDocument } from '../../src/pipeline/dom.js';
 import { MAIN_CONTENT_NOTES, MAIN_CONTENT_SELECTORS } from './labels.js';
 import { unifiedDiff } from './diff.js';
-import { BENCH_FIXTURES, resolveFixturePath } from './fixtures.js';
+import {
+  BENCH_FIXTURES,
+  PRESET_SCENARIOS,
+  resolveFixturePath,
+} from './fixtures.js';
 import { computeMetrics, sampleExtraction, type FixtureMetrics } from './metrics.js';
 import {
   scoreFixture,
+  scoreFixtureWithPreset,
   scorePrecisionRecall,
   tokenize,
   type PrecisionRecall,
@@ -215,4 +220,45 @@ describe('bench: scores regression guard', () => {
     expect(round3(macro.recall)).toBe(round3(baseline.aggregate.recall));
     expect(round3(macro.f1)).toBe(round3(baseline.aggregate.f1));
   });
+});
+
+describe('bench: preset scenarios regression guard', () => {
+  const baseline = JSON.parse(
+    readFileSync(join(baselineDir, 'scores.json'), 'utf8'),
+  ) as Record<string, PrecisionRecall>;
+
+  for (const scenario of PRESET_SCENARIOS) {
+    const fixture = BENCH_FIXTURES.find(f => f.id === scenario.fixtureId);
+    expect(fixture, `unknown preset fixture: ${scenario.fixtureId}`).toBeDefined();
+    const selector = MAIN_CONTENT_SELECTORS[scenario.fixtureId];
+    expect(selector, `no main-content label for ${scenario.fixtureId}`).toBeDefined();
+
+    const html = readFileSync(resolveFixturePath(fixture!), 'utf8');
+    const presetScore = scoreFixtureWithPreset(
+      html,
+      fixture!.url,
+      selector!,
+      scenario.preset,
+    );
+    const key = `${scenario.fixtureId}@preset`;
+
+    it(`${key}: scores match committed baseline`, () => {
+      const committed = baseline[key];
+      expect(committed, `no scores.json entry for ${key}`).toBeDefined();
+      expect({
+        f1: presetScore.f1,
+        precision: presetScore.precision,
+        recall: presetScore.recall,
+      }).toEqual(committed);
+    });
+
+    it(`${key}: precision holds against the default-pipeline run`, () => {
+      // The human label is the article container INCLUDING its embedded debris,
+      // so a working preset trades recall (the removed junk was inside the
+      // label) for precision — the invariant is that preset application never
+      // introduces text outside the label.
+      const defaultScore = scoreFixture(html, fixture!.url, selector!);
+      expect(presetScore.precision).toBeGreaterThanOrEqual(defaultScore.precision);
+    });
+  }
 });

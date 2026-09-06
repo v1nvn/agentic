@@ -6,6 +6,7 @@ import type {
 } from '../pipeline/context.js';
 import type { GatingSignal } from './gating.js';
 import type { PaginationSignal } from './pagination.js';
+import type { PresetSignal } from './presets.js';
 
 export interface DiagnosticsInput {
   readonly articleHtml?: string;
@@ -19,6 +20,7 @@ export interface DiagnosticsInput {
   readonly gated?: GatingSignal;
   readonly imagesResolved?: number;
   readonly pagination?: PaginationSignal;
+  readonly preset?: PresetSignal;
   readonly readerable?: boolean;
   readonly sanitization?: SanitizationDiagnostics;
   readonly trace?: readonly TraceStage[];
@@ -61,6 +63,7 @@ export function assembleDiagnostics(
     trace: input.trace,
     truncated: input.truncated ?? false,
     ...(input.cache ? { cache: input.cache } : {}),
+    ...(input.preset ? { preset: input.preset } : {}),
   };
 }
 

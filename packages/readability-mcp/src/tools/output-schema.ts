@@ -252,6 +252,29 @@ export const outputSchemaShape = {
         .describe(
           'Detected pagination or infinite-scroll signal. Detection only — the host drives loading; this server never fetches.',
         ),
+      preset: z
+        .object({
+          applied: z
+            .boolean()
+            .describe(
+              'True when the site preset’s scope was applied through the same selectors path as the `selectors` option. False when a preset existed but was not applied (see `reason`).',
+            ),
+          reason: z
+            .enum(['detectors-missed', 'overridden'])
+            .optional()
+            .describe(
+              'Why the preset was not applied: `overridden` — an explicit `selectors` argument beat the inferred one; `detectors-missed` — a layout fingerprint no longer matched the document (stale preset), so the normal cascade ran. Absent when `applied` is true.',
+            ),
+          site: z
+            .string()
+            .describe(
+              'Site key the preset matched: baseUrl hostname, lowercased, leading "www." stripped.',
+            ),
+        })
+        .optional()
+        .describe(
+          'Site-preset signal — populated only by `extract`, and only when a preset exists for the document’s site; absent otherwise (other tools and preset-less sites never emit it).',
+        ),
       readerable: z
         .boolean()
         .optional()

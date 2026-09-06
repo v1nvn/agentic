@@ -1,5 +1,6 @@
 import type { TraceStage } from '../../src/pipeline/context.js';
 import { buildDocument } from '../../src/pipeline/dom.js';
+import { addPreset, resetPresets, type SitePreset } from '../../src/policy/presets.js';
 import { extractArticleFromHtml } from '../../src/tools/extract.js';
 import type { StructuredContent } from '../../src/tools/output-schema.js';
 
@@ -95,4 +96,20 @@ export function scoreFixture(
     recall,
     trace,
   };
+}
+
+// The reset runs in finally because the store is process-global and scoreFixture
+// throws when a label selector does not resolve.
+export function scoreFixtureWithPreset(
+  html: string,
+  url: string,
+  selector: string,
+  preset: SitePreset,
+): FixtureScore {
+  addPreset(preset);
+  try {
+    return scoreFixture(html, url, selector);
+  } finally {
+    resetPresets();
+  }
 }
