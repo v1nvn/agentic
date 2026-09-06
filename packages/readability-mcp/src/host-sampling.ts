@@ -6,6 +6,10 @@
 
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 
+// Host models — and the human-in-the-loop approval MCP allows before each
+// call — routinely take longer than the SDK's 60s request default.
+const SAMPLING_TIMEOUT_MS = 300_000;
+
 export interface HostSampleInput {
   readonly maxTokens: number;
   readonly systemPrompt: string;
@@ -16,16 +20,19 @@ export async function sampleText(
   server: McpServer,
   args: HostSampleInput,
 ): Promise<string> {
-  const result = await server.server.createMessage({
-    messages: [
-      {
-        role: 'user',
-        content: { type: 'text', text: args.userText },
-      },
-    ],
-    systemPrompt: args.systemPrompt,
-    maxTokens: args.maxTokens,
-  });
+  const result = await server.server.createMessage(
+    {
+      messages: [
+        {
+          role: 'user',
+          content: { type: 'text', text: args.userText },
+        },
+      ],
+      systemPrompt: args.systemPrompt,
+      maxTokens: args.maxTokens,
+    },
+    { timeout: SAMPLING_TIMEOUT_MS },
+  );
   if (result.content.type !== 'text') {
     throw new Error(
       `host sampling returned non-text content (${result.content.type})`,
