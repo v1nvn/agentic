@@ -34,12 +34,10 @@ per-site adapter.
 
 ## Queue
 
-1. **Merge `feat/suggest-scope`.** Merge to main → CI publishes the train at
-   0.18.0 → installed sessions run the loop. Until the merge, nothing serves.
-2. **Seed the corpus** — one page per target class, captured through the live
+1. **Seed the corpus** — one page per target class, captured through the live
    path. After seeding, the corpus grows only when a real stonks read
    misbehaves: capture it instead of tolerating it.
-3. **Triage each finding:**
+2. **Triage each finding:**
    - Preset-able loss (one-off layout, IR page) → `suggest_preset`.
    - Pipeline-level loss (tables, feed detection, gating) → extraction work,
      with the fixture proving it.
@@ -79,3 +77,6 @@ real self-poisoning proposal).
   a `secondPath` capture and refuse a capture whose canonical host differs from
   `baseUrl`; train bumped to 0.18.0 (671/671, typecheck + lint clean). The two
   files re-joined into this one; next is the merge, then seeding.
+- 2026-09-07 — `feat/suggest-scope` merged to main (`e9e784f`); release
+  workflow published 0.18.0 and cut `v0.18.0` — the pin resolves to the build
+  with the loop. Branch deleted. Seeding is next.
