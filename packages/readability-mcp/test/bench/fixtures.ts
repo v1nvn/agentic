@@ -94,6 +94,42 @@ export const BENCH_FIXTURES: readonly BenchFixture[] = [
     path: 'test/fixtures/dailymail-aa-ducttape/saved.html',
     url: 'https://www.dailymail.com/news/article-16107451/american-airlines-duct-tape-racist-tirade-divert.html',
   },
+  {
+    category: 'fundamentals',
+    id: 'screener-reliance',
+    path: 'test/fixtures/screener-reliance/saved.html',
+    url: 'https://www.screener.in/company/RELIANCE/consolidated/',
+  },
+  {
+    category: 'feed',
+    id: 'bse-announcements',
+    path: 'test/fixtures/bse-announcements/saved.html',
+    url: 'https://www.bseindia.com/corporates/ann.html',
+  },
+  {
+    category: 'article',
+    id: 'moneycontrol-rvn-order',
+    path: 'test/fixtures/moneycontrol-rvn-order/saved.html',
+    url: 'https://www.moneycontrol.com/news/business/markets/rail-vikas-nigam-shares-in-focus-on-order-win-worth-rs-903-crore-14023537.html',
+  },
+  {
+    category: 'article',
+    id: 'tcs-porsche-release',
+    path: 'test/fixtures/tcs-porsche-release/saved.html',
+    url: 'https://www.tcs.com/who-we-are/newsroom/press-release/tcs-porsche-ag-partner-accelerate-future-of-ai-powered-mobility',
+  },
+  {
+    category: 'quote',
+    id: 'gfinance-reliance-quote',
+    path: 'test/fixtures/gfinance-reliance-quote/saved.html',
+    url: 'https://www.google.com/finance/quote/RELIANCE:NSE',
+  },
+  {
+    category: 'document',
+    id: 'crisil-ril-rationale',
+    path: 'test/fixtures/crisil-ril-rationale/saved.html',
+    url: 'https://www.crisil.com/mnt/winshare/Ratings/RatingList/RatingDocs/RelianceIndustriesLimited_March%2030_%202026_RR_392495.html',
+  },
 ];
 
 export function resolveFixturePath(fixture: BenchFixture): string {

@@ -18,6 +18,12 @@ export const MAIN_CONTENT_SELECTORS: Readonly<Record<string, string>> = {
   'mirror-costa-dorada': 'article#article-body',
   'mirror-ecoli': 'article#article-body',
   'dailymail-aa-ducttape': 'div[itemprop="articleBody"]',
+  'screener-reliance': 'main',
+  'bse-announcements': 'main div.largetable',
+  'moneycontrol-rvn-order': 'div#contentdata',
+  'tcs-porsche-release': '[role="main"]',
+  'gfinance-reliance-quote': 'main',
+  'crisil-ril-rationale': 'body',
 };
 
 export const MAIN_CONTENT_NOTES: Readonly<Record<string, string>> = {
@@ -47,4 +53,16 @@ export const MAIN_CONTENT_NOTES: Readonly<Record<string, string>> = {
     'Same Reach template as mirror-costa-dorada — article#article-body is the article, with the commercial continue-marker boxes inside it.',
   'dailymail-aa-ducttape':
     'The itemprop="articleBody" div is the article, as on both other Daily Mail captures; the page embeds a Connatix player and fourteen video nodes that generic extraction already scores out.',
+  'screener-reliance':
+    '<main> is the whole company data column — snapshot ratios, every financial table, and the documents lists; the top nav and footer are chrome.',
+  'bse-announcements':
+    'The .largetable wrapper holds the 200-row announcements table — company, category, timestamp, subject per row; the sidebar nav and disclaimer panels around it are not records.',
+  'moneycontrol-rvn-order':
+    'The #contentdata wrapper holds the headline, byline, and the article paragraphs; the stock widget beside it and the carousels below are furniture.',
+  'tcs-porsche-release':
+    'The [role="main"] region carries the release text; the mega-menu, cookie strip, and related-news rails are chrome.',
+  'gfinance-reliance-quote':
+    'The quote card is the human content, but it carries only generated class names, so <main> is the tightest stable selector — scores on this fixture are directional, since the gold includes the sector-index furniture.',
+  'crisil-ril-rationale':
+    'The document is a Word-to-HTML export laid out as dozens of sibling <table>s with no wrapper and no chrome, so <body> is the tightest container.',
 };

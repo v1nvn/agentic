@@ -82,6 +82,11 @@ describe('detectList: no false positives on article fixtures', () => {
     'dailymail-aa-ducttape',
     'mirror-costa-dorada',
     'mirror-ecoli',
+    'screener-reliance',
+    'bse-announcements',
+    'moneycontrol-rvn-order',
+    'tcs-porsche-release',
+    'gfinance-reliance-quote',
   ]);
   const articleFixtures = readdirSync(fixturesDir).filter(name => {
     if (listFixtures.has(name) || compositeFixtures.has(name)) {

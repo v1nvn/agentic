@@ -1,4 +1,16 @@
 {
+  "bse-announcements": {
+    "inputNodes": 2556,
+    "markdownChars": 56919,
+    "tokenEstimate": 14230,
+    "removedNodes": 1453,
+    "images": 0,
+    "tables": 0,
+    "links": 0,
+    "compressionRatio": 22.27,
+    "fallbackUsed": false,
+    "readerable": false
+  },
   "code-langs": {
     "inputNodes": 45,
     "markdownChars": 2406,
@@ -32,6 +44,18 @@
     "tables": 0,
     "links": 3,
     "compressionRatio": 4.89,
+    "fallbackUsed": false,
+    "readerable": true
+  },
+  "crisil-ril-rationale": {
+    "inputNodes": 888,
+    "markdownChars": 8295,
+    "tokenEstimate": 2074,
+    "removedNodes": 794,
+    "images": 0,
+    "tables": 0,
+    "links": 11,
+    "compressionRatio": 9.34,
     "fallbackUsed": false,
     "readerable": true
   },
@@ -95,6 +119,18 @@
     "fallbackUsed": true,
     "readerable": false
   },
+  "gfinance-reliance-quote": {
+    "inputNodes": 7212,
+    "markdownChars": 2619,
+    "tokenEstimate": 655,
+    "removedNodes": 6619,
+    "images": 0,
+    "tables": 1,
+    "links": 0,
+    "compressionRatio": 0.36,
+    "fallbackUsed": false,
+    "readerable": false
+  },
   "lazy-images": {
     "inputNodes": 12,
     "markdownChars": 184,
@@ -131,6 +167,18 @@
     "fallbackUsed": false,
     "readerable": true
   },
+  "moneycontrol-rvn-order": {
+    "inputNodes": 3130,
+    "markdownChars": 1706,
+    "tokenEstimate": 427,
+    "removedNodes": 3101,
+    "images": 1,
+    "tables": 0,
+    "links": 7,
+    "compressionRatio": 0.55,
+    "fallbackUsed": false,
+    "readerable": true
+  },
   "outline": {
     "inputNodes": 20,
     "markdownChars": 256,
@@ -152,6 +200,30 @@
     "tables": 1,
     "links": 0,
     "compressionRatio": 27.12,
+    "fallbackUsed": false,
+    "readerable": true
+  },
+  "screener-reliance": {
+    "inputNodes": 2332,
+    "markdownChars": 28106,
+    "tokenEstimate": 7027,
+    "removedNodes": 637,
+    "images": 8,
+    "tables": 13,
+    "links": 114,
+    "compressionRatio": 12.05,
+    "fallbackUsed": false,
+    "readerable": true
+  },
+  "tcs-porsche-release": {
+    "inputNodes": 2653,
+    "markdownChars": 3755,
+    "tokenEstimate": 939,
+    "removedNodes": 2625,
+    "images": 0,
+    "tables": 0,
+    "links": 6,
+    "compressionRatio": 1.42,
     "fallbackUsed": false,
     "readerable": true
   }
