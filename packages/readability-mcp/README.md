@@ -127,7 +127,7 @@ Presets load at server start from a local cache directory — one `<site>.json` 
 | Bound | 64 files; beyond that the oldest by mtime are deleted at load — enforced when loading and again when `suggest_preset` writes. |
 | Invalid files | Unreadable JSON, a wrong shape (no `detectors`, empty `scope`), or a non-hostname `site` is skipped with a warning; the remaining files still load. |
 | Staleness | No clock-based expiry — detectors are re-checked against every page, so a preset survives until the site redesigns. |
-| Writing | `suggest_preset` is the writer: an accepted, verified preset is stored in memory immediately and persisted as `<site>.json` after its verification extraction comes back clean. A disabled directory (empty env value) skips the write and reports `persisted: false` — the in-memory preset still applies for the session. Presets can also land by hand in this exact shape. |
+| Writing | `suggest_preset` is the writer: an accepted, verified preset is stored in memory immediately and persisted as `<site>.json` after verification comes back clean — on the proposal page, plus the `secondPath` capture when one was given. A disabled directory (empty env value) skips the write and reports `persisted: false` — the in-memory preset still applies for the session. Presets can also land by hand in this exact shape. |
 | Scope | Local to the user's machine; the server never fetches or phones home. |
 
 **Metadata cascade.** Each metadata field is resolved by priority: **JSON-LD → OpenGraph → Twitter → `<meta>`/`<time>` → Readability → `<title>`** (first non-empty value wins). When the page carries schema.org JSON-LD, `metadata.structured` exposes the parsed primary object (Recipe/Product/Event/HowTo/Article…) with `@context` stripped and `@type` normalized, so non-article content rides on `extract` without a separate tool. Alongside the bibliographic fields, `metadata` carries `wordCount`, `readingTimeMin`, and `tokenEstimate` (with `estimator: "chars/4"` naming the heuristic) — an advisory count for context budgeting; the host re-counts before sending, so a model-specific tokenizer isn't worth the weight.
@@ -269,18 +269,19 @@ For a page whose extraction was lost, asks the host's model to propose a site pr
 | Option | Default | Description |
 | --- | --- | --- |
 | `localPath` *(required)* | — | Path to a file holding the rendered HTML. |
-| `baseUrl` *(required)* | — | A URL of the site; its host names the preset. |
+| `baseUrl` *(required)* | — | A URL of the site; its host names the preset. Refused when the page's `<link rel="canonical">` names a different host. |
+| `secondPath` | — | A second capture of the same site. The converged preset must verify on it too before anything is persisted; without it the preset is verified on the proposal page alone. |
 | `maxSamplingCalls` | `4` | Budget for host-model calls. Round one (include + detectors) and round two (excludes) each consume one; rejected proposals consume retries. A budget of 1 skips round two. |
 
 The loop, in order:
 
-1. **Trigger.** A baseline `extract` runs with caching off; the lost verdict is `fallbackUsed`, a word count under 120, or a debris probe over the extracted text (`Loaded: N%` / `Duration Time m:ss` player controls, metered-barrier phrases). A gating signal alone never fires the loop — vendor SDK classes report on free articles.
+1. **Trigger.** A baseline `extract` runs with caching off; the lost verdict is `fallbackUsed`, a word count under 120, or a debris probe over the extracted text (`Loaded: N%` / `Duration Time m:ss` player controls, metered-barrier phrases). A gating signal alone never fires the loop — vendor SDK classes report on free articles. The baseline's canonical URL must name the same host as `baseUrl`, or the run refuses — a capture keyed to the wrong site can never mint a preset.
 2. **Round one.** The model sees a copy-safe text-chain outline (ancestor chains of every node with ≥200 chars of own text, real attributes, hash classes already stripped) and returns `{"detectors": […], "scope": {"include": "…", "exclude": […]}}`.
 3. **Validation.** Static: no positional pseudos, no `:contains`, no generated hash identifiers. DOM: detectors and `include` must match, proposed excludes must match, and no exclude may shadow the include root. Rejections are fed back verbatim for a retry.
 4. **Round two.** The accepted `include` is applied for real; the model then sees the included subtree's remaining text blocks (grouped by chain, with samples) and proposes excludes for the debris groups.
-5. **Verification.** The candidate preset is added to the store and a verification `extract` runs through the real preset path. Converged = the preset applied **and** the extraction comes back clean; only then is `<site>.json` persisted. Non-convergence removes the preset and leaves no file.
+5. **Verification.** The candidate preset is added to the store and a verification `extract` runs through the real preset path. Converged = the preset applied **and** the extraction comes back clean. With `secondPath`, the same verification runs on the second capture — detectors must match there and the extraction must come back clean — and a capture whose canonical names another site refuses the run. Only then is `<site>.json` persisted; non-convergence removes the preset and leaves no file.
 
-Output: `trigger` (the lost-signal verdict), `preset` (when accepted), `verification` (`applied`, `converged`, word counts before/after), `persistence` (file written, or why not), and `sampling` (calls/budget/exhausted). Every model proposal is validated — a proposal the pipeline would silently misapply never reaches it.
+Output: `trigger` (the lost-signal verdict), `preset` (when accepted), `verification` (`applied`, `converged`, `verifiedPages`, word counts before/after), `secondVerification` (the second capture's verdict, when `secondPath` was given), `persistence` (file written, or why not), and `sampling` (calls/budget/exhausted). Every model proposal is validated — a proposal the pipeline would silently misapply never reaches it.
 
 ## Diagnostics
 

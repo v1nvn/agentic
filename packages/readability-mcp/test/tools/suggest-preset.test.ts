@@ -20,6 +20,7 @@ const A66_URL =
 const CORRIERE_PATH = join(fixturesDir, 'corriere-afd', 'saved.html');
 const CORRIERE_URL =
   'https://www.corriere.it/esteri/26_settembre_05/germania-afd-partito-estrema-destra-eea3ed68-00f3-4741-983e-5f6bb02e6xlk.shtml';
+const GATWICK_PATH = join(fixturesDir, 'dailymail-gatwick', 'saved.html');
 
 const GOOD_CORE_PROPOSAL = {
   detectors: ['#js-article-text', '.artSplitter'],
@@ -97,6 +98,7 @@ describe('suggest_preset runSuggestLoop', () => {
     expect(structured.verification).toEqual({
       applied: true,
       converged: true,
+      verifiedPages: 1,
       wordCountBefore: structured.trigger.wordCount,
       wordCountAfter: expect.any(Number),
     });
@@ -262,5 +264,106 @@ describe('suggest_preset runSuggestLoop', () => {
     const structured = result.structuredContent as Record<string, any>;
     expect(structured.verification.converged).toBe(true);
     expect(structured.persistence.persisted).toBe(true);
+  });
+
+  it('refuses when the capture canonicalizes to another host', { timeout: 60_000 }, async () => {
+    const requests: string[] = [];
+    const host = fakeHost([], requests);
+    await expect(
+      runSuggestLoop(
+        {
+          baseUrl: 'https://template-thief.example.com/story',
+          localPath: A66_PATH,
+          maxSamplingCalls: 4,
+        },
+        host,
+      ),
+    ).rejects.toThrow(/canonical/);
+    expect(requests).toHaveLength(0);
+    expect(existsSync(join(presetDir, 'template-thief.example.com.json'))).toBe(
+      false,
+    );
+  });
+
+  it('verifies on a second capture before persisting', { timeout: 120_000 }, async () => {
+    const requests: string[] = [];
+    const host = fakeHost(
+      [json(GOOD_CORE_PROPOSAL), json(GOOD_EXCLUDE_PROPOSAL)],
+      requests,
+    );
+    const result = await runSuggestLoop(
+      {
+        baseUrl: A66_URL,
+        localPath: A66_PATH,
+        secondPath: GATWICK_PATH,
+        maxSamplingCalls: 4,
+      },
+      host,
+    );
+    const structured = result.structuredContent as Record<string, any>;
+    expect(structured.verification.verifiedPages).toBe(2);
+    expect(structured.secondVerification.applied).toBe(true);
+    expect(structured.secondVerification.converged).toBe(true);
+    expect(structured.persistence.persisted).toBe(true);
+    expect(existsSync(join(presetDir, 'dailymail.com.json'))).toBe(true);
+    expect(presetForSite(A66_URL)).toBeDefined();
+    expect(requests).toHaveLength(2);
+  });
+
+  it('refuses to persist when the second capture misses the preset', { timeout: 120_000 }, async () => {
+    const paragraphs = Array.from(
+      { length: 30 },
+      (_, i) => `<p>Paragraph ${i} of a plain article body with enough words to sit far above the near-empty threshold.</p>`,
+    ).join('');
+    const html = `<html><head><link rel="canonical" href="https://www.dailymail.com/news/article-2.html"></head><body><main><article>${paragraphs}</article></main></body></html>`;
+    const path = join(presetDir, 'second-capture.html');
+    writeFileSync(path, html);
+    const host = fakeHost([
+      json(GOOD_CORE_PROPOSAL),
+      json(GOOD_EXCLUDE_PROPOSAL),
+    ]);
+    const result = await runSuggestLoop(
+      {
+        baseUrl: A66_URL,
+        localPath: A66_PATH,
+        secondPath: path,
+        maxSamplingCalls: 4,
+      },
+      host,
+    );
+    const structured = result.structuredContent as Record<string, any>;
+    expect(structured.verification.verifiedPages).toBe(1);
+    expect(structured.secondVerification.applied).toBe(false);
+    expect(structured.secondVerification.converged).toBe(false);
+    expect(structured.persistence).toEqual({
+      persisted: false,
+      reason: 'second-page-not-converged',
+    });
+    expect(existsSync(join(presetDir, 'dailymail.com.json'))).toBe(false);
+    expect(presetForSite(A66_URL)).toBeUndefined();
+  });
+
+  it('refuses to persist when the second capture belongs to another site', { timeout: 120_000 }, async () => {
+    const host = fakeHost([
+      json(GOOD_CORE_PROPOSAL),
+      json(GOOD_EXCLUDE_PROPOSAL),
+    ]);
+    const result = await runSuggestLoop(
+      {
+        baseUrl: A66_URL,
+        localPath: A66_PATH,
+        secondPath: CORRIERE_PATH,
+        maxSamplingCalls: 4,
+      },
+      host,
+    );
+    const structured = result.structuredContent as Record<string, any>;
+    expect(structured.persistence).toEqual({
+      persisted: false,
+      reason: 'second-page-canonical-mismatch',
+    });
+    expect(structured.secondVerification).toBeUndefined();
+    expect(existsSync(join(presetDir, 'dailymail.com.json'))).toBe(false);
+    expect(presetForSite(A66_URL)).toBeUndefined();
   });
 });

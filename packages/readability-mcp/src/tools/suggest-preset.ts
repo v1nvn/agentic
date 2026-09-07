@@ -46,6 +46,11 @@ const suggestPresetInputShape = {
     .describe(
       'A URL of the site the page belongs to — its host names the preset. Required: without a host there is no site key to store a preset under, and presets only resolve for pages whose site matches.',
     ),
+  secondPath: localPathField
+    .optional()
+    .describe(
+      'A second capture of the SAME site. The converged preset must verify on it too — detectors match, extraction clean — before anything is persisted; without it the preset is verified on the proposal page alone.',
+    ),
   maxSamplingCalls: z
     .number()
     .int()
@@ -127,6 +132,14 @@ const suggestPresetOutputShape = {
       converged: z
         .boolean()
         .describe('Whether the verification extraction came back clean.'),
+      verifiedPages: z
+        .number()
+        .int()
+        .min(1)
+        .max(2)
+        .describe(
+          'Pages the preset verified on: 2 only when secondPath was given and the preset verified on that capture too.',
+        ),
       wordCountBefore: z.number().describe('Baseline extraction word count.'),
       wordCountAfter: z
         .number()
@@ -134,6 +147,24 @@ const suggestPresetOutputShape = {
     })
     .optional()
     .describe('Result of extracting with the preset actually stored.'),
+  secondVerification: z
+    .object({
+      applied: z
+        .boolean()
+        .describe(
+          'Whether the preset resolved and applied on the second capture.',
+        ),
+      converged: z
+        .boolean()
+        .describe('Whether the second-capture extraction came back clean.'),
+      wordCountAfter: z
+        .number()
+        .describe('Second-capture extraction word count.'),
+    })
+    .optional()
+    .describe(
+      'Verification on the secondPath capture; absent when secondPath was not given or the capture belongs to another site.',
+    ),
   persistence: z
     .object({
       persisted: z
@@ -202,8 +233,15 @@ interface AcceptedPreset {
 interface Verification {
   applied: boolean;
   converged: boolean;
+  verifiedPages: 1 | 2;
   wordCountAfter: number;
   wordCountBefore: number;
+}
+
+interface SecondVerification {
+  applied: boolean;
+  converged: boolean;
+  wordCountAfter: number;
 }
 
 interface LoopState {
@@ -216,7 +254,12 @@ interface LoopState {
 }
 
 export async function runSuggestLoop(
-  args: { baseUrl: string; localPath: string; maxSamplingCalls: number },
+  args: {
+    baseUrl: string;
+    localPath: string;
+    maxSamplingCalls: number;
+    secondPath?: string;
+  },
   server: McpServer,
 ): Promise<CallToolResult> {
   const site = normalizeSiteKey(args.baseUrl);
@@ -224,6 +267,9 @@ export async function runSuggestLoop(
     throw new Error(`baseUrl does not name a site: ${args.baseUrl}`);
   }
   const html = readHtmlFile(args.localPath);
+  const secondHtml = args.secondPath
+    ? readHtmlFile(args.secondPath)
+    : undefined;
   const state: LoopState = {
     budget: args.maxSamplingCalls,
     calls: 0,
@@ -242,6 +288,12 @@ export async function runSuggestLoop(
   }
 
   const baseline = extractText(html, args.baseUrl);
+  const canonicalSite = normalizeSiteKey(baseline.metadata.canonical);
+  if (canonicalSite && canonicalSite !== site) {
+    throw new Error(
+      `baseUrl names ${site} but the page's canonical URL names ${canonicalSite} — the capture does not belong to the site the preset would be keyed by.`,
+    );
+  }
   const baselineEvidence = assessLostSignal({
     contentText: baseline.content,
     fallbackUsed: baseline.diagnostics.fallbackUsed ?? false,
@@ -303,6 +355,7 @@ export async function runSuggestLoop(
   const verdict: Verification = {
     applied,
     converged,
+    verifiedPages: 1,
     wordCountAfter: verificationEvidence.wordCount,
     wordCountBefore: trigger.wordCount,
   };
@@ -313,14 +366,61 @@ export async function runSuggestLoop(
     return report(state, { preset, trigger, verification: verdict });
   }
 
+  let secondVerification: SecondVerification | undefined;
+  if (secondHtml) {
+    const second = extractText(secondHtml, args.baseUrl);
+    const secondCanonicalSite = normalizeSiteKey(second.metadata.canonical);
+    if (secondCanonicalSite && secondCanonicalSite !== site) {
+      removePreset(preset.site);
+      state.persistence = {
+        persisted: false,
+        reason: 'second-page-canonical-mismatch',
+      };
+      return report(state, { preset, trigger, verification: verdict });
+    }
+    const secondEvidence = assessLostSignal({
+      contentText: second.content,
+      fallbackUsed: second.diagnostics.fallbackUsed ?? false,
+      gated: second.diagnostics.gated,
+    });
+    const secondApplied = second.presetSignal?.applied === true;
+    const secondConverged =
+      secondApplied && secondEvidence.reasons.length === 0;
+    secondVerification = {
+      applied: secondApplied,
+      converged: secondConverged,
+      wordCountAfter: secondEvidence.wordCount,
+    };
+    if (!secondConverged) {
+      removePreset(preset.site);
+      state.persistence = {
+        persisted: false,
+        reason: 'second-page-not-converged',
+      };
+      return report(state, {
+        preset,
+        secondVerification,
+        trigger,
+        verification: verdict,
+      });
+    }
+    verdict.verifiedPages = 2;
+  }
+
   state.persistence = savePreset(preset);
-  return report(state, { preset, trigger, verification: verdict });
+  return report(state, {
+    preset,
+    secondVerification,
+    trigger,
+    verification: verdict,
+  });
 }
 
 function report(
   state: LoopState,
   parts: {
     preset?: AcceptedPreset;
+    secondVerification?: SecondVerification;
     trigger: Trigger;
     verification?: Verification;
   },
@@ -344,7 +444,12 @@ function report(
   }
   if (parts.verification) {
     lines.push(
-      `Verification with the preset stored: applied=${parts.verification.applied}, converged=${parts.verification.converged}, ${parts.verification.wordCountAfter} words.`,
+      `Verification with the preset stored: applied=${parts.verification.applied}, converged=${parts.verification.converged}, ${parts.verification.wordCountAfter} words, pages verified: ${parts.verification.verifiedPages}.`,
+    );
+  }
+  if (parts.secondVerification) {
+    lines.push(
+      `Second-page verification: applied=${parts.secondVerification.applied}, converged=${parts.secondVerification.converged}, ${parts.secondVerification.wordCountAfter} words.`,
     );
   }
   if (parts.preset) {
@@ -372,6 +477,7 @@ function report(
         calls: state.calls,
       },
       schemaVersion: 1 as const,
+      secondVerification: parts.secondVerification,
       trigger: parts.trigger,
       verification: parts.verification,
     },
@@ -584,7 +690,7 @@ function extractText(
     fallbackUsed?: boolean;
     gated?: GatingSignal;
   };
-  metadata: { title?: string };
+  metadata: { canonical?: string; title?: string };
   presetSignal?: { applied: boolean };
 } {
   const result = extractArticleFromHtml({
