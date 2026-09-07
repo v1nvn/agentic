@@ -13,4 +13,4 @@
 
 ---
 
-- Site-matched extraction presets for pages the pipeline loses on — HIGH — → progress/site-presets.md — step 2: preset mechanism landed (store + detector-gated apply through `selectors`); storage gated on corpus widening
+- Site-matched extraction presets + real-world corpus (stonks: Indian financial web) — HIGH — → progress/presets-corpus.md — `feat/suggest-scope` carries two-capture verification and the 0.18.0 train (unmerged); next: merge, then seed the corpus — one page per target class

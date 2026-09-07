@@ -23,15 +23,6 @@ Surface a real impasse; do not hack past it.
 - **No `Co-Authored-By` trailer — not Claude, not anyone.** History stays clean of AI
   attribution. This overrides the harness default that appends `Co-Authored-By: Claude`.
 
-## Comments
-
-- **A comment is a defect until the code is proven unable to carry the meaning.** Before
-  writing one, try in order: rename, extract the block to a named function, name the literal
-  as a const. Three kinds survive that: an invariant the code cannot carry, a non-obvious
-  external contract (cited), and a note that something which looks wrong is in fact correct.
-  Everything else — a section banner, a restatement of the line above, a sentence a rename
-  would replace — is fixed in the code, not written as a comment.
-
 ## Docs
 
 - **Stripe-style voice.** Lead with a real command or table, then the shortest framing
