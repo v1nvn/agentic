@@ -34,14 +34,20 @@ per-site adapter.
 
 ## Queue
 
-1. **Seed the corpus** — one page per target class, captured through the live
-   path. After seeding, the corpus grows only when a real stonks read
-   misbehaves: capture it instead of tolerating it.
-2. **Triage each finding:**
-   - Preset-able loss (one-off layout, IR page) → `suggest_preset`.
-   - Pipeline-level loss (tables, feed detection, gating) → extraction work,
-     with the fixture proving it.
-   - Specimen for a backlog item below → unblocks it.
+1. **Triage the seeded findings:**
+
+   | Fixture | Class | Verdict |
+   |---|---|---|
+   | `screener-reliance` | fundamentals tables | **Loss.** Row labels wrapped in `<button>` vanish on the article path (`Readability._clean(…"button")`) — quarterly/balance-sheet rows keep numbers, lose names. `extract_tables` labels every row. |
+   | `bse-announcements` | filings feed | **Loss.** 200 records fuse into one prose blob on the article path; `extract_list` reports the sidebar nav (`ul.ullist`), not the table. The PDF links exist only as `onclick` handlers — out of reach by design. |
+   | `moneycontrol-rvn-order` | market article | **Hunt negative.** Full body lands, furniture stays out. |
+   | `tcs-porsche-release` | IR release | **Hunt negative.** Body lands without a preset. |
+   | `gfinance-reliance-quote` | quote shell | **Loss.** Quote card lost — extraction returns a 17-word sector-table fragment; `main` scope recovers the name, not the card. |
+   | `crisil-ril-rationale` | rating rationale | **Loss.** Word-export sibling tables: Readability roots at a single `<tr>` and amputates the document — only the About block survives, reported as a healthy extraction. |
+
+   Preset-able losses → `suggest_preset`; pipeline-level losses (all four) →
+   extraction work with the fixture proving it. The corpus grows only when a
+   real stonks read misbehaves: capture it instead of tolerating it.
 
 ## Backlog — mechanics (no specimen needed)
 
@@ -80,3 +86,8 @@ real self-poisoning proposal).
 - 2026-09-07 — `feat/suggest-scope` merged to main (`e9e784f`); release
   workflow published 0.18.0 and cut `v0.18.0` — the pin resolves to the build
   with the loop. Branch deleted. Seeding is next.
+- 2026-09-07 — corpus seeded in one sitting: one page per target class,
+  browser-rendered through the live path and trim-captured (four losses, two
+  hunt negatives above). All six registered in the bench with human main-content
+  labels; the list-detector guard classifies five as composite. 719/719,
+  typecheck + lint clean. Next: triage the four losses.

@@ -13,4 +13,4 @@
 
 ---
 
-- Site-matched extraction presets + real-world corpus (stonks: Indian financial web) — HIGH — → progress/presets-corpus.md — 0.18.0 published with the suggest loop; next: seed the corpus — one page per target class
+- Site-matched extraction presets + real-world corpus (stonks: Indian financial web) — HIGH — → progress/presets-corpus.md — corpus seeded (six captures: four losses, two negatives); next: triage the four pipeline-level losses
