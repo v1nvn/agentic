@@ -45,6 +45,7 @@ export interface RenderInput {
   readonly repoDir: string;
   readonly now?: string;
   readonly picks?: string;
+  readonly columns?: number;
 }
 
 const PAYLOADS_DIR = fileURLToPath(
@@ -72,6 +73,7 @@ function spawnRender(
   stdin: string,
   home: string,
   now: string,
+  columns?: number,
 ): RenderResult {
   const run = spawnSync('bash', [bin], {
     input: stdin,
@@ -81,6 +83,7 @@ function spawnRender(
       NOW: now,
       LC_ALL: 'C',
       TZ: 'UTC',
+      ...(columns === undefined ? {} : { COLUMNS: String(columns) }),
     },
     timeout: 30_000,
   });
@@ -113,6 +116,7 @@ export function renderStatusline(input: RenderInput): RenderResult {
     `${JSON.stringify(payload, null, 2)}\n`,
     input.home,
     input.now ?? DEFAULT_NOW,
+    input.columns,
   );
 }
 

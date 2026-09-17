@@ -100,6 +100,10 @@ _path_tail() {
 for f in "$RUNTIME"/components/*.sh; do source "$f"; done
 source "$RUNTIME/bin/lib.sh"
 
+seg_branch_none() { :; }
+seg_bar_flat6() { _bar_flat_w 6; }
+seg_bar_flat4() { _bar_flat_w 4; }
+
 COMPS="model effort state cwd branch status ahead pr bar tokens cache cost duration lines rate style"
 read_picks $COMPS
 want_seg=0; seg_comp=""
@@ -125,18 +129,106 @@ fi
 
 "seg_style_${PICK_style}"
 CLUSTERS=("model effort state" "cwd branch status ahead pr" "bar tokens cache" "cost" "duration" "lines" "rate")
-LINE=""; cfirst_out=1
-for cl in "${CLUSTERS[@]}"; do
-    CSEG=""; cfirst=1
-    for comp in $cl; do
-        eval "alt=\${PICK_$comp}"
-        out=$("seg_${comp}_${alt}")
-        [ -n "$out" ] || continue
-        if [ "$cfirst" = 1 ]; then CSEG="$out"; cfirst=0
-        else CSEG="$CSEG$JOIN$out"; fi
+
+WIDTH=${COLUMNS:-200}
+case "$WIDTH" in ''|*[!0-9]*) WIDTH=200 ;; esac
+[ "$WIDTH" -lt 20 ] && WIDTH=20
+AVAIL=$((WIDTH - 3))
+
+compose() {
+    local line="" first=1 from=0 to=${#CLUSTERS[@]} ci cl comp alt out cseg cf
+    case $1 in
+        l1) to=2 ;;
+        l2) from=2 ;;
+    esac
+    for ((ci = from; ci < to; ci++)); do
+        cl=${CLUSTERS[ci]}
+        cseg=""; cf=1
+        for comp in $cl; do
+            eval "alt=\${PICK_$comp}"
+            out=$("seg_${comp}_${alt}")
+            [ -n "$out" ] || continue
+            if [ "$cf" = 1 ]; then cseg="$out"; cf=0
+            else cseg="$cseg$JOIN$out"; fi
+        done
+        [ -z "$cseg" ] && continue
+        if [ "$first" = 1 ]; then line="$cseg"; first=0
+        else line="$line$SEP$cseg"; fi
     done
-    [ -z "$CSEG" ] && continue
-    if [ "$cfirst_out" = 1 ]; then LINE="$CSEG"; cfirst_out=0
-    else LINE="$LINE$SEP$CSEG"; fi
-done
-printf '%s\n' "$LINE"
+    COMPOSE_OUT=$line
+}
+
+vlen() {
+    local plain n
+    plain=$(printf '%s' "$1" | sed $'s/\x1b\\[[0-9;]*m//g')
+    n=$(printf '%s' "$plain" | wc -c | tr -d ' ')
+    n=$((n - $(printf '%s' "$plain" | LC_ALL=C tr -d '\0-\177\300-\377' | wc -c | tr -d ' ')))
+    case "$plain" in
+        *⚡*) n=$((n + $(printf '%s' "$plain" | LC_ALL=C grep -o '⚡' | wc -l))) ;;
+    esac
+    printf '%s' "$n"
+}
+
+rung_order() {
+    case $1 in
+        duration) printf '%s' "clock hours none" ;;
+        cache)    printf '%s' "hit coldin none" ;;
+        tokens)   printf '%s' "full free compact none" ;;
+        bar)      printf '%s' "flat flat6 flat4 percent none" ;;
+        status)   printf '%s' "counts icons none" ;;
+        branch)   printf '%s' "icon full initials last none" ;;
+        cwd)      printf '%s' "icon full init tail base" ;;
+        effort)   printf '%s' "plain dim hidden" ;;
+    esac
+}
+
+demote() {
+    local comp=$1 target=$2 order cur rest
+    order=$(rung_order "$comp")
+    [ -n "$order" ] || return 0
+    eval "cur=\$PICK_$comp"
+    case " $order " in *" $cur "*) ;; *) return 0 ;; esac
+    rest=${order#*" $cur "}
+    case " $rest " in *" $target "*) eval "PICK_$comp=\$target" ;; esac
+}
+
+RUNGS="duration cache tokens bar status branch cwd effort"
+for c in $RUNGS; do eval "P0_$c=\$PICK_$c"; done
+reset_rungs() {
+    local c
+    for c in $RUNGS; do eval "PICK_$c=\$P0_$c"; done
+}
+
+FULL_STEPS=(
+    'duration=none' 'cache=none' 'tokens=compact' 'bar=flat6' 'status=none'
+    'branch=initials' 'cwd=init' 'branch=last' 'bar=flat4' 'bar=percent'
+    'branch=none' 'cwd=tail' 'effort=hidden' 'cwd=base' 'tokens=none'
+)
+L1_STEPS=('status=none' 'branch=initials' 'cwd=init' 'branch=last' 'branch=none' 'cwd=tail' 'effort=hidden' 'cwd=base')
+L2_STEPS=('duration=none' 'cache=none' 'tokens=compact' 'bar=flat6' 'bar=flat4' 'tokens=none' 'bar=percent')
+
+fits() { [ "$(vlen "$1")" -le "$AVAIL" ]; }
+
+fit() {
+    local mode=$1 step
+    shift
+    compose "$mode"; FIT_OUT=$COMPOSE_OUT
+    fits "$FIT_OUT" && return 0
+    for step in "$@"; do
+        demote "${step%%=*}" "${step#*=}"
+        compose "$mode"; FIT_OUT=$COMPOSE_OUT
+        fits "$FIT_OUT" && return 0
+    done
+    return 1
+}
+
+if fit full "${FULL_STEPS[@]}"; then
+    printf '%s\n' "$FIT_OUT"
+    exit 0
+fi
+
+reset_rungs
+fit l1 "${L1_STEPS[@]}"
+L1=$FIT_OUT
+fit l2 "${L2_STEPS[@]}"
+printf '%s\n%s\n' "$L1" "$FIT_OUT"

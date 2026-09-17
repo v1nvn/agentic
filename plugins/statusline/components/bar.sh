@@ -1,15 +1,17 @@
 # bar - context window visualization of used percentage.
 # alternatives: flat (current) | gauge | percent | none
-seg_bar_flat() {
-    local f=$((PCT * 10 / 100)) e b="" col
-    [ "$f" -gt 10 ] && f=10
-    e=$((10 - f))
+_bar_flat_w() {
+    local w=$1 f e b="" col i
+    f=$((PCT * w / 100))
+    [ "$f" -gt "$w" ] && f=$w
+    e=$((w - f))
     col=$'\033[32m'
     [ "$PCT" -ge 70 ] && col=$'\033[33m'
     [ "$PCT" -ge 90 ] && col=$'\033[31m'
-    if [ "$f" -gt 0 ]; then b=$(printf "%${f}s" | tr ' ' '█'); fi
-    if [ "$e" -gt 0 ]; then b="$b$(printf "%${e}s" | tr ' ' '░')"; fi
+    for ((i = 0; i < f; i++)); do b+="█"; done
+    for ((i = 0; i < e; i++)); do b+="░"; done
     printf '%s' "${col}${b}${RESET}"
 }
+seg_bar_flat() { _bar_flat_w 10; }
 seg_bar_percent() { printf '%s' "${DIM}${PCT}%%${RESET}"; }
 seg_bar_none() { :; }
