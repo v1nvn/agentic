@@ -252,6 +252,17 @@ describe('capture: shapes and slots', () => {
     expect(result.kind).toBe('main');
     expect(result.path).toBe(slotPath(home, 'main'));
   });
+
+  it('files an empty tick at ticks/latest.json — zero running tasks is a live panel state', () => {
+    const home = homes.newHome();
+
+    const result = capture({ home, stdin: '{"tasks":[],"columns":120}' });
+
+    expect(result.kind).toBe('tick');
+    expect(result.path).toBe(slotPath(home, 'tick'));
+    expect(result.bytes).toBe('{\n  "columns": 120,\n  "tasks": []\n}\n');
+    expect(readFileSync(result.path, 'utf8')).toBe(result.bytes);
+  });
 });
 
 describe('capture: idempotence', () => {

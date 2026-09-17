@@ -413,3 +413,8 @@ feed the wizard); subagent SEP follows the `style` pick.
   the port dropped. The new ansi case also caught a one-character test
   repair by its writer (the 38;2 sample was missing its `m` terminator,
   contradicting the non-SGR passthrough pin) — fixed in the same round.
+- 2026-09-17 — unit 6 (capture) done in 64c8288 + 4463aaa + this close commit:
+  review found an unpinned empty-ticks route (pinned green, coverage
+  hardening) and an undefined $JSON in capture.md (reworded inline,
+  orchestrator). process.exitCode=1 deviation approved over the banned
+  process.exit (identical observable behavior).
