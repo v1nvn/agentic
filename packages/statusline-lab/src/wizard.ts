@@ -241,8 +241,16 @@ export async function createWizard(
       );
       return 'saved';
     }
-    apply({ home: options.home });
-    deps.render('applied — both lines go live on the next paint\n');
+    const { steps } = apply({ home: options.home });
+    const refused = steps.filter(step => step.action === 'refuse');
+    if (refused.length > 0) {
+      const targets = refused.map(step => step.target).join(', ');
+      deps.render(
+        `apply: ${targets} refused (foreign) — rerun with apply --force to adopt\n`,
+      );
+      return 'saved';
+    }
+    deps.render('applied — live on the next paint\n');
     return 'saved';
   }
 

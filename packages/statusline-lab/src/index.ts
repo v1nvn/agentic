@@ -57,7 +57,7 @@ if (parsed.version) {
 } else if (parsed.command === 'pick') {
   const home = homeOf(parsed.home);
   const payload = resolveWizardPayload({ home, payload: parsed.payload });
-  const outcome = await createWizard(
+  await createWizard(
     {
       home,
       now: String(Math.floor(Date.now() / 1000)),
@@ -65,9 +65,6 @@ if (parsed.version) {
     },
     terminalDeps(),
   );
-  if (outcome === 'cancelled') {
-    console.error('cancelled — picks untouched');
-  }
 } else if (parsed.command === 'resolve') {
   console.log(resolve({ home: homeOf(parsed.home) }).pluginDir ?? 'none');
 } else {
