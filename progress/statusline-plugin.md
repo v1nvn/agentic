@@ -176,7 +176,9 @@ packages/statusline-lab/         lab — TS, bin `statusline-lab`: gallery, ansi
    trampoline path holds the live main script; the subagent key points at the
    loose row script), restart Claude Code, verify the main line and the agent
    panel both render; then delete `/Users/vineet/.claude/statusline-lab/` and
-   `/Users/vineet/.claude/subagent-statusline.sh`. Close: a fresh session
+   `/Users/vineet/.claude/subagent-statusline.sh` — and reap the
+   golden-provenance note in `test/statusline.test.ts` that cites the deleted
+   reference. Close: a fresh session
    renders both surfaces; neither loose artifact exists.
 11. **Release** — one-line commits per unit (`feat(statusline): …`), push,
     confirm release.yml cuts the train; the installed plugin moves on its own
@@ -226,7 +228,10 @@ Counts that must never rise:
 Comment rule, scoped: the component-header alternative declarations (e.g.
 `# model: plain | block | pill | zen`) are contract — the gallery parses them
 (unit 5) — and survive verbatim. Every other touched file's comment count does
-not rise.
+not rise. Two more survivors, ruled at unit 2: the NOW-inertness note in
+`test/runtime.ts` (invariant), and the golden-provenance note in
+`test/statusline.test.ts` (cited external contract — unit 10 deletes the
+reference lab and reaps the note in the same change).
 
 External read-only until unit 10: `~/.claude/statusline-lab/**`,
 `~/.claude/statusline-command.sh`, `~/.claude/subagent-statusline.sh`. Tests
@@ -292,3 +297,13 @@ feed the wizard); subagent SEP follows the `style` pick.
   picks read from the data dir over shipped defaults, NOW overridable, and an
   unknown or not-adoptable pick warns on stderr then falls back to the default
   alternative. 11 goldens green, full gate green.
+- 2026-09-17 — unit 2 (runtime move) done in 2bad126 + 644cef5: the unit was
+  split at land time (2a test contract — tests, demo repo, payloads, goldens;
+  2b runtime port) to stay under the 800-line per-unit ceiling; the split was
+  the orchestrator's dispatch miss, caught by the builder. Builder judgment
+  calls accepted: cost.sh's awk `exit !(...)` rewritten to a print+compare
+  (byte-identical output, satisfies the nonzero-exit grep), and
+  bin/statusline.sh ships shebang-less and comment-free (every caller invokes
+  it via explicit `bash`: test harness and trampoline both). Comment ruling
+  recorded in the inventory (NOW-inertness note + golden-provenance note
+  survive; unit 10 reaps the latter).
