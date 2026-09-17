@@ -445,3 +445,12 @@ feed the wizard); subagent SEP follows the `style` pick.
   per-commit and could not see it). Orchestrator dispatch miss — unit 7
   should have been dispatched as 7a (test contract) / 7b (machine + TUI).
   Units 8+ split at dispatch when the forecast exceeds the ceiling.
+- 2026-09-17 — unit-8 deviation ruling (veto table): the bar render's `tr ' '
+  '█'` idiom mangles blocks to lead bytes under LC_ALL=C — the unit-2 goldens
+  pinned those mangled bytes (capture artifact of the pinned C locale; the
+  owner's UTF-8 terminal renders real blocks; the live reference shares the
+  bug). Ruled (a): bars become locale-independent pure-bash literals (the
+  precomputed-ramps spirit, applied early), goldens re-recorded — a
+  deliberate behavior change per the inventory's protected-test clause, not a
+  weakened pin. Under a UTF-8 locale the bytes are unchanged; only the C-
+  locale artifact heals.
