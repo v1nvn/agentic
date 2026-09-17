@@ -59,6 +59,7 @@ function render(
   payload: string,
   columns?: number,
   home: { home: string; repoDir: string } | undefined = demo,
+  modelDisplayName?: string,
 ) {
   if (!home) {
     throw new Error('demo home not materialized');
@@ -68,6 +69,7 @@ function render(
     home: home.home,
     repoDir: home.repoDir,
     ...(columns === undefined ? {} : { columns }),
+    ...(modelDisplayName === undefined ? {} : { modelDisplayName }),
   });
 }
 
@@ -254,5 +256,76 @@ describe('determinism', () => {
     } finally {
       rmSync(other.home, { recursive: true, force: true });
     }
+  });
+});
+
+describe('percent rung fidelity', () => {
+  it('renders one unstyled percent at the bar=percent rung (live BARB=0)', () => {
+    const run = render('p1', 47);
+    expect(run.status).toBe(0);
+    const lines = linesOf(run.stdout);
+    expect(lines).toHaveLength(1);
+    expectFits(lines, 47);
+    const plain = stripAnsi(lines[0]);
+    expect(plain).toContain('117k');
+    expect(plain).toMatch(/58%(?!%)/);
+    expect(lines[0]).not.toMatch(/\x1b\[2m\d+%/);
+  });
+});
+
+// live MODELD=1 strips a trailing "[...]" from the model display name:
+// FULL_STEPS position 10 (after bar=flat4, before bar=percent), L1_STEPS
+// position 5 (after branch=last, before branch=none).
+describe('model suffix rung', () => {
+  const NAME = 'Opus 4.5[1m]';
+
+  it('renders the full bracketed name at wide widths', () => {
+    const run = render('p1', 250, undefined, NAME);
+    expect(run.status).toBe(0);
+    const lines = linesOf(run.stdout);
+    expect(lines).toHaveLength(1);
+    const plain = stripAnsi(lines[0]);
+    expect(plain).toContain('Opus 4.5[1m] high');
+    expect(plain).toContain('116.8k/200k');
+    expect(plain).toContain('82m05s');
+  });
+
+  it('keeps the bracket while the ladder has not reached the model rung', () => {
+    const run = render('p1', 75, undefined, NAME);
+    expect(run.status).toBe(0);
+    const lines = linesOf(run.stdout);
+    expect(lines).toHaveLength(1);
+    expectFits(lines, 75);
+    const plain = stripAnsi(lines[0]);
+    expect(plain).toContain('Opus 4.5[1m] high');
+    expect(plain).not.toContain('Opus 4.5 high');
+  });
+
+  it('strips the bracket once the ladder reaches the model rung', () => {
+    const run = render('p1', 58, undefined, NAME);
+    expect(run.status).toBe(0);
+    const lines = linesOf(run.stdout);
+    expect(lines).toHaveLength(1);
+    expectFits(lines, 58);
+    const plain = stripAnsi(lines[0]);
+    expect(plain).toContain('Opus 4.5 high');
+    expect(plain).not.toContain('[1m]');
+    expect(plain).toContain('117k');
+    expect(plain).toContain('$3.87');
+  });
+
+  it('strips the bracket on the wrap line too', () => {
+    const run = render('p1', 36, undefined, NAME);
+    expect(run.status).toBe(0);
+    const lines = linesOf(run.stdout);
+    expect(lines).toHaveLength(2);
+    expectFits(lines, 36);
+    const [first, second] = lines.map(stripAnsi);
+    expect(first).toContain('Opus 4.5 high');
+    expect(first).not.toContain('[1m]');
+    expect(first).toContain('~/d/atlas-web');
+    expect(second).toContain('/200k');
+    expect(second).toContain('$3.87');
+    expect(second).not.toContain('82m05s');
   });
 });

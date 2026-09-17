@@ -13,5 +13,5 @@ _bar_flat_w() {
     printf '%s' "${col}${b}${RESET}"
 }
 seg_bar_flat() { _bar_flat_w 10; }
-seg_bar_percent() { printf '%s' "${DIM}${PCT}%%${RESET}"; }
+seg_bar_percent() { printf '%s' "${PCT}%"; }
 seg_bar_none() { :; }

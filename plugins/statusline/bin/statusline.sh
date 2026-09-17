@@ -193,18 +193,21 @@ demote() {
 }
 
 RUNGS="duration cache tokens bar status branch cwd effort"
+P0_MODEL=$MODEL
 for c in $RUNGS; do eval "P0_$c=\$PICK_$c"; done
 reset_rungs() {
     local c
+    MODEL=$P0_MODEL
     for c in $RUNGS; do eval "PICK_$c=\$P0_$c"; done
 }
 
 FULL_STEPS=(
     'duration=none' 'cache=none' 'tokens=compact' 'bar=flat6' 'status=none'
-    'branch=initials' 'cwd=init' 'branch=last' 'bar=flat4' 'bar=percent'
-    'branch=none' 'cwd=tail' 'effort=hidden' 'cwd=base' 'tokens=none'
+    'branch=initials' 'cwd=init' 'branch=last' 'bar=flat4' 'model=strip'
+    'bar=percent' 'branch=none' 'cwd=tail' 'effort=hidden' 'cwd=base'
+    'tokens=none'
 )
-L1_STEPS=('status=none' 'branch=initials' 'cwd=init' 'branch=last' 'branch=none' 'cwd=tail' 'effort=hidden' 'cwd=base')
+L1_STEPS=('status=none' 'branch=initials' 'cwd=init' 'branch=last' 'model=strip' 'branch=none' 'cwd=tail' 'effort=hidden' 'cwd=base')
 L2_STEPS=('duration=none' 'cache=none' 'tokens=compact' 'bar=flat6' 'bar=flat4' 'tokens=none' 'bar=percent')
 
 fits() { [ "$(vlen "$1")" -le "$AVAIL" ]; }
@@ -215,7 +218,11 @@ fit() {
     compose "$mode"; FIT_OUT=$COMPOSE_OUT
     fits "$FIT_OUT" && return 0
     for step in "$@"; do
-        demote "${step%%=*}" "${step#*=}"
+        if [ "$step" = "model=strip" ]; then
+            MODEL=${MODEL%\[*}; MODEL=${MODEL% }
+        else
+            demote "${step%%=*}" "${step#*=}"
+        fi
         compose "$mode"; FIT_OUT=$COMPOSE_OUT
         fits "$FIT_OUT" && return 0
     done
