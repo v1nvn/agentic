@@ -37,3 +37,40 @@ describe('parseArgs', () => {
     expect(parseArgs(['stray'])).toBeUndefined();
   });
 });
+
+describe('parseArgs: subcommands', () => {
+  it('parses apply with every flag', () => {
+    expect(
+      parseArgs(['apply', '--home', '/tmp/lab-home', '--force', '--dry-run']),
+    ).toEqual({
+      version: false,
+      command: 'apply',
+      home: '/tmp/lab-home',
+      force: true,
+      dryRun: true,
+    });
+  });
+
+  it('parses apply with defaults', () => {
+    expect(parseArgs(['apply'])).toEqual({ version: false, command: 'apply' });
+  });
+
+  it('parses resolve with --home', () => {
+    expect(parseArgs(['resolve', '--home', '/tmp/lab-home'])).toEqual({
+      version: false,
+      command: 'resolve',
+      home: '/tmp/lab-home',
+    });
+  });
+
+  it('scopes --force and --dry-run to apply', () => {
+    expect(parseArgs(['resolve', '--force'])).toBeUndefined();
+    expect(parseArgs(['resolve', '--dry-run'])).toBeUndefined();
+  });
+
+  it('rejects unknown flags, stray arguments, and unknown commands', () => {
+    expect(parseArgs(['apply', '--bogus'])).toBeUndefined();
+    expect(parseArgs(['apply', 'stray'])).toBeUndefined();
+    expect(parseArgs(['nonsense'])).toBeUndefined();
+  });
+});
