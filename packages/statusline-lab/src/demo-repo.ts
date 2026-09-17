@@ -12,14 +12,6 @@ const D_STASH = '2026-09-02T10:00:00+00:00';
 
 const API_INIT = "export const api = {\n  host: 'demo.local',\n};\n";
 
-/**
- * Materializes the demo git repo at `<home>/demo/atlas-web` — the
- * `current_dir` every shipped payload re-anchors to — and returns its path.
- * End state, byte-stable on any machine: branch `feature/login-flow`
- * (upstream `origin/main`, ahead 2, behind 1), 3 commits, 2 staged + 2
- * modified files, 5 untracked files, 1 stash. Identities and commit dates are
- * pinned, so every hash is reproducible.
- */
 export function materializeDemoRepo(home: string): string {
   const dir = join(home, 'demo', 'atlas-web');
   for (const sub of ['src', 'docs', 'scratch', 'scripts']) {
@@ -73,6 +65,8 @@ export function materializeDemoRepo(home: string): string {
   write('src/render.js', 'export function render() {}\n');
   commit('local2', D_LOCAL2);
   git(['update-ref', 'refs/remotes/origin/main', originMain]);
+  git(['config', 'remote.origin.url', '../atlas-web.git']);
+  git(['config', 'remote.origin.fetch', '+refs/heads/*:refs/remotes/origin/*']);
   git(['config', 'branch.feature/login-flow.remote', 'origin']);
   git(['config', 'branch.feature/login-flow.merge', 'refs/heads/main']);
 
