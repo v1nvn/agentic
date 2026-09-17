@@ -434,3 +434,8 @@ feed the wizard); subagent SEP follows the `style` pick.
   `! npx -y @v1nvn/statusline-lab pick` invitation; apply-first framing
   untouched. 137/137 green (104 + wizard 27 + cli pins), full gate green,
   protected baseline re-recorded for the extended cli.test.ts.
+- 2026-09-17 — unit-7 review process note: the per-unit 800-line ceiling was
+  breached (1100 combined across the unit's three commits; the gate checks
+  per-commit and could not see it). Orchestrator dispatch miss — unit 7
+  should have been dispatched as 7a (test contract) / 7b (machine + TUI).
+  Units 8+ split at dispatch when the forecast exceeds the ceiling.
