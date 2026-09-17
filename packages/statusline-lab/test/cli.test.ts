@@ -74,3 +74,47 @@ describe('parseArgs: subcommands', () => {
     expect(parseArgs(['nonsense'])).toBeUndefined();
   });
 });
+
+describe('parseArgs: gallery', () => {
+  it('parses gallery with --out', () => {
+    expect(parseArgs(['gallery', '--out', '/tmp/page.html'])).toEqual({
+      version: false,
+      command: 'gallery',
+      out: '/tmp/page.html',
+    });
+  });
+
+  it('parses gallery without --out', () => {
+    expect(parseArgs(['gallery'])).toEqual({
+      version: false,
+      command: 'gallery',
+    });
+  });
+
+  it('scopes --out to gallery', () => {
+    expect(parseArgs(['apply', '--out', '/tmp/page.html'])).toBeUndefined();
+    expect(parseArgs(['resolve', '--out', '/tmp/page.html'])).toBeUndefined();
+  });
+
+  it('rejects unknown flags and stray arguments', () => {
+    expect(parseArgs(['gallery', '--bogus'])).toBeUndefined();
+    expect(parseArgs(['gallery', 'stray'])).toBeUndefined();
+  });
+});
+
+describe('parseArgs: payload', () => {
+  it('parses each shipped fixture name', () => {
+    for (const name of ['p1', 'p2', 'p3', 'p4']) {
+      expect(parseArgs(['payload', name])).toEqual({
+        version: false,
+        command: 'payload',
+        payload: name,
+      });
+    }
+  });
+
+  it('rejects unknown fixture names at parse, like unknown commands', () => {
+    expect(parseArgs(['payload', 'p9'])).toBeUndefined();
+    expect(parseArgs(['payload', 'capture-1'])).toBeUndefined();
+  });
+});
