@@ -1,0 +1,94 @@
+{
+  "session_id": "a1b2c3d4demo",
+  "session_name": "statusline-makeover",
+  "transcript_path": "/Users/vineet/.claude/projects/demo/x.jsonl",
+  "version": "2.1.275",
+  "cwd": "/Users/vineet/.claude/statusline-lab/demo/atlas-web",
+  "model": {
+    "id": "claude-opus-5",
+    "display_name": "Opus"
+  },
+  "workspace": {
+    "current_dir": "/Users/vineet/.claude/statusline-lab/demo/atlas-web",
+    "project_dir": "/Users/vineet/.claude/statusline-lab/demo/atlas-web",
+    "added_dirs": [],
+    "repo": {
+      "host": "github.com",
+      "owner": "vineet",
+      "name": "atlas-web"
+    }
+  },
+  "output_style": {
+    "name": "default"
+  },
+  "effort": {
+    "level": "high"
+  },
+  "thinking": {
+    "enabled": true
+  },
+  "fast_mode": false,
+  "vim": {
+    "mode": "NORMAL"
+  },
+  "pr": {
+    "number": 4821,
+    "url": "https://github.com/vineet/atlas-web/pull/4821",
+    "review_state": "pending"
+  },
+  "cost": {
+    "total_cost_usd": 3.87,
+    "total_duration_ms": 4925000,
+    "total_api_duration_ms": 742000,
+    "total_lines_added": 156,
+    "total_lines_removed": 23
+  },
+  "context_window": {
+    "total_input_tokens": 116800,
+    "total_output_tokens": 8400,
+    "context_window_size": 200000,
+    "used_percentage": 58.4,
+    "remaining_percentage": 41.6,
+    "current_usage": {
+      "input_tokens": 8200,
+      "output_tokens": 8400,
+      "cache_creation_input_tokens": 18400,
+      "cache_read_input_tokens": 90200
+    }
+  },
+  "exceeds_200k_tokens": false,
+  "prompt_cache": {
+    "warm": true,
+    "caching_observed": true,
+    "ttl": "1h",
+    "expires_at": 1788869062,
+    "requests": 214,
+    "misses": 3,
+    "expected_rebuilds": 1,
+    "hit_ratio": 0.94,
+    "cache_write_tokens": 352000,
+    "miss_recache_tokens": 310200,
+    "last_miss_at": 1788865162,
+    "last_miss_cause": {
+      "causes": [
+        "tools_changed"
+      ],
+      "tools_added": 2,
+      "tools_removed": 0
+    }
+  },
+  "rate_limits": {
+    "five_hour": {
+      "used_percentage": 23.5,
+      "resets_at": 1788880972
+    },
+    "seven_day": {
+      "used_percentage": 41.2,
+      "resets_at": 1789385542
+    },
+    "spend_limit": {
+      "used_percentage": 62.8,
+      "resets_at": 1789817542
+    }
+  }
+}
