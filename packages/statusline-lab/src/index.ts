@@ -5,8 +5,10 @@ import { apply } from './apply.js';
 import { capture } from './capture.js';
 import { buildProgram, parseArgs, VERSION } from './cli.js';
 import { buildGallery } from './gallery.js';
-import { payloadJson } from './payloads.js';
+import { payloadJson, type PayloadName } from './payloads.js';
 import { resolve } from './resolve.js';
+import { terminalDeps } from './wizard-tui.js';
+import { createWizard, resolveWizardPayload } from './wizard.js';
 
 const parsed =
   parseArgs(process.argv.slice(2)) ?? printUsageAndExit(buildProgram());
@@ -51,7 +53,21 @@ if (parsed.version) {
     console.error(`wrote ${parsed.out}`);
   }
 } else if (parsed.command === 'payload' && parsed.payload !== undefined) {
-  console.log(payloadJson(parsed.payload));
+  console.log(payloadJson(parsed.payload as PayloadName));
+} else if (parsed.command === 'pick') {
+  const home = homeOf(parsed.home);
+  const payload = resolveWizardPayload({ home, payload: parsed.payload });
+  const outcome = await createWizard(
+    {
+      home,
+      now: String(Math.floor(Date.now() / 1000)),
+      payloadPath: payload.path,
+    },
+    terminalDeps(),
+  );
+  if (outcome === 'cancelled') {
+    console.error('cancelled — picks untouched');
+  }
 } else if (parsed.command === 'resolve') {
   console.log(resolve({ home: homeOf(parsed.home) }).pluginDir ?? 'none');
 } else {

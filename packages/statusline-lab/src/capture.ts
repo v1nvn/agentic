@@ -1,6 +1,13 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 
+export const DATA_DIR = join(
+  '.claude',
+  'plugins',
+  'data',
+  'statusline-agentic',
+);
+
 export interface CaptureOptions {
   readonly home: string;
   readonly stdin: string;
@@ -47,10 +54,7 @@ export function capture({ home, stdin }: CaptureOptions): CaptureResult {
   const bytes = `${JSON.stringify(canonical(parsed), null, 2)}\n`;
   const path = join(
     home,
-    '.claude',
-    'plugins',
-    'data',
-    'statusline-agentic',
+    DATA_DIR,
     kind === 'tick' ? 'ticks' : 'payloads',
     'latest.json',
   );

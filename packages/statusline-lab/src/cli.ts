@@ -2,12 +2,12 @@ import { parseQuietly } from '@v1nvn/agentic-core';
 import { Argument, Command } from 'commander';
 
 import pkg from '../package.json' with { type: 'json' };
-import { PAYLOAD_NAMES, type PayloadName } from './payloads.js';
+import { PAYLOAD_NAMES } from './payloads.js';
 
 export const VERSION = pkg.version;
 
 export type Subcommand =
-  'apply' | 'capture' | 'gallery' | 'payload' | 'resolve';
+  'apply' | 'capture' | 'gallery' | 'payload' | 'pick' | 'resolve';
 
 export interface ParsedArgs {
   readonly command?: Subcommand;
@@ -15,7 +15,7 @@ export interface ParsedArgs {
   readonly force?: boolean;
   readonly home?: string;
   readonly out?: string;
-  readonly payload?: PayloadName;
+  readonly payload?: string;
   readonly version: boolean;
 }
 
@@ -24,7 +24,7 @@ interface SubcommandOptions {
   readonly force?: boolean;
   readonly home?: string;
   readonly out?: string;
-  readonly payload?: PayloadName;
+  readonly payload?: string;
 }
 
 const QUIET = { writeOut: () => undefined, writeErr: () => undefined };
@@ -60,9 +60,15 @@ export function buildProgram(
         ...PAYLOAD_NAMES,
       ]),
     )
-    .action((name: string) =>
-      onSubcommand?.('payload', { payload: name as PayloadName }),
-    );
+    .action((name: string) => onSubcommand?.('payload', { payload: name }));
+  const pick = quiet(new Command('pick'))
+    .description('pick designs in a live-preview terminal wizard')
+    .option('--home <dir>', 'operate on this home instead of $HOME')
+    .option(
+      '--payload <fixture-or-file>',
+      'render previews on this payload (p1..p4, a capture, or any file)',
+    )
+    .action((options: SubcommandOptions) => onSubcommand?.('pick', options));
   const resolve = quiet(new Command('resolve'))
     .description('print the plugin dir the trampoline would run')
     .option('--home <dir>', 'operate on this home instead of $HOME')
@@ -76,6 +82,7 @@ export function buildProgram(
     .addCommand(capture)
     .addCommand(gallery)
     .addCommand(payload)
+    .addCommand(pick)
     .addCommand(resolve);
 }
 

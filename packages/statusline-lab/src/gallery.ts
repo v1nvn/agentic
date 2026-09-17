@@ -78,13 +78,15 @@ export function reanchorPayload(
   return anchored;
 }
 
-interface Declaration {
+export interface ComponentDeclaration {
   readonly alts: readonly string[];
   readonly pair: readonly [PayloadName, PayloadName];
 }
 
-function readDeclarations(componentsDir: string): Map<string, Declaration> {
-  const declared = new Map<string, Declaration>();
+export function readDeclarations(
+  componentsDir: string,
+): Map<string, ComponentDeclaration> {
+  const declared = new Map<string, ComponentDeclaration>();
   for (const file of readdirSync(componentsDir).sort()) {
     if (!file.endsWith('.sh')) {
       continue;
@@ -116,7 +118,7 @@ function readDeclarations(componentsDir: string): Map<string, Declaration> {
   return declared;
 }
 
-function readDefaults(lib: string): Map<string, string> {
+export function readDefaults(lib: string): Map<string, string> {
   const defaults = new Map<string, string>();
   for (const [, comp, alt] of readFileSync(lib, 'utf8').matchAll(
     /([a-z]+)\) echo ([a-z]+) ;;/g,
