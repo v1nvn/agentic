@@ -2,6 +2,7 @@ import { printUsageAndExit } from '@v1nvn/agentic-core';
 
 import { apply } from './apply.js';
 import { buildProgram, parseArgs, VERSION } from './cli.js';
+import { payloadJson } from './payloads.js';
 import { resolve } from './resolve.js';
 
 const parsed =
@@ -26,6 +27,16 @@ if (parsed.version) {
   for (const step of steps) {
     const why = step.action === 'refuse' ? ' (--force to take over)' : '';
     console.log(`${step.target}: ${step.action}${why}`);
+  }
+} else if (parsed.command === 'payload') {
+  const json = payloadJson(parsed.payload ?? '');
+  if (json === undefined) {
+    console.error(
+      `no shipped payload ${parsed.payload ?? ''} (p1 | p2 | p3 | p4)`,
+    );
+    process.exitCode = 1;
+  } else {
+    console.log(json);
   }
 } else if (parsed.command === 'resolve') {
   console.log(resolve({ home: homeOf(parsed.home) }).pluginDir ?? 'none');

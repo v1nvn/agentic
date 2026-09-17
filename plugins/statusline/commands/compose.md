@@ -18,11 +18,12 @@ Then offer the conversational pick. Every component ships several designs,
 declared in the header of each file under the installed runtime, e.g.
 `model: plain | block | pill | zen`. Render one design at a time in chat:
 
+    PAYLOAD=$(npx -y @v1nvn/statusline-lab payload p1)
     RUNTIME=$(jq -r '.plugins["statusline@agentic"][0].installPath // empty' ~/.claude/plugins/installed_plugins.json)
     [ -n "$RUNTIME" ] || RUNTIME=$(ls -1d ~/.claude/plugins/cache/agentic/statusline/*/ 2>/dev/null | sort -V | tail -1)
     printf '%s' "$PAYLOAD" | bash "${RUNTIME%/}/bin/statusline.sh" --seg model=pill
 
-Keep one representative payload fixed across renders so alternatives compare
-like for like, then write the answers to
-`~/.claude/plugins/data/statusline-agentic/picks` as `comp=alt` lines — the
-next paint honors them.
+The payload subcommand prints one of the shipped fixtures (p1–p4). Keep it
+fixed across renders so alternatives compare like for like, then write the
+answers to `~/.claude/plugins/data/statusline-agentic/picks` as `comp=alt`
+lines — the next paint honors them.

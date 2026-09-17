@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { installedPluginsFile, statuslineCacheRoot } from './paths.js';
+import { installedPluginsFile, statuslineCacheRoot } from './apply.js';
 
 export interface ResolveOptions {
   readonly home: string;

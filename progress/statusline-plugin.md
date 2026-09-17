@@ -340,3 +340,14 @@ feed the wizard); subagent SEP follows the `style` pick.
   split into test-contract + implementation commits to stay under the 800-line
   ceiling (unit-2 precedent), protected baseline re-recorded for the extended
   cli.test.ts.
+- 2026-09-17 — unit 4 review round 1 fixed red-first: the settings repoint is a
+  parse-guided splice (string/escape-aware JSON scanner, root-level members
+  only) so braces inside foreign command strings no longer corrupt the file and
+  a nested env.statusLine is never mistaken for the root key; all target bytes
+  are computed before any filesystem write (no partial application); a refused
+  trampoline sinks the whole run ([refuse,refuse,refuse], zero writes). paths.ts
+  folded away — the fold into resolve.ts false-positives the gate's
+  trampoline-length grep (82 lines), so the two location helpers now live in
+  apply.ts beside the template embedding the same paths. Added `payload <p1..p4>`
+  printing the shipped fixture for compose.md's pick block; its parse contract
+  is pinned by unit 5's CLI tests.
