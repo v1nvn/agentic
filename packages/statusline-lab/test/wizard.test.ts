@@ -562,6 +562,33 @@ describe('wizard: apply offer', () => {
     expect(settings.subagentStatusLine.command).toBe(TRAMPOLINE_COMMAND);
   });
 
+  it('y on a refused key reports the refusal — never a both-live claim', async () => {
+    const home = homes.newHome();
+    writeSettings(
+      home,
+      '{"statusLine":{"type":"command","command":"./old.sh"}}',
+    );
+    const { outcome, recorded } = await runWizard(['\r', 'y'], home);
+
+    expect(outcome).toBe('saved');
+    expect(readFileSync(join(home, PICKS_PATH), 'utf8')).toBe(DEFAULT_PICKS);
+    const settings = JSON.parse(readFileSync(settingsPath(home), 'utf8')) as {
+      statusLine: { command: string };
+    };
+    expect(settings.statusLine.command).toBe('./old.sh');
+
+    const last = recorded.frames[recorded.frames.length - 1] ?? '';
+    expect(last).toContain('refused');
+    expect(last).toContain('statusLine');
+    expect(last).not.toContain('both lines go live');
+
+    const clean = await runWizard(['\r', 'y']);
+    const cleanLast =
+      clean.recorded.frames[clean.recorded.frames.length - 1] ?? '';
+    expect(cleanLast).toContain('applied');
+    expect(cleanLast).not.toContain('refused');
+  });
+
   it('n skips apply — no trampoline, no settings touch', async () => {
     const home = homes.newHome();
     const { outcome, recorded } = await runWizard(['\r', 'n'], home);
