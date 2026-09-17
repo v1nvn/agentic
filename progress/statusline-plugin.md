@@ -233,7 +233,11 @@ not rise. Two more survivors, ruled at unit 2: the NOW-inertness note in
 `test/runtime.ts` (invariant), and the golden-provenance notes in
 `test/statusline.test.ts` and `test/subagent.test.ts` (cited external
 contract — unit 10 deletes the reference scripts and reaps both notes in the
-same change).
+same change). Ruled at unit 4, generally: why-notes in test files that state
+the invariant a fixture or helper exists to enforce (ugly-formatting fixture,
+single-splice contract, refusal sink, brace-aware spans, version-sort trap)
+are the surviving kinds — what-notes that restate an assertion do not
+survive.
 
 External read-only until unit 10: `~/.claude/statusline-lab/**`,
 `~/.claude/statusline-command.sh`, `~/.claude/subagent-statusline.sh`. Tests
@@ -351,3 +355,14 @@ feed the wizard); subagent SEP follows the `style` pick.
   apply.ts beside the template embedding the same paths. Added `payload <p1..p4>`
   printing the shipped fixture for compose.md's pick block; its parse contract
   is pinned by unit 5's CLI tests.
+- 2026-09-17 — unit 4 (trampoline + apply + resolve) done in 12f209d +
+  d94b74d + fix fd0318e: review's corruption blocker (regex repoint broke on
+  braces in command strings) fixed red-first with a string-aware root-member
+  span scanner; refusal sink ([refuse,refuse,refuse], keys never point at an
+  unowned script); validate-then-write ordering; paths.ts folded then
+  re-extracted as apply.ts exports (the gate's template grep false-positives
+  on resolve.ts otherwise — decided by gate output); `payload <p1..p4>`
+  subcommand added (parse pin owed to unit 5); package files widened to
+  [dist, assets] — assets were not shipping, breaking payload/gallery at
+  publish (orchestrator catch, not review). Test why-notes ruled a surviving
+  class, recorded in the inventory.
