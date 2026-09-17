@@ -1,7 +1,7 @@
 # agentic
 
-Six Claude Code plugins, installed independently from one marketplace. The code lives
-in seven npm packages (`@v1nvn/*`); each plugin directory is a thin manifest that runs
+Seven Claude Code plugins, installed independently from one marketplace. The code lives
+in eight npm packages (`@v1nvn/*`); each plugin directory is a thin manifest that runs
 its package through version-pinned `npx`.
 
 | Plugin | What it does | Invoke |
@@ -12,6 +12,7 @@ its package through version-pinned `npx`.
 | **md** | Send the last reply to a Markdown-Viewer as a `#share=` URL — editable or read-only. | `/md:edit`, `/md:view` |
 | **zai** | Query GLM Coding Plan quota and usage. | `/zai:usage` |
 | **tokens** | Per-model token usage and cache hit rate from local transcripts. | `/tokens:usage` |
+| **statusline** | Render the status line and agent-panel rows from a component library of pickable designs. | `/statusline:compose` |
 
 `rm`, `md`, `zai`, and `tokens` run zero-token: a `UserPromptExpansion` hook intercepts the command before it reaches the model.
 
@@ -27,7 +28,7 @@ Add the marketplace, then install any subset. Each plugin stands alone.
 
 ```sh
 claude plugin marketplace add v1nvn/agentic
-claude plugin install rm@agentic        # or: readability, omlx, md, zai, tokens
+claude plugin install rm@agentic        # or: readability, omlx, md, zai, tokens, statusline
 ```
 
 Start Claude Code and run the command shown above for the plugin you installed.
@@ -51,13 +52,15 @@ npx -y @v1nvn/md         # last reply → Markdown-Viewer (--view for read-only;
 
 ```
 .claude-plugin/marketplace.json     Claude marketplace manifest; sources point into plugins/
-packages/                           the seven npm packages — one yarn workspace
+packages/                           the eight npm packages — one yarn workspace
   readability-mcp/  omlx-mcp/       the two MCP servers (@v1nvn/readability-mcp, @v1nvn/omlx-mcp)
   core/                             @v1nvn/agentic-core — last-reply + text formatting, shared by the tools
   zai/  tokens/  rm/  md/           the tool CLIs (zai-usage, tokens-report, rm-send, md-send)
-plugins/                            the six plugins — manifests + config wrappers, no code
+  statusline-lab/                   preview and adopt statusline designs (statusline-lab)
+plugins/                            the seven plugins — manifests + config wrappers, no code
   readability/  omlx/               .mcp.json (pinned npx) + plugin.json
   zai/  tokens/  rm/  md/           hooks.json (pinned npx) + plugin.json + commands/
+  statusline/                       plugin.json
 ```
 
 Versions ride one lockstep train: `.claude-plugin/marketplace.json` is the source, and

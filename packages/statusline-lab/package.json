@@ -1,0 +1,41 @@
+{
+  "name": "@v1nvn/statusline-lab",
+  "version": "0.18.0",
+  "description": "Preview statusline designs and apply them to the live status line and agent panel — the statusline-lab CLI behind the statusline plugin.",
+  "type": "module",
+  "bin": "dist/index.js",
+  "scripts": {
+    "build": "vite build",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "keywords": [
+    "claude-code",
+    "statusline",
+    "cli"
+  ],
+  "author": "v1nvn",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/v1nvn/agentic.git",
+    "directory": "packages/statusline-lab"
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@v1nvn/agentic-core": "workspace:^",
+    "commander": "^15.0.0"
+  },
+  "devDependencies": {
+    "vite": "^8.1.4",
+    "vitest": "^4.1.10"
+  }
+}

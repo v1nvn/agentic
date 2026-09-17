@@ -1,9 +1,10 @@
 # agentic — rules
 
 A Claude Code plugin marketplace: `readability` and `omlx` (MCP servers) plus `rm`,
-`md`, `zai`, `tokens` (zero-token hook plugins) — six independently-installable
-plugins in one repo. The code lives in seven npm packages (`@v1nvn/*`) under
-`packages/`; each plugin directory is only a manifest plus config wrapper.
+`md`, `zai`, `tokens` (zero-token hook plugins) and `statusline` (status line +
+agent panel) — seven independently-installable plugins in one repo. The code lives
+in eight npm packages (`@v1nvn/*`) under `packages/`; each plugin directory is only
+a manifest plus config wrapper.
 
 ## Philosophy
 
@@ -43,7 +44,7 @@ Surface a real impasse; do not hack past it.
 - **Scripts resolve binaries only from deps the workspace declares.** Each package
   declares the tools its scripts invoke (`vite`, `vitest`); the root declares the
   root-run tools (eslint stack, prettier, typescript).
-- **Six independent plugins, one marketplace.** Never collapse them into a
+- **Seven independent plugins, one marketplace.** Never collapse them into a
   mega-plugin; each installs and runs on its own.
 - **One author identity:** `v1nvn` / `v1n@outlook.com` in every manifest.
 
