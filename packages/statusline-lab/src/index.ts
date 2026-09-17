@@ -1,7 +1,8 @@
 import { printUsageAndExit } from '@v1nvn/agentic-core';
-import { writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 
 import { apply } from './apply.js';
+import { capture } from './capture.js';
 import { buildProgram, parseArgs, VERSION } from './cli.js';
 import { buildGallery } from './gallery.js';
 import { payloadJson } from './payloads.js';
@@ -29,6 +30,17 @@ if (parsed.version) {
   for (const step of steps) {
     const why = step.action === 'refuse' ? ' (--force to take over)' : '';
     console.log(`${step.target}: ${step.action}${why}`);
+  }
+} else if (parsed.command === 'capture') {
+  try {
+    const filed = capture({
+      home: homeOf(parsed.home),
+      stdin: readFileSync(0, 'utf8'),
+    });
+    console.log(filed.path);
+  } catch (e) {
+    console.error((e as Error).message);
+    process.exitCode = 1;
   }
 } else if (parsed.command === 'gallery') {
   const page = buildGallery();

@@ -6,7 +6,8 @@ import { PAYLOAD_NAMES, type PayloadName } from './payloads.js';
 
 export const VERSION = pkg.version;
 
-export type Subcommand = 'apply' | 'gallery' | 'payload' | 'resolve';
+export type Subcommand =
+  'apply' | 'capture' | 'gallery' | 'payload' | 'resolve';
 
 export interface ParsedArgs {
   readonly command?: Subcommand;
@@ -44,6 +45,10 @@ export function buildProgram(
     .option('--force', 'take over a foreign trampoline or settings key')
     .option('--dry-run', 'report the plan without writing')
     .action((options: SubcommandOptions) => onSubcommand?.('apply', options));
+  const capture = quiet(new Command('capture'))
+    .description('file stdin as the latest captured payload or agent tick')
+    .option('--home <dir>', 'operate on this home instead of $HOME')
+    .action((options: SubcommandOptions) => onSubcommand?.('capture', options));
   const gallery = quiet(new Command('gallery'))
     .description('render every component alternative to one HTML page')
     .option('--out <file>', 'write the page here instead of stdout')
@@ -68,6 +73,7 @@ export function buildProgram(
     .option('-V, --version', 'print the lab version and exit')
     .action(() => undefined)
     .addCommand(apply)
+    .addCommand(capture)
     .addCommand(gallery)
     .addCommand(payload)
     .addCommand(resolve);
