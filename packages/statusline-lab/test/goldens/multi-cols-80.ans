@@ -1,0 +1,5 @@
+{"id":"row-explore","content":"Explore │ \u001b[36mSonnet [1m] high\u001b[0m │ \u001b[33m███████░░░\u001b[0m 71% 142.3k/200k │ 121m05s"}
+{"id":"row-tests","content":"Tests Golden capture for the … │ \u001b[36mOpus medium\u001b[0m │ \u001b[32m░░░░░░░░░░\u001b[0m 5% 9.0k/180k │ 2m05s"}
+{"id":"row-review","content":"Review │ \u001b[36mHaiku low\u001b[0m │ 0m10s"}
+{"id":"row-fork","content":"Fork Name stands in when lab… │ \u001b[36mSonnet\u001b[0m │ \u001b[31m█████████░\u001b[0m 95% 950.0k/1M"}
+{"id":"row-idle","content":"Idle"}
