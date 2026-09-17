@@ -146,3 +146,53 @@ describe('parseArgs: capture', () => {
     expect(parseArgs(['capture', 'stray'])).toBeUndefined();
   });
 });
+
+describe('parseArgs: pick', () => {
+  it('parses pick with defaults', () => {
+    expect(parseArgs(['pick'])).toEqual({ version: false, command: 'pick' });
+  });
+
+  it('parses pick with --home and a fixture --payload', () => {
+    expect(
+      parseArgs(['pick', '--home', '/tmp/lab-home', '--payload', 'p3']),
+    ).toEqual({
+      version: false,
+      command: 'pick',
+      home: '/tmp/lab-home',
+      payload: 'p3',
+    });
+  });
+
+  it('takes --payload as a free path — captures and one-off payloads preview too', () => {
+    expect(
+      parseArgs([
+        'pick',
+        '--payload',
+        '/tmp/lab-home/.claude/plugins/data/statusline-agentic/payloads/latest.json',
+      ]),
+    ).toEqual({
+      version: false,
+      command: 'pick',
+      payload:
+        '/tmp/lab-home/.claude/plugins/data/statusline-agentic/payloads/latest.json',
+    });
+  });
+
+  it('scopes --home and --payload to pick', () => {
+    expect(parseArgs(['apply', '--payload', 'p3'])).toBeUndefined();
+    expect(parseArgs(['gallery', '--payload', 'p3'])).toBeUndefined();
+    expect(parseArgs(['resolve', '--payload', 'p3'])).toBeUndefined();
+    expect(parseArgs(['capture', '--payload', 'p3'])).toBeUndefined();
+  });
+
+  it('keeps every other subcommand flag away from pick', () => {
+    expect(parseArgs(['pick', '--force'])).toBeUndefined();
+    expect(parseArgs(['pick', '--dry-run'])).toBeUndefined();
+    expect(parseArgs(['pick', '--out', '/tmp/page.html'])).toBeUndefined();
+  });
+
+  it('rejects unknown flags and stray arguments', () => {
+    expect(parseArgs(['pick', '--bogus'])).toBeUndefined();
+    expect(parseArgs(['pick', 'stray'])).toBeUndefined();
+  });
+});
