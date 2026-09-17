@@ -320,9 +320,11 @@ feed the wizard); subagent SEP follows the `style` pick.
   SEP through the style pick); the defaults→picks-file→warn chain moved once
   into bin/lib.sh sourced by both bins — statusline goldens unchanged, 5
   subagent goldens green, full gate green.
-- 2026-09-17 — unit 3 (subagent runtime) done in 1f6fbf0 + the test-contract
-  commit: picks chain extracted to bin/lib.sh (one home, both bins; the 11
-  statusline goldens stayed byte-green through the refactor). Builder judgment
+- 2026-09-17 — unit 3 (subagent runtime) done in 1f6fbf0 + e7a9ff2 + fix
+  483f676 (review caught DIM missing from the subagent color block — style=dim
+  rendered a stray reset; red test first, one-line fix; ghost-task fixture key
+  now omitted as documented): picks chain extracted to bin/lib.sh (one home, both bins; the statusline golden
+  files stayed byte-green through the refactor). Builder judgment
   calls accepted: jq `if length > 24` re-expressed `if 24 < length` (gate
   false-positive class, byte-identical output), and sed/awk/date confirmed as
   part of the bash baseline the loose scripts always used — the render-path

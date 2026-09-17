@@ -57,7 +57,6 @@
       "startTime": 1788870001
     },
     {
-      "id": "",
       "label": "NoId",
       "name": "ghost",
       "description": "Row without an id renders no line",

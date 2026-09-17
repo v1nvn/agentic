@@ -40,7 +40,7 @@ function visibleLength(content: string): number {
 function identifiedTaskIds(): string[] {
   return loadTick('multi')
     .tasks.map(task => task.id)
-    .filter((id): id is string => typeof id === 'string' && id !== '');
+    .filter((id): id is string => typeof id === 'string');
 }
 
 let home: string | undefined;
@@ -98,6 +98,17 @@ describe('subagent style pick', () => {
     expect(run.status).toBe(0);
     expect(run.stdout.equals(golden('multi-default'))).toBe(false);
     expect(run.stdout).toEqual(golden('multi-style-dots'));
+  });
+
+  it('style=dim renders the separator with the dim attribute', () => {
+    const run = render({ picks: 'style=dim\n' });
+    expect(run.status).toBe(0);
+    expect(run.stdout.equals(golden('multi-default'))).toBe(false);
+    expect(run.stdout).toEqual(golden('multi-style-dim'));
+    const contents = rowsOf(run)
+      .map(row => row.content)
+      .join('\n');
+    expect(contents).toContain('\x1b[2m │ \x1b[0m');
   });
 });
 
