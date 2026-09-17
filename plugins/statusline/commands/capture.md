@@ -9,10 +9,10 @@ sorted, two-space indent — and filed under
 `ticks/latest.json`. Values stay verbatim, and capturing the same input twice
 writes identical bytes.
 
-With the JSON the session can see in `$JSON` — a payload the owner pasted, or
-any stdin they provide — run this exactly:
+Put the JSON the session can see — a payload the owner pasted, or any stdin
+they provide — in `$JSON`, then run this exactly:
 
-    printf '%s' "$JSON" | npx -y @v1nvn/statusline-lab capture
+    JSON='…' ; printf '%s' "$JSON" | npx -y @v1nvn/statusline-lab capture
 
 Report the output it prints.
 
