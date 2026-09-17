@@ -165,30 +165,164 @@ describe('apply', () => {
     expect(settings.model).toBe('opus-4');
   });
 
-  it('refuses a foreign trampoline without --force and overwrites it with --force', () => {
+  it('--force repoints both keys when both start foreign', () => {
+    const home = homes.newHome();
+    writeSettings(
+      home,
+      `${JSON.stringify(
+        {
+          model: 'opus-4',
+          statusLine: {
+            type: 'command',
+            command: '~/.claude/old-main-line.sh',
+          },
+          subagentStatusLine: {
+            type: 'command',
+            command: '~/.claude/subagent-statusline.sh',
+          },
+        },
+        null,
+        2,
+      )}\n`,
+    );
+
+    const forced = apply({ home, force: true });
+
+    expect(forced.steps).toEqual([
+      { target: 'trampoline', action: 'write' },
+      { target: 'statusLine', action: 'repoint' },
+      { target: 'subagentStatusLine', action: 'repoint' },
+    ]);
+    const settings = JSON.parse(readFileSync(settingsPath(home), 'utf8'));
+    expect(settings.statusLine).toEqual({
+      type: 'command',
+      command: TRAMPOLINE_COMMAND,
+    });
+    expect(settings.subagentStatusLine).toEqual({
+      type: 'command',
+      command: TRAMPOLINE_COMMAND,
+    });
+    expect(settings.model).toBe('opus-4');
+  });
+
+  it('adds no keys when it refused the foreign trampoline, and --force lands everything', () => {
     const home = homes.newHome();
     writeSettings(home, `${JSON.stringify({ model: 'opus-4' }, null, 2)}\n`);
     writeTrampoline(home, 'echo foreign-trampoline\n');
+    const before = snapshotTree(home);
 
     const refused = apply({ home });
+
+    // A refused trampoline must sink the whole run: no key may point at a
+    // script apply declined to own.
     expect(refused.steps).toEqual([
       { target: 'trampoline', action: 'refuse' },
-      { target: 'statusLine', action: 'add' },
-      { target: 'subagentStatusLine', action: 'add' },
+      { target: 'statusLine', action: 'refuse' },
+      { target: 'subagentStatusLine', action: 'refuse' },
     ]);
-    expect(readFileSync(trampolinePath(home), 'utf8')).toBe(
-      'echo foreign-trampoline\n',
-    );
+    expect(snapshotTree(home)).toEqual(before);
 
     const forced = apply({ home, force: true });
     expect(forced.steps).toEqual([
       { target: 'trampoline', action: 'write' },
-      { target: 'statusLine', action: 'keep' },
-      { target: 'subagentStatusLine', action: 'keep' },
+      { target: 'statusLine', action: 'add' },
+      { target: 'subagentStatusLine', action: 'add' },
     ]);
     expect(readFileSync(trampolinePath(home), 'utf8').split('\n')[0]).toBe(
       TRAMPOLINE_MARKER,
     );
+    const settings = JSON.parse(readFileSync(settingsPath(home), 'utf8'));
+    expect(settings.statusLine).toEqual({
+      type: 'command',
+      command: TRAMPOLINE_COMMAND,
+    });
+    expect(settings.subagentStatusLine).toEqual({
+      type: 'command',
+      command: TRAMPOLINE_COMMAND,
+    });
+  });
+
+  describe('--force over foreign commands carrying braces', () => {
+    // Both keys foreign, the statusLine command holding a brace — the member
+    // spans must be found with string awareness, not a naive brace scan.
+    function settingsWith(statusLineCommand: string): string {
+      return `{
+ "model" : "opus-4",
+  "statusLine": {"type": "command", "command": ${JSON.stringify(statusLineCommand)}},
+  "subagentStatusLine": {"type": "command", "command": "~/.claude/subagent-statusline.sh"}
+}
+`;
+    }
+
+    it.each([
+      {
+        name: 'a } inside the command string repoints cleanly',
+        command: "sed 's/}//g' ~/.claude/line.sh",
+        leftover: 'line.sh',
+      },
+      {
+        name: 'a { inside the command string repoints cleanly',
+        command: "sed 's/{//g' ~/.claude/line.sh",
+        leftover: 'line.sh',
+      },
+      {
+        name: 'an awk program repoints cleanly',
+        command: "awk '{print $1}'",
+        leftover: 'print',
+      },
+    ])('$name', ({ command, leftover }) => {
+      const home = homes.newHome();
+      writeSettings(home, settingsWith(command));
+
+      const result = apply({ home, force: true });
+
+      expect(result.steps).toEqual([
+        { target: 'trampoline', action: 'write' },
+        { target: 'statusLine', action: 'repoint' },
+        { target: 'subagentStatusLine', action: 'repoint' },
+      ]);
+      const after = readFileSync(settingsPath(home), 'utf8');
+      const settings = JSON.parse(after);
+      expect(settings.statusLine).toEqual({
+        type: 'command',
+        command: TRAMPOLINE_COMMAND,
+      });
+      expect(settings.subagentStatusLine).toEqual({
+        type: 'command',
+        command: TRAMPOLINE_COMMAND,
+      });
+      expect(settings.model).toBe('opus-4');
+      expect(after).toContain(' "model" : "opus-4",');
+      expect(after).not.toContain(leftover);
+      expect(readFileSync(trampolinePath(home), 'utf8').split('\n')[0]).toBe(
+        TRAMPOLINE_MARKER,
+      );
+    });
+
+    it('repoints the root statusLine, never a same-named member nested in env', () => {
+      const home = homes.newHome();
+      writeSettings(
+        home,
+        `{"env":{"statusLine":"legacy"},"statusLine":{"type":"command","command":"~/.claude/old-main-line.sh"},"model":"opus-4"}\n`,
+      );
+
+      const result = apply({ home, force: true });
+
+      expect(result.steps).toEqual([
+        { target: 'trampoline', action: 'write' },
+        { target: 'statusLine', action: 'repoint' },
+        { target: 'subagentStatusLine', action: 'add' },
+      ]);
+      const after = readFileSync(settingsPath(home), 'utf8');
+      expect(after).toContain('"env":{"statusLine":"legacy"}');
+      const settings = JSON.parse(after);
+      expect(settings.env).toEqual({ statusLine: 'legacy' });
+      expect(settings.statusLine).toEqual({
+        type: 'command',
+        command: TRAMPOLINE_COMMAND,
+      });
+      expect(settings.model).toBe('opus-4');
+    });
   });
 
   it('--dry-run reports the planned actions and writes nothing', () => {

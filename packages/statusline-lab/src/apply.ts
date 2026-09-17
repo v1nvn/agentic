@@ -1,6 +1,14 @@
 import { chmodSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 
+export function installedPluginsFile(home: string): string {
+  return join(home, '.claude', 'plugins', 'installed_plugins.json');
+}
+
+export function statuslineCacheRoot(home: string): string {
+  return join(home, '.claude', 'plugins', 'cache', 'agentic', 'statusline');
+}
+
 export interface ApplyOptions {
   readonly dryRun?: boolean;
   readonly force?: boolean;
@@ -85,13 +93,112 @@ function keyAction(value: unknown, force: boolean): ApplyAction {
   return force ? 'repoint' : 'refuse';
 }
 
+function skipString(raw: string, at: number): number {
+  let i = at + 1;
+  while (i < raw.length) {
+    if (raw[i] === '\\') {
+      i += 2;
+    } else if (raw[i] === '"') {
+      return i + 1;
+    } else {
+      i += 1;
+    }
+  }
+  throw new Error('unterminated string in settings.json');
+}
+
+function skipValue(raw: string, at: number): number {
+  const first = raw[at];
+  if (first === '"') {
+    return skipString(raw, at);
+  }
+  if (first === '{' || first === '[') {
+    let depth = 0;
+    let i = at;
+    while (i < raw.length) {
+      const c = raw[i];
+      if (c === '"') {
+        i = skipString(raw, i);
+      } else if (c === '{' || c === '[') {
+        depth += 1;
+        i += 1;
+      } else if (c === '}' || c === ']') {
+        depth -= 1;
+        i += 1;
+        if (depth === 0) {
+          return i;
+        }
+      } else {
+        i += 1;
+      }
+    }
+    throw new Error('unterminated container in settings.json');
+  }
+  let i = at;
+  while (
+    i < raw.length &&
+    !',}]'.includes(raw[i] ?? '') &&
+    !/\s/.test(raw[i] ?? '~')
+  ) {
+    i += 1;
+  }
+  return i;
+}
+
+function rootMemberValueSpan(
+  raw: string,
+  key: string,
+): readonly [number, number] {
+  let i = raw.indexOf('{') + 1;
+  while (i < raw.length) {
+    while (/\s/.test(raw[i] ?? '~')) {
+      i += 1;
+    }
+    if (raw[i] === '}') {
+      break;
+    }
+    if (raw[i] !== '"') {
+      throw new Error('malformed member in settings.json');
+    }
+    const nameEnd = skipString(raw, i);
+    const name = JSON.parse(raw.slice(i, nameEnd)) as string;
+    i = nameEnd;
+    while (/\s/.test(raw[i] ?? '~')) {
+      i += 1;
+    }
+    if (raw[i] !== ':') {
+      throw new Error('malformed member in settings.json');
+    }
+    i += 1;
+    while (/\s/.test(raw[i] ?? '~')) {
+      i += 1;
+    }
+    const end = skipValue(raw, i);
+    if (name === key) {
+      return [i, end];
+    }
+    i = end;
+    while (/\s/.test(raw[i] ?? '~')) {
+      i += 1;
+    }
+    if (raw[i] === ',') {
+      i += 1;
+    } else if (raw[i] !== '}') {
+      throw new Error('malformed member in settings.json');
+    }
+  }
+  throw new Error(
+    `cannot find the "${key}" member to repoint in settings.json`,
+  );
+}
+
 function insertMembers(raw: string, keys: readonly string[]): string {
   const close = raw.lastIndexOf('}');
   if (close === -1) {
     throw new Error('settings.json has no closing brace to splice into');
   }
   let at = close;
-  while (at > 0 && /\s/.test(raw[at - 1] ?? '')) {
+  while (/\s/.test(raw[at - 1] ?? '')) {
     at -= 1;
   }
   const members = keys.map(key => `"${key}": ${SETTINGS_VALUE}`).join(',\n  ');
@@ -99,19 +206,17 @@ function insertMembers(raw: string, keys: readonly string[]): string {
   return `${raw.slice(0, at)}${comma}\n  ${members}${raw.slice(at)}`;
 }
 
-function repointMember(raw: string, key: string): string {
-  const member = new RegExp(
-    `("${key}"\\s*:\\s*)(?:null|true|false|-?\\d+(?:\\.\\d+)?|"(?:[^"\\\\]|\\\\.)*"|\\{[^{}]*\\})`,
-  );
-  if (!member.test(raw)) {
-    throw new Error(
-      `cannot find the "${key}" member to repoint in settings.json`,
-    );
+function splicedSettings(
+  raw: string,
+  adds: readonly string[],
+  repoints: readonly string[],
+): string {
+  let text = adds.length > 0 ? insertMembers(raw, adds) : raw;
+  for (const key of repoints) {
+    const [start, end] = rootMemberValueSpan(text, key);
+    text = `${text.slice(0, start)}${SETTINGS_VALUE}${text.slice(end)}`;
   }
-  return raw.replace(
-    member,
-    (_match, head: string) => `${head}${SETTINGS_VALUE}`,
-  );
+  return text;
 }
 
 export function apply({
@@ -139,7 +244,10 @@ export function apply({
       : parseSettings(settingsFile, settingsRaw);
   const keySteps = SETTINGS_KEYS.map(key => ({
     target: key,
-    action: keyAction(settings?.[key], force),
+    action:
+      trampolineAction === 'refuse'
+        ? 'refuse'
+        : keyAction(settings?.[key], force),
   }));
   const steps: readonly ApplyStep[] = [
     { target: 'trampoline', action: trampolineAction },
@@ -149,17 +257,22 @@ export function apply({
     return { steps };
   }
 
-  if (trampolineAction === 'write') {
-    mkdirSync(dirname(trampolineFile), { recursive: true });
-    writeFileSync(trampolineFile, TRAMPOLINE);
-    chmodSync(trampolineFile, 0o755);
-  }
   const adds = keySteps
     .filter(step => step.action === 'add')
     .map(step => step.target);
   const repoints = keySteps
     .filter(step => step.action === 'repoint')
     .map(step => step.target);
+  const spliced =
+    settingsRaw !== undefined && (adds.length > 0 || repoints.length > 0)
+      ? splicedSettings(settingsRaw, adds, repoints)
+      : undefined;
+
+  if (trampolineAction === 'write') {
+    mkdirSync(dirname(trampolineFile), { recursive: true });
+    writeFileSync(trampolineFile, TRAMPOLINE);
+    chmodSync(trampolineFile, 0o755);
+  }
   if (settingsRaw === undefined) {
     if (adds.length > 0) {
       mkdirSync(dirname(settingsFile), { recursive: true });
@@ -168,12 +281,8 @@ export function apply({
         `{\n  "statusLine": ${SETTINGS_VALUE},\n  "subagentStatusLine": ${SETTINGS_VALUE}\n}\n`,
       );
     }
-  } else if (adds.length > 0 || repoints.length > 0) {
-    let text = adds.length > 0 ? insertMembers(settingsRaw, adds) : settingsRaw;
-    for (const key of repoints) {
-      text = repointMember(text, key);
-    }
-    writeFileSync(settingsFile, text);
+  } else if (spliced !== undefined) {
+    writeFileSync(settingsFile, spliced);
   }
   return { steps };
 }
