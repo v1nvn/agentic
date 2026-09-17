@@ -406,3 +406,10 @@ feed the wizard); subagent SEP follows the `style` pick.
   reader), vite testTimeout 300_000 (74 runtime spawns), plain-text live
   marker, lab.md worded around the literal python3 grep. Font ships as the
   2.7MB TTF asset, embedded base64 (plan's asset clause honored).
+- 2026-09-17 — unit 5 review round 1 fixed red-first: empty extended-color
+  params (`38;5;m`, `38;2;;r;g;b`) default to index 0 instead of NaN
+  (`|| '0'`, pinned hexes #4b5263/#000a14), and the gallery legend now names
+  the plain-text `live line uses this` suffix instead of the green styling
+  the port dropped. The new ansi case also caught a one-character test
+  repair by its writer (the 38;2 sample was missing its `m` terminator,
+  contradicting the non-SGR passthrough pin) — fixed in the same round.

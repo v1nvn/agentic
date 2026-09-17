@@ -216,8 +216,9 @@ export function buildGallery(): string {
       '<h1>statusline lab · components</h1>',
       '<div class="sub">every alternative of every component, rendered on its own — ' +
         'two payload rows per box (p1 / p3 unless the component header names its ' +
-        'pair); empty rows mean the payload lacks that data. <b>green</b> marks ' +
-        'the shipped default; name what you want and it becomes the pick</div>',
+        'pair); empty rows mean the payload lacks that data. the suffix ' +
+        "'live line uses this' marks the shipped default; name what you want and " +
+        'it becomes the pick</div>',
       `<nav>${[...declared.keys()].map(name => `<a href="#c${name}">${name}</a>`).join('')}<a href="#csubagent">subagent</a></nav>`,
     ];
     for (const [comp, declaration] of declared) {

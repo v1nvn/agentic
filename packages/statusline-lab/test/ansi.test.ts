@@ -72,6 +72,15 @@ describe('toHtml', () => {
     );
   });
 
+  it('defaults empty extended-color params to index 0, never NaN', () => {
+    expect(toHtml(`${E}38;5;mX${E}0m`)).toBe(
+      '<span style="color:#4b5263">X</span>',
+    );
+    expect(toHtml(`${E}38;2;;10;20mY${E}0m`)).toBe(
+      '<span style="color:#000a14">Y</span>',
+    );
+  });
+
   it('stacks color and weight from one combined sequence', () => {
     expect(toHtml(`${E}1;38;5;61mA${E}0m`)).toBe(
       '<span style="color:#5f5faf;font-weight:700">A</span>',

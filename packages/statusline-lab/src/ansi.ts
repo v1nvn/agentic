@@ -133,10 +133,10 @@ export function toHtml(text: string): string {
           const mode = params[i + 1];
           let col: null | string;
           if (mode === '5' && i + 2 < params.length) {
-            col = x256(parseInt(params[i + 2] ?? '0', 10));
+            col = x256(parseInt(params[i + 2] || '0', 10));
             i += 2;
           } else if (mode === '2' && i + 4 < params.length) {
-            col = `#${hex2(parseInt(params[i + 2] ?? '0', 10))}${hex2(parseInt(params[i + 3] ?? '0', 10))}${hex2(parseInt(params[i + 4] ?? '0', 10))}`;
+            col = `#${hex2(parseInt(params[i + 2] || '0', 10))}${hex2(parseInt(params[i + 3] || '0', 10))}${hex2(parseInt(params[i + 4] || '0', 10))}`;
             i += 4;
           } else {
             col = null;
