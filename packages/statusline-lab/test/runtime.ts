@@ -46,6 +46,7 @@ export interface RenderInput {
   readonly now?: string;
   readonly picks?: string;
   readonly columns?: number;
+  readonly modelDisplayName?: string;
 }
 
 const PAYLOADS_DIR = fileURLToPath(
@@ -106,8 +107,11 @@ export function loadTick(name: string): Tick {
 export function renderStatusline(input: RenderInput): RenderResult {
   const payload = JSON.parse(
     readFileSync(join(PAYLOADS_DIR, `${input.payload}.json`), 'utf8'),
-  ) as { workspace: { current_dir: string } };
+  ) as { model: { display_name: string }; workspace: { current_dir: string } };
   payload.workspace.current_dir = input.repoDir;
+  if (input.modelDisplayName !== undefined) {
+    payload.model.display_name = input.modelDisplayName;
+  }
   if (input.picks !== undefined) {
     writePicks(input.home, input.picks);
   }
