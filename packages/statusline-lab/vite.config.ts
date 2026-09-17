@@ -22,6 +22,10 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
+    globalSetup: ['./test/global-setup.ts'],
+    // Spawn-heavy gallery walks render the bash runtime per row; the suite's
+    // own heavy tests pin 300s each, so the package default matches them.
+    testTimeout: 300_000,
     exclude: [...configDefaults.exclude, 'dist/**'],
   },
 });
