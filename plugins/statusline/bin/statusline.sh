@@ -98,29 +98,10 @@ _path_tail() {
 }
 
 for f in "$RUNTIME"/components/*.sh; do source "$f"; done
+source "$RUNTIME/bin/lib.sh"
 
-default_pick() {
-    case $1 in
-        model) echo plain ;;    effort) echo plain ;;    state) echo none ;;
-        cwd) echo init ;;       branch) echo initials ;; status) echo counts ;;
-        ahead) echo none ;;     pr) echo none ;;
-        bar) echo flat ;;       tokens) echo full ;;     cache) echo hit ;;
-        cost) echo plain ;;     duration) echo clock ;;  lines) echo none ;;
-        rate) echo none ;;      style) echo plain ;;
-    esac
-}
 COMPS="model effort state cwd branch status ahead pr bar tokens cache cost duration lines rate style"
-for c in $COMPS; do
-    eval "PICK_$c=\$(default_pick \$c)"
-done
-PICKS_FILE=$HOME/.claude/plugins/data/statusline-agentic/picks
-if [ -f "$PICKS_FILE" ]; then
-    while IFS= read -r line; do
-        case "$line" in ''|\#*) continue ;; esac
-        k=${line%%=*}; v=${line#*=}
-        case " $COMPS " in *" $k "*) eval "PICK_$k=\$v" ;; esac
-    done < "$PICKS_FILE"
-fi
+read_picks $COMPS
 want_seg=0; seg_comp=""
 for a in "$@"; do
     if [ "$a" = "--seg" ]; then want_seg=1; continue; fi
@@ -130,13 +111,7 @@ for a in "$@"; do
         eval "PICK_$k=\$v" ;;
     esac
 done
-for c in $COMPS; do
-    eval "alt=\${PICK_$c}"
-    if ! declare -f "seg_${c}_${alt}" >/dev/null; then
-        echo "statusline: ${c}=${alt} is not available, using ${c}=$(default_pick "$c")" >&2
-        eval "PICK_$c=\$(default_pick \$c)"
-    fi
-done
+check_picks $COMPS
 
 if [ "$want_seg" = 1 ]; then
     if [ -n "$seg_comp" ]; then

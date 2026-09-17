@@ -313,3 +313,8 @@ feed the wizard); subagent SEP follows the `style` pick.
   (test/statusline.test.ts "materializes the pinned demo state"). Protected
   baseline re-recorded after this commit — the test edit is this sanctioned
   fix, not a weakening.
+- 2026-09-17 — unit 3 (subagent runtime) done: bin/subagent.sh ports the live
+  row script (STEPS + jq prologue verbatim, NOW overridable, /tmp dump cut,
+  SEP through the style pick); the defaults→picks-file→warn chain moved once
+  into bin/lib.sh sourced by both bins — statusline goldens unchanged, 5
+  subagent goldens green, full gate green.
