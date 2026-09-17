@@ -1,0 +1,71 @@
+{
+  "session_id": "c9d0demo03",
+  "cwd": "/Users/vineet/.claude/statusline-lab/demo/atlas-web",
+  "model": {
+    "id": "claude-opus-5",
+    "display_name": "Opus"
+  },
+  "workspace": {
+    "current_dir": "/Users/vineet/.claude/statusline-lab/demo/atlas-web",
+    "project_dir": "/Users/vineet/.claude/statusline-lab/demo/atlas-web"
+  },
+  "version": "2.1.275",
+  "output_style": {
+    "name": "default"
+  },
+  "effort": {
+    "level": "high"
+  },
+  "thinking": {
+    "enabled": true
+  },
+  "cost": {
+    "total_cost_usd": 8.91,
+    "total_duration_ms": 6110000,
+    "total_api_duration_ms": 1030000,
+    "total_lines_added": 412,
+    "total_lines_removed": 87
+  },
+  "context_window": {
+    "total_input_tokens": 190800,
+    "total_output_tokens": 22400,
+    "context_window_size": 200000,
+    "used_percentage": 95.4,
+    "remaining_percentage": 4.6,
+    "current_usage": {
+      "input_tokens": 19800,
+      "output_tokens": 22400,
+      "cache_creation_input_tokens": 22000,
+      "cache_read_input_tokens": 149000
+    }
+  },
+  "exceeds_200k_tokens": false,
+  "prompt_cache": {
+    "warm": false,
+    "caching_observed": true,
+    "ttl": "1h",
+    "expires_at": 1788867132,
+    "requests": 312,
+    "misses": 9,
+    "expected_rebuilds": 2,
+    "hit_ratio": 0.71,
+    "cache_write_tokens": 412000,
+    "miss_recache_tokens": 399100,
+    "last_miss_at": 1788867117,
+    "last_miss_cause": {
+      "causes": [
+        "ttl_expired_1h"
+      ]
+    }
+  },
+  "rate_limits": {
+    "five_hour": {
+      "used_percentage": 88.4,
+      "resets_at": 1788869232
+    },
+    "seven_day": {
+      "used_percentage": 63.1,
+      "resets_at": 1789157142
+    }
+  }
+}
