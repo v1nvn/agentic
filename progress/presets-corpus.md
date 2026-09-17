@@ -1,5 +1,7 @@
 # Site presets — real-world corpus and backlog
 
+> Rules: ../references/tracking.md · Index: ../TODO.md
+
 **Goal.** Extraction that serves the daily workload — stonks research on the
 Indian financial web — with per-site presets where generic extraction loses.
 The suggest loop ships in 0.18.0; the corpus is what feeds it and measures
