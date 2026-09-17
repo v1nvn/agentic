@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process';
 import { rmSync } from 'node:fs';
 
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
@@ -43,6 +44,63 @@ function render(
     ...options,
   });
 }
+
+function runGit(home: string, repoDir: string, args: string[]): string {
+  return execFileSync('git', args, {
+    cwd: repoDir,
+    encoding: 'utf8',
+    env: {
+      PATH: process.env.PATH ?? '',
+      HOME: home,
+      LC_ALL: 'C',
+      TZ: 'UTC',
+    },
+  });
+}
+
+describe('demo repo', () => {
+  it('materializes the pinned demo state', () => {
+    if (!demo) {
+      throw new Error('demo home not materialized');
+    }
+    const porcelain = runGit(demo.home, demo.repoDir, [
+      'status',
+      '--porcelain=v2',
+      '--branch',
+    ]).split('\n');
+    const entries = porcelain.filter(line => /^[12] /.test(line));
+    const staged = entries.filter(line => line[2] !== '.').length;
+    const modified = entries.filter(line => line[3] !== '.').length;
+    const untracked = porcelain.filter(line => line.startsWith('? ')).length;
+    expect(porcelain.find(line => line.startsWith('# branch.head'))).toBe(
+      '# branch.head feature/login-flow',
+    );
+    expect(porcelain.find(line => line.startsWith('# branch.upstream'))).toBe(
+      '# branch.upstream origin/main',
+    );
+    expect(porcelain.find(line => line.startsWith('# branch.ab'))).toBe(
+      '# branch.ab +2 -1',
+    );
+    expect(staged).toBe(2);
+    expect(modified).toBe(2);
+    expect(untracked).toBe(5);
+    expect(
+      runGit(demo.home, demo.repoDir, ['rev-list', '--count', 'HEAD']).trim(),
+    ).toBe('3');
+    expect(
+      runGit(demo.home, demo.repoDir, ['stash', 'list']).trim().split('\n'),
+    ).toHaveLength(1);
+    const head = runGit(demo.home, demo.repoDir, ['rev-parse', 'HEAD']).trim();
+    const other = createDemoHome();
+    try {
+      expect(
+        runGit(other.home, other.repoDir, ['rev-parse', 'HEAD']).trim(),
+      ).toBe(head);
+    } finally {
+      rmSync(other.home, { recursive: true, force: true });
+    }
+  });
+});
 
 describe('per-fixture goldens', () => {
   it.each(['p1', 'p2', 'p3', 'p4'])(

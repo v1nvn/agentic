@@ -307,3 +307,9 @@ feed the wizard); subagent SEP follows the `style` pick.
   it via explicit `bash`: test harness and trampoline both). Comment ruling
   recorded in the inventory (NOW-inertness note + golden-provenance note
   survive; unit 10 reaps the latter).
+- 2026-09-17 — unit 2 review fix: the new state-pinning test caught the demo
+  repo's missing origin refspec (`@{u}` unresolved, ahead/behind silently 0);
+  materializer repaired, JSDoc replaced by the executable contract
+  (test/statusline.test.ts "materializes the pinned demo state"). Protected
+  baseline re-recorded after this commit — the test edit is this sanctioned
+  fix, not a weakening.
