@@ -330,3 +330,13 @@ feed the wizard); subagent SEP follows the `style` pick.
   part of the bash baseline the loose scripts always used — the render-path
   invariant's real line is "no extra interpreters" (python3/node), which the
   gate enforces. Provenance-note ruling extended to test/subagent.test.ts.
+- 2026-09-17 — unit 4 (trampoline + apply + resolve) done: 11-line marker-first
+  trampoline (chmod 755, no shebang — settings commands run through a shell);
+  both settings keys land as one textual splice at the root brace and --force
+  repoints a member in place, so file formatting is preserved byte-for-byte;
+  subcommand parsing arms each commander sub itself (parseQuietly reaches only
+  the root); src/paths.ts holds the install locations so only the
+  template-bearing file mentions installed_plugins.json (gate heuristic);
+  split into test-contract + implementation commits to stay under the 800-line
+  ceiling (unit-2 precedent), protected baseline re-recorded for the extended
+  cli.test.ts.
