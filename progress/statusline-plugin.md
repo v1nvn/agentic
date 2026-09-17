@@ -192,6 +192,46 @@ packages/statusline-lab/         lab — TS, bin `statusline-lab`: gallery, ansi
 - `apply` touches exactly three things: the trampoline file and the
   `statusLine` + `subagentStatusLine` keys.
 
+## Enforcement inventory
+
+Protected tests (byte-for-byte once landed): every golden/walk test the units
+create under `packages/statusline-lab/` (units 2–8). A later unit that needs one
+changed is a behavior change — the commit message says so, and the plan's log
+records why.
+
+Forbidden idioms — grep counts that stay 0 across the whole run, under
+`plugins/statusline/`:
+
+- `python3` (render path is bash+jq+git only; the three loose-lab python3
+  variants do not port until unit 9 replaces them with precomputed ramps —
+  after which the count is still 0).
+- `node`/`npx` invocations from `bin/` or `components/` (Node never runs at
+  render).
+- Writes from the render path: `mktemp`, `tee`, `cp`, `mv`, `>`/`>>` file
+  redirects in `bin/*.sh` (stderr `>&2` warnings allowed); the live subagent
+  script's `/tmp` stdin dump does not port.
+- Nonzero exits in the trampoline template (never exits non-zero, never
+  writes).
+- Network: `curl`/`wget` in the render path.
+- Code beyond the endorsed set: only `.sh` under `bin/`+`components/`, `.md`
+  under `commands/`, and `.claude-plugin/plugin.json` — no `.ts`/`.js`/`.py`.
+
+Counts that must never rise:
+
+- python3 call-sites in the shipped runtime: 0, before unit 9 and after.
+- Trampoline length: under 25 lines (written once by `apply`; growth means
+  render logic leaked into it).
+- Per-unit diff ceiling: 800 changed lines (pure deletions exempt).
+
+Comment rule, scoped: the component-header alternative declarations (e.g.
+`# model: plain | block | pill | zen`) are contract — the gallery parses them
+(unit 5) — and survive verbatim. Every other touched file's comment count does
+not rise.
+
+External read-only until unit 10: `~/.claude/statusline-lab/**`,
+`~/.claude/statusline-command.sh`, `~/.claude/subagent-statusline.sh`. Tests
+copy them into temp fixtures; nothing writes in place before the adopt unit.
+
 ## Open decisions
 
 None. Closed 2026-09-17: the gallery renders shipped payloads only (captures
@@ -225,6 +265,11 @@ feed the wizard); subagent SEP follows the `style` pick.
   live with defaults, cancel-safe), then the wizard via the `!` prefix (the
   Bash tool is non-interactive); conversational pick is the pre-wizard
   fallback.
+- 2026-09-17 — run started (branch `statusline-plugin`, whole thread, units
+  0–11). Gate green at start. Derived mechanics: gate = lint+typecheck+build+test
+  at root plus `set-version.mjs --check`, `build-skills.mjs`, plugin validate;
+  per-unit diff ceiling 800 lines; one PR at the end, base `main`, never merged
+  by the run. Units 7 and 9 in scope. Enforcement inventory added above.
 - 2026-09-17 — review against source closed both open decisions: gallery
   renders shipped payloads only (the data dir is never read; captures feed
   the wizard); subagent SEP follows the `style` pick. Live docs re-verify the
