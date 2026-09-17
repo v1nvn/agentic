@@ -280,3 +280,9 @@ feed the wizard); subagent SEP follows the `style` pick.
   `${CLAUDE_PLUGIN_ROOT}` there is undocumented: the trampoline stands.
   Commands invoke the lab unpinned (pins ride only hooks/mcp configs; this
   plugin ships neither).
+- 2026-09-17 — unit 1 (scaffold) done in 0348f36: `@v1nvn/statusline-lab`
+  (CLI scaffold — buildProgram/parseArgs + `-V/--version` riding the manifest
+  version, 6 vitest cases), `plugins/statusline/.claude-plugin/plugin.json`,
+  marketplace entry (productivity), build.yml validate loop, and the two new
+  manifests added to the set-version.mjs mirrors; README + CLAUDE.md counts now
+  seven plugins / eight packages. Full gate green.
