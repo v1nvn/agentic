@@ -418,3 +418,19 @@ feed the wizard); subagent SEP follows the `style` pick.
   hardening) and an undefined $JSON in capture.md (reworded inline,
   orchestrator). process.exitCode=1 deviation approved over the banned
   process.exit (identical observable behavior).
+- 2026-09-17 — unit 7 (pick wizard) done in 262db64 + 148d153: src/wizard.ts is
+  the machine (createWizard plus wizardComponents/resolveWizardPayload/
+  runtimeRenderer) behind a WizardDeps seam (readKeys/render/preview);
+  src/wizard-tui.ts is the thin raw-mode key front. Previews are literal
+  spawns of the shipped runtime copy with HOME/NOW/COLUMNS/payload stdin —
+  no rendering logic in TS. Draft previews ride argv as 16 comp=alt
+  overrides, never file writes; an existing picks file seeds the draft;
+  finish writes only the picks file; the `apply now? [y/n]` offer fires only
+  when no trampoline exists (y runs apply, a present trampoline — even
+  foreign — suppresses it). Offered alternatives are the header declarations
+  verbatim, so the not-adoptable three preview honestly: the runtime's warn
+  rides the fallback render (runtimeRenderer appends stderr when nonempty).
+  compose.md's conversational-pick block deleted for the
+  `! npx -y @v1nvn/statusline-lab pick` invitation; apply-first framing
+  untouched. 137/137 green (104 + wizard 27 + cli pins), full gate green,
+  protected baseline re-recorded for the extended cli.test.ts.
