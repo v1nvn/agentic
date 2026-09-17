@@ -14,16 +14,15 @@ Run this exactly:
 
 Report the output it prints.
 
-Then offer the conversational pick. Every component ships several designs,
-declared in the header of each file under the installed runtime, e.g.
-`model: plain | block | pill | zen`. Render one design at a time in chat:
+Then invite the wizard. Every component ships several designs; the owner
+chooses them in a live-preview terminal wizard. The Bash tool cannot host a
+TUI, so the owner runs it directly:
 
-    PAYLOAD=$(npx -y @v1nvn/statusline-lab payload p1)
-    RUNTIME=$(jq -r '.plugins["statusline@agentic"][0].installPath // empty' ~/.claude/plugins/installed_plugins.json)
-    [ -n "$RUNTIME" ] || RUNTIME=$(ls -1d ~/.claude/plugins/cache/agentic/statusline/*/ 2>/dev/null | sort -V | tail -1)
-    printf '%s' "$PAYLOAD" | bash "${RUNTIME%/}/bin/statusline.sh" --seg model=pill
+    ! npx -y @v1nvn/statusline-lab pick
 
-The payload subcommand prints one of the shipped fixtures (p1–p4). Keep it
-fixed across renders so alternatives compare like for like, then write the
-answers to `~/.claude/plugins/data/statusline-agentic/picks` as `comp=alt`
-lines — the next paint honors them.
+The wizard previews every design of the focused component rendered by the
+shipped runtime, on the latest capture (or a shipped fixture, or
+`--payload <file>`), at 80/120/200 columns. Finishing writes the answers to
+`~/.claude/plugins/data/statusline-agentic/picks` as `comp=alt` lines — the
+next paint honors them — and offers `apply` when no trampoline is installed.
+Cancelling writes nothing.
