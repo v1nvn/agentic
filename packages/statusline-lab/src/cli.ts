@@ -1,18 +1,20 @@
 import { parseQuietly } from '@v1nvn/agentic-core';
-import { Command } from 'commander';
+import { Argument, Command } from 'commander';
 
 import pkg from '../package.json' with { type: 'json' };
+import { PAYLOAD_NAMES, type PayloadName } from './payloads.js';
 
 export const VERSION = pkg.version;
 
-export type Subcommand = 'apply' | 'payload' | 'resolve';
+export type Subcommand = 'apply' | 'gallery' | 'payload' | 'resolve';
 
 export interface ParsedArgs {
   readonly command?: Subcommand;
   readonly dryRun?: boolean;
   readonly force?: boolean;
   readonly home?: string;
-  readonly payload?: string;
+  readonly out?: string;
+  readonly payload?: PayloadName;
   readonly version: boolean;
 }
 
@@ -20,7 +22,8 @@ interface SubcommandOptions {
   readonly dryRun?: boolean;
   readonly force?: boolean;
   readonly home?: string;
-  readonly payload?: string;
+  readonly out?: string;
+  readonly payload?: PayloadName;
 }
 
 const QUIET = { writeOut: () => undefined, writeErr: () => undefined };
@@ -41,10 +44,20 @@ export function buildProgram(
     .option('--force', 'take over a foreign trampoline or settings key')
     .option('--dry-run', 'report the plan without writing')
     .action((options: SubcommandOptions) => onSubcommand?.('apply', options));
+  const gallery = quiet(new Command('gallery'))
+    .description('render every component alternative to one HTML page')
+    .option('--out <file>', 'write the page here instead of stdout')
+    .action((options: SubcommandOptions) => onSubcommand?.('gallery', options));
   const payload = quiet(new Command('payload'))
     .description('print a shipped fixture payload for piping into the runtime')
-    .argument('<name>', 'fixture name: p1 | p2 | p3 | p4')
-    .action((name: string) => onSubcommand?.('payload', { payload: name }));
+    .addArgument(
+      new Argument('<name>', 'fixture name: p1 | p2 | p3 | p4').choices([
+        ...PAYLOAD_NAMES,
+      ]),
+    )
+    .action((name: string) =>
+      onSubcommand?.('payload', { payload: name as PayloadName }),
+    );
   const resolve = quiet(new Command('resolve'))
     .description('print the plugin dir the trampoline would run')
     .option('--home <dir>', 'operate on this home instead of $HOME')
@@ -55,6 +68,7 @@ export function buildProgram(
     .option('-V, --version', 'print the lab version and exit')
     .action(() => undefined)
     .addCommand(apply)
+    .addCommand(gallery)
     .addCommand(payload)
     .addCommand(resolve);
 }
@@ -82,6 +96,7 @@ export function parseArgs(args: readonly string[]): ParsedArgs | undefined {
     home: chosen.options.home,
     force: chosen.options.force,
     dryRun: chosen.options.dryRun,
+    out: chosen.options.out,
     payload: chosen.options.payload,
   };
 }

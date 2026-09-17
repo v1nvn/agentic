@@ -366,3 +366,31 @@ feed the wizard); subagent SEP follows the `style` pick.
   [dist, assets] — assets were not shipping, breaking payload/gallery at
   publish (orchestrator catch, not review). Test why-notes ruled a surviving
   class, recorded in the inventory.
+- 2026-09-17 — unit 5 (gallery + ansi port) done, split test-contract +
+  implementation: ansi.ts ports ansi2html.py byte-for-byte (22 pinned cases)
+  and gallery.ts ports build.py — one labelled block per `seg_<comp>_<alt>`
+  parsed from the component headers, live marker from bin/lib.sh defaults,
+  GALLERY_NOW fixed, payloads re-anchored in memory and `current_dir`
+  repointed at a fresh demo HOME per build so the page is byte-identical
+  anywhere and blind to picks/payloads planted under $HOME. Component headers
+  gained the `payloads:` pair line (state: p4 p1 — build.py's only pair
+  differing from the p1/p3 default; the alternatives declarations stay
+  verbatim). scripts/sync-runtime.mjs copies plugins/statusline → the
+  gitignored assets/runtime (vite prebuild + vitest globalSetup); the gallery
+  and its tests render only that copy. The three python3 variants ship as
+  assets/extras/{gauge,fuse,strip}.sh solo previews marked not-adoptable —
+  package-side on purpose, unit 9 deletes them with the bash ramps.
+  commands/lab.md opens the page (`gallery --out` + `open`). `payload`
+  unknown ids now reject at parse (Argument.choices) and index.ts's
+  unreachable "no shipped payload" branch is reaped with payloadJson typed
+  to the fixture union. Font: FiraCodeNerdFont-Regular.ttf ships at
+  assets/fonts and is embedded as a base64 data URL — build.py's relative
+  url() cannot survive an arbitrary --out path. Two test-pinned deviations
+  from the python oracle, both render-invariant: combined spans emit
+  background before color (the dispatch pins bg-then-fg), and cold caches
+  drop last_miss_at where build.py rewrote it to now-25 (no segment reads
+  it). Builder calls: the live marker is plain text, not build.py's nested
+  <b> (the suite's label regex cannot see nested markup), and the package
+  vitest config gained testTimeout 300s — the pair test spawns ~74 runtime
+  renders (~6.3s at 83ms/spawn) but lacks the explicit timeout its sibling
+  tests and beforeAll all carry.

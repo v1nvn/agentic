@@ -5,7 +5,7 @@
   "type": "module",
   "bin": "dist/index.js",
   "scripts": {
-    "build": "vite build",
+    "build": "node scripts/sync-runtime.mjs && vite build",
     "test": "vitest run",
     "test:watch": "vitest"
   },

@@ -1,7 +1,9 @@
 import { printUsageAndExit } from '@v1nvn/agentic-core';
+import { writeFileSync } from 'node:fs';
 
 import { apply } from './apply.js';
 import { buildProgram, parseArgs, VERSION } from './cli.js';
+import { buildGallery } from './gallery.js';
 import { payloadJson } from './payloads.js';
 import { resolve } from './resolve.js';
 
@@ -28,16 +30,16 @@ if (parsed.version) {
     const why = step.action === 'refuse' ? ' (--force to take over)' : '';
     console.log(`${step.target}: ${step.action}${why}`);
   }
-} else if (parsed.command === 'payload') {
-  const json = payloadJson(parsed.payload ?? '');
-  if (json === undefined) {
-    console.error(
-      `no shipped payload ${parsed.payload ?? ''} (p1 | p2 | p3 | p4)`,
-    );
-    process.exitCode = 1;
+} else if (parsed.command === 'gallery') {
+  const page = buildGallery();
+  if (parsed.out === undefined) {
+    console.log(page);
   } else {
-    console.log(json);
+    writeFileSync(parsed.out, page);
+    console.error(`wrote ${parsed.out}`);
   }
+} else if (parsed.command === 'payload' && parsed.payload !== undefined) {
+  console.log(payloadJson(parsed.payload));
 } else if (parsed.command === 'resolve') {
   console.log(resolve({ home: homeOf(parsed.home) }).pluginDir ?? 'none');
 } else {
