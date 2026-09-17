@@ -118,3 +118,31 @@ describe('parseArgs: payload', () => {
     expect(parseArgs(['payload', 'capture-1'])).toBeUndefined();
   });
 });
+
+describe('parseArgs: capture', () => {
+  it('parses capture with --home', () => {
+    expect(parseArgs(['capture', '--home', '/tmp/lab-home'])).toEqual({
+      version: false,
+      command: 'capture',
+      home: '/tmp/lab-home',
+    });
+  });
+
+  it('parses capture with defaults', () => {
+    expect(parseArgs(['capture'])).toEqual({
+      version: false,
+      command: 'capture',
+    });
+  });
+
+  it('scopes --force, --dry-run, and --out away from capture', () => {
+    expect(parseArgs(['capture', '--force'])).toBeUndefined();
+    expect(parseArgs(['capture', '--dry-run'])).toBeUndefined();
+    expect(parseArgs(['capture', '--out', '/tmp/page.html'])).toBeUndefined();
+  });
+
+  it('rejects unknown flags and stray arguments — stdin is the only input', () => {
+    expect(parseArgs(['capture', '--bogus'])).toBeUndefined();
+    expect(parseArgs(['capture', 'stray'])).toBeUndefined();
+  });
+});
