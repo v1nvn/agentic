@@ -1,0 +1,71 @@
+{
+  "columns": 200,
+  "tasks": [
+    {
+      "id": "row-explore",
+      "label": "Explore",
+      "name": "explore",
+      "description": "Reading unit 2's landed pattern",
+      "model": "Sonnet [1m]",
+      "effort": "high",
+      "contextWindowSize": 200000,
+      "tokenCount": 142300,
+      "startTime": 1788862735
+    },
+    {
+      "id": "row-tests",
+      "label": "Tests",
+      "name": "test-writer",
+      "description": "Golden capture for the subagent rows",
+      "model": "Opus",
+      "effort": "medium",
+      "contextWindowSize": 180000,
+      "tokenCount": 9000,
+      "startTime": 1788869875000
+    },
+    {
+      "id": "row-review",
+      "label": "Review",
+      "name": "reviewer",
+      "description": "",
+      "model": "Haiku",
+      "effort": "low",
+      "contextWindowSize": 0,
+      "tokenCount": 0,
+      "startTime": 1788869990
+    },
+    {
+      "id": "row-fork",
+      "label": "",
+      "name": "Fork",
+      "description": "Name stands in when label is empty",
+      "model": "Sonnet",
+      "effort": "",
+      "contextWindowSize": 1000000,
+      "tokenCount": 950000,
+      "startTime": 0
+    },
+    {
+      "id": "row-idle",
+      "label": "Idle",
+      "name": "idle",
+      "description": "Idle",
+      "model": "",
+      "effort": "",
+      "contextWindowSize": 0,
+      "tokenCount": 0,
+      "startTime": 1788870001
+    },
+    {
+      "id": "",
+      "label": "NoId",
+      "name": "ghost",
+      "description": "Row without an id renders no line",
+      "model": "Opus",
+      "effort": "high",
+      "contextWindowSize": 200000,
+      "tokenCount": 1000,
+      "startTime": 1788869950
+    }
+  ]
+}

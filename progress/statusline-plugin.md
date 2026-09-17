@@ -177,8 +177,9 @@ packages/statusline-lab/         lab — TS, bin `statusline-lab`: gallery, ansi
    loose row script), restart Claude Code, verify the main line and the agent
    panel both render; then delete `/Users/vineet/.claude/statusline-lab/` and
    `/Users/vineet/.claude/subagent-statusline.sh` — and reap the
-   golden-provenance note in `test/statusline.test.ts` that cites the deleted
-   reference. Close: a fresh session
+   golden-provenance notes in `test/statusline.test.ts` and
+   `test/subagent.test.ts` that cite the deleted references. Close: a fresh
+   session
    renders both surfaces; neither loose artifact exists.
 11. **Release** — one-line commits per unit (`feat(statusline): …`), push,
     confirm release.yml cuts the train; the installed plugin moves on its own
@@ -229,9 +230,10 @@ Comment rule, scoped: the component-header alternative declarations (e.g.
 `# model: plain | block | pill | zen`) are contract — the gallery parses them
 (unit 5) — and survive verbatim. Every other touched file's comment count does
 not rise. Two more survivors, ruled at unit 2: the NOW-inertness note in
-`test/runtime.ts` (invariant), and the golden-provenance note in
-`test/statusline.test.ts` (cited external contract — unit 10 deletes the
-reference lab and reaps the note in the same change).
+`test/runtime.ts` (invariant), and the golden-provenance notes in
+`test/statusline.test.ts` and `test/subagent.test.ts` (cited external
+contract — unit 10 deletes the reference scripts and reaps both notes in the
+same change).
 
 External read-only until unit 10: `~/.claude/statusline-lab/**`,
 `~/.claude/statusline-command.sh`, `~/.claude/subagent-statusline.sh`. Tests
@@ -318,3 +320,11 @@ feed the wizard); subagent SEP follows the `style` pick.
   SEP through the style pick); the defaults→picks-file→warn chain moved once
   into bin/lib.sh sourced by both bins — statusline goldens unchanged, 5
   subagent goldens green, full gate green.
+- 2026-09-17 — unit 3 (subagent runtime) done in 1f6fbf0 + the test-contract
+  commit: picks chain extracted to bin/lib.sh (one home, both bins; the 11
+  statusline goldens stayed byte-green through the refactor). Builder judgment
+  calls accepted: jq `if length > 24` re-expressed `if 24 < length` (gate
+  false-positive class, byte-identical output), and sed/awk/date confirmed as
+  part of the bash baseline the loose scripts always used — the render-path
+  invariant's real line is "no extra interpreters" (python3/node), which the
+  gate enforces. Provenance-note ruling extended to test/subagent.test.ts.
