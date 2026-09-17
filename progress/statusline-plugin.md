@@ -178,7 +178,10 @@ packages/statusline-lab/         lab — TS, bin `statusline-lab`: gallery, ansi
    panel both render; then delete `/Users/vineet/.claude/statusline-lab/` and
    `/Users/vineet/.claude/subagent-statusline.sh` — and reap the
    golden-provenance notes in `test/statusline.test.ts` and
-   `test/subagent.test.ts` that cite the deleted references. Close: a fresh
+   `test/subagent.test.ts` that cite the deleted references — and reword/reap
+   the source notes citing them (`src/ansi.ts` header, `src/gallery.ts`
+   re-anchor + font-embed notes: citations die with the reference, standalone
+   invariants stay). Close: a fresh
    session
    renders both surfaces; neither loose artifact exists.
 11. **Release** — one-line commits per unit (`feat(statusline): …`), push,
@@ -394,3 +397,12 @@ feed the wizard); subagent SEP follows the `style` pick.
   vitest config gained testTimeout 300s — the pair test spawns ~74 runtime
   renders (~6.3s at 83ms/spawn) but lacks the explicit timeout its sibling
   tests and beforeAll all carry.
+- 2026-09-17 — unit 5 (gallery + ansi) done in b941792 + 0350c72: 86/86.
+  Ruled: the 11 new source comments are why-notes of the surviving kinds
+  (generated-copy invariant, cited-reference contracts, deviation rationales);
+  the three citing build.py/ansi2html.py join unit 10's reap ripple (unit-10
+  row extended). Deviations accepted: bg-before-fg combined spans (test-
+  pinned, CSS-identical), cold-cache last_miss_at dropped not rewritten (no
+  reader), vite testTimeout 300_000 (74 runtime spawns), plain-text live
+  marker, lab.md worded around the literal python3 grep. Font ships as the
+  2.7MB TTF asset, embedded base64 (plan's asset clause honored).
