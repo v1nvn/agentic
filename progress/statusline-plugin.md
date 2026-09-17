@@ -445,6 +445,23 @@ feed the wizard); subagent SEP follows the `style` pick.
   per-commit and could not see it). Orchestrator dispatch miss — unit 7
   should have been dispatched as 7a (test contract) / 7b (machine + TUI).
   Units 8+ split at dispatch when the forecast exceeds the ceiling.
+- 2026-09-17 — unit 8 (responsive engine) done: the width engine ported into
+  bin/statusline.sh — WIDTH clamps <20→20, AVAIL = COLUMNS−3, code-point
+  vlen (⚡ counts 2), FULL/L1/L2 step ladders as PICK demotions guarded by
+  per-component rung orders (never widen, so minimal picks are never
+  un-done), 2-line wrap = reset to initial picks then independent
+  L1 (model+location) / L2 (context+cost+duration) refits, floor render
+  kept on overflow; engine rungs seg_branch_none and seg_bar_flat6/flat4
+  sit beside the picks mechanism. Sanctioned deviation, ruled option (a):
+  the goldens had pinned tr-mangled C-locale bar bytes (BSD tr truncates
+  `tr ' ' '█'` to the lead byte under LC_ALL=C), contradicting the
+  responsive suite's real-█░ pins — bar blocks are now locale-independent
+  pure-bash appends in components/bar.sh (`_bar_flat_w`; note `local
+  w=$1 f=$((…w…))` expands w before local assigns it — declarations
+  split), the 7 bar-bearing goldens re-recorded with bar bytes the only
+  delta, bytes unchanged under UTF-8. Unset-COLUMNS regression held,
+  subagent.sh untouched with its goldens byte-green. 153/153, full gate
+  green.
 - 2026-09-17 — unit-8 deviation ruling (veto table): the bar render's `tr ' '
   '█'` idiom mangles blocks to lead bytes under LC_ALL=C — the unit-2 goldens
   pinned those mangled bytes (capture artifact of the pinned C locale; the
