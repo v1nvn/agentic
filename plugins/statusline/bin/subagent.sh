@@ -8,7 +8,7 @@ case "$AVAIL" in ''|*[!0-9]*) AVAIL=200 ;; esac
 [ "$AVAIL" -lt 20 ] && AVAIL=20
 AVAIL=$((AVAIL - 1))
 
-CYAN=$'\033[36m'; GREEN=$'\033[32m'; YELLOW=$'\033[33m'; RED=$'\033[31m'
+CYAN=$'\033[36m'; GREEN=$'\033[32m'; YELLOW=$'\033[33m'; RED=$'\033[31m'; DIM=$'\033[2m'
 RESET=$'\033[0m'
 
 source "$RUNTIME/bin/lib.sh"
