@@ -286,3 +286,9 @@ feed the wizard); subagent SEP follows the `style` pick.
   marketplace entry (productivity), build.yml validate loop, and the two new
   manifests added to the set-version.mjs mirrors; README + CLAUDE.md counts now
   seven plugins / eight packages. Full gate green.
+- 2026-09-17 — unit 2 (runtime move) done: `bin/statusline.sh` +
+  `components/` ported from the loose lab (three python3 variants dropped,
+  headers verbatim; cost.sh's awk exit re-expressed so no nonzero exit ships);
+  picks read from the data dir over shipped defaults, NOW overridable, and an
+  unknown or not-adoptable pick warns on stderr then falls back to the default
+  alternative. 11 goldens green, full gate green.
