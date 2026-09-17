@@ -1,5 +1,7 @@
 # Statusline — plugin 8 + statusline-lab package (trampoline runtime)
 
+> Rules: ../references/tracking.md · Index: ../TODO.md
+
 **Goal.** Ship `~/.claude/statusline-lab` as a product: a component library
 where every statusline segment has multiple designs, an HTML preview gallery to
 pick from, and one-command adoption. One plugin renders both surfaces: the
@@ -462,6 +464,13 @@ feed the wizard); subagent SEP follows the `style` pick.
   delta, bytes unchanged under UTF-8. Unset-COLUMNS regression held,
   subagent.sh untouched with its goldens byte-green. 153/153, full gate
   green.
+- 2026-09-17 — unit-8 review round 1 fixed red-first (3 red): seg_bar_percent
+  rendered a doubled `%%` (argument literal under format `%s`) wrapped in DIM
+  — now a single unstyled percent per the live BARB=0 rung; the dropped
+  MODELD=1 rung ported as the model=strip step (`MODEL=${MODEL%\[*};
+  MODEL=${MODEL% }`, snapshotted with the rungs for the wrap reset) at its
+  live positions — FULL_STEPS after bar=flat4 before bar=percent, L1_STEPS
+  after branch=last before branch=none. 158/158, full gate green.
 - 2026-09-17 — unit-8 deviation ruling (veto table): the bar render's `tr ' '
   '█'` idiom mangles blocks to lead bytes under LC_ALL=C — the unit-2 goldens
   pinned those mangled bytes (capture artifact of the pinned C locale; the
