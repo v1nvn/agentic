@@ -5,10 +5,10 @@ import p4 from '../assets/payloads/p4.json' with { type: 'json' };
 
 const PAYLOADS = { p1, p2, p3, p4 } as const;
 
-type PayloadName = keyof typeof PAYLOADS;
+export type PayloadName = keyof typeof PAYLOADS;
 
-export function payloadJson(name: string): string | undefined {
-  return Object.hasOwn(PAYLOADS, name)
-    ? JSON.stringify(PAYLOADS[name as PayloadName])
-    : undefined;
+export const PAYLOAD_NAMES: readonly PayloadName[] = ['p1', 'p2', 'p3', 'p4'];
+
+export function payloadJson(name: PayloadName): string {
+  return JSON.stringify(PAYLOADS[name]);
 }
