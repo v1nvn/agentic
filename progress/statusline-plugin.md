@@ -434,6 +434,12 @@ feed the wizard); subagent SEP follows the `style` pick.
   `! npx -y @v1nvn/statusline-lab pick` invitation; apply-first framing
   untouched. 137/137 green (104 + wizard 27 + cli pins), full gate green,
   protected baseline re-recorded for the extended cli.test.ts.
+- 2026-09-17 — unit 7 review round 1 fixed red-first: the y-path still runs
+  plain apply() (foreign keys keep refusing) but the offer frame now reports
+  the actual ApplyResult steps — any refused step names its target with
+  `refused` and the --force hint, clean steps frame plain `applied` (the
+  `both lines go live` claim is gone); index.ts no longer double-prints the
+  cancel message (the wizard frame owns it). 138/138 green.
 - 2026-09-17 — unit-7 review process note: the per-unit 800-line ceiling was
   breached (1100 combined across the unit's three commits; the gate checks
   per-commit and could not see it). Orchestrator dispatch miss — unit 7
