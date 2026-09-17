@@ -1,5 +1,7 @@
 # Workflow plugin — session-craft skills as plugin 7
 
+> Rules: ../references/tracking.md · Index: ../TODO.md
+
 **Goal.** Ship the three session-craft skills — `explain`, `handoff`, `run-plan` —
 as a seventh manifest-only plugin, so they are tracked, versioned and distributed
 by this marketplace instead of living loose in `~/.claude/skills/`. No package,
