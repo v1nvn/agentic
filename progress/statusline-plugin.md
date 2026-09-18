@@ -529,3 +529,10 @@ feed the wizard); subagent SEP follows the `style` pick.
   reference-citation note gone (ansi.test.ts residual ruled the same class,
   taken by the orchestrator); fixture paths in apply/capture tests are
   pre-adoption state, kept. 10b = the documented post-merge handoff.
+- 2026-09-18 — unit 11 done: branch pushed, PR #2 opened against main
+  (965 tests green, versions consistent at 0.18.0, all validates pass).
+  Owed to the owner after merge: release-please cuts the train; then unit
+  10b — install statusline@agentic, `npx -y @v1nvn/statusline-lab apply
+  --force`, restart Claude Code, verify both surfaces paint, delete
+  ~/.claude/statusline-lab/ and ~/.claude/subagent-statusline.sh; archive
+  this file when 10b closes.
