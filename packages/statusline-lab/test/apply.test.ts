@@ -355,7 +355,7 @@ describe('the written trampoline', () => {
     );
     writeCacheVersion(home, '0.19.0');
     writeInstalledPlugins(home, {
-      'statusline@agentic': [{ installPath: installDir }],
+      'statusline-lab@agentic': [{ installPath: installDir }],
     });
     apply({ home });
 

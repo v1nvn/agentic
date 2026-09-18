@@ -1,7 +1,7 @@
 # agentic — rules
 
 A Claude Code plugin marketplace: `readability` and `omlx` (MCP servers) plus `rm`,
-`md`, `zai`, `tokens` (zero-token hook plugins) and `statusline` (status line +
+`md`, `zai`, `tokens` (zero-token hook plugins) and `statusline-lab` (status line +
 agent panel) — seven independently-installable plugins in one repo. The code lives
 in eight npm packages (`@v1nvn/*`) under `packages/`; each plugin directory is only
 a manifest plus config wrapper.
@@ -46,6 +46,9 @@ Surface a real impasse; do not hack past it.
   root-run tools (eslint stack, prettier, typescript).
 - **Seven independent plugins, one marketplace.** Never collapse them into a
   mega-plugin; each installs and runs on its own.
+- **statusline-lab ships exactly one command** — `/statusline-lab`, folding
+  adopt, browse, pick, and capture. Never add a second; its name must not
+  collide with Claude Code's built-in `/statusline`.
 - **One author identity:** `v1nvn` / `v1n@outlook.com` in every manifest.
 
 ## Invariants

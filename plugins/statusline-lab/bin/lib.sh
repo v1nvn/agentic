@@ -10,7 +10,7 @@ default_pick() {
 }
 
 read_picks() {
-    local c line k v picks=$HOME/.claude/plugins/data/statusline-agentic/picks
+    local c line k v picks=$HOME/.claude/plugins/data/statusline-lab-agentic/picks
     for c in "$@"; do
         eval "PICK_$c=\$(default_pick \$c)"
     done

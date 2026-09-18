@@ -7,18 +7,18 @@ import { fileURLToPath } from 'node:url';
 import { materializeDemoRepo } from '../src/demo-repo.js';
 
 export const RUNTIME_BIN = fileURLToPath(
-  new URL('../../../plugins/statusline/bin/statusline.sh', import.meta.url),
+  new URL('../../../plugins/statusline-lab/bin/statusline.sh', import.meta.url),
 );
 
 export const SUBAGENT_BIN = fileURLToPath(
-  new URL('../../../plugins/statusline/bin/subagent.sh', import.meta.url),
+  new URL('../../../plugins/statusline-lab/bin/subagent.sh', import.meta.url),
 );
 
 export const PICKS_PATH = join(
   '.claude',
   'plugins',
   'data',
-  'statusline-agentic',
+  'statusline-lab-agentic',
   'picks',
 );
 

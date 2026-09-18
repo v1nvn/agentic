@@ -12,7 +12,7 @@ const manifest = JSON.parse(
 
 describe('buildProgram', () => {
   it('names the bin after the package', () => {
-    expect(buildProgram().name()).toBe('statusline');
+    expect(buildProgram().name()).toBe('statusline-lab');
   });
 
   it('rides the manifest version', () => {
@@ -168,13 +168,13 @@ describe('parseArgs: pick', () => {
       parseArgs([
         'pick',
         '--payload',
-        '/tmp/lab-home/.claude/plugins/data/statusline-agentic/payloads/latest.json',
+        '/tmp/lab-home/.claude/plugins/data/statusline-lab-agentic/payloads/latest.json',
       ]),
     ).toEqual({
       version: false,
       command: 'pick',
       payload:
-        '/tmp/lab-home/.claude/plugins/data/statusline-agentic/payloads/latest.json',
+        '/tmp/lab-home/.claude/plugins/data/statusline-lab-agentic/payloads/latest.json',
     });
   });
 

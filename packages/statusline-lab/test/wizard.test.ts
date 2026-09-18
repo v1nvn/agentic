@@ -454,7 +454,7 @@ describe('wizard: end-to-end walk', () => {
     expect(lastLine(recorded.specs).args).toEqual(WALK_ARGS);
     expect(recorded.frames.some(frame => frame.includes(OFFER))).toBe(false);
     expect(Object.keys(snapshotTree(home)).sort()).toEqual([
-      '.claude/plugins/data/statusline-agentic/picks',
+      '.claude/plugins/data/statusline-lab-agentic/picks',
       '.claude/statusline-command.sh',
     ]);
 

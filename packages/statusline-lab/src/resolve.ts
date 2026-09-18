@@ -32,7 +32,7 @@ function installPathFrom(file: string): null | string {
     return null;
   }
   const installPath = (parsed as InstalledPluginsFile | null)?.plugins?.[
-    'statusline@agentic'
+    'statusline-lab@agentic'
   ]?.[0]?.installPath;
   return typeof installPath === 'string' && installPath !== ''
     ? installPath

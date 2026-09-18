@@ -14,14 +14,14 @@ const MIRRORS = [
   'packages/tokens/package.json',
   'packages/rm/package.json',
   'packages/md/package.json',
-  'packages/statusline/package.json',
+  'packages/statusline-lab/package.json',
   'plugins/readability/.claude-plugin/plugin.json',
   'plugins/omlx/.claude-plugin/plugin.json',
   'plugins/rm/.claude-plugin/plugin.json',
   'plugins/md/.claude-plugin/plugin.json',
   'plugins/zai/.claude-plugin/plugin.json',
   'plugins/tokens/.claude-plugin/plugin.json',
-  'plugins/statusline/.claude-plugin/plugin.json',
+  'plugins/statusline-lab/.claude-plugin/plugin.json',
 ];
 
 // Plugin configs invoke the published bins via npx; every @v1nvn/<pkg>@<version>

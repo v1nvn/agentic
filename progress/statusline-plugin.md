@@ -1,4 +1,4 @@
-# Statusline — plugin 8 + @v1nvn/statusline package (trampoline runtime)
+# Statusline — plugin 8, `statusline-lab` everywhere (trampoline runtime)
 
 > Rules: ../references/tracking.md · Index: ../TODO.md
 
@@ -6,10 +6,14 @@
 where every statusline segment has multiple designs, an HTML preview gallery to
 pick from, and one-command adoption. One plugin renders both surfaces: the
 main status line and the subagent panel rows. Two artifacts:
-`plugins/statusline` (the bash render runtime) and `packages/statusline`
-(`@v1nvn/statusline`, the TS lab; renamed from `statusline-lab` pre-release).
-Auto-update needs no mechanism — the
-installed statusline pulls the current plugin version on every render.
+`plugins/statusline-lab` (the bash render runtime) and `packages/statusline-lab`
+(`@v1nvn/statusline-lab`, the TS lab). The plugin name is `statusline-lab` —
+never `statusline`, which collides with Claude Code's built-in `/statusline`
+(that command writes a script and repoints the same `statusLine` settings key).
+Auto-update needs no mechanism — the installed statusline pulls the current
+plugin version on every render. **One slash command, `/statusline-lab`** — the
+plugin ships `commands/statusline-lab.md` alone; adopt, browse, pick, and
+capture all fold into it (owner ruling 2026-09-18).
 
 ## Architecture — settled, do not relitigate
 
@@ -18,23 +22,24 @@ installed statusline pulls the current plugin version on every render.
                                  subagentStatusLine → ~/.claude/statusline-command.sh
                                  --subagent (both never change again)
 ~/.claude/statusline-command.sh  trampoline, ~15 lines, written once by `apply`:
-                                  1. jq '.plugins["statusline@agentic"][0].installPath'
+                                  1. jq '.plugins["statusline-lab@agentic"][0].installPath'
                                      from ~/.claude/plugins/installed_plugins.json
                                   2. fallback: newest version dir (sort -V) under
-                                     ~/.claude/plugins/cache/agentic/statusline/
+                                     ~/.claude/plugins/cache/agentic/statusline-lab/
                                   3. pick bin by arg (--subagent → subagent.sh,
                                      else statusline.sh); exec bash "$p/bin/<bin>"
                                   4. unresolved → print nothing, exit 0
-plugins/statusline/              runtime — bash only. bin/statusline.sh (render path of
+plugins/statusline-lab/          runtime — bash only. bin/statusline.sh (render path of
                                   compose.sh: jq prologue, git block, path helpers, clusters,
                                   style, picks), bin/subagent.sh (agent-panel rows),
-                                  components/*.sh, commands/{compose,lab,capture}.md,
-                                  .claude-plugin/plugin.json. No hooks.
-packages/statusline/             lab — TS, bin `statusline`: gallery, ansi, capture,
+                                  components/*.sh, commands/statusline-lab.md (the one
+                                  command), .claude-plugin/plugin.json. No hooks.
+packages/statusline-lab/         lab — TS, bin `statusline-lab`: gallery, ansi, capture,
                                   apply, resolve. Payloads, default picks, and the Nerd
                                   Font ship as assets; a deterministic script materializes
                                   the demo git repo at render/test time (no .git in the
-                                  tarball).
+                                  tarball). Data dir (picks + captures):
+                                  ~/.claude/plugins/data/statusline-lab-agentic/
 ```
 
 - **Trampoline (pull per render), not a SessionStart re-compose hook (push).**
@@ -46,7 +51,7 @@ packages/statusline/             lab — TS, bin `statusline`: gallery, ansi, ca
   (ttl countdown), `rate=strip` (rate bars). Each ships only after a rewrite
   as precomputed bash ramps (own unit, deferrable — until then its pick falls
   back to the default and the variant renders in the gallery only).
-- **Picks** live at `~/.claude/plugins/data/statusline-agentic/picks` (dir
+- **Picks** live at `~/.claude/plugins/data/statusline-lab-agentic/picks` (dir
   pattern `<plugin>-<marketplace>`, confirmed against `md-agentic`,
   `tokens-agentic`). Read at render, so a pick change is live on the next
   paint. The current `/Users/vineet/.claude/statusline-lab/picks` ships as the
@@ -556,3 +561,20 @@ feed the wizard); subagent SEP follows the `style` pick.
   gallery, install → resolve → trampoline paints both surfaces, and an
   edit inside the installed dir shows on the very next paint. 10b's
   handoff line above now names `npx -y @v1nvn/statusline apply --force`.
+- 2026-09-18 — owner rulings, second review round: (1) ONE slash command for
+  this plugin, ever — `/statusline-lab`. commands/ now holds only
+  statusline-lab.md (stem = plugin name, so the bare short-name alias
+  resolves; canonical form /statusline-lab:statusline-lab also works);
+  lab/capture folded into its body, the two files deleted. (2) The plugin
+  name is `statusline-lab`, not `statusline` — Claude Code ships a built-in
+  /statusline that writes its own script and repoints the same statusLine
+  settings key, and even without a hard clash the shared name invites the
+  wrong invocation. This session's earlier package rename to
+  @v1nvn/statusline reverted; plugin + package + bin + trampoline key
+  (`statusline-lab@agentic`) + cache dir (`cache/agentic/statusline-lab/`) +
+  data dir (`statusline-lab-agentic`) all on the -lab name. One-command rule
+  recorded in CLAUDE.md (statusline-scoped). 190/190 after the rename.
+  10b handoff, corrected: install `statusline-lab@agentic`, then
+  `npx -y @v1nvn/statusline-lab apply --force`, restart, verify both
+  surfaces, delete the loose `~/.claude/statusline-lab/` and
+  `~/.claude/subagent-statusline.sh`.

@@ -202,7 +202,7 @@ function slotPath(home: string, kind: 'main' | 'tick'): string {
     '.claude',
     'plugins',
     'data',
-    'statusline-agentic',
+    'statusline-lab-agentic',
     leaf,
     'latest.json',
   );
@@ -324,8 +324,8 @@ describe('capture: containment', () => {
     capture({ home, stdin: scrambled(multi) });
 
     expect(Object.keys(snapshotTree(home)).sort()).toEqual([
-      '.claude/plugins/data/statusline-agentic/payloads/latest.json',
-      '.claude/plugins/data/statusline-agentic/ticks/latest.json',
+      '.claude/plugins/data/statusline-lab-agentic/payloads/latest.json',
+      '.claude/plugins/data/statusline-lab-agentic/ticks/latest.json',
     ]);
   });
 });

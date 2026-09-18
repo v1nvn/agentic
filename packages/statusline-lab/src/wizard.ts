@@ -283,7 +283,7 @@ export async function createWizard(
       const answer = await keys.next();
       if (answer.done || answer.value !== 'y') {
         deps.render(
-          'apply skipped — run it anytime: npx -y @v1nvn/statusline apply\n',
+          'apply skipped — run it anytime: npx -y @v1nvn/statusline-lab apply\n',
         );
         return 'saved';
       }
