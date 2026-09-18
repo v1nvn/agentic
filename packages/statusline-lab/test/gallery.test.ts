@@ -281,7 +281,7 @@ describe('gallery', () => {
     }
   });
 
-  it('marks the declared-but-unimplemented variants not-adoptable', () => {
+  it('renders every declared alternative from the runtime — nothing not-adoptable', () => {
     const missing: string[] = [];
     for (const [comp, declaration] of declared()) {
       for (const alt of declaration.alts) {
@@ -290,18 +290,17 @@ describe('gallery', () => {
         }
       }
     }
-    expect([...missing].sort()).toEqual([
-      'bar=gauge',
-      'cache=fuse',
-      'rate=strip',
-    ]);
-    for (const block of blocksOf(page)) {
-      expect(block.block.includes('not-adoptable'), block.label).toBe(
-        missing.includes(bare(block.label)),
+    expect(missing).toEqual([]);
+    expect(page).not.toContain('not-adoptable');
+    for (const label of ['bar=gauge', 'cache=fuse', 'rate=strip']) {
+      const [comp, alt] = label.split('=');
+      const block = blocksOf(page).find(b => bare(b.label) === label);
+      expect(block, label).toBeDefined();
+      const row = soloRow(comp, alt, 'p1', demo!);
+      expect(row, label).not.toBe('');
+      expect(block!.block, label).toContain(
+        `<div class="line">${toHtml(row)}</div>`,
       );
-      if (missing.includes(bare(block.label))) {
-        expect(block.block, block.label).toContain('<div class="line">');
-      }
     }
   });
 

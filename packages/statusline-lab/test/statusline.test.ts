@@ -142,16 +142,25 @@ describe('picks from the data dir', () => {
   });
 });
 
-describe('not-adoptable picks', () => {
-  it.each(['bar=gauge', 'cache=fuse', 'rate=strip', 'model=nope'])(
-    '%s in the picks file warns and falls back to the default line',
+describe('ramped picks', () => {
+  it.each(['bar=gauge', 'cache=fuse', 'rate=strip'])(
+    '%s in the picks file renders without a warn',
     pick => {
       const run = render('p1', { picks: `${pick}\n` });
       expect(run.status).toBe(0);
-      expect(run.stderr.trim()).not.toBe('');
-      expect(run.stdout).toEqual(golden('p1-default'));
+      expect(run.stderr).toBe('');
+      expect(run.stdout.equals(golden('p1-default'))).toBe(false);
     },
   );
+});
+
+describe('unknown picks', () => {
+  it('model=nope in the picks file warns and falls back to the default line', () => {
+    const run = render('p1', { picks: 'model=nope\n' });
+    expect(run.status).toBe(0);
+    expect(run.stderr.trim()).not.toBe('');
+    expect(run.stdout).toEqual(golden('p1-default'));
+  });
 });
 
 describe('NOW sensitivity', () => {
