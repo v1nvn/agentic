@@ -222,7 +222,5 @@ this file when 10b closes.
   `payloads:` header had no reader since unit 1), PR #2 body swapped to the
   two-mode story with no attribution footer. Orchestrator ruling (veto
   table): the verify grep is scoped to the statusline-lab surface —
-  readability-mcp's "gallery" is
-  another plugin's vocabulary (image-only fixtures, third-party captured
-  HTML); `packages/statusline-lab`, `plugins/statusline-lab`, `README.md`,
-  `CLAUDE.md`, and every nested README grep silent.
+  readability-mcp's "gallery" is another plugin's vocabulary (image-only
+  fixtures, third-party captured HTML), out of scope.
