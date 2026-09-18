@@ -14,7 +14,7 @@ const MIRRORS = [
   'packages/tokens/package.json',
   'packages/rm/package.json',
   'packages/md/package.json',
-  'packages/statusline-lab/package.json',
+  'packages/statusline/package.json',
   'plugins/readability/.claude-plugin/plugin.json',
   'plugins/omlx/.claude-plugin/plugin.json',
   'plugins/rm/.claude-plugin/plugin.json',

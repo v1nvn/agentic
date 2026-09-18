@@ -12,7 +12,7 @@ writes identical bytes.
 Put the JSON the session can see — a payload the owner pasted, or any stdin
 they provide — in `$JSON`, then run this exactly:
 
-    JSON='…' ; printf '%s' "$JSON" | npx -y @v1nvn/statusline-lab capture
+    JSON='…' ; printf '%s' "$JSON" | npx -y @v1nvn/statusline capture
 
 Report the output it prints.
 

@@ -814,16 +814,16 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@v1nvn/statusline-lab@workspace:packages/statusline-lab":
+"@v1nvn/statusline@workspace:packages/statusline":
   version: 0.0.0-use.local
-  resolution: "@v1nvn/statusline-lab@workspace:packages/statusline-lab"
+  resolution: "@v1nvn/statusline@workspace:packages/statusline"
   dependencies:
     "@v1nvn/agentic-core": "workspace:^"
     commander: "npm:^15.0.0"
     vite: "npm:^8.1.4"
     vitest: "npm:^4.1.10"
   bin:
-    statusline-lab: dist/index.js
+    statusline: dist/index.js
   languageName: unknown
   linkType: soft
 

@@ -74,7 +74,7 @@ export function buildProgram(
     .option('--home <dir>', 'operate on this home instead of $HOME')
     .action((options: SubcommandOptions) => onSubcommand?.('resolve', options));
   return new Command()
-    .name('statusline-lab')
+    .name('statusline')
     .description('Preview statusline designs and apply them to the live line')
     .option('-V, --version', 'print the lab version and exit')
     .action(() => undefined)
