@@ -13,12 +13,6 @@ import {
   type RenderResult,
 } from './runtime.js';
 
-// Golden provenance: every ramp-*.ans capture is the byte output of the
-// package-side python3 oracle (assets/extras/{gauge,fuse,strip}.sh) at the
-// inputs each case names, under the renderStatusline env (HOME/NOW/LC_ALL=C/
-// TZ=UTC pinned). Unit 9 ports the ramps to bash and deletes the extras —
-// these bytes are the surviving fidelity spec.
-
 type Loose = Record<string, unknown>;
 
 const PAYLOADS_DIR = fileURLToPath(

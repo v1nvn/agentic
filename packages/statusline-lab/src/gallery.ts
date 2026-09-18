@@ -25,9 +25,6 @@ const SUBAGENT_WIDTHS: readonly number[] = [80, 40];
 
 type Loose = Record<string, unknown>;
 
-// build.py's re-anchor table; cold caches additionally drop last_miss_at
-// (pinned by test/gallery.test.ts — build.py rewrote it to now-25, but no
-// segment ever reads the field, so the render is identical either way).
 const WARM_IN: Readonly<Record<PayloadName, number | undefined>> = {
   p1: 1920,
   p2: 2400,
@@ -195,8 +192,6 @@ h2{font-size:13px;font-weight:600;color:#c5cadb;letter-spacing:.1em;text-transfo
 `;
 
 function fontFace(): string {
-  // Embedded rather than build.py's relative url(): the page renders from an
-  // arbitrary --out path, never from beside assets/.
   const ttf = readFileSync(FONT_FILE).toString('base64');
   return `@font-face{font-family:'NerdLab';src:url(data:font/ttf;base64,${ttf}) format('truetype')}`;
 }

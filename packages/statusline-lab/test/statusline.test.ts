@@ -12,11 +12,6 @@ import {
   type DemoHome,
 } from './runtime.js';
 
-// Goldens are byte captures of the reference lab compose.sh (the shipped
-// default picks forced through argv) run under the same contract as
-// renderStatusline: bash plugins/statusline/bin/statusline.sh, payload stdin
-// re-anchored to the demo repo, env HOME/NOW/LC_ALL=C/TZ=UTC pinned.
-
 let demo: DemoHome | undefined;
 
 beforeEach(() => {
