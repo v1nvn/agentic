@@ -10,7 +10,7 @@ script or key is refused, never overwritten, unless `apply --force`.
 
 Run this exactly:
 
-    npx -y @v1nvn/statusline-lab apply
+    npx -y @v1nvn/statusline apply
 
 Report the output it prints.
 
@@ -18,7 +18,7 @@ Then invite the wizard. Every component ships several designs; the owner
 chooses them in a live-preview terminal wizard. The Bash tool cannot host a
 TUI, so the owner runs it directly:
 
-    ! npx -y @v1nvn/statusline-lab pick
+    ! npx -y @v1nvn/statusline pick
 
 The wizard previews every design of the focused component rendered by the
 shipped runtime, on the latest capture (or a shipped fixture, or

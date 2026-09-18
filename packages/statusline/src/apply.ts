@@ -29,7 +29,7 @@ export interface ApplyResult {
 }
 
 const TRAMPOLINE_COMMAND = '~/.claude/statusline-command.sh';
-const TRAMPOLINE_MARKER = '# statusline-lab trampoline';
+const TRAMPOLINE_MARKER = '# statusline trampoline';
 const SETTINGS_KEYS: readonly ApplyTarget[] = [
   'statusLine',
   'subagentStatusLine',

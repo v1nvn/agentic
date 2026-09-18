@@ -9,7 +9,7 @@ The suffix `live line uses this` marks the shipped default.
 Run this exactly:
 
     PAGE="${TMPDIR:-/tmp}/statusline-gallery.html"
-    npx -y @v1nvn/statusline-lab gallery --out "$PAGE" && open "$PAGE"
+    npx -y @v1nvn/statusline gallery --out "$PAGE" && open "$PAGE"
 
 Report the output it prints. Renders come from the shipped payloads and demo
 repo, so the page is identical on any machine — point at designs by their
