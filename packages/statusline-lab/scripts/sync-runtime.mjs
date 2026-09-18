@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // assets/runtime is a generated copy of the plugin runtime — edit
-// plugins/statusline-lab, never the copy (tests and the gallery render the copy).
+// plugins/statusline-lab, never the copy (tests and the wizard render the copy).
 import { cpSync, existsSync, rmSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 

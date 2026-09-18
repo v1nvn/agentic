@@ -38,8 +38,8 @@ installs from a local marketplace (`claude plugin marketplace add <repo
 checkout>` → `claude plugin install statusline-lab@agentic`), the trampoline
 renders both surfaces from the installed plugin dir, an edit inside the
 installed dir shows on the next paint, `apply` is cancel-safe and idempotent,
-the wizard runs and saves picks, the suite is 159/159. Still shipping against
-the ruling: the README still carries the gallery story (unit 4). The
+the wizard runs and saves picks, the suite is 159/159. The two-mode cut is
+complete — the tree carries no statusline-lab gallery story anywhere. The
 build thread lives in `archive/statusline-plugin.md`.
 
 ## Layout — what a fresh session needs
@@ -87,8 +87,9 @@ the trampoline at `~/.claude/statusline-command.sh` resolves
   picks at the end), and exactly one hand-off for visual browsing:
   `! npx -y @v1nvn/statusline-lab pick`. Previews stay in the terminal on
   evidence, not taste: Claude Code renders Bash-tool ANSI only as a ~3-line
-  collapsed preview, and 24-bit SGR — which the gauge/ramp designs emit — has
-  arrived as literal text for some users (claude-code issues #18269, #16790).
+  collapsed preview, and 24-bit SGR — which the bar designs (gauge among
+  them) emit — has arrived as literal text for some users (claude-code
+  issues #18269, #16790).
   The `!` hand-off is safe even without a raw TTY: the wizard reads piped
   stdin and ships j/k/h/l as arrow-key aliases.
 - **Trampoline and bash runtime unchanged** — both modes share them.
@@ -160,7 +161,9 @@ stale gallery references unit 1 left where no unit owns the file:
 `components/state.sh:3` (`payloads:` header nothing reads),
 `test/capture.test.ts:334`, `vite.config.ts:26`, `scripts/sync-runtime.mjs:3`.
 Verify: gates below once more; fresh-eyes read of README + PR body;
-`/usr/bin/grep -rn gallery packages plugins README.md CLAUDE.md` silent.
+`/usr/bin/grep -rn gallery packages/statusline-lab plugins/statusline-lab
+README.md CLAUDE.md` silent (readability-mcp's "gallery" fixtures are
+another plugin's vocabulary and third-party captures; out of scope).
 
 ## Gates — every unit, before its commit
 
@@ -213,3 +216,12 @@ this file when 10b closes.
   with the agent writing named picks as `comp=alt` lines (unnamed
   components' existing lines kept); the dead gallery lines died with the
   rewrite; scratch-home install holds exactly the one file, byte-identical.
+- 2026-09-18 — unit 4 landed: README and CLAUDE.md carry the two-mode story
+  (the wizard is the gallery; the terminal-only invariant sits next to the
+  one-command rule), the four stale gallery references swept (the
+  `payloads:` header had no reader since unit 1), PR #2 body swapped to the
+  two-mode story with no attribution footer. Owner ruling: the verify grep
+  is scoped to the statusline-lab surface — readability-mcp's "gallery" is
+  another plugin's vocabulary (image-only fixtures, third-party captured
+  HTML); `packages/statusline-lab`, `plugins/statusline-lab`, `README.md`,
+  `CLAUDE.md`, and every nested README grep silent.

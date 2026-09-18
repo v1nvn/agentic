@@ -56,11 +56,11 @@ packages/                           the eight npm packages — one yarn workspac
   readability-mcp/  omlx-mcp/       the two MCP servers (@v1nvn/readability-mcp, @v1nvn/omlx-mcp)
   core/                             @v1nvn/agentic-core — last-reply + text formatting, shared by the tools
   zai/  tokens/  rm/  md/           the tool CLIs (zai-usage, tokens-report, rm-send, md-send)
-  statusline-lab/                    preview and adopt statusline designs (statusline-lab)
+  statusline-lab/                    the terminal wizard + design catalog (statusline-lab)
 plugins/                            the seven plugins — manifests + config wrappers, no code
   readability/  omlx/               .mcp.json (pinned npx) + plugin.json
   zai/  tokens/  rm/  md/           hooks.json (pinned npx) + plugin.json + commands/
-  statusline-lab/                   one command — adopt, browse, and pick designs
+  statusline-lab/                   one command — adopt, capture, catalog, tour; the wizard previews
 ```
 
 Versions ride one lockstep train: `.claude-plugin/marketplace.json` is the source, and

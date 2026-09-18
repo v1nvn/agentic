@@ -331,8 +331,8 @@ describe('capture: containment', () => {
 });
 
 describe('capture: fidelity', () => {
-  // Capture stores what came in: re-anchoring timestamps is a gallery
-  // concern, and a rewritten timestamp would falsify the no-op pin above.
+  // Capture stores what came in verbatim — a rewritten timestamp would
+  // falsify the no-op pin above.
   it('keeps incoming timestamps verbatim in both shapes', () => {
     const home = homes.newHome();
 
