@@ -185,6 +185,28 @@ describe('parseArgs: capture', () => {
   });
 });
 
+describe('parseArgs: designs', () => {
+  it('parses designs with --home', () => {
+    expect(parseArgs(['designs', '--home', '/tmp/lab-home'])).toEqual({
+      version: false,
+      command: 'designs',
+      home: '/tmp/lab-home',
+    });
+  });
+
+  it('parses designs with defaults', () => {
+    expect(parseArgs(['designs'])).toEqual({
+      version: false,
+      command: 'designs',
+    });
+  });
+
+  it('rejects unknown flags and stray arguments — the catalog takes no input', () => {
+    expect(parseArgs(['designs', '--bogus'])).toBeUndefined();
+    expect(parseArgs(['designs', 'stray'])).toBeUndefined();
+  });
+});
+
 describe('parseArgs: pick', () => {
   it('parses pick with defaults', () => {
     expect(parseArgs(['pick'])).toEqual({ version: false, command: 'pick' });

@@ -2,11 +2,15 @@ import { printUsageAndExit } from '@v1nvn/agentic-core';
 
 import { apply } from './apply.js';
 import { capture } from './capture.js';
-import { buildProgram, designsCatalog, parseArgs, VERSION } from './cli.js';
+import { buildProgram, parseArgs, VERSION } from './cli.js';
 import { payloadJson, type PayloadName } from './payloads.js';
 import { resolve } from './resolve.js';
 import { terminalDeps } from './wizard-tui.js';
-import { createWizard, resolveWizardPayload } from './wizard.js';
+import {
+  createWizard,
+  designsCatalog,
+  resolveWizardPayload,
+} from './wizard.js';
 
 const parsed =
   parseArgs(process.argv.slice(2)) ?? printUsageAndExit(buildProgram());

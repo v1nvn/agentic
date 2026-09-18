@@ -68,7 +68,7 @@ const PAYLOADS_DIR = fileURLToPath(
 const TICKS_DIR = fileURLToPath(new URL('../assets/ticks', import.meta.url));
 const TRAMPOLINE_REL = join('.claude', 'statusline-command.sh');
 const WIDTHS: readonly number[] = [80, 120, 200];
-const PANEL_AGE_S = 1800;
+const PANEL_STEP_S = 300;
 const APPLY_OFFER = 'apply now? [y/n]';
 const KEYMAP =
   'j/k move · h/l design · s none · w width · enter save · q cancel';
@@ -248,29 +248,28 @@ function previewStdin(
   };
 }
 
-// subagent.sh reads startTime in seconds and divides anything above 2e11 by
-// 1000 (a millisecond value); anchoring works on the scale the renderer sees.
-function startSeconds(value: unknown): number | undefined {
-  if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) {
-    return undefined;
-  }
-  return value > 200_000_000_000 ? Math.floor(value / 1000) : Math.floor(value);
+function hasStart(value: unknown): boolean {
+  return typeof value === 'number' && Number.isFinite(value) && value > 0;
 }
 
-// The shipped tick is anchored to the render moment — its first row is
-// PANEL_AGE_S old — so demo durations never go stale with the fixture.
+// subagent.sh drops a row's duration unless its start is at or before NOW
+// (the elapsed >= 0 guard), so the demo schedule staggers every started row
+// strictly into the past: the first row is PANEL_STEP_S old, each next row
+// one step older — ids and order ride over untouched.
 function demoPanelTick(now: number): Loose {
   const tick = JSON.parse(
     readFileSync(join(TICKS_DIR, 'multi.json'), 'utf8'),
   ) as Loose;
   const tasks = (Array.isArray(tick.tasks) ? tick.tasks : []) as Loose[];
-  const anchor = startSeconds(tasks[0]?.startTime);
-  const shift = anchor === undefined ? 0 : now - PANEL_AGE_S - anchor;
+  let started = 0;
   return {
     ...tick,
     tasks: tasks.map(task => {
-      const start = startSeconds(task.startTime);
-      return start === undefined ? task : { ...task, startTime: start + shift };
+      if (!hasStart(task.startTime)) {
+        return task;
+      }
+      started += 1;
+      return { ...task, startTime: now - PANEL_STEP_S * started };
     }),
   };
 }
