@@ -21,6 +21,9 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
+    // Extraction over full-page fixtures runs multi-second even locally; CI
+    // runners are several times slower and the 5s default times out there.
+    testTimeout: 30_000,
     exclude: [...configDefaults.exclude, 'dist/**'],
   },
 });
