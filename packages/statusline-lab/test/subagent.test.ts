@@ -12,12 +12,6 @@ import {
   type RenderResult,
 } from './runtime.js';
 
-// Goldens are byte captures of the reference ~/.claude/subagent-statusline.sh
-// patched with the unit-3 deltas (NOW overridable, /tmp stdin dump removed,
-// SEP resolved via the shipped components/style.sh pick chain), run under the
-// renderSubagent contract. Every startTime in the tick is pinned against
-// DEFAULT_NOW (2026-09-08T12:20:00Z).
-
 interface Row {
   readonly id: string;
   readonly content: string;

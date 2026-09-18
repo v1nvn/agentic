@@ -516,3 +516,12 @@ feed the wizard); subagent SEP follows the `style` pick.
   --force`, restart Claude Code, verify both surfaces paint, then delete
   ~/.claude/statusline-lab/ and ~/.claude/subagent-statusline.sh. The
   blank-window hazard is why 10b never runs in-run.
+- 2026-09-18 — unit 10a (repo-side reap) done: the golden-provenance notes
+  deleted from test/statusline.test.ts, test/subagent.test.ts, and
+  test/ramps.test.ts; src/ansi.ts's header reworded to the standalone
+  invariant (the pinned quirks are contract); src/gallery.ts's two build.py
+  deviation notes (re-anchor table, font embed) reaped. sync-runtime.mjs's
+  generated-copy note stays — it cites the live plugin. Comment-only:
+  190/190 with no golden or byte moved; protected baseline to be re-recorded
+  for the three amended test files. 10b is the documented owner handoff
+  ruled above.

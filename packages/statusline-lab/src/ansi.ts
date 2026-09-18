@@ -1,5 +1,5 @@
-// Byte-faithful port of the loose lab's ansi2html.py; the quirks the tests
-// pin (adjacent-SGR empty span, ignored basic backgrounds) are contract.
+// The quirks the tests pin (adjacent-SGR empty span, ignored basic
+// backgrounds) are contract.
 const ESC = '\x1b';
 const TOKEN = new RegExp(`${ESC}\\[([0-9;]*)m`, 'g');
 
