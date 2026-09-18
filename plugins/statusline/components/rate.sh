@@ -1,7 +1,7 @@
 # rate - usage limits. alternatives: none (current) | strip
 seg_rate_none() { :; }
 seg_rate_strip() {
-    local rows key pct resets label intp fracp f scale s dur lbl col full rem idx i bar seg
+    local rows key pct resets label intp fracp f scale s sec dur lbl col full rem idx i bar seg
     local bold=$'\033[1m' sep="  ${DIM}│${RESET}  "
     local part=('▏' '▎' '▍' '▌' '▋' '▊' '▉' '█')
     rows=$(printf '%s' "$input" | jq -r '
@@ -41,7 +41,11 @@ seg_rate_strip() {
         else lbl=$((intp + intp % 2)); fi
         s=$((resets - NOW))
         if [ "$s" -ge 3600 ]; then dur=$(printf '%dh%02dm' $((s / 3600)) $((s % 3600 / 60)))
-        else dur=$(printf '%dm%02ds' $((s / 60)) $((s % 60))); fi
+        else
+            sec=$((s % 60))
+            sec=$(((sec + 60) % 60))
+            dur=$(printf '%dm%02ds' $(((s - sec) / 60)) "$sec")
+        fi
         segs+=("${DIM}${label}${RESET} ${bar}${RESET} ${bold}${lbl}%${RESET} ${DIM}· resets ${dur}${RESET}")
     done <<< "$rows"
     for seg in "${segs[@]}"; do

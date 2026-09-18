@@ -174,6 +174,31 @@ describe('rate=strip', () => {
     }
     expectOracle(seg('rate', 'strip', payload), `strip-${id}`);
   });
+
+  // A stale capture renders resets_at < NOW: python floors the negative
+  // delta, bash $(( )) division truncates toward zero. -60 agrees by
+  // accident (exact multiple of 60).
+  it('floors negative reset deltas like the oracle', () => {
+    const payload = basePayload();
+    payload.rate_limits = {
+      five_hour: { used_percentage: 41.2, resets_at: Number(DEFAULT_NOW) - 5 },
+      seven_day: {
+        used_percentage: 41.2,
+        resets_at: Number(DEFAULT_NOW) - 3601,
+      },
+      spend_limit: {
+        used_percentage: 41.2,
+        resets_at: Number(DEFAULT_NOW) - 60,
+      },
+    };
+    const run = seg('rate', 'strip', payload);
+    expect(run.status).toBe(0);
+    expect(run.stderr).toBe('');
+    const line = run.stdout.toString('utf8');
+    expect(line).toContain('resets -1m55s');
+    expect(line).toContain('resets -61m59s');
+    expect(line).toContain('resets -1m00s');
+  });
 });
 
 const SIGNATURES: Readonly<Record<string, string>> = {
