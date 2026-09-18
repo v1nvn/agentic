@@ -59,13 +59,16 @@ const RUNTIME_ROOT = fileURLToPath(
   new URL('../assets/runtime', import.meta.url),
 );
 const RUNTIME_BIN = join(RUNTIME_ROOT, 'bin', 'statusline.sh');
+const PANEL_BIN = join(RUNTIME_ROOT, 'bin', 'subagent.sh');
 const COMPONENTS_DIR = join(RUNTIME_ROOT, 'components');
 const LIB_SH = join(RUNTIME_ROOT, 'bin', 'lib.sh');
 const PAYLOADS_DIR = fileURLToPath(
   new URL('../assets/payloads', import.meta.url),
 );
+const TICKS_DIR = fileURLToPath(new URL('../assets/ticks', import.meta.url));
 const TRAMPOLINE_REL = join('.claude', 'statusline-command.sh');
 const WIDTHS: readonly number[] = [80, 120, 200];
+const PANEL_AGE_S = 1800;
 const APPLY_OFFER = 'apply now? [y/n]';
 const KEYMAP =
   'j/k move · h/l design · s none · w width · enter save · q cancel';
@@ -117,6 +120,19 @@ export function wizardComponents(): readonly WizardComponent[] {
     component,
     alternatives: declared.get(component) ?? [],
   }));
+}
+
+export function designsCatalog({ home }: { home: string }): string {
+  const offered = wizardComponents();
+  const current = selectionsWithPicks(home, offered);
+  return offered
+    .map(
+      (entry, at) =>
+        `${entry.component}: ${entry.alternatives
+          .map(alt => (alt === current[at] ? `${alt}*` : alt))
+          .join(' | ')}`,
+    )
+    .join('\n');
 }
 
 export function resolveWizardPayload({
@@ -232,6 +248,44 @@ function previewStdin(
   };
 }
 
+// subagent.sh reads startTime in seconds and divides anything above 2e11 by
+// 1000 (a millisecond value); anchoring works on the scale the renderer sees.
+function startSeconds(value: unknown): number | undefined {
+  if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) {
+    return undefined;
+  }
+  return value > 200_000_000_000 ? Math.floor(value / 1000) : Math.floor(value);
+}
+
+// The shipped tick is anchored to the render moment — its first row is
+// PANEL_AGE_S old — so demo durations never go stale with the fixture.
+function demoPanelTick(now: number): Loose {
+  const tick = JSON.parse(
+    readFileSync(join(TICKS_DIR, 'multi.json'), 'utf8'),
+  ) as Loose;
+  const tasks = (Array.isArray(tick.tasks) ? tick.tasks : []) as Loose[];
+  const anchor = startSeconds(tasks[0]?.startTime);
+  const shift = anchor === undefined ? 0 : now - PANEL_AGE_S - anchor;
+  return {
+    ...tick,
+    tasks: tasks.map(task => {
+      const start = startSeconds(task.startTime);
+      return start === undefined ? task : { ...task, startTime: start + shift };
+    }),
+  };
+}
+
+// subagent.sh answers with one {"id","content"} JSON line per task; the frame
+// carries the first row's content.
+function firstPanelRow(output: string): string {
+  const [row] = output.split('\n');
+  if (row === '') {
+    return '';
+  }
+  const content = (JSON.parse(row) as { content?: unknown }).content;
+  return typeof content === 'string' ? content : '';
+}
+
 export function runtimeRenderer(spec: WizardRender): string {
   const run = spawnSync('bash', [spec.bin, ...spec.args], {
     input: spec.stdin,
@@ -273,6 +327,18 @@ function overlayPicks(
   }
 }
 
+function selectionsWithPicks(
+  home: string,
+  offered: readonly WizardComponent[],
+): string[] {
+  const defaults = readDefaults(LIB_SH);
+  const current = offered.map(
+    entry => defaults.get(entry.component) ?? entry.alternatives[0],
+  );
+  overlayPicks(join(home, DATA_DIR, 'picks'), offered, current);
+  return current;
+}
+
 export async function createWizard(
   options: WizardOptions,
   deps: WizardDeps,
@@ -280,11 +346,8 @@ export async function createWizard(
   const offered = wizardComponents();
   const { cleanup, stdin } = previewStdin(options.payloadPath, options.now);
   try {
-    const defaults = readDefaults(LIB_SH);
-    const current: string[] = offered.map(
-      entry => defaults.get(entry.component) ?? entry.alternatives[0],
-    );
-    overlayPicks(join(options.home, DATA_DIR, 'picks'), offered, current);
+    const current = selectionsWithPicks(options.home, offered);
+    const panelTick = demoPanelTick(Number(options.now));
 
     let focus = 0;
     let widthAt = 0;
@@ -343,6 +406,14 @@ export async function createWizard(
           .replace(/\n+$/, ''),
       );
       const line = deps.preview(lineSpec()).replace(/\n+$/, '');
+      const panel = deps
+        .preview({
+          bin: PANEL_BIN,
+          args: [],
+          env: env(),
+          stdin: `${JSON.stringify({ ...panelTick, columns: WIDTHS[widthAt] }, null, 2)}\n`,
+        })
+        .replace(/\n+$/, '');
       const rows = offered.map(
         (entry, at) =>
           `${at === focus ? '>' : ' '} ${entry.component.padEnd(9)} ${current[at]}`,
@@ -352,6 +423,7 @@ export async function createWizard(
           `statusline pick · ${WIDTHS[widthAt]} columns (w cycles) · ${basename(options.payloadPath)}`,
           '',
           `  ${line}`,
+          `  panel ${firstPanelRow(panel)}`,
           '',
           `${focused.component}: ${focused.alternatives.join(' | ')}`,
           ...focused.alternatives.map(
