@@ -525,3 +525,7 @@ feed the wizard); subagent SEP follows the `style` pick.
   190/190 with no golden or byte moved; protected baseline to be re-recorded
   for the three amended test files. 10b is the documented owner handoff
   ruled above.
+- 2026-09-18 — unit 10a done in 99bb7eb + the ansi-oracle reap: every
+  reference-citation note gone (ansi.test.ts residual ruled the same class,
+  taken by the orchestrator); fixture paths in apply/capture tests are
+  pre-adoption state, kept. 10b = the documented post-merge handoff.
