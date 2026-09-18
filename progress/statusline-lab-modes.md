@@ -86,7 +86,12 @@ the trampoline at `~/.claude/statusline-command.sh` resolves
   capture a pasted payload, print the `designs` catalog as a plain table,
   guided tour (walk components the owner cares about one at a time, write
   picks at the end), and exactly one hand-off for visual browsing:
-  `! npx -y @v1nvn/statusline-lab pick`.
+  `! npx -y @v1nvn/statusline-lab pick`. Previews stay in the terminal on
+  evidence, not taste: Claude Code renders Bash-tool ANSI only as a ~3-line
+  collapsed preview, and 24-bit SGR — which the gauge/ramp designs emit — has
+  arrived as literal text for some users (claude-code issues #18269, #16790).
+  The `!` hand-off is safe even without a raw TTY: the wizard reads piped
+  stdin and ships j/k/h/l as arrow-key aliases.
 - **Trampoline and bash runtime unchanged** — both modes share them.
 
 ## Units
