@@ -6,7 +6,7 @@ export function installedPluginsFile(home: string): string {
 }
 
 export function statuslineCacheRoot(home: string): string {
-  return join(home, '.claude', 'plugins', 'cache', 'agentic', 'statusline');
+  return join(home, '.claude', 'plugins', 'cache', 'agentic', 'statusline-lab');
 }
 
 export interface ApplyOptions {
@@ -29,7 +29,7 @@ export interface ApplyResult {
 }
 
 const TRAMPOLINE_COMMAND = '~/.claude/statusline-command.sh';
-const TRAMPOLINE_MARKER = '# statusline trampoline';
+const TRAMPOLINE_MARKER = '# statusline-lab trampoline';
 const SETTINGS_KEYS: readonly ApplyTarget[] = [
   'statusLine',
   'subagentStatusLine',
@@ -42,9 +42,9 @@ const SETTINGS_VALUE = JSON.stringify({
 const TRAMPOLINE = `${TRAMPOLINE_MARKER}
 b=statusline.sh
 [ "$1" = --subagent ] && b=subagent.sh
-p=$(jq -r '.plugins["statusline@agentic"][0].installPath // empty' "$HOME/.claude/plugins/installed_plugins.json" 2>/dev/null)
+p=$(jq -r '.plugins["statusline-lab@agentic"][0].installPath // empty' "$HOME/.claude/plugins/installed_plugins.json" 2>/dev/null)
 if [ -z "$p" ]; then
-    p=$(printf '%s\\n' "$HOME"/.claude/plugins/cache/agentic/statusline/*/ | sort -V | tail -1)
+    p=$(printf '%s\\n' "$HOME"/.claude/plugins/cache/agentic/statusline-lab/*/ | sort -V | tail -1)
     p=\${p%/}
 fi
 [ -n "$p" ] || exit 0

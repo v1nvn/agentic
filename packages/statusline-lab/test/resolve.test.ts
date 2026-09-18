@@ -28,7 +28,7 @@ describe('resolve', () => {
       'installed-0.10.0',
     );
     writeInstalledPlugins(home, {
-      'statusline@agentic': [{ installPath: installDir }],
+      'statusline-lab@agentic': [{ installPath: installDir }],
     });
     const before = snapshotTree(home);
 
@@ -50,7 +50,7 @@ describe('resolve', () => {
         'plugins',
         'cache',
         'agentic',
-        'statusline',
+        'statusline-lab',
         '0.19.0',
       ),
     );

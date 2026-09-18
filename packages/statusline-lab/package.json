@@ -1,5 +1,5 @@
 {
-  "name": "@v1nvn/statusline",
+  "name": "@v1nvn/statusline-lab",
   "version": "0.18.0",
   "description": "Preview statusline designs and apply them to the live status line and agent panel — the statusline CLI behind the statusline plugin.",
   "type": "module",

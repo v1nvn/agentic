@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 // assets/runtime is a generated copy of the plugin runtime — edit
-// plugins/statusline, never the copy (tests and the gallery render the copy).
+// plugins/statusline-lab, never the copy (tests and the gallery render the copy).
 import { cpSync, existsSync, rmSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 const SOURCE = fileURLToPath(
-  new URL('../../../plugins/statusline', import.meta.url),
+  new URL('../../../plugins/statusline-lab', import.meta.url),
 );
 const TARGET = fileURLToPath(new URL('../assets/runtime', import.meta.url));
 

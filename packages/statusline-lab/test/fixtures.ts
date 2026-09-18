@@ -16,7 +16,7 @@ export const TRAMPOLINE_COMMAND = '~/.claude/statusline-command.sh';
 
 // First line of every trampoline apply writes — and how apply recognizes a
 // trampoline as its own.
-export const TRAMPOLINE_MARKER = '# statusline trampoline';
+export const TRAMPOLINE_MARKER = '# statusline-lab trampoline';
 
 export interface PluginRecord {
   readonly installPath: string;
@@ -73,7 +73,7 @@ export function writeEchoBins(root: string, label: string): string {
 
 export function writeCacheVersion(home: string, version: string): string {
   return writeEchoBins(
-    join(home, '.claude', 'plugins', 'cache', 'agentic', 'statusline', version),
+    join(home, '.claude', 'plugins', 'cache', 'agentic', 'statusline-lab', version),
     version,
   );
 }

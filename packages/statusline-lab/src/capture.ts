@@ -5,7 +5,7 @@ export const DATA_DIR = join(
   '.claude',
   'plugins',
   'data',
-  'statusline-agentic',
+  'statusline-lab-agentic',
 );
 
 export interface CaptureOptions {

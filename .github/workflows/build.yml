@@ -21,7 +21,7 @@ jobs:
       - name: Validate plugin + marketplace manifests
         run: |
           claude plugin validate .claude-plugin/marketplace.json
-          for p in readability omlx rm md zai tokens statusline; do
+          for p in readability omlx rm md zai tokens statusline-lab; do
             claude plugin validate "plugins/$p/.claude-plugin/plugin.json"
           done
       - name: Check package versions ride the repo version
