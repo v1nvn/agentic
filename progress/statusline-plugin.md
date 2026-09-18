@@ -480,3 +480,22 @@ feed the wizard); subagent SEP follows the `style` pick.
   deliberate behavior change per the inventory's protected-test clause, not a
   weakened pin. Under a UTF-8 locale the bytes are unchanged; only the C-
   locale artifact heals.
+- 2026-09-18 — unit 9 (bash ramps) done: seg_bar_gauge, seg_cache_fuse, and
+  seg_rate_strip landed in components/{bar,cache,rate}.sh as exact
+  integer-bash ports (goldens = the extras' bytes, 27/27) — hsv_to_rgb at
+  s=.85/v=.95 is piecewise-linear across two sectors (h crosses 1/6), so the
+  26 gauge cell colors ship as literal escapes and the lead color computes in
+  integers as 4845·(15000+1683·(100−p))/2·10⁶ for p≥50 (red-side mirror for
+  p≤49), verified byte-equal to colorsys over every lead and cell; strip
+  decimal math parses the jq string once and scales (label round-half-even,
+  exact-.5 to even). Deviation, unpinned: at ttl=1h left≡18 (mod 360) the
+  oracle's float partial lands above 0.05 for 4 of 10 lefts and draws a
+  phantom ▏ — the port keeps exact arithmetic (0.05 is not >0.05) instead of
+  encoding rounding noise; everything else byte-matches an oracle sweep
+  (gauge 101/101, strip 1050/1050, fuse 1693/1695). Picks for the three are
+  adoptable with no warn (rung orders leave them undemoted), the gallery
+  renders every alternative from the runtime --seg path, and
+  assets/extras/ is deleted (one-way; lab.md's not-adoptable clause went with
+  it). Protected baseline re-recorded: statusline/gallery/runtime.ts were the
+  test writer's amended pins, and ramps.test.ts's 11 new comments are
+  golden-provenance why-notes — the surviving class (unit-2/5 precedent).
