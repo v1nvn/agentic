@@ -155,8 +155,12 @@ invoke column stays `/statusline-lab`; fix the layout tree. CLAUDE.md: add
 the invariant "the terminal is the only rendering surface — nothing opens a
 browser, nothing writes HTML" next to the one-command rule. PR body
 (`gh pr edit 2 --body-file`): swap the gallery bullet for the two-mode story
-(wizard-gallery + skill orchestration), no attribution footer. Verify: gates
-below once more; fresh-eyes read of README + PR body.
+(wizard-gallery + skill orchestration), no attribution footer. Sweep the
+stale gallery references unit 1 left where no unit owns the file:
+`components/state.sh:3` (`payloads:` header nothing reads),
+`test/capture.test.ts:334`, `vite.config.ts:26`, `scripts/sync-runtime.mjs:3`.
+Verify: gates below once more; fresh-eyes read of README + PR body;
+`/usr/bin/grep -rn gallery packages plugins README.md CLAUDE.md` silent.
 
 ## Gates — every unit, before its commit
 
@@ -188,6 +192,7 @@ this file when 10b closes.
   built yet.
 - 2026-09-18 — unit 1 gallery cut landed: `gallery`/`src/ansi.ts` + their
   tests + the font deleted, parsers relocated to `src/wizard.ts`; the
-  `pair` parsing died with the gallery (no component ever declared
-  `payloads:`, the wizard reads only `alternatives:`); suite 190 → 152;
-  tarball carries no `.ttf`.
+  `pair` parsing died with the gallery (only the gallery ever read the
+  `payloads:` header — `components/state.sh:3` still declares it, now
+  stale; orchestrator accepted the trim, header joins unit 4's sweep);
+  suite 190 → 152; tarball carries no `.ttf`.
