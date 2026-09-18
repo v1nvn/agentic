@@ -1,10 +1,8 @@
 import { printUsageAndExit } from '@v1nvn/agentic-core';
-import { writeFileSync } from 'node:fs';
 
 import { apply } from './apply.js';
 import { capture } from './capture.js';
 import { buildProgram, parseArgs, VERSION } from './cli.js';
-import { buildGallery } from './gallery.js';
 import { payloadJson, type PayloadName } from './payloads.js';
 import { resolve } from './resolve.js';
 import { terminalDeps } from './wizard-tui.js';
@@ -53,14 +51,6 @@ if (parsed.version) {
   } catch (e) {
     console.error((e as Error).message);
     process.exitCode = 1;
-  }
-} else if (parsed.command === 'gallery') {
-  const page = buildGallery();
-  if (parsed.out === undefined) {
-    console.log(page);
-  } else {
-    writeFileSync(parsed.out, page);
-    console.error(`wrote ${parsed.out}`);
   }
 } else if (parsed.command === 'payload' && parsed.payload !== undefined) {
   console.log(payloadJson(parsed.payload as PayloadName));

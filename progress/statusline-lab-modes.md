@@ -38,10 +38,10 @@ installs from a local marketplace (`claude plugin marketplace add <repo
 checkout>` → `claude plugin install statusline-lab@agentic`), the trampoline
 renders both surfaces from the installed plugin dir, an edit inside the
 installed dir shows on the next paint, `apply` is cancel-safe and idempotent,
-the wizard runs and saves picks, the suite is 190/190. Still shipping against
-the ruling: the HTML `gallery` subcommand, `src/ansi.ts` (ANSI→HTML), and the
-embedded `assets/fonts/FiraCodeNerdFont-Regular.ttf` (2.6 MB, measured with
-`ls -lh`). The build thread lives in `archive/statusline-plugin.md`.
+the wizard runs and saves picks, the suite is 152/152. Still shipping against
+the ruling: the wizard previews only the main line (no agent row — unit 2),
+and the skill and README still carry the gallery story (units 3–4). The build
+thread lives in `archive/statusline-plugin.md`.
 
 ## Layout — what a fresh session needs
 
@@ -52,15 +52,14 @@ packages/statusline-lab/          @v1nvn/statusline-lab — bin `statusline-lab`
   src/apply.ts                    trampoline template + settings splice; statuslineCacheRoot
   src/resolve.ts                  installed_plugins.json key `statusline-lab@agentic`, cache fallback
   src/capture.ts                  DATA_DIR `statusline-lab-agentic`; payloads/ticks latest.json
-  src/wizard.ts                   the TUI engine (injectable deps), fixture preview pipeline
+  src/wizard.ts                   the TUI engine (injectable deps), fixture preview
+                                  pipeline, shared parsers (readDeclarations,
+                                  readDefaults, fixtureStdin)
   src/wizard-tui.ts               real terminal deps (raw mode, keys, screen render)
-  src/gallery.ts                  HTML gallery + ansi→html + the shared parsers — DIES in unit 1
-  src/ansi.ts                     ANSI→HTML converter — DIES in unit 1
   src/demo-repo.ts                materializes the demo git repo (wizard fixtures, tests)
   src/payloads.ts                 fixture registry p1..p4
   assets/payloads/                fixture JSON (current_dir is the `/demo/atlas-web` placeholder)
   assets/ticks/multi.json         demo agent-panel tick (kept — unit 2 uses it)
-  assets/fonts/                   2.6 MB Nerd Font — DIES in unit 1
   assets/runtime/                 GENERATED copy of plugins/statusline-lab (sync-runtime.mjs
                                   on every build) — edit plugins/, never the copy
 plugins/statusline-lab/
@@ -187,3 +186,8 @@ this file when 10b closes.
 - 2026-09-18 — file created for the two-mode fixup ruling; build thread
   archived to `archive/statusline-plugin.md`. Units 1–4 defined; nothing
   built yet.
+- 2026-09-18 — unit 1 gallery cut landed: `gallery`/`src/ansi.ts` + their
+  tests + the font deleted, parsers relocated to `src/wizard.ts`; the
+  `pair` parsing died with the gallery (no component ever declared
+  `payloads:`, the wizard reads only `alternatives:`); suite 190 → 152;
+  tarball carries no `.ttf`.

@@ -75,33 +75,6 @@ describe('parseArgs: subcommands', () => {
   });
 });
 
-describe('parseArgs: gallery', () => {
-  it('parses gallery with --out', () => {
-    expect(parseArgs(['gallery', '--out', '/tmp/page.html'])).toEqual({
-      version: false,
-      command: 'gallery',
-      out: '/tmp/page.html',
-    });
-  });
-
-  it('parses gallery without --out', () => {
-    expect(parseArgs(['gallery'])).toEqual({
-      version: false,
-      command: 'gallery',
-    });
-  });
-
-  it('scopes --out to gallery', () => {
-    expect(parseArgs(['apply', '--out', '/tmp/page.html'])).toBeUndefined();
-    expect(parseArgs(['resolve', '--out', '/tmp/page.html'])).toBeUndefined();
-  });
-
-  it('rejects unknown flags and stray arguments', () => {
-    expect(parseArgs(['gallery', '--bogus'])).toBeUndefined();
-    expect(parseArgs(['gallery', 'stray'])).toBeUndefined();
-  });
-});
-
 describe('parseArgs: payload', () => {
   it('parses each shipped fixture name', () => {
     for (const name of ['p1', 'p2', 'p3', 'p4']) {
@@ -135,10 +108,9 @@ describe('parseArgs: capture', () => {
     });
   });
 
-  it('scopes --force, --dry-run, and --out away from capture', () => {
+  it('scopes --force and --dry-run away from capture', () => {
     expect(parseArgs(['capture', '--force'])).toBeUndefined();
     expect(parseArgs(['capture', '--dry-run'])).toBeUndefined();
-    expect(parseArgs(['capture', '--out', '/tmp/page.html'])).toBeUndefined();
   });
 
   it('rejects unknown flags and stray arguments — stdin is the only input', () => {
@@ -180,7 +152,6 @@ describe('parseArgs: pick', () => {
 
   it('scopes --home and --payload to pick', () => {
     expect(parseArgs(['apply', '--payload', 'p3'])).toBeUndefined();
-    expect(parseArgs(['gallery', '--payload', 'p3'])).toBeUndefined();
     expect(parseArgs(['resolve', '--payload', 'p3'])).toBeUndefined();
     expect(parseArgs(['capture', '--payload', 'p3'])).toBeUndefined();
   });
@@ -188,7 +159,6 @@ describe('parseArgs: pick', () => {
   it('keeps every other subcommand flag away from pick', () => {
     expect(parseArgs(['pick', '--force'])).toBeUndefined();
     expect(parseArgs(['pick', '--dry-run'])).toBeUndefined();
-    expect(parseArgs(['pick', '--out', '/tmp/page.html'])).toBeUndefined();
   });
 
   it('rejects unknown flags and stray arguments', () => {
