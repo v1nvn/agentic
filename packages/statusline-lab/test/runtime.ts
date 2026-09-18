@@ -40,13 +40,15 @@ export interface RenderResult {
 }
 
 export interface RenderInput {
-  readonly payload: string;
+  readonly payload?: string;
+  readonly payloadJson?: string;
   readonly home: string;
   readonly repoDir: string;
   readonly now?: string;
   readonly picks?: string;
   readonly columns?: number;
   readonly modelDisplayName?: string;
+  readonly args?: readonly string[];
 }
 
 const PAYLOADS_DIR = fileURLToPath(
@@ -75,8 +77,9 @@ function spawnRender(
   home: string,
   now: string,
   columns?: number,
+  args?: readonly string[],
 ): RenderResult {
-  const run = spawnSync('bash', [bin], {
+  const run = spawnSync('bash', [bin, ...(args ?? [])], {
     input: stdin,
     env: {
       PATH: process.env.PATH ?? '',
@@ -106,7 +109,8 @@ export function loadTick(name: string): Tick {
 
 export function renderStatusline(input: RenderInput): RenderResult {
   const payload = JSON.parse(
-    readFileSync(join(PAYLOADS_DIR, `${input.payload}.json`), 'utf8'),
+    input.payloadJson ??
+      readFileSync(join(PAYLOADS_DIR, `${input.payload}.json`), 'utf8'),
   ) as { model: { display_name: string }; workspace: { current_dir: string } };
   payload.workspace.current_dir = input.repoDir;
   if (input.modelDisplayName !== undefined) {
@@ -121,6 +125,7 @@ export function renderStatusline(input: RenderInput): RenderResult {
     input.home,
     input.now ?? DEFAULT_NOW,
     input.columns,
+    input.args,
   );
 }
 

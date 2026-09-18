@@ -21,4 +21,30 @@ seg_cache_coldin() {
         printf '%s' "❄ ${DIM}cold · ${hp}%${RESET}"
     fi
 }
+seg_cache_fuse() {
+    [ -n "$TTL" ] || return
+    [ "$EXPIRES" -ne 0 ] || return
+    local span=300 left full rem idx i col bar
+    local part=('▏' '▎' '▍' '▌' '▋' '▊' '▉' '█')
+    [ "$TTL" = "1h" ] && span=3600
+    left=$((EXPIRES - NOW))
+    [ "$left" -lt 0 ] && left=0
+    if [ "$left" -le 0 ]; then printf '%s' "${RED}❄ cold${RESET}"; return; fi
+    full=$((left * 10 / span))
+    rem=$((left * 10 % span))
+    if [ $((left * 4)) -gt "$span" ]; then col=$GREEN
+    elif [ $((left * 25)) -gt $((span * 2)) ]; then col=$YELLOW
+    else col=$RED; fi
+    bar=$col
+    for ((i = 0; i < 10; i++)); do
+        if [ "$i" -lt "$full" ]; then bar+="▰"
+        elif [ "$i" -eq "$full" ] && [ $((rem * 20)) -gt "$span" ]; then
+            idx=$((rem * 8 / span))
+            bar+="${part[idx]}"
+        else
+            bar+="${DIM}▱"
+        fi
+    done
+    printf '%s %s%02d:%02d%s' "$bar${RESET}" "$DIM" $((left / 60)) $((left % 60)) "$RESET"
+}
 seg_cache_none() { :; }

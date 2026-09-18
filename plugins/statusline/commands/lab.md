@@ -4,8 +4,7 @@ description: Render every statusline design into an HTML gallery and open it
 
 Show the whole library: every alternative of every component rendered on its
 own across the shipped payloads, plus whole agent-panel rows at two widths.
-The suffix `live line uses this` marks the shipped default; previews marked
-not-adoptable are gallery-only until their bash ports land.
+The suffix `live line uses this` marks the shipped default.
 
 Run this exactly:
 

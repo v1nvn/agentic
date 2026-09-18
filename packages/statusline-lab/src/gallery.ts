@@ -18,7 +18,6 @@ const PAYLOADS_DIR = fileURLToPath(
   new URL('../assets/payloads', import.meta.url),
 );
 const TICKS_DIR = fileURLToPath(new URL('../assets/ticks', import.meta.url));
-const EXTRAS_DIR = fileURLToPath(new URL('../assets/extras', import.meta.url));
 const FONT_FILE = fileURLToPath(
   new URL('../assets/fonts/FiraCodeNerdFont-Regular.ttf', import.meta.url),
 );
@@ -128,11 +127,6 @@ export function readDefaults(lib: string): Map<string, string> {
   return defaults;
 }
 
-function runtimeHas(componentsDir: string, comp: string, alt: string): boolean {
-  const body = readFileSync(join(componentsDir, `${comp}.sh`), 'utf8');
-  return new RegExp(`(^|\\n)\\s*seg_${comp}_${alt}\\s*\\(`).test(body);
-}
-
 function anchoredStdin(name: PayloadName, repoDir: string): string {
   const payload = JSON.parse(
     readFileSync(join(PAYLOADS_DIR, `${name}.json`), 'utf8'),
@@ -228,31 +222,20 @@ export function buildGallery(): string {
         `<section id="c${comp}"><h2>${comp}</h2><div class="sub">components/${comp}.sh</div>`,
       );
       for (const alt of declaration.alts) {
-        const exists = runtimeHas(componentsDir, comp, alt);
         const rows = declaration.pair
           .map(payload =>
-            exists
-              ? runScript(
-                  join(RUNTIME_ROOT, 'bin', 'statusline.sh'),
-                  ['--seg', `${comp}=${alt}`],
-                  anchoredStdin(payload, repoDir),
-                  home,
-                )
-              : runScript(
-                  join(EXTRAS_DIR, `${alt}.sh`),
-                  [],
-                  anchoredStdin(payload, repoDir),
-                  home,
-                ),
+            runScript(
+              join(RUNTIME_ROOT, 'bin', 'statusline.sh'),
+              ['--seg', `${comp}=${alt}`],
+              anchoredStdin(payload, repoDir),
+              home,
+            ),
           )
           .map(row => row.replace(/\n+$/, ''))
           .join('\n');
         const live = defaults.get(comp) === alt ? ' · live line uses this' : '';
-        const note = exists
-          ? ''
-          : `<div class="sub">not-adoptable — lab-side preview; the live pick falls back to ${comp}=${defaults.get(comp) ?? 'default'}</div>`;
         body.push(
-          `<div class="label">${comp}=${alt}${live}</div><div class="term">${render(rows)}</div>${note}`,
+          `<div class="label">${comp}=${alt}${live}</div><div class="term">${render(rows)}</div>`,
         );
       }
       body.push('</section>');
