@@ -1,4 +1,4 @@
-# Statusline — plugin 8 + statusline-lab package (trampoline runtime)
+# Statusline — plugin 8 + @v1nvn/statusline package (trampoline runtime)
 
 > Rules: ../references/tracking.md · Index: ../TODO.md
 
@@ -6,8 +6,9 @@
 where every statusline segment has multiple designs, an HTML preview gallery to
 pick from, and one-command adoption. One plugin renders both surfaces: the
 main status line and the subagent panel rows. Two artifacts:
-`plugins/statusline` (the bash render runtime) and `packages/statusline-lab`
-(`@v1nvn/statusline-lab`, the TS lab). Auto-update needs no mechanism — the
+`plugins/statusline` (the bash render runtime) and `packages/statusline`
+(`@v1nvn/statusline`, the TS lab; renamed from `statusline-lab` pre-release).
+Auto-update needs no mechanism — the
 installed statusline pulls the current plugin version on every render.
 
 ## Architecture — settled, do not relitigate
@@ -29,7 +30,7 @@ plugins/statusline/              runtime — bash only. bin/statusline.sh (rende
                                   style, picks), bin/subagent.sh (agent-panel rows),
                                   components/*.sh, commands/{compose,lab,capture}.md,
                                   .claude-plugin/plugin.json. No hooks.
-packages/statusline-lab/         lab — TS, bin `statusline-lab`: gallery, ansi, capture,
+packages/statusline/             lab — TS, bin `statusline`: gallery, ansi, capture,
                                   apply, resolve. Payloads, default picks, and the Nerd
                                   Font ship as assets; a deterministic script materializes
                                   the demo git repo at render/test time (no .git in the
@@ -512,7 +513,7 @@ feed the wizard); subagent SEP follows the `style` pick.
   trampoline resolves nothing until merge → release → install, and the run
   never merges. Split: 10a (repo-side, in-run) reaps the reference-citation
   notes per the unit-5 ripple; 10b (owner-machine) is a documented handoff —
-  after merge and plugin install: `npx -y @v1nvn/statusline-lab apply
+  after merge and plugin install: `npx -y @v1nvn/statusline apply
   --force`, restart Claude Code, verify both surfaces paint, then delete
   ~/.claude/statusline-lab/ and ~/.claude/subagent-statusline.sh. The
   blank-window hazard is why 10b never runs in-run.
@@ -536,3 +537,22 @@ feed the wizard); subagent SEP follows the `style` pick.
   --force`, restart Claude Code, verify both surfaces paint, delete
   ~/.claude/statusline-lab/ and ~/.claude/subagent-statusline.sh; archive
   this file when 10b closes.
+- 2026-09-18 — PR review round (owner-directed) landed on the branch: the
+  package renamed `@v1nvn/statusline-lab` → `@v1nvn/statusline` (dir
+  `packages/statusline`, bin `statusline`, trampoline marker
+  `# statusline trampoline`, commands + docs point at the new npx name;
+  nothing was ever published under the old name, so the rename is free).
+  Review fixes: capture reads stdin as a stream — readFileSync(0) died
+  EAGAIN whenever the pipe upstream was a node process (macOS propagates
+  O_NONBLOCK across the pipe); fixtures stopped embedding the author's
+  home — current_dir is now `/demo/atlas-web` and the wizard anchors
+  fixture previews on a freshly materialized demo repo (gallery's
+  fixtureStdin shared by both), torn down with the session; demo-repo git
+  stderr silenced (checkout chatter printed over wizard frames);
+  readability vitest timeout 30s (CI runners tripped the 5s default —
+  the red X on the PR). 190/190, lint, typecheck, versions consistent.
+  e2e from a yarn-packed tarball + local marketplace in a scratch home:
+  apply/idempotence/refuse/force, wizard on fixture and on capture,
+  gallery, install → resolve → trampoline paints both surfaces, and an
+  edit inside the installed dir shows on the very next paint. 10b's
+  handoff line above now names `npx -y @v1nvn/statusline apply --force`.
