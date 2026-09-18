@@ -1,6 +1,5 @@
 # state - session mode badges (vim / thinking / agent / worktree).
 # alternatives: none (current) | pills
-# payloads: p4 p1
 seg_state_none() { :; }
 _state_pill() {
     printf '\033[48;5;%sm\033[38;5;%sm%s %s %s\033[0m' "$2" "$3" $'\356\202\266' "$1" $'\356\202\264'

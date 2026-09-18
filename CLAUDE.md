@@ -47,8 +47,10 @@ Surface a real impasse; do not hack past it.
 - **Seven independent plugins, one marketplace.** Never collapse them into a
   mega-plugin; each installs and runs on its own.
 - **statusline-lab ships exactly one command** — `/statusline-lab`, folding
-  adopt, browse, pick, and capture. Never add a second; its name must not
+  adopt, capture, catalog, and tour. Never add a second; its name must not
   collide with Claude Code's built-in `/statusline`.
+- **The terminal is the only rendering surface** — nothing opens a browser,
+  nothing writes HTML.
 - **One author identity:** `v1nvn` / `v1n@outlook.com` in every manifest.
 
 ## Invariants
