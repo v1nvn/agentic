@@ -22,13 +22,13 @@ with `--force`:
 
     npx -y @v1nvn/statusline-lab apply --force
 
-**Capture.** Real session data for the wizard preview: JSON the session can
-see — a payload the owner pasted, or any stdin they provide — piped through
-`capture` is normalized and filed under
-`~/.claude/plugins/data/statusline-lab-agentic/` (a main payload at
-`payloads/latest.json`, a subagent tick at `ticks/latest.json`); the latest
-capture feeds the wizard preview. Invalid input prints one error line and
-writes nothing. With the JSON pasted in place of the dots, run this exactly:
+**Capture.** Real session data: JSON the session can see — a payload the
+owner pasted, or any stdin they provide — piped through `capture` is
+normalized and filed under `~/.claude/plugins/data/statusline-lab-agentic/`.
+A main payload lands at `payloads/latest.json` and feeds the wizard preview;
+a subagent tick lands at `ticks/latest.json`. Invalid input prints one error
+line and writes nothing. With the JSON pasted in place of the dots, run this
+exactly:
 
     JSON='…' ; printf '%s' "$JSON" | npx -y @v1nvn/statusline-lab capture
 
