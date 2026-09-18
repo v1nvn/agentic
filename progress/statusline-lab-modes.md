@@ -220,8 +220,9 @@ this file when 10b closes.
   (the wizard is the gallery; the terminal-only invariant sits next to the
   one-command rule), the four stale gallery references swept (the
   `payloads:` header had no reader since unit 1), PR #2 body swapped to the
-  two-mode story with no attribution footer. Owner ruling: the verify grep
-  is scoped to the statusline-lab surface — readability-mcp's "gallery" is
+  two-mode story with no attribution footer. Orchestrator ruling (veto
+  table): the verify grep is scoped to the statusline-lab surface —
+  readability-mcp's "gallery" is
   another plugin's vocabulary (image-only fixtures, third-party captured
   HTML); `packages/statusline-lab`, `plugins/statusline-lab`, `README.md`,
   `CLAUDE.md`, and every nested README grep silent.
