@@ -38,8 +38,8 @@ installs from a local marketplace (`claude plugin marketplace add <repo
 checkout>` → `claude plugin install statusline-lab@agentic`), the trampoline
 renders both surfaces from the installed plugin dir, an edit inside the
 installed dir shows on the next paint, `apply` is cancel-safe and idempotent,
-the wizard runs and saves picks, the suite is 156/156. Still shipping against
-the ruling: the skill and README still carry the gallery story (units 3–4). The
+the wizard runs and saves picks, the suite is 159/159. Still shipping against
+the ruling: the README still carries the gallery story (unit 4). The
 build thread lives in `archive/statusline-plugin.md`.
 
 ## Layout — what a fresh session needs
@@ -67,7 +67,7 @@ plugins/statusline-lab/
   bin/subagent.sh                 agent-panel rows: tick {columns, tasks[]} → {"id","content"} lines
   bin/lib.sh                      read_picks — reads ~/.claude/plugins/data/statusline-lab-agentic/picks
   components/*.sh                 seg_<comp>_<alt>; header comment declares alternatives (one source)
-  commands/statusline-lab.md      THE one slash command — rewritten in unit 3
+  commands/statusline-lab.md      THE one slash command — skill contract only
 ```
 
 Seams: picks and captures live in `~/.claude/plugins/data/statusline-lab-agentic/`;
@@ -206,3 +206,10 @@ this file when 10b closes.
   contract test), `designs` gains its parseArgs pin (156 → 159), and the
   demo tick staggers 300 s/row all-past — every started row keeps its
   duration, first row now-300 ∈ (now-3600, now); reviewer verified.
+- 2026-09-18 — unit 3 landed: `commands/statusline-lab.md` rewritten to
+  the skill contract — Adopt / Capture / Catalog + guided tour / Visual
+  browsing, the three forbids (nothing opened, no ANSI in chat, no second
+  command) stated up front with the terminal-only evidence, the tour ends
+  with the agent writing named picks as `comp=alt` lines (unnamed
+  components' existing lines kept); the dead gallery lines died with the
+  rewrite; scratch-home install holds exactly the one file, byte-identical.
