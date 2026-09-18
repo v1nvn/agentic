@@ -499,3 +499,10 @@ feed the wizard); subagent SEP follows the `style` pick.
   it). Protected baseline re-recorded: statusline/gallery/runtime.ts were the
   test writer's amended pins, and ramps.test.ts's 11 new comments are
   golden-provenance why-notes — the surviving class (unit-2/5 precedent).
+- 2026-09-18 — unit-9 review round 1 fixed red-first: seg_rate_strip's
+  duration math truncated negative reset deltas toward zero where python
+  floors — a stale capture (resets_at < NOW) rendered 0m-5s/-60m-1s instead
+  of -1m55s/-61m59s; the m/s branch now floors (sec=(s%60+60)%60,
+  min=(s−sec)/60), byte-identical at exact -60 multiples, 190/190. Protected
+  baseline re-recorded for the test writer's negative-delta pin; its 3-line
+  why-note is the surviving class.
