@@ -3,6 +3,7 @@ import {
   existsSync,
   mkdirSync,
   mkdtempSync,
+  readdirSync,
   readFileSync,
   rmSync,
   writeFileSync,
@@ -14,7 +15,6 @@ import { fileURLToPath } from 'node:url';
 import { apply } from './apply.js';
 import { DATA_DIR } from './capture.js';
 import { materializeDemoRepo } from './demo-repo.js';
-import { fixtureStdin, readDeclarations, readDefaults } from './gallery.js';
 import { PAYLOAD_NAMES, type PayloadName } from './payloads.js';
 
 export interface WizardComponent {
@@ -70,6 +70,43 @@ const APPLY_OFFER = 'apply now? [y/n]';
 const KEYMAP =
   'j/k move · h/l design · s none · w width · enter save · q cancel';
 
+export function readDeclarations(
+  componentsDir: string,
+): Map<string, readonly string[]> {
+  const declared = new Map<string, readonly string[]>();
+  for (const file of readdirSync(componentsDir).sort()) {
+    if (!file.endsWith('.sh')) {
+      continue;
+    }
+    let alts: readonly string[] | undefined;
+    for (const line of readFileSync(join(componentsDir, file), 'utf8').split(
+      '\n',
+    )) {
+      if (!line.startsWith('#')) {
+        break;
+      }
+      const altMatch = /alternatives:\s*(.+)$/.exec(line);
+      if (altMatch) {
+        alts = altMatch[1]
+          .split('|')
+          .map(alt => alt.trim().replace(/\s*\(current\)$/, ''));
+      }
+    }
+    declared.set(file.slice(0, -'.sh'.length), alts ?? []);
+  }
+  return declared;
+}
+
+export function readDefaults(lib: string): Map<string, string> {
+  const defaults = new Map<string, string>();
+  for (const [, comp, alt] of readFileSync(lib, 'utf8').matchAll(
+    /([a-z]+)\) echo ([a-z]+) ;;/g,
+  )) {
+    defaults.set(comp, alt);
+  }
+  return defaults;
+}
+
 export function wizardComponents(): readonly WizardComponent[] {
   const declared = readDeclarations(COMPONENTS_DIR);
   const match = /^COMPS="(.+)"$/m.exec(readFileSync(RUNTIME_BIN, 'utf8'));
@@ -78,7 +115,7 @@ export function wizardComponents(): readonly WizardComponent[] {
   }
   return match[1].split(' ').map(component => ({
     component,
-    alternatives: declared.get(component)?.alts ?? [],
+    alternatives: declared.get(component) ?? [],
   }));
 }
 
@@ -107,6 +144,69 @@ function fixtureNameOf(path: string): PayloadName | undefined {
   return (PAYLOAD_NAMES as readonly string[]).includes(name)
     ? (name as PayloadName)
     : undefined;
+}
+
+type Loose = Record<string, unknown>;
+
+const WARM_IN: Readonly<Record<PayloadName, number | undefined>> = {
+  p1: 1920,
+  p2: 2400,
+  p3: undefined,
+  p4: 600,
+};
+const RESETS_IN: Readonly<
+  Record<PayloadName, Readonly<Record<string, number>>>
+> = {
+  p1: { five_hour: 13830, seven_day: 518400, spend_limit: 950400 },
+  p2: { five_hour: 16170, seven_day: 570000 },
+  p3: { five_hour: 2090, seven_day: 290000 },
+  p4: { five_hour: 15000, seven_day: 540000 },
+};
+
+function isObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function reanchorPayload(
+  name: PayloadName,
+  payload: Loose,
+  now: number,
+): Loose {
+  const anchored = structuredClone(payload);
+  const cache = anchored.prompt_cache;
+  if (isObject(cache)) {
+    const warmIn = WARM_IN[name];
+    if (cache.warm === true && warmIn !== undefined) {
+      cache.expires_at = now + warmIn;
+      cache.last_miss_at = now + warmIn - 3900;
+    } else {
+      cache.expires_at = now - 10;
+      delete cache.last_miss_at;
+    }
+  }
+  const limits = anchored.rate_limits;
+  if (isObject(limits)) {
+    for (const [limitKey, offset] of Object.entries(RESETS_IN[name])) {
+      const limit = limits[limitKey];
+      if (isObject(limit)) {
+        limit.resets_at = now + offset;
+      }
+    }
+  }
+  return anchored;
+}
+
+export function fixtureStdin(
+  name: PayloadName,
+  repoDir: string,
+  now: number,
+): string {
+  const payload = JSON.parse(
+    readFileSync(join(PAYLOADS_DIR, `${name}.json`), 'utf8'),
+  ) as Loose;
+  const anchored = reanchorPayload(name, payload, now);
+  (anchored.workspace as { current_dir: string }).current_dir = repoDir;
+  return `${JSON.stringify(anchored, null, 2)}\n`;
 }
 
 // A capture or one-off file renders verbatim; a shipped fixture is anchored

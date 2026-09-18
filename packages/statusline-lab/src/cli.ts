@@ -6,15 +6,13 @@ import { PAYLOAD_NAMES } from './payloads.js';
 
 export const VERSION = pkg.version;
 
-export type Subcommand =
-  'apply' | 'capture' | 'gallery' | 'payload' | 'pick' | 'resolve';
+export type Subcommand = 'apply' | 'capture' | 'payload' | 'pick' | 'resolve';
 
 export interface ParsedArgs {
   readonly command?: Subcommand;
   readonly dryRun?: boolean;
   readonly force?: boolean;
   readonly home?: string;
-  readonly out?: string;
   readonly payload?: string;
   readonly version: boolean;
 }
@@ -23,7 +21,6 @@ interface SubcommandOptions {
   readonly dryRun?: boolean;
   readonly force?: boolean;
   readonly home?: string;
-  readonly out?: string;
   readonly payload?: string;
 }
 
@@ -49,10 +46,6 @@ export function buildProgram(
     .description('file stdin as the latest captured payload or agent tick')
     .option('--home <dir>', 'operate on this home instead of $HOME')
     .action((options: SubcommandOptions) => onSubcommand?.('capture', options));
-  const gallery = quiet(new Command('gallery'))
-    .description('render every component alternative to one HTML page')
-    .option('--out <file>', 'write the page here instead of stdout')
-    .action((options: SubcommandOptions) => onSubcommand?.('gallery', options));
   const payload = quiet(new Command('payload'))
     .description('print a shipped fixture payload for piping into the runtime')
     .addArgument(
@@ -80,7 +73,6 @@ export function buildProgram(
     .action(() => undefined)
     .addCommand(apply)
     .addCommand(capture)
-    .addCommand(gallery)
     .addCommand(payload)
     .addCommand(pick)
     .addCommand(resolve);
@@ -109,7 +101,6 @@ export function parseArgs(args: readonly string[]): ParsedArgs | undefined {
     home: chosen.options.home,
     force: chosen.options.force,
     dryRun: chosen.options.dryRun,
-    out: chosen.options.out,
     payload: chosen.options.payload,
   };
 }
