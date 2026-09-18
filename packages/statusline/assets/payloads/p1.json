@@ -3,14 +3,14 @@
   "session_name": "statusline-makeover",
   "transcript_path": "/Users/vineet/.claude/projects/demo/x.jsonl",
   "version": "2.1.275",
-  "cwd": "/Users/vineet/.claude/statusline-lab/demo/atlas-web",
+  "cwd": "/demo/atlas-web",
   "model": {
     "id": "claude-opus-5",
     "display_name": "Opus"
   },
   "workspace": {
-    "current_dir": "/Users/vineet/.claude/statusline-lab/demo/atlas-web",
-    "project_dir": "/Users/vineet/.claude/statusline-lab/demo/atlas-web",
+    "current_dir": "/demo/atlas-web",
+    "project_dir": "/demo/atlas-web",
     "added_dirs": [],
     "repo": {
       "host": "github.com",
@@ -70,9 +70,7 @@
     "miss_recache_tokens": 310200,
     "last_miss_at": 1788865162,
     "last_miss_cause": {
-      "causes": [
-        "tools_changed"
-      ],
+      "causes": ["tools_changed"],
       "tools_added": 2,
       "tools_removed": 0
     }

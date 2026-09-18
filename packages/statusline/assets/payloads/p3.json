@@ -1,13 +1,13 @@
 {
   "session_id": "c9d0demo03",
-  "cwd": "/Users/vineet/.claude/statusline-lab/demo/atlas-web",
+  "cwd": "/demo/atlas-web",
   "model": {
     "id": "claude-opus-5",
     "display_name": "Opus"
   },
   "workspace": {
-    "current_dir": "/Users/vineet/.claude/statusline-lab/demo/atlas-web",
-    "project_dir": "/Users/vineet/.claude/statusline-lab/demo/atlas-web"
+    "current_dir": "/demo/atlas-web",
+    "project_dir": "/demo/atlas-web"
   },
   "version": "2.1.275",
   "output_style": {
@@ -53,9 +53,7 @@
     "miss_recache_tokens": 399100,
     "last_miss_at": 1788867117,
     "last_miss_cause": {
-      "causes": [
-        "ttl_expired_1h"
-      ]
+      "causes": ["ttl_expired_1h"]
     }
   },
   "rate_limits": {
