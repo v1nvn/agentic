@@ -2,10 +2,6 @@ import { describe, expect, it } from 'vitest';
 
 import { render, toHtml } from '../src/ansi.js';
 
-// Expected strings are hand-derived from the loose lab's ansi2html.py: the
-// port must reproduce its output byte for byte, quirks included (the empty
-// close-and-reopen span between adjacent SGR runs, html.escape's quote
-// entities, basic background codes the source silently ignores).
 const E = '\x1b[';
 
 describe('toHtml', () => {
