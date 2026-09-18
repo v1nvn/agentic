@@ -2,7 +2,7 @@ import { printUsageAndExit } from '@v1nvn/agentic-core';
 
 import { apply } from './apply.js';
 import { capture } from './capture.js';
-import { buildProgram, parseArgs, VERSION } from './cli.js';
+import { buildProgram, designsCatalog, parseArgs, VERSION } from './cli.js';
 import { payloadJson, type PayloadName } from './payloads.js';
 import { resolve } from './resolve.js';
 import { terminalDeps } from './wizard-tui.js';
@@ -52,6 +52,8 @@ if (parsed.version) {
     console.error((e as Error).message);
     process.exitCode = 1;
   }
+} else if (parsed.command === 'designs') {
+  console.log(designsCatalog({ home: homeOf(parsed.home) }));
 } else if (parsed.command === 'payload' && parsed.payload !== undefined) {
   console.log(payloadJson(parsed.payload as PayloadName));
 } else if (parsed.command === 'pick') {

@@ -38,23 +38,23 @@ installs from a local marketplace (`claude plugin marketplace add <repo
 checkout>` → `claude plugin install statusline-lab@agentic`), the trampoline
 renders both surfaces from the installed plugin dir, an edit inside the
 installed dir shows on the next paint, `apply` is cancel-safe and idempotent,
-the wizard runs and saves picks, the suite is 152/152. Still shipping against
-the ruling: the wizard previews only the main line (no agent row — unit 2),
-and the skill and README still carry the gallery story (units 3–4). The build
-thread lives in `archive/statusline-plugin.md`.
+the wizard runs and saves picks, the suite is 156/156. Still shipping against
+the ruling: the skill and README still carry the gallery story (units 3–4). The
+build thread lives in `archive/statusline-plugin.md`.
 
 ## Layout — what a fresh session needs
 
 ```
 packages/statusline-lab/          @v1nvn/statusline-lab — bin `statusline-lab`
   src/index.ts                    dispatch; reads capture stdin as a stream (never readFileSync(0))
-  src/cli.ts                      commander program: apply capture gallery payload pick resolve
+  src/cli.ts                      commander program: apply capture designs payload pick resolve
   src/apply.ts                    trampoline template + settings splice; statuslineCacheRoot
   src/resolve.ts                  installed_plugins.json key `statusline-lab@agentic`, cache fallback
   src/capture.ts                  DATA_DIR `statusline-lab-agentic`; payloads/ticks latest.json
-  src/wizard.ts                   the TUI engine (injectable deps), fixture preview
-                                  pipeline, shared parsers (readDeclarations,
-                                  readDefaults, fixtureStdin)
+  src/wizard.ts                   the TUI engine (injectable deps), fixture +
+                                  panel-tick preview pipeline, shared parsers
+                                  (readDeclarations, readDefaults, fixtureStdin),
+                                  designsCatalog
   src/wizard-tui.ts               real terminal deps (raw mode, keys, screen render)
   src/demo-repo.ts                materializes the demo git repo (wizard fixtures, tests)
   src/payloads.ts                 fixture registry p1..p4
@@ -196,3 +196,8 @@ this file when 10b closes.
   `payloads:` header — `components/state.sh:3` still declares it, now
   stale; orchestrator accepted the trim, header joins unit 4's sweep);
   suite 190 → 152; tarball carries no `.ttf`.
+- 2026-09-18 — unit 2 landed: the wizard previews both surfaces (one
+  `bin/subagent.sh` spawn per draw on the multi tick anchored so its first
+  row is 30 minutes old, columns riding the `w` cycle), and `designs`
+  prints the catalog (`component: alt | alt*`, star = live pick, zero
+  ANSI); suite 152 → 156.

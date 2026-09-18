@@ -6,7 +6,10 @@ import { PAYLOAD_NAMES } from './payloads.js';
 
 export const VERSION = pkg.version;
 
-export type Subcommand = 'apply' | 'capture' | 'payload' | 'pick' | 'resolve';
+export type Subcommand =
+  'apply' | 'capture' | 'designs' | 'payload' | 'pick' | 'resolve';
+
+export { designsCatalog } from './wizard.js';
 
 export interface ParsedArgs {
   readonly command?: Subcommand;
@@ -46,6 +49,10 @@ export function buildProgram(
     .description('file stdin as the latest captured payload or agent tick')
     .option('--home <dir>', 'operate on this home instead of $HOME')
     .action((options: SubcommandOptions) => onSubcommand?.('capture', options));
+  const designs = quiet(new Command('designs'))
+    .description('print one line per component — * marks the live pick')
+    .option('--home <dir>', 'operate on this home instead of $HOME')
+    .action((options: SubcommandOptions) => onSubcommand?.('designs', options));
   const payload = quiet(new Command('payload'))
     .description('print a shipped fixture payload for piping into the runtime')
     .addArgument(
@@ -73,6 +80,7 @@ export function buildProgram(
     .action(() => undefined)
     .addCommand(apply)
     .addCommand(capture)
+    .addCommand(designs)
     .addCommand(payload)
     .addCommand(pick)
     .addCommand(resolve);

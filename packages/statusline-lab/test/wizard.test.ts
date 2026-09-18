@@ -14,6 +14,7 @@ import { fileURLToPath } from 'node:url';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import p2 from '../assets/payloads/p2.json' with { type: 'json' };
+import multiTick from '../assets/ticks/multi.json' with { type: 'json' };
 import { capture } from '../src/capture.js';
 import {
   createWizard,
@@ -56,6 +57,12 @@ const P1_FIXTURE = fileURLToPath(
 const P3_FIXTURE = fileURLToPath(
   new URL('../assets/payloads/p3.json', import.meta.url),
 );
+const PANEL_BIN = fileURLToPath(
+  new URL('../assets/runtime/bin/subagent.sh', import.meta.url),
+);
+const MULTI_TICK = multiTick as unknown as {
+  tasks: ReadonlyArray<{ id?: string }>;
+};
 
 // The runtime's own COMPS order (bin/statusline.sh CLUSTERS, bin/lib.sh) — the
 // wizard lists components in the order the line renders them.
@@ -164,6 +171,41 @@ function fakeDeps(keys: readonly string[]): {
   };
 }
 
+// The panel row must carry real renderer bytes into the frame: like fakeDeps
+// this records every spec, but the line and panel previews render for real and
+// their outputs are captured in-run — the demo repo behind a fixture preview
+// is torn down with the wizard, so re-rendering a spec afterwards is not
+// faithful and the frame is asserted against what rendering actually returned.
+function renderingDeps(keys: readonly string[]): {
+  deps: WizardDeps;
+  lineOutputs: string[];
+  panelOutputs: string[];
+  recorded: Recorded;
+} {
+  const base = fakeDeps(keys);
+  const lineOutputs: string[] = [];
+  const panelOutputs: string[] = [];
+  return {
+    deps: {
+      ...base.deps,
+      preview(spec: WizardRender): string {
+        const stub = base.deps.preview(spec);
+        const isLineSpec =
+          spec.bin === RUNTIME_COPY_BIN && spec.args[0] !== '--seg';
+        if (!isLineSpec && spec.bin !== PANEL_BIN) {
+          return stub;
+        }
+        const out = runtimeRenderer(spec).replace(/\n+$/, '');
+        (isLineSpec ? lineOutputs : panelOutputs).push(out);
+        return out;
+      },
+    },
+    lineOutputs,
+    panelOutputs,
+    recorded: base.recorded,
+  };
+}
+
 const homes = createHomes();
 
 afterEach(() => {
@@ -183,7 +225,13 @@ async function runWizard(
 }
 
 function lineSpecs(specs: readonly WizardRender[]): WizardRender[] {
-  return specs.filter(spec => spec.args[0] !== '--seg');
+  return specs.filter(
+    spec => spec.bin !== PANEL_BIN && spec.args[0] !== '--seg',
+  );
+}
+
+function panelSpecs(specs: readonly WizardRender[]): WizardRender[] {
+  return specs.filter(spec => spec.bin === PANEL_BIN);
 }
 
 function lastLine(specs: readonly WizardRender[]): WizardRender {
@@ -354,6 +402,86 @@ describe('wizard: the initial preview', () => {
     expect(segmentAlternatives(recorded.specs, 'model')).toEqual(
       new Set(headerAlternatives().get('model')),
     );
+  });
+});
+
+describe('wizard: agent-panel preview', () => {
+  it('spawns bin/subagent.sh once per draw on the anchored multi tick', async () => {
+    const home = homes.newHome();
+    const { recorded } = await runWizard(['\x1b[B'], home);
+
+    const panels = panelSpecs(recorded.specs);
+    // One line preview per draw() is the draw count — the frames array also
+    // catches the closing cancelled/saved render, which is not a draw.
+    const draws = lineSpecs(recorded.specs).length;
+    expect(draws).toBeGreaterThan(1);
+    expect(panels).toHaveLength(draws);
+
+    const panel = panels[0];
+    expect(panel?.args).toEqual([]);
+    expect(panel?.env).toEqual({
+      COLUMNS: '80',
+      HOME: home,
+      NOW: DEFAULT_NOW,
+    });
+
+    const tick = JSON.parse(panel?.stdin ?? '') as {
+      columns: number;
+      tasks: ReadonlyArray<{ id?: string; startTime?: number }>;
+    };
+    expect(tick.columns).toBe(80);
+    expect(tick.tasks.map(task => task.id)).toEqual(
+      MULTI_TICK.tasks.map(task => task.id),
+    );
+
+    const now = Number(DEFAULT_NOW);
+    const first = tick.tasks[0];
+    expect(first?.id).toBe('row-explore');
+    expect(first?.startTime).toBeLessThan(now);
+    expect(first?.startTime).toBeGreaterThan(now - 3600);
+  });
+
+  it('rides the w width cycle — the tick carries WIDTHS[widthAt] columns', async () => {
+    const { recorded } = await runWizard(['w']);
+
+    const widths = panelSpecs(recorded.specs).map(spec => [
+      spec.env.COLUMNS,
+      String((JSON.parse(spec.stdin) as { columns: number }).columns),
+    ]);
+    expect(widths).toEqual([
+      ['80', '80'],
+      ['120', '120'],
+    ]);
+  });
+
+  it('prints the panel row under the line preview with the first rendered row', async () => {
+    const home = homes.newHome();
+    const { deps, recorded, lineOutputs, panelOutputs } = renderingDeps([
+      '\x1b[B',
+    ]);
+    await createWizard(
+      { home, now: DEFAULT_NOW, payloadPath: P1_FIXTURE },
+      deps,
+    );
+
+    expect(panelOutputs).toHaveLength(lineSpecs(recorded.specs).length);
+
+    const first = JSON.parse(panelOutputs[0]?.split('\n')[0] ?? '') as {
+      id: string;
+      content: string;
+    };
+    expect(first.id).toBe('row-explore');
+    expect(first.content).toContain('Explore');
+
+    const frame = (recorded.frames[0] ?? '').split('\n');
+    const lineAt = frame.findIndex(row =>
+      row.includes(lineOutputs[0] ?? '<no-line-render>'),
+    );
+    const panelAt = frame.findIndex(
+      row => row.includes('panel') && row.includes(first.content),
+    );
+    expect(lineAt).toBeGreaterThan(-1);
+    expect(panelAt).toBeGreaterThan(lineAt);
   });
 });
 
