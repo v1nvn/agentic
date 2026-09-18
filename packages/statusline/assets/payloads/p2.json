@@ -1,13 +1,13 @@
 {
   "session_id": "e5f6demo02",
-  "cwd": "/Users/vineet/.claude/statusline-lab/demo/atlas-web",
+  "cwd": "/demo/atlas-web",
   "model": {
     "id": "claude-sonnet-5",
     "display_name": "Sonnet"
   },
   "workspace": {
-    "current_dir": "/Users/vineet/.claude/statusline-lab/demo/atlas-web",
-    "project_dir": "/Users/vineet/.claude/statusline-lab/demo/atlas-web"
+    "current_dir": "/demo/atlas-web",
+    "project_dir": "/demo/atlas-web"
   },
   "version": "2.1.275",
   "output_style": {

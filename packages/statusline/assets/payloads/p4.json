@@ -1,14 +1,14 @@
 {
   "session_id": "b7a8demo04",
   "session_name": "auth-refactor",
-  "cwd": "/Users/vineet/.claude/statusline-lab/demo/atlas-web",
+  "cwd": "/demo/atlas-web",
   "model": {
     "id": "claude-opus-5",
     "display_name": "Opus"
   },
   "workspace": {
-    "current_dir": "/Users/vineet/.claude/statusline-lab/demo/atlas-web",
-    "project_dir": "/Users/vineet/.claude/statusline-lab/demo/atlas-web",
+    "current_dir": "/demo/atlas-web",
+    "project_dir": "/demo/atlas-web",
     "git_worktree": "fix-auth"
   },
   "version": "2.1.275",
@@ -31,9 +31,9 @@
   },
   "worktree": {
     "name": "fix-auth",
-    "path": "/Users/vineet/.claude/statusline-lab/demo/atlas-web-wt",
+    "path": "/demo/atlas-web-wt",
     "branch": "worktree-fix-auth",
-    "original_cwd": "/Users/vineet/.claude/statusline-lab/demo/atlas-web",
+    "original_cwd": "/demo/atlas-web",
     "original_branch": "main"
   },
   "cost": {
