@@ -197,7 +197,12 @@ this file when 10b closes.
   stale; orchestrator accepted the trim, header joins unit 4's sweep);
   suite 190 → 152; tarball carries no `.ttf`.
 - 2026-09-18 — unit 2 landed: the wizard previews both surfaces (one
-  `bin/subagent.sh` spawn per draw on the multi tick anchored so its first
-  row is 30 minutes old, columns riding the `w` cycle), and `designs`
-  prints the catalog (`component: alt | alt*`, star = live pick, zero
-  ANSI); suite 152 → 156.
+  `bin/subagent.sh` spawn per draw on the multi tick, columns riding the
+  `w` cycle), and `designs` prints the catalog (`component: alt | alt*`,
+  star = live pick, zero ANSI); suite 152 → 156.
+- 2026-09-18 — unit 2 fix round: production imports `designsCatalog`
+  from wizard directly (the cli.ts re-export stays as the frozen test's
+  import surface — reviewer's stronger kill would need editing the
+  contract test), `designs` gains its parseArgs pin (156 → 159), and the
+  demo tick staggers 300 s/row all-past — every started row keeps its
+  duration, first row now-300 ∈ (now-3600, now); reviewer verified.
