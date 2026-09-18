@@ -506,3 +506,13 @@ feed the wizard); subagent SEP follows the `style` pick.
   min=(s−sec)/60), byte-identical at exact -60 multiples, 190/190. Protected
   baseline re-recorded for the test writer's negative-delta pin; its 3-line
   why-note is the surviving class.
+- 2026-09-18 — unit-10 ordering ruling (veto table): the plan's 10→11 order
+  would blank the owner's live statusline — apply --force writes the
+  trampoline, but statusline@agentic is unreleased and uninstalled, so the
+  trampoline resolves nothing until merge → release → install, and the run
+  never merges. Split: 10a (repo-side, in-run) reaps the reference-citation
+  notes per the unit-5 ripple; 10b (owner-machine) is a documented handoff —
+  after merge and plugin install: `npx -y @v1nvn/statusline-lab apply
+  --force`, restart Claude Code, verify both surfaces paint, then delete
+  ~/.claude/statusline-lab/ and ~/.claude/subagent-statusline.sh. The
+  blank-window hazard is why 10b never runs in-run.
