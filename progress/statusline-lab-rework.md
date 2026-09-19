@@ -254,3 +254,10 @@ both surfaces paint. Delete the dead artifacts: `~/.claude/statusline-command.sh
   byte-preservation pins ported to `test/splice.test.ts` (the old
   `line.sh` leftover probe became the full old command — the new subagent
   path contains that substring).
+- 2026-09-19 — unit 2 fix round 1 (blind review, 28f364a): a refused wizard
+  save now returns `save-failed` and the process exits 1 — the wizard.test
+  refusal pin flipped with it, deliberately, because the behavior changed;
+  the foreign-key refusal message names the working retry (--force added to
+  the configuration flags — bare `--force` is printed mode and writes
+  nothing). Gate 155/155; a pty run of the built binary shows the `save
+  failed: …` frame and exit 1.
