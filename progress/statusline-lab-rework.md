@@ -105,7 +105,7 @@ pick-file writing.
 
 ### Reading lists (workers read only these + their unit section + the contracts)
 
-- **Unit 1:** `plugins/statusline-lab/bin/*.sh`, `plugins/statusline-lab/components/*.sh` (headers), `packages/statusline-lab/test/{fixtures,statusline,subagent,responsive,ramps}.ts`, `test/goldens/` (read-only). Contracts 4–8.
+- **Unit 1:** `plugins/statusline-lab/bin/*.sh`, `plugins/statusline-lab/components/*.sh` (headers), `packages/statusline-lab/test/{runtime,statusline,subagent,responsive,ramps}.ts`, `test/goldens/` (read-only). Contracts 4–8.
 - **Unit 2:** `packages/statusline-lab/src/*.ts` (all), `test/{cli,wizard,apply}.test.ts`, `package.json`. Contracts 1–3, 5, 10 + unit 1's landed shape.
 - **Unit 3:** `plugins/statusline-lab/commands/statusline-lab.md`, `README.md`, `CLAUDE.md`, `.claude-plugin/marketplace.json`. Contract 9 + the PR body via `gh pr view 2`.
 
@@ -126,14 +126,31 @@ pick-file writing.
 read stdin once into a variable, tee it to `captures/main.json` (atomic),
 parse `STATUSLINE_LAB_LAYOUT` into clusters (default reproduces the current
 hardcoded composition; unknown item id → skip that item + warn stderr; empty
-layout → default). `subagent.sh`: same tee to `captures/tick.json`. Tests:
-`fixtures.ts` gains env injection; `statusline/subagent/responsive/ramps`
-suites re-anchored; **goldens must stay byte-identical** (default layout =
-current composition is the port's proof). Verify: full gates; a manual render
-with `STATUSLINE_LAB_MODEL=block` shows the block variant; a piped payload
-leaves `captures/main.json` behind.
+layout → default). `subagent.sh`: same tee to `captures/tick.json`. Tests: `test/runtime.ts`
+(the on-disk render helper — an earlier draft said `fixtures.ts`, corrected)
+gains env injection; `statusline/subagent/responsive/ramps` suites
+re-anchored; **goldens must stay byte-identical** (default layout = current
+composition is the port's proof). The tee writes **raw stdin bytes, trailing
+newline included**; capture replacement is later-wins; empty layout behaves
+like unset (`:=` semantics). The test writer's three files —
+`test/plugin-runtime.ts`, `test/plugin-runtime.test.ts`,
+`test/runtime-tee.test.ts` — are protected: the builder reports conflicts
+with them, never edits them. Verify: full gates; the 17 new tests green; a
+manual render with `STATUSLINE_LAB_MODEL=block` shows the block variant; a
+piped payload leaves `captures/main.json` behind.
 
 ### Unit 2 — CLI rewrite
+
+Owed by unit 1 (landed 23d8185): `lib.sh` exposes `read_config`/
+`check_config`/`capture` + exported `DEFAULT_LAYOUT`; `statusline.sh` keeps
+the `COMPS=` line (item-id registry), the comp=alt argv loop and `--seg`
+(wizard/ramps still ride them) — delete argv/`--seg` when env previews land.
+`scripts/sync-runtime.mjs` is retargeted to `plugins/statusline-lab/runtime`
+→ `assets/runtime` (flat); it and `assets/runtime/` still await deletion with
+the build prefix. `test/runtime.ts` still exports `PICKS_PATH` for the
+cli/wizard suites and gained `variantEnv('item=alt')`; wizard.test's
+"paint no longer reads picks" assertion is unit 1's flipped original —
+rewrite it with the configure writer.
 
 Delete `src/apply.ts`, `src/capture.ts`, the `pick`/`designs`/`payload`/
 `resolve` verbs and their pins. New `src/configure.ts`: the mode machine
@@ -189,3 +206,10 @@ both surfaces paint. Delete the dead artifacts: `~/.claude/statusline-command.sh
 
 - 2026-09-19 — file created from the session's rulings; units 1–3 defined;
   run-plan dispatched.
+- 2026-09-19 — unit 1 landed (23d8185): `runtime/` restructure, env config,
+  layout parser, stdin tee; gate green 176/176, 17 red tests green, goldens
+  byte-identical. Seam beyond the unit's file list, reported not hidden:
+  `sync-runtime.mjs` source retargeted and 8 path constants re-anchored in
+  `src/wizard.ts`/`cli.test.ts`/`wizard.test.ts` (the synced copy is flat
+  now), and wizard.test's paint-honors-picks assertion flipped to
+  paint-ignores-picks — that premise is what unit 1 deletes.
