@@ -1,6 +1,7 @@
-import type { WizardDeps, WizardRender } from './wizard.js';
+import type { RenderSpec } from './payloads.js';
+import type { WizardDeps } from './wizard.js';
 
-import { runtimeRenderer } from './wizard.js';
+import { runtimeRenderer } from './payloads.js';
 
 function nextKey(buffer: string): readonly [string, string] | undefined {
   if (buffer === '') {
@@ -88,7 +89,7 @@ export function terminalDeps(
     render(frame: string): void {
       output.write(`\x1b[2J\x1b[H${frame}\n`);
     },
-    preview(spec: WizardRender): string {
+    preview(spec: RenderSpec): string {
       return runtimeRenderer(spec);
     },
   };

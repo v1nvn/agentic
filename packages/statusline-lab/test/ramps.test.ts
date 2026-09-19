@@ -40,6 +40,9 @@ function basePayload(): Loose {
   ) as Loose;
 }
 
+// The segment oracle rides the env preview channel: a one-item layout makes
+// the runtime print that segment alone, and the render path appends the
+// trailing newline the old --seg shortcut did not.
 function seg(comp: string, alt: string, payload: Loose): RenderResult {
   if (!demo) {
     throw new Error('demo home not materialized');
@@ -49,14 +52,19 @@ function seg(comp: string, alt: string, payload: Loose): RenderResult {
     home: demo.home,
     repoDir: demo.repoDir,
     now: DEFAULT_NOW,
-    args: ['--seg', `${comp}=${alt}`],
+    env: {
+      STATUSLINE_LAB_LAYOUT: `{${comp}}`,
+      [`STATUSLINE_LAB_${comp.toUpperCase()}`]: alt,
+    },
   });
 }
 
 function expectOracle(run: RenderResult, name: string): void {
   expect(run.status, name).toBe(0);
   expect(run.stderr, name).toBe('');
-  expect(run.stdout, name).toEqual(golden(`ramp-${name}`));
+  expect(run.stdout, name).toEqual(
+    Buffer.concat([golden(`ramp-${name}`), Buffer.from('\n')]),
+  );
 }
 
 describe('bar=gauge', () => {

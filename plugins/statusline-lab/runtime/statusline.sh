@@ -107,26 +107,7 @@ seg_bar_flat4() { _bar_flat_w 4; }
 
 COMPS="model effort state cwd branch status ahead pr bar tokens cache cost duration lines rate style"
 read_config $COMPS
-want_seg=0; seg_comp=""
-for a in "$@"; do
-    if [ "$a" = "--seg" ]; then want_seg=1; continue; fi
-    k=${a%%=*}; v=${a#*=}
-    case " $COMPS " in *" $k "*)
-        if [ "$want_seg" = 1 ] && [ -z "$seg_comp" ]; then seg_comp=$k; fi
-        eval "PICK_$k=\$v" ;;
-    esac
-done
 check_config $COMPS
-
-if [ "$want_seg" = 1 ]; then
-    if [ -n "$seg_comp" ]; then
-        eval "alt=\${PICK_${seg_comp}}"
-        "seg_${seg_comp}_${alt}"
-    else
-        echo "statusline: --seg needs a component, e.g. statusline.sh --seg bar=percent" >&2
-    fi
-    exit 0
-fi
 
 "seg_style_${PICK_style}"
 : "${STATUSLINE_LAB_LAYOUT:=$DEFAULT_LAYOUT}"

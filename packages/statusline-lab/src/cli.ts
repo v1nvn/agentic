@@ -1,31 +1,46 @@
 import { parseQuietly } from '@v1nvn/agentic-core';
-import { Argument, Command } from 'commander';
+import { Command, Option } from 'commander';
 
 import pkg from '../package.json' with { type: 'json' };
-import { PAYLOAD_NAMES } from './payloads.js';
 
 export const VERSION = pkg.version;
 
-export type Subcommand =
-  'apply' | 'capture' | 'designs' | 'payload' | 'pick' | 'resolve';
+// The flag surface mirrors statusline.sh's COMPS item registry; the catalog
+// and configure suites pin the two together.
+const ITEM_IDS = [
+  'model',
+  'effort',
+  'state',
+  'cwd',
+  'branch',
+  'status',
+  'ahead',
+  'pr',
+  'bar',
+  'tokens',
+  'cache',
+  'cost',
+  'duration',
+  'lines',
+  'rate',
+  'style',
+] as const satisfies readonly string[];
 
-export { designsCatalog } from './wizard.js';
+export type Subcommand = 'catalog' | 'configure';
 
 export interface ParsedArgs {
   readonly command?: Subcommand;
   readonly dryRun?: boolean;
+  readonly fallback?: 'default' | 'existing';
   readonly force?: boolean;
   readonly home?: string;
-  readonly payload?: string;
+  readonly items?: readonly string[];
+  readonly layout?: string;
+  readonly variants?: Readonly<Record<string, string>>;
   readonly version: boolean;
 }
 
-interface SubcommandOptions {
-  readonly dryRun?: boolean;
-  readonly force?: boolean;
-  readonly home?: string;
-  readonly payload?: string;
-}
+type SubcommandOptions = Record<string, unknown>;
 
 const QUIET = { writeOut: () => undefined, writeErr: () => undefined };
 
@@ -39,51 +54,47 @@ function quiet(command: Command): Command {
 export function buildProgram(
   onSubcommand?: (command: Subcommand, options: SubcommandOptions) => void,
 ): Command {
-  const apply = quiet(new Command('apply'))
-    .description('install the trampoline and point both settings keys at it')
-    .option('--home <dir>', 'operate on this home instead of $HOME')
-    .option('--force', 'take over a foreign trampoline or settings key')
-    .option('--dry-run', 'report the plan without writing')
-    .action((options: SubcommandOptions) => onSubcommand?.('apply', options));
-  const capture = quiet(new Command('capture'))
-    .description('file stdin as the latest captured payload or agent tick')
-    .option('--home <dir>', 'operate on this home instead of $HOME')
-    .action((options: SubcommandOptions) => onSubcommand?.('capture', options));
-  const designs = quiet(new Command('designs'))
-    .description('print one line per component — * marks the live pick')
-    .option('--home <dir>', 'operate on this home instead of $HOME')
-    .action((options: SubcommandOptions) => onSubcommand?.('designs', options));
-  const payload = quiet(new Command('payload'))
-    .description('print a shipped fixture payload for piping into the runtime')
-    .addArgument(
-      new Argument('<name>', 'fixture name: p1 | p2 | p3 | p4').choices([
-        ...PAYLOAD_NAMES,
-      ]),
+  const catalog = quiet(new Command('catalog'))
+    .description('print one line per item — * marks the live variant')
+    .option('--home <dir>', 'operate on this home instead of $HOME');
+  for (const item of ITEM_IDS) {
+    catalog.option(`--${item}`, `cut the listing to the ${item} item`);
+  }
+  catalog.action((options: SubcommandOptions) =>
+    onSubcommand?.('catalog', options),
+  );
+
+  const configure = quiet(new Command('configure'))
+    .description(
+      'write the generated scripts and point both settings keys at them',
     )
-    .action((name: string) => onSubcommand?.('payload', { payload: name }));
-  const pick = quiet(new Command('pick'))
-    .description('pick designs in a live-preview terminal wizard')
     .option('--home <dir>', 'operate on this home instead of $HOME')
     .option(
-      '--payload <fixture-or-file>',
-      'render previews on this payload (p1..p4, a capture, or any file)',
+      '--layout <spec>',
+      "brace clusters of item ids, e.g. '{cwd branch} {model effort}'",
     )
-    .action((options: SubcommandOptions) => onSubcommand?.('pick', options));
-  const resolve = quiet(new Command('resolve'))
-    .description('print the plugin dir the trampoline would run')
-    .option('--home <dir>', 'operate on this home instead of $HOME')
-    .action((options: SubcommandOptions) => onSubcommand?.('resolve', options));
+    .addOption(
+      new Option(
+        '--fallback <mode>',
+        'fill unflagged layout items from defaults or the existing script',
+      ).choices(['default', 'existing']),
+    )
+    .option('--dry-run', 'render both surfaces, persist nothing')
+    .option('--force', 'take over foreign settings keys');
+  for (const item of ITEM_IDS) {
+    configure.option(`--${item} <alt>`, `variant for the ${item} item`);
+  }
+  configure.action((options: SubcommandOptions) =>
+    onSubcommand?.('configure', options),
+  );
+
   return new Command()
     .name('statusline-lab')
-    .description('Preview statusline designs and apply them to the live line')
+    .description('Configure the status line and agent panel designs')
     .option('-V, --version', 'print the lab version and exit')
     .action(() => undefined)
-    .addCommand(apply)
-    .addCommand(capture)
-    .addCommand(designs)
-    .addCommand(payload)
-    .addCommand(pick)
-    .addCommand(resolve);
+    .addCommand(catalog)
+    .addCommand(configure);
 }
 
 export function parseArgs(args: readonly string[]): ParsedArgs | undefined {
@@ -100,15 +111,38 @@ export function parseArgs(args: readonly string[]): ParsedArgs | undefined {
     return undefined;
   }
   const { version } = program.opts<{ version: boolean | undefined }>();
+  if (version) {
+    return { version: true };
+  }
   if (chosen === undefined) {
-    return { version: version ?? false };
+    return undefined;
+  }
+  const options = chosen.options;
+  if (chosen.command === 'catalog') {
+    const items = ITEM_IDS.filter(item => options[item] === true);
+    return {
+      version: false,
+      command: 'catalog',
+      ...(items.length > 0 ? { items } : {}),
+      ...(typeof options.home === 'string' ? { home: options.home } : {}),
+    };
+  }
+  const variants: Record<string, string> = {};
+  for (const item of ITEM_IDS) {
+    if (typeof options[item] === 'string') {
+      variants[item] = options[item];
+    }
   }
   return {
-    version: version ?? false,
-    command: chosen.command,
-    home: chosen.options.home,
-    force: chosen.options.force,
-    dryRun: chosen.options.dryRun,
-    payload: chosen.options.payload,
+    version: false,
+    command: 'configure',
+    ...(Object.keys(variants).length > 0 ? { variants } : {}),
+    ...(typeof options.dryRun === 'boolean' ? { dryRun: options.dryRun } : {}),
+    ...(typeof options.fallback === 'string'
+      ? { fallback: options.fallback as 'default' | 'existing' }
+      : {}),
+    ...(typeof options.force === 'boolean' ? { force: options.force } : {}),
+    ...(typeof options.home === 'string' ? { home: options.home } : {}),
+    ...(typeof options.layout === 'string' ? { layout: options.layout } : {}),
   };
 }

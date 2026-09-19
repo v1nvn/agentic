@@ -1,156 +1,55 @@
 import { spawnSync } from 'node:child_process';
-import {
-  existsSync,
-  mkdirSync,
-  readFileSync,
-  readdirSync,
-  rmSync,
-  writeFileSync,
-} from 'node:fs';
-import { tmpdir } from 'node:os';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { afterEach, describe, expect, it } from 'vitest';
 
-import p2 from '../assets/payloads/p2.json' with { type: 'json' };
 import multiTick from '../assets/ticks/multi.json' with { type: 'json' };
-import { capture } from '../src/capture.js';
+import { catalog } from '../src/catalog.js';
+import { runtimeRenderer, type RenderSpec } from '../src/payloads.js';
 import {
   createWizard,
-  resolveWizardPayload,
-  runtimeRenderer,
-  wizardComponents,
   type WizardDeps,
   type WizardOutcome,
-  type WizardRender,
 } from '../src/wizard.js';
 import {
-  TRAMPOLINE_COMMAND,
-  TRAMPOLINE_MARKER,
+  DATA_REL,
   createHomes,
+  installRuntime,
   settingsPath,
-  snapshotTree,
-  trampolinePath,
   writeSettings,
-  writeTrampoline,
 } from './fixtures.js';
-import {
-  DEFAULT_NOW,
-  PICKS_PATH,
-  createDemoHome,
-  renderStatusline,
-} from './runtime.js';
+import { DEFAULT_NOW } from './runtime.js';
 
-const RUNTIME_COPY_BIN = fileURLToPath(
-  new URL('../assets/runtime/statusline.sh', import.meta.url),
+const RUNTIME_DIR = fileURLToPath(
+  new URL('../../../plugins/statusline-lab/runtime', import.meta.url),
 );
-const COMPONENTS_DIR = fileURLToPath(
-  new URL('../assets/runtime/components', import.meta.url),
-);
-const LIB_SH = fileURLToPath(
-  new URL('../assets/runtime/lib.sh', import.meta.url),
-);
-const P1_FIXTURE = fileURLToPath(
-  new URL('../assets/payloads/p1.json', import.meta.url),
-);
-const P3_FIXTURE = fileURLToPath(
-  new URL('../assets/payloads/p3.json', import.meta.url),
-);
-const PANEL_BIN = fileURLToPath(
-  new URL('../assets/runtime/subagent.sh', import.meta.url),
-);
+const DEFAULT_LAYOUT = /^export DEFAULT_LAYOUT='(.*)'$/m.exec(
+  readFileSync(join(RUNTIME_DIR, 'lib.sh'), 'utf8'),
+)?.[1];
+if (DEFAULT_LAYOUT === undefined) {
+  throw new Error('lib.sh declares no DEFAULT_LAYOUT');
+}
+const DEFAULT_LAYOUT_ITEMS = DEFAULT_LAYOUT.replaceAll('}', '')
+  .replaceAll('{', '')
+  .split(' ')
+  .filter(word => word !== '');
 const MULTI_TICK = multiTick as unknown as {
   tasks: ReadonlyArray<{ id?: string }>;
 };
 
-// The runtime's own COMPS order (statusline.sh COMPS, lib.sh) — the
-// wizard lists components in the order the line renders them.
-const CANONICAL_COMPS = [
-  'model',
-  'effort',
-  'state',
-  'cwd',
-  'branch',
-  'status',
-  'ahead',
-  'pr',
-  'bar',
-  'tokens',
-  'cache',
-  'cost',
-  'duration',
-  'lines',
-  'rate',
-  'style',
-];
-
-// The draft rides to the runtime as comp=alt argv, never as a half-written
-// picks file — a bare invocation and an all-defaults argv land on the same
-// line (read_picks defaults), so argv is the honest preview channel and a
-// cancelled walk cannot leak draft state onto disk.
-const DEFAULT_ARGS = [
-  'model=plain',
-  'effort=plain',
-  'state=none',
-  'cwd=init',
-  'branch=initials',
-  'status=counts',
-  'ahead=none',
-  'pr=none',
-  'bar=flat',
-  'tokens=full',
-  'cache=hit',
-  'cost=plain',
-  'duration=clock',
-  'lines=none',
-  'rate=none',
-  'style=plain',
-];
-const DEFAULT_PICKS = `${DEFAULT_ARGS.join('\n')}\n`;
-
-const WALK_ARGS = [
-  'model=block',
-  'effort=plain',
-  'state=none',
-  'cwd=init',
-  'branch=initials',
-  'status=counts',
-  'ahead=none',
-  'pr=none',
-  'bar=flat',
-  'tokens=full',
-  'cache=hit',
-  'cost=none',
-  'duration=clock',
-  'lines=none',
-  'rate=none',
-  'style=plain',
-];
-const WALK_PICKS = `${WALK_ARGS.join('\n')}\n`;
-
-const OFFER = 'apply now? [y/n]';
-
-interface OfferedComponent {
-  readonly component: string;
-  readonly alternatives: readonly string[];
-}
-
-function offered(): readonly OfferedComponent[] {
-  return wizardComponents();
-}
-
 interface Recorded {
   readonly frames: string[];
-  readonly specs: WizardRender[];
+  readonly specs: RenderSpec[];
 }
 
 function fakeDeps(keys: readonly string[]): {
-  deps: WizardDeps;
-  recorded: Recorded;
+  readonly deps: WizardDeps;
+  readonly recorded: Recorded;
 } {
   const frames: string[] = [];
-  const specs: WizardRender[] = [];
+  const specs: RenderSpec[] = [];
   async function* readKeys(): AsyncGenerator<string> {
     for (const key of keys) {
       yield key;
@@ -162,7 +61,7 @@ function fakeDeps(keys: readonly string[]): {
       render: (frame: string) => {
         frames.push(frame);
       },
-      preview: (spec: WizardRender) => {
+      preview: (spec: RenderSpec) => {
         specs.push(spec);
         return '';
       },
@@ -171,42 +70,33 @@ function fakeDeps(keys: readonly string[]): {
   };
 }
 
-// The panel row must carry real renderer bytes into the frame: like fakeDeps
-// this records every spec, but the line and panel previews render for real and
-// their outputs are captured in-run — the demo repo behind a fixture preview
-// is torn down with the wizard, so re-rendering a spec afterwards is not
-// faithful and the frame is asserted against what rendering actually returned.
-function renderingDeps(keys: readonly string[]): {
-  deps: WizardDeps;
-  lineOutputs: string[];
-  panelOutputs: string[];
-  recorded: Recorded;
-} {
-  const base = fakeDeps(keys);
-  const lineOutputs: string[] = [];
-  const panelOutputs: string[] = [];
-  return {
-    deps: {
-      ...base.deps,
-      preview(spec: WizardRender): string {
-        const stub = base.deps.preview(spec);
-        const isLineSpec =
-          spec.bin === RUNTIME_COPY_BIN && spec.args[0] !== '--seg';
-        if (!isLineSpec && spec.bin !== PANEL_BIN) {
-          return stub;
-        }
-        const out = runtimeRenderer(spec).replace(/\n+$/, '');
-        (isLineSpec ? lineOutputs : panelOutputs).push(out);
-        return out;
-      },
-    },
-    lineOutputs,
-    panelOutputs,
-    recorded: base.recorded,
-  };
+const homes = createHomes();
+
+function newInstalledHome(): string {
+  const home = homes.newHome();
+  installRuntime(home);
+  return home;
 }
 
-const homes = createHomes();
+function seedCapture(
+  home: string,
+  surface: 'main' | 'tick',
+  body: string,
+): void {
+  const file = join(home, DATA_REL, 'captures', `${surface}.json`);
+  mkdirSync(dirname(file), { recursive: true });
+  writeFileSync(file, body);
+}
+
+function seedMainScript(home: string, raw: string): void {
+  const file = join(home, DATA_REL, 'statusline-command.sh');
+  mkdirSync(dirname(file), { recursive: true });
+  writeFileSync(file, raw);
+}
+
+function mainScript(home: string): string {
+  return join(home, DATA_REL, 'statusline-command.sh');
+}
 
 afterEach(() => {
   homes.dispose();
@@ -214,177 +104,102 @@ afterEach(() => {
 
 async function runWizard(
   keys: readonly string[],
-  home = homes.newHome(),
+  home = newInstalledHome(),
 ): Promise<{ home: string; outcome: WizardOutcome; recorded: Recorded }> {
   const { deps, recorded } = fakeDeps(keys);
-  const outcome = await createWizard(
-    { home, now: DEFAULT_NOW, payloadPath: P1_FIXTURE },
-    deps,
-  );
+  const outcome = await createWizard({ home, now: DEFAULT_NOW }, deps);
   return { home, outcome, recorded };
 }
 
-function lineSpecs(specs: readonly WizardRender[]): WizardRender[] {
-  return specs.filter(
-    spec => spec.bin !== PANEL_BIN && spec.args[0] !== '--seg',
-  );
+// The wizard spawns one full-line preview per draw (layout = the wizard's
+// layout) plus one sample per alternative of the focused item (layout = that
+// item alone) and one panel preview.
+function lineSpecs(
+  specs: readonly RenderSpec[],
+  layout: string,
+): RenderSpec[] {
+  return specs.filter(spec => spec.env.STATUSLINE_LAB_LAYOUT === layout);
 }
 
-function panelSpecs(specs: readonly WizardRender[]): WizardRender[] {
-  return specs.filter(spec => spec.bin === PANEL_BIN);
+function panelSpecs(specs: readonly RenderSpec[]): RenderSpec[] {
+  return specs.filter(spec => spec.bin.endsWith('/subagent.sh'));
 }
 
-function lastLine(specs: readonly WizardRender[]): WizardRender {
-  const lines = lineSpecs(specs);
+function lastLine(specs: readonly RenderSpec[], layout: string): RenderSpec {
+  const lines = lineSpecs(specs, layout);
   if (lines.length === 0) {
     throw new Error('no line preview was spawned');
   }
   return lines[lines.length - 1];
 }
 
-function segmentAlternatives(
-  specs: readonly WizardRender[],
-  comp: string,
-): Set<string> {
-  return new Set(
-    specs
-      .filter(spec => spec.args[0] === '--seg')
-      .map(spec => spec.args[1] ?? '')
-      .filter(arg => arg.startsWith(`${comp}=`))
-      .map(arg => arg.slice(comp.length + 1)),
-  );
-}
-
-function focusedComponents(specs: readonly WizardRender[]): string[] {
-  return specs
-    .filter(spec => spec.args[0] === '--seg')
-    .map(spec => (spec.args[1] ?? '').split('=')[0]);
-}
-
-// Independent parse of the shipped component headers — the wizard's offered
-// set is cross-checked against this, not against itself.
-function headerAlternatives(): Map<string, readonly string[]> {
-  const declared = new Map<string, readonly string[]>();
-  for (const file of readdirSync(COMPONENTS_DIR).sort()) {
-    if (!file.endsWith('.sh')) {
-      continue;
-    }
-    for (const line of readFileSync(join(COMPONENTS_DIR, file), 'utf8').split(
-      '\n',
-    )) {
-      if (!line.startsWith('#')) {
-        break;
-      }
-      const match = /alternatives:\s*(.+)$/.exec(line);
-      if (match) {
-        declared.set(
-          file.slice(0, -'.sh'.length),
-          match[1]
-            .split('|')
-            .map(alt => alt.trim().replace(/\s*\(current\)$/, '')),
-        );
-      }
+function focusedItems(specs: readonly RenderSpec[]): string[] {
+  const seen: string[] = [];
+  for (const spec of specs) {
+    const layout = spec.env.STATUSLINE_LAB_LAYOUT;
+    if (layout !== undefined && /^{\w+}$/.test(layout)) {
+      seen.push(layout.slice(1, -1));
     }
   }
-  return declared;
+  return seen;
 }
 
-function libDefaults(): Map<string, string> {
-  const defaults = new Map<string, string>();
-  for (const [, comp, alt] of readFileSync(LIB_SH, 'utf8').matchAll(
-    /([a-z]+)\) echo ([a-z]+) ;;/g,
-  )) {
-    defaults.set(comp, alt);
-  }
-  return defaults;
-}
+describe('wizard: offered items', () => {
+  it('offers the items of the default layout in order — style is not one of them', async () => {
+    const walk = await runWizard([...Array(15).fill('j')]);
 
-describe('wizard: offered components', () => {
-  it('lists every component in the runtime COMPS order', () => {
-    expect(offered().map(entry => entry.component)).toEqual(CANONICAL_COMPS);
+    expect([...new Set(focusedItems(walk.recorded.specs))]).toEqual(
+      DEFAULT_LAYOUT_ITEMS,
+    );
   });
 
-  it('offers exactly the alternatives each component header declares', () => {
-    const declared = headerAlternatives();
-    for (const entry of offered()) {
-      expect(entry.alternatives).toEqual(declared.get(entry.component));
-    }
-  });
+  it('offers exactly the items of the layout in an existing script', async () => {
+    const home = newInstalledHome();
+    seedMainScript(
+      home,
+      [
+        '#!/bin/bash',
+        'export STATUSLINE_LAB_MODEL=block',
+        `export STATUSLINE_LAB_LAYOUT='{model effort}'`,
+        'exit 0',
+      ].join('\n') + '\n',
+    );
 
-  it('starts every component on its lib.sh default, which is itself offered', () => {
-    const defaults = libDefaults();
-    for (const entry of offered()) {
-      expect(entry.alternatives).toContain(defaults.get(entry.component));
-    }
-  });
-});
+    const { recorded } = await runWizard(['j'], home);
 
-describe('wizard: payload selection', () => {
-  it('pins an explicit fixture name to the shipped payload', () => {
-    expect(
-      resolveWizardPayload({ home: homes.newHome(), payload: 'p3' }),
-    ).toEqual({
-      path: P3_FIXTURE,
-      source: 'fixture',
-    });
-  });
-
-  it('passes an explicit path through untouched — captures and one-offs', () => {
-    const path = join(tmpdir(), 'lab-capture.json');
-    expect(
-      resolveWizardPayload({ home: homes.newHome(), payload: path }),
-    ).toEqual({
-      path,
-      source: 'path',
-    });
-  });
-
-  it('treats a non-fixture p-name as a path — only p1..p4 are fixtures', () => {
-    expect(
-      resolveWizardPayload({ home: homes.newHome(), payload: 'p9' }),
-    ).toEqual({
-      path: 'p9',
-      source: 'path',
-    });
-  });
-
-  it('falls back to the p1 fixture on a bare home', () => {
-    expect(resolveWizardPayload({ home: homes.newHome() })).toEqual({
-      path: P1_FIXTURE,
-      source: 'fixture',
-    });
-  });
-
-  it('never feeds a tick to the main-line wizard — ticks fall through to p1', () => {
-    const home = homes.newHome();
-    capture({ home, stdin: '{"columns": 120, "tasks": []}' });
-    expect(resolveWizardPayload({ home })).toEqual({
-      path: P1_FIXTURE,
-      source: 'fixture',
-    });
-  });
-
-  it('a latest capture wins over the shipped fixture', () => {
-    const home = homes.newHome();
-    const filed = capture({ home, stdin: JSON.stringify(p2) });
-    expect(resolveWizardPayload({ home })).toEqual({
-      path: filed.path,
-      source: 'capture',
-    });
+    expect([...new Set(focusedItems(recorded.specs))]).toEqual([
+      'model',
+      'effort',
+    ]);
+    expect(lineSpecs(recorded.specs, '{model effort}')).toHaveLength(2);
   });
 });
 
 describe('wizard: the initial preview', () => {
-  it('spawns the runtime copy with the default draft as argv', async () => {
-    const home = homes.newHome();
+  it('spawns the installed runtime with the draft as STATUSLINE_LAB_* env', async () => {
+    const home = newInstalledHome();
     const { recorded } = await runWizard(['\x1b[B'], home);
 
-    const line = lastLine(recorded.specs);
-    expect(line.bin).toBe(RUNTIME_COPY_BIN);
-    expect(line.args).toEqual(DEFAULT_ARGS);
+    const line = lastLine(recorded.specs, DEFAULT_LAYOUT);
+    expect(line.bin).toBe(
+      join(
+        home,
+        '.claude',
+        'plugins',
+        'cache',
+        'agentic',
+        'statusline-lab',
+        '0.19.0',
+        'runtime',
+        'statusline.sh',
+      ),
+    );
+    expect(line.env.COLUMNS).toBe('80');
     expect(line.env.HOME).toBe(home);
     expect(line.env.NOW).toBe(DEFAULT_NOW);
-    expect(line.env.COLUMNS).toBe('80');
+    expect(line.env.STATUSLINE_LAB_LAYOUT).toBe(DEFAULT_LAYOUT);
+    expect(line.env.STATUSLINE_LAB_MODEL).toBe('plain');
+    expect(line.env.STATUSLINE_LAB_BAR).toBe('flat');
     // A fixture preview is anchored and pointed at a materialized demo repo,
     // never the raw file: the git segments need a live repo to render.
     const preview = JSON.parse(line.stdin) as {
@@ -396,29 +211,64 @@ describe('wizard: the initial preview', () => {
     expect(recorded.frames.length).toBeGreaterThan(0);
   });
 
-  it('renders every offered alternative of the focused component as samples', async () => {
-    const { recorded } = await runWizard(['\x1b[B', '\x1b[A']);
-
-    expect(segmentAlternatives(recorded.specs, 'model')).toEqual(
-      new Set(headerAlternatives().get('model')),
+  it('seeds the draft from the exports of the generated script', async () => {
+    const home = newInstalledHome();
+    seedMainScript(
+      home,
+      [
+        '#!/bin/bash',
+        'export STATUSLINE_LAB_MODEL=block',
+        `export STATUSLINE_LAB_LAYOUT='{model effort}'`,
+        'exit 0',
+      ].join('\n') + '\n',
     );
+
+    const { recorded } = await runWizard(['\x1b[B'], home);
+
+    const line = lastLine(recorded.specs, '{model effort}');
+    expect(line.env.STATUSLINE_LAB_MODEL).toBe('block');
+    expect(line.env.STATUSLINE_LAB_EFFORT).toBe('plain');
+  });
+});
+
+describe('wizard: capture preference (contract 7)', () => {
+  it('renders the captures verbatim when they exist', async () => {
+    const home = newInstalledHome();
+    const main = `${JSON.stringify(
+      { model: { display_name: 'Seeded' } },
+      null,
+      2,
+    )}\n`;
+    seedCapture(home, 'main', main);
+    seedCapture(
+      home,
+      'tick',
+      `${JSON.stringify({ columns: 120, tasks: [] }, null, 2)}\n`,
+    );
+
+    const { recorded } = await runWizard(['\x1b[B'], home);
+
+    expect(lastLine(recorded.specs, DEFAULT_LAYOUT).stdin).toBe(main);
+    // The panel rides the captured tasks (empty — the fixture carries three
+    // rows) with the wizard width injected over the captured 120.
+    expect(JSON.parse(panelSpecs(recorded.specs)[0]?.stdin ?? '')).toEqual({
+      columns: 80,
+      tasks: [],
+    });
   });
 });
 
 describe('wizard: agent-panel preview', () => {
-  it('spawns subagent.sh once per draw on the anchored multi tick', async () => {
-    const home = homes.newHome();
+  it('spawns the installed subagent.sh once per draw on the anchored multi tick', async () => {
+    const home = newInstalledHome();
     const { recorded } = await runWizard(['\x1b[B'], home);
 
     const panels = panelSpecs(recorded.specs);
-    // One line preview per draw() is the draw count — the frames array also
-    // catches the closing cancelled/saved render, which is not a draw.
-    const draws = lineSpecs(recorded.specs).length;
+    const draws = lineSpecs(recorded.specs, DEFAULT_LAYOUT).length;
     expect(draws).toBeGreaterThan(1);
     expect(panels).toHaveLength(draws);
 
     const panel = panels[0];
-    expect(panel?.args).toEqual([]);
     expect(panel?.env).toEqual({
       COLUMNS: '80',
       HOME: home,
@@ -433,129 +283,83 @@ describe('wizard: agent-panel preview', () => {
     expect(tick.tasks.map(task => task.id)).toEqual(
       MULTI_TICK.tasks.map(task => task.id),
     );
-
     const now = Number(DEFAULT_NOW);
-    const first = tick.tasks[0];
-    expect(first?.id).toBe('row-explore');
-    expect(first?.startTime).toBeLessThan(now);
-    expect(first?.startTime).toBeGreaterThan(now - 3600);
-  });
-
-  it('rides the w width cycle — the tick carries WIDTHS[widthAt] columns', async () => {
-    const { recorded } = await runWizard(['w']);
-
-    const widths = panelSpecs(recorded.specs).map(spec => [
-      spec.env.COLUMNS,
-      String((JSON.parse(spec.stdin) as { columns: number }).columns),
-    ]);
-    expect(widths).toEqual([
-      ['80', '80'],
-      ['120', '120'],
-    ]);
-  });
-
-  it('prints the panel row under the line preview with the first rendered row', async () => {
-    const home = homes.newHome();
-    const { deps, recorded, lineOutputs, panelOutputs } = renderingDeps([
-      '\x1b[B',
-    ]);
-    await createWizard(
-      { home, now: DEFAULT_NOW, payloadPath: P1_FIXTURE },
-      deps,
-    );
-
-    expect(panelOutputs).toHaveLength(lineSpecs(recorded.specs).length);
-
-    const first = JSON.parse(panelOutputs[0]?.split('\n')[0] ?? '') as {
-      id: string;
-      content: string;
-    };
-    expect(first.id).toBe('row-explore');
-    expect(first.content).toContain('Explore');
-
-    const frame = (recorded.frames[0] ?? '').split('\n');
-    const lineAt = frame.findIndex(row =>
-      row.includes(lineOutputs[0] ?? '<no-line-render>'),
-    );
-    const panelAt = frame.findIndex(
-      row => row.includes('panel') && row.includes(first.content),
-    );
-    expect(lineAt).toBeGreaterThan(-1);
-    expect(panelAt).toBeGreaterThan(lineAt);
+    expect(tick.tasks[0]?.startTime).toBeLessThan(now);
+    expect(tick.tasks[0]?.startTime).toBeGreaterThan(now - 3600);
   });
 });
 
 describe('wizard: movement keys', () => {
-  it('down and j step through components; up and k step back', async () => {
+  it('down and j step through items; up and k step back', async () => {
     const down = await runWizard([...Array(5).fill('\x1b[B')]);
-    expect(focusedComponents(down.recorded.specs).slice(-1)).toEqual([
-      'status',
-    ]);
+    expect(focusedItems(down.recorded.specs).slice(-1)).toEqual(['status']);
 
     const j = await runWizard([...Array(5).fill('j')]);
-    expect(focusedComponents(j.recorded.specs).slice(-1)).toEqual(['status']);
+    expect(focusedItems(j.recorded.specs).slice(-1)).toEqual(['status']);
 
     const up = await runWizard(['\x1b[B', '\x1b[B', '\x1b[A']);
-    expect(focusedComponents(up.recorded.specs).slice(-1)).toEqual(['effort']);
+    expect(focusedItems(up.recorded.specs).slice(-1)).toEqual(['effort']);
 
     const k = await runWizard(['\x1b[B', 'k']);
-    expect(focusedComponents(k.recorded.specs).slice(-1)).toEqual(['model']);
+    expect(focusedItems(k.recorded.specs).slice(-1)).toEqual(['model']);
   });
 
   it('wraps in both directions', async () => {
     const off = await runWizard(['\x1b[A']);
-    expect(focusedComponents(off.recorded.specs).slice(-1)).toEqual(['style']);
+    expect(focusedItems(off.recorded.specs).slice(-1)).toEqual(['rate']);
 
-    const on = await runWizard([...Array(16).fill('j')]);
-    expect(focusedComponents(on.recorded.specs).slice(-1)).toEqual(['model']);
+    const on = await runWizard([...Array(15).fill('j')]);
+    expect(focusedItems(on.recorded.specs).slice(-1)).toEqual(['model']);
   });
 });
 
-describe('wizard: alternative cycling', () => {
+describe('wizard: variant cycling', () => {
   it('right and l advance; left and h go back', async () => {
     const right = await runWizard(['\x1b[C']);
-    expect(lastLine(right.recorded.specs).args).toContain('model=block');
+    expect(
+      lastLine(right.recorded.specs, DEFAULT_LAYOUT).env.STATUSLINE_LAB_MODEL,
+    ).toBe('block');
 
     const l = await runWizard(['l']);
-    expect(lastLine(l.recorded.specs).args).toContain('model=block');
+    expect(
+      lastLine(l.recorded.specs, DEFAULT_LAYOUT).env.STATUSLINE_LAB_MODEL,
+    ).toBe('block');
 
     const left = await runWizard(['\x1b[C', '\x1b[D']);
-    expect(lastLine(left.recorded.specs).args).toContain('model=plain');
+    expect(
+      lastLine(left.recorded.specs, DEFAULT_LAYOUT).env.STATUSLINE_LAB_MODEL,
+    ).toBe('plain');
 
     const h = await runWizard(['h']);
-    expect(lastLine(h.recorded.specs).args).toContain('model=zen');
+    expect(
+      lastLine(h.recorded.specs, DEFAULT_LAYOUT).env.STATUSLINE_LAB_MODEL,
+    ).toBe('zen');
   });
 
-  it('s hides a component that offers none', async () => {
-    const toCost = [...Array(11).fill('j'), 's'];
-    const hidden = await runWizard(toCost);
-    expect(lastLine(hidden.recorded.specs).args).toContain('cost=none');
+  it('s hides an item that offers none', async () => {
+    const hidden = await runWizard([...Array(11).fill('j'), 's']);
+    expect(
+      lastLine(hidden.recorded.specs, DEFAULT_LAYOUT).env.STATUSLINE_LAB_COST,
+    ).toBe('none');
   });
 
-  it('s is inert on a component with no none alternative', async () => {
+  it('s is inert on an item with no none alternative', async () => {
     const inert = await runWizard(['s']);
-    expect(lastLine(inert.recorded.specs).args).toContain('model=plain');
-    expect(lastLine(inert.recorded.specs).args).not.toContain('model=none');
+    expect(
+      lastLine(inert.recorded.specs, DEFAULT_LAYOUT).env.STATUSLINE_LAB_MODEL,
+    ).toBe('plain');
   });
 });
 
 describe('wizard: width preview', () => {
-  // COLUMNS is the only width channel and the rungs themselves land in unit 8
-  // — these pins hold the pass-through mechanics, never wrapped bytes.
   it('starts previews at 80 columns', async () => {
     const { recorded } = await runWizard(['\x1b[B']);
-    expect(lastLine(recorded.specs).env.COLUMNS).toBe('80');
+    expect(lastLine(recorded.specs, DEFAULT_LAYOUT).env.COLUMNS).toBe('80');
   });
 
   it('w steps 80 to 120 to 200 and wraps back to 80', async () => {
-    const one = await runWizard(['w']);
-    expect(lastLine(one.recorded.specs).env.COLUMNS).toBe('120');
-
-    const two = await runWizard(['w', 'w']);
-    expect(lastLine(two.recorded.specs).env.COLUMNS).toBe('200');
-
     const three = await runWizard(['w', 'w', 'w']);
-    const widths = lineSpecs(three.recorded.specs).map(
+    const widths = lineSpecs(three.recorded.specs, DEFAULT_LAYOUT).map(
       spec => spec.env.COLUMNS,
     );
     const rungs = widths.filter((width, at) => width !== widths[at - 1]);
@@ -563,102 +367,109 @@ describe('wizard: width preview', () => {
   });
 });
 
-describe('wizard: end-to-end walk', () => {
-  it('writes byte-pinned picks; the paint no longer reads them', async () => {
-    const home = homes.newHome();
-    writeTrampoline(home, `${TRAMPOLINE_MARKER}\nstale body\n`);
+describe('wizard: save (the TTY mode of contract 3)', () => {
+  it('writes both scripts and both settings keys through the configure writer; catalog stars follow', async () => {
+    const home = newInstalledHome();
 
-    const keys = [
-      '\x1b[C',
-      ...Array(5).fill('\x1b[B'),
-      ...Array(6).fill('j'),
-      's',
-      '\r',
-    ];
-    const { outcome, recorded } = await runWizard(keys, home);
+    const { outcome } = await runWizard(['l', '\r'], home);
 
     expect(outcome).toBe('saved');
-    expect(readFileSync(join(home, PICKS_PATH), 'utf8')).toBe(WALK_PICKS);
-    expect(lastLine(recorded.specs).args).toEqual(WALK_ARGS);
-    expect(recorded.frames.some(frame => frame.includes(OFFER))).toBe(false);
-    expect(Object.keys(snapshotTree(home)).sort()).toEqual([
-      '.claude/plugins/data/statusline-lab-agentic/picks',
-      '.claude/statusline-command.sh',
-    ]);
+    const main = readFileSync(mainScript(home), 'utf8');
+    expect(main).toContain('export STATUSLINE_LAB_MODEL=block');
+    expect(main).toContain(`export STATUSLINE_LAB_LAYOUT='${DEFAULT_LAYOUT}'`);
+    expect(main.endsWith('exit 0\n')).toBe(true);
+    expect(
+      readFileSync(join(home, DATA_REL, 'subagent-statusline.sh'), 'utf8'),
+    ).not.toContain('export STATUSLINE_LAB_');
 
-    const demo = createDemoHome();
-    try {
-      const picked = renderStatusline({
-        payload: 'p1',
-        home,
-        repoDir: demo.repoDir,
-      });
-      const control = renderStatusline({
-        payload: 'p1',
-        home: homes.newHome(),
-        repoDir: demo.repoDir,
-      });
-      expect(picked.status).toBe(0);
-      expect(picked.stderr).toBe('');
-      expect(picked.stdout).toEqual(control.stdout);
-    } finally {
-      rmSync(demo.home, { recursive: true, force: true });
-    }
+    const settings = JSON.parse(readFileSync(settingsPath(home), 'utf8'));
+    expect(settings.statusLine).toEqual({
+      command: `~/${join(DATA_REL, 'statusline-command.sh')}`,
+      type: 'command',
+    });
+    expect(settings.subagentStatusLine).toEqual({
+      command: `~/${join(DATA_REL, 'subagent-statusline.sh')}`,
+      type: 'command',
+    });
+
+    expect(catalog({ home }).split('\n')).toContain(
+      'model: plain | block* | pill | zen',
+    );
+  });
+
+  it('a foreign settings key fails the save — reported, nothing written', async () => {
+    const home = newInstalledHome();
+    const seed = `${JSON.stringify(
+      { statusLine: { command: './old-main.sh', type: 'command' } },
+      null,
+      2,
+    )}\n`;
+    writeSettings(home, seed);
+
+    const { outcome, recorded } = await runWizard(['\r'], home);
+
+    expect(outcome).toBe('saved');
+    const last = recorded.frames[recorded.frames.length - 1] ?? '';
+    expect(last).toContain('statusLine');
+    expect(last).toContain('--force');
+    expect(readFileSync(settingsPath(home), 'utf8')).toBe(seed);
+    expect(existsSync(mainScript(home))).toBe(false);
   });
 });
 
 describe('wizard: cancel', () => {
   it('q mid-walk writes nothing', async () => {
-    const home = homes.newHome();
-    const { outcome } = await runWizard(['\x1b[C', 'q'], home);
+    const home = newInstalledHome();
+    const { outcome } = await runWizard(['l', 'q'], home);
 
     expect(outcome).toBe('cancelled');
-    expect(existsSync(join(home, PICKS_PATH))).toBe(false);
+    expect(existsSync(mainScript(home))).toBe(false);
+    expect(existsSync(settingsPath(home))).toBe(false);
   });
 
   it('Ctrl-C (\\x03) behaves like q', async () => {
-    const home = homes.newHome();
+    const home = newInstalledHome();
     const { outcome } = await runWizard(['\x03'], home);
 
     expect(outcome).toBe('cancelled');
-    expect(existsSync(join(home, PICKS_PATH))).toBe(false);
+    expect(existsSync(mainScript(home))).toBe(false);
   });
 
   it('a closed key stream cancels — the adapter owning the TTY died', async () => {
-    const home = homes.newHome();
+    const home = newInstalledHome();
     const { outcome } = await runWizard([], home);
 
     expect(outcome).toBe('cancelled');
-    expect(existsSync(join(home, PICKS_PATH))).toBe(false);
+    expect(existsSync(mainScript(home))).toBe(false);
   });
 
-  it('leaves a pre-existing picks file byte-untouched after draft edits', async () => {
-    const home = homes.newHome();
-    const picksFile = join(home, PICKS_PATH);
-    mkdirSync(dirname(picksFile), { recursive: true });
-    const dotted = DEFAULT_PICKS.replace('style=plain', 'style=dots');
-    writeFileSync(picksFile, dotted);
+  it('leaves a pre-existing generated script byte-untouched after draft edits', async () => {
+    const home = newInstalledHome();
+    const dotted = [
+      '#!/bin/bash',
+      'export STATUSLINE_LAB_MODEL=block',
+      `export STATUSLINE_LAB_LAYOUT='{model}'`,
+      'exit 0',
+    ].join('\n') + '\n';
+    seedMainScript(home, dotted);
 
-    const { outcome } = await runWizard(
-      ['\x1b[C', ...Array(11).fill('j'), 's', 'q'],
-      home,
-    );
+    const { outcome } = await runWizard(['h', 'q'], home);
 
     expect(outcome).toBe('cancelled');
-    expect(readFileSync(picksFile, 'utf8')).toBe(dotted);
+    expect(readFileSync(mainScript(home), 'utf8')).toBe(dotted);
   });
 });
 
 describe('wizard: preview honesty', () => {
-  it('the live initial preview equals a bare runtime spawn under the same env', async () => {
-    const home = homes.newHome();
+  it('the initial preview equals a bare spawn of the installed runtime under the same env', async () => {
+    const home = newInstalledHome();
     const { recorded } = await runWizard(['\x1b[B'], home);
 
-    const spec = lastLine(recorded.specs);
+    const spec = lastLine(recorded.specs, DEFAULT_LAYOUT);
     const rendered = runtimeRenderer(spec);
     expect(rendered).toContain('Opus');
 
-    const manual = spawnSync('bash', [RUNTIME_COPY_BIN], {
+    const manual = spawnSync('bash', [spec.bin], {
       input: spec.stdin,
       env: {
         PATH: process.env.PATH ?? '',
@@ -670,80 +481,5 @@ describe('wizard: preview honesty', () => {
     });
     expect(manual.status).toBe(0);
     expect(rendered).toBe(manual.stdout.toString('utf8'));
-  });
-});
-
-describe('wizard: apply offer', () => {
-  it('offers apply when no trampoline exists; y installs it', async () => {
-    const home = homes.newHome();
-    const { outcome, recorded } = await runWizard(['\r', 'y'], home);
-
-    expect(outcome).toBe('saved');
-    expect(readFileSync(join(home, PICKS_PATH), 'utf8')).toBe(DEFAULT_PICKS);
-    expect(recorded.frames.some(frame => frame.includes(OFFER))).toBe(true);
-
-    const trampoline = readFileSync(trampolinePath(home), 'utf8');
-    expect(trampoline.split('\n')[0]).toBe(TRAMPOLINE_MARKER);
-    const settings = JSON.parse(readFileSync(settingsPath(home), 'utf8')) as {
-      statusLine: { command: string };
-      subagentStatusLine: { command: string };
-    };
-    expect(settings.statusLine.command).toBe(TRAMPOLINE_COMMAND);
-    expect(settings.subagentStatusLine.command).toBe(TRAMPOLINE_COMMAND);
-  });
-
-  it('y on a refused key reports the refusal — never a both-live claim', async () => {
-    const home = homes.newHome();
-    writeSettings(
-      home,
-      '{"statusLine":{"type":"command","command":"./old.sh"}}',
-    );
-    const { outcome, recorded } = await runWizard(['\r', 'y'], home);
-
-    expect(outcome).toBe('saved');
-    expect(readFileSync(join(home, PICKS_PATH), 'utf8')).toBe(DEFAULT_PICKS);
-    const settings = JSON.parse(readFileSync(settingsPath(home), 'utf8')) as {
-      statusLine: { command: string };
-    };
-    expect(settings.statusLine.command).toBe('./old.sh');
-
-    const last = recorded.frames[recorded.frames.length - 1] ?? '';
-    expect(last).toContain('refused');
-    expect(last).toContain('statusLine');
-    expect(last).not.toContain('both lines go live');
-
-    const clean = await runWizard(['\r', 'y']);
-    const cleanLast =
-      clean.recorded.frames[clean.recorded.frames.length - 1] ?? '';
-    expect(cleanLast).toContain('applied');
-    expect(cleanLast).not.toContain('refused');
-  });
-
-  it('n skips apply — no trampoline, no settings touch', async () => {
-    const home = homes.newHome();
-    const { outcome, recorded } = await runWizard(['\r', 'n'], home);
-
-    expect(outcome).toBe('saved');
-    expect(recorded.frames.some(frame => frame.includes(OFFER))).toBe(true);
-    expect(existsSync(trampolinePath(home))).toBe(false);
-    expect(existsSync(settingsPath(home))).toBe(false);
-    expect(readFileSync(join(home, PICKS_PATH), 'utf8')).toBe(DEFAULT_PICKS);
-  });
-
-  it('a present trampoline suppresses the offer; foreign bytes stay put', async () => {
-    const home = homes.newHome();
-    const foreign = '#!/bin/sh\necho live main line\n';
-    const foreignSettings =
-      '{"statusLine":{"type":"command","command":"./old.sh"}}';
-    writeTrampoline(home, foreign);
-    writeSettings(home, foreignSettings);
-
-    const { outcome, recorded } = await runWizard(['\r'], home);
-
-    expect(outcome).toBe('saved');
-    expect(recorded.frames.some(frame => frame.includes(OFFER))).toBe(false);
-    expect(readFileSync(trampolinePath(home), 'utf8')).toBe(foreign);
-    expect(readFileSync(settingsPath(home), 'utf8')).toBe(foreignSettings);
-    expect(readFileSync(join(home, PICKS_PATH), 'utf8')).toBe(DEFAULT_PICKS);
   });
 });
