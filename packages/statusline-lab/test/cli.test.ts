@@ -2,7 +2,12 @@ import { readFileSync } from 'node:fs';
 
 import { describe, expect, it } from 'vitest';
 
-import { buildProgram, parseArgs, VERSION } from '../src/cli.js';
+import {
+  buildProgram,
+  parseArgs,
+  subcommandHelp,
+  VERSION,
+} from '../src/cli.js';
 
 // Read the manifest off disk so the test sees the published file, not the
 // bundler-resolved import src/cli.ts uses.
@@ -32,5 +37,29 @@ describe('parseArgs', () => {
   it('rejects unknown flags and stray arguments', () => {
     expect(parseArgs(['--bogus'])).toBeUndefined();
     expect(parseArgs(['stray'])).toBeUndefined();
+  });
+
+  it('routes a subcommand --help to that subcommand', () => {
+    expect(parseArgs(['catalog', '--help'])).toEqual({
+      version: false,
+      help: 'catalog',
+    });
+    expect(parseArgs(['configure', '-h'])).toEqual({
+      version: false,
+      help: 'configure',
+    });
+  });
+});
+
+describe('subcommandHelp', () => {
+  it("names the catalog's per-item flags", () => {
+    expect(subcommandHelp('catalog')).toContain('--model');
+  });
+
+  it("names the configure's configuration flags", () => {
+    const help = subcommandHelp('configure');
+    expect(help).toContain('--fallback');
+    expect(help).toContain('--layout');
+    expect(help).toContain('--dry-run');
   });
 });
