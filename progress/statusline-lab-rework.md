@@ -284,3 +284,24 @@ both surfaces paint. Delete the dead artifacts: `~/.claude/statusline-command.sh
   was repaired by ruling (2026-09-19 — seeded bytes untouched, not absent).
   Gate after a rebuild: 155/155, lint/typecheck silent, versions consistent
   at 0.18.0, plugin validate green.
+- 2026-09-19 — unit 3 fix round 1 of 1 (blind review, 8b09a96 + a3069d8,
+  this note left uncommitted): (1) the skill's in-session `--dry-run` block
+  deleted — its output is a live ANSI render, violating the skill's own
+  no-ANSI-in-chat forbid; previewing folded into the single
+  `! npx -y @v1nvn/statusline-lab configure` hand-off, which accepts
+  configuration flags + `--dry-run` for a no-commit preview (still exactly
+  one hand-off, agent never runs a preview). (2) dry-run wording corrected
+  everywhere it appears — skill, README, PR #2 body, the `--dry-run` flag
+  help, and the dry-run banner — to "writes no scripts or settings; the
+  preview still refreshes captures/". (3) TODO status now reads "units 1–3
+  landed on PR #2; awaiting merge, then the post-merge owner step".
+  (4) PR #2 Before cell lists all six cut verbs (apply, capture, designs,
+  pick, payload, resolve). (5) subcommand `--help` now prints its own usage
+  with every flag — the quiet parse seam had been swallowing commander's
+  help exit and the binary fell back to root usage; `parseArgs` classifies
+  the help request per subcommand (`help?: Subcommand`), `subcommandHelp`
+  renders `helpInformation()`, pins in `test/cli.test.ts` assert the flags
+  (`--model` for catalog; `--fallback`/`--layout`/`--dry-run` for
+  configure) and the routing; bare invocation still prints root help and
+  exits 1. Gate 158/158, lint/typecheck silent, versions consistent at
+  0.18.0, plugin validate green.
