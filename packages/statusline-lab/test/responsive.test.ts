@@ -245,6 +245,32 @@ describe('two-line wrap', () => {
   );
 });
 
+describe('custom layout wrap', () => {
+  it('a two-cluster layout puts one cluster on each wrap line', () => {
+    if (!demo) {
+      throw new Error('demo home not materialized');
+    }
+    const run = renderStatusline({
+      payload: 'p1',
+      home: demo.home,
+      repoDir: demo.repoDir,
+      columns: 24,
+      env: { STATUSLINE_LAB_LAYOUT: '{cwd branch} {model effort cost}' },
+    });
+    expect(run.status).toBe(0);
+    const lines = linesOf(run.stdout);
+    expect(lines).toHaveLength(2);
+    expectFits(lines, 24);
+    expectNoBlankArtifacts(lines);
+    const [first, second] = lines.map(stripAnsi);
+    expect(first).toContain('atlas-web');
+    expect(first).not.toContain('Opus');
+    expect(second).toContain('Opus');
+    expect(second).toContain('$3.87');
+    expect(second).not.toContain('atlas-web');
+  });
+});
+
 describe('determinism', () => {
   it('two fresh demo homes at COLUMNS=60 render identical bytes', () => {
     const first = render('p1', 60);
