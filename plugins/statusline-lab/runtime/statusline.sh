@@ -144,8 +144,9 @@ parse_layout() {
             esac
         done
         [ -n "$kept" ] && CLUSTERS+=("${kept# }")
-        case $rest in *'}'*) rest=${rest#*\}} ;; *) return ;; esac
+        case $rest in *'}'*) rest=${rest#*\}} ;; *) break ;; esac
     done
+    WRAP_AT=$(( ${#CLUSTERS[@]} > 2 ? 2 : 1 ))
 }
 parse_layout
 
@@ -157,8 +158,8 @@ AVAIL=$((WIDTH - 3))
 compose() {
     local line="" first=1 from=0 to=${#CLUSTERS[@]} ci cl comp alt out cseg cf
     case $1 in
-        l1) to=2 ;;
-        l2) from=2 ;;
+        l1) to=$WRAP_AT ;;
+        l2) from=$WRAP_AT ;;
     esac
     for ((ci = from; ci < to; ci++)); do
         cl=${CLUSTERS[ci]}
