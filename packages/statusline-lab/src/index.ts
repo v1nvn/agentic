@@ -41,10 +41,13 @@ if (parsed.version) {
     !parsed.dryRun &&
     !parsed.force;
   if (interactive && process.stdin.isTTY) {
-    await createWizard(
+    const outcome = await createWizard(
       { home, now: String(Math.floor(Date.now() / 1000)) },
       terminalDeps(),
     );
+    if (outcome === 'save-failed') {
+      process.exitCode = 1;
+    }
   } else {
     run(() => {
       const result = configure({

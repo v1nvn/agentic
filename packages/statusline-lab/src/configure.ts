@@ -210,7 +210,7 @@ function planSettings(home: string, force: boolean): SettingsPlan {
       repoints.push([key, command]);
     } else {
       throw new Error(
-        `settings.json ${key} is foreign — rerun with --force to take it over`,
+        `settings.json ${key} is foreign — rerun with --force added to your configuration flags to take it over`,
       );
     }
   }
