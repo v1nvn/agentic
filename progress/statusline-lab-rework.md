@@ -261,3 +261,26 @@ both surfaces paint. Delete the dead artifacts: `~/.claude/statusline-command.sh
   the configuration flags — bare `--force` is printed mode and writes
   nothing). Gate 155/155; a pty run of the built binary shows the `save
   failed: …` frame and exit 1.
+- 2026-09-19 — unit 3 landed (fe66b5e): skill rewritten to contract 9 —
+  show (`catalog`, plain table into chat), set (`configure --<item> <alt>`
+  after the tour, never hand-written files), one
+  `! npx -y @v1nvn/statusline-lab configure` hand-off, the three forbids up
+  front; the old skill's "wizard runs without a raw TTY" claim dropped —
+  the new entry guard requires a TTY, piped stdin is printed mode. Every
+  npx line verified verbatim against the built CLI on a scratch home (write
+  path prints `configured — live on the next paint`, catalog stars follow,
+  strict failure names the unresolved items, dry-run renders both surfaces,
+  the `--layout` + `--style dots` example exports exactly the layout's
+  items). README gained the statusline-lab section — two commands, repo +
+  machine trees with `assets/payloads` + `assets/ticks`, install story; the
+  CLAUDE.md layout rule carries the runtime-payload exception and the
+  one-command rule names show/set; `repository.directory` fixed to
+  `packages/statusline-lab`; PR #2 body rewritten to the surface story, no
+  attribution footer; modes file archived as
+  `archive/statusline-plugin-modes.md`; TODO collapsed to this thread;
+  Post-merge section re-verified accurate against the new surface. For
+  future fresh eyes: the settings byte-preservation pins live in
+  `test/splice.test.ts`, and `test/configure.test.ts`'s unresolved-item pin
+  was repaired by ruling (2026-09-19 — seeded bytes untouched, not absent).
+  Gate after a rebuild: 155/155, lint/typecheck silent, versions consistent
+  at 0.18.0, plugin validate green.
