@@ -182,6 +182,18 @@ runtime, run `configure --home`, assert the two scripts + settings keys, run
 
 ### Unit 3 — skill + docs + close-out
 
+Owed by unit 2 (landed 711a244): the skill and README teach that the wizard
+offers exactly the layout's items and `--layout` is the only way to add one
+(style sits outside the default layout); no payload choosing anywhere —
+previews prefer captures, fixtures otherwise. Mention that the settings
+byte-preservation pins live in `test/splice.test.ts` and that
+`test/configure.test.ts`'s unresolved-item pin was repaired by ruling
+(2026-09-19, bytes-untouched instead of absent) so a fresh-eyes read does
+not flag it. `package.json` `repository.directory` still reads
+`packages/statusline` — stale from before this thread, fix with the docs
+pass. `assets/payloads` + `assets/ticks` still ship in the npm package
+(preview fixtures) — show them in the architecture tree.
+
 Rewrite `plugins/statusline-lab/commands/statusline-lab.md` to contract 9.
 README: two commands, the architecture tree (repo + machine), install story.
 CLAUDE.md: amend the layout rule — the bash runtime is plugin payload under
@@ -224,3 +236,21 @@ both surfaces paint. Delete the dead artifacts: `~/.claude/statusline-command.sh
   (822d4a4, blind review): `compose`'s two-line split now derives from the
   layout's cluster count (`WRAP_AT` in `parse_layout`), not the literal 2;
   pinned by a custom-layout wrap case in `responsive.test.ts`, gate 177/177.
+- 2026-09-19 — unit 2 landed (711a244): CLI collapsed to `catalog` +
+  `configure` (strict/fallback modes, dry-run renders through the installed
+  runtime, contract-5 script writer + settings splice), wizard previews
+  spawn the installed runtime with env overrides and save through the
+  configure writer; `apply`/`capture`/`sync-runtime`/`assets/runtime`, the
+  six old verbs and the argv/`--seg` loop deleted; ramps re-anchored to env
+  previews (oracle bytes + the render path's trailing newline). Gate
+  155/155, goldens untouched. Accepted consequences: the wizard offers
+  exactly the layout's items (items outside the layout are unreachable in
+  the TTY until `--layout` names them), and wizard/dry-run previews tee
+  captures under the operated home (a capture is the last stdin the runtime
+  saw, real or preview — pinned by the dry-run test). One authorized repair
+  inside `test/configure.test.ts`: the unresolved-item pin asserted a seeded
+  script absent — self-contradictory, latent behind the throwing stubs —
+  now asserts its bytes untouched plus nothing else written; apply's
+  byte-preservation pins ported to `test/splice.test.ts` (the old
+  `line.sh` leftover probe became the full old command — the new subagent
+  path contains that substring).
