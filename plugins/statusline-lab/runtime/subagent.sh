@@ -1,7 +1,7 @@
 export LC_ALL=C
 
-input=$(cat)
-RUNTIME=$(cd "$(dirname "$0")/.." && pwd)
+input=$(cat; printf x); input=${input%x}
+RUNTIME=$(cd "$(dirname "$0")" && pwd)
 
 AVAIL=$(printf '%s' "$input" | jq -r '.columns // 200' 2>/dev/null)
 case "$AVAIL" in ''|*[!0-9]*) AVAIL=200 ;; esac
@@ -11,10 +11,11 @@ AVAIL=$((AVAIL - 1))
 CYAN=$'\033[36m'; GREEN=$'\033[32m'; YELLOW=$'\033[33m'; RED=$'\033[31m'; DIM=$'\033[2m'
 RESET=$'\033[0m'
 
-source "$RUNTIME/bin/lib.sh"
+source "$RUNTIME/lib.sh"
+capture tick.json "$input"
 source "$RUNTIME/components/style.sh"
-read_picks style
-check_picks style
+read_config style
+check_config style
 "seg_style_$PICK_style"
 
 vlen() {

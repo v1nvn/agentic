@@ -1,5 +1,7 @@
-input=$(cat)
-RUNTIME=$(cd "$(dirname "$0")/.." && pwd)
+input=$(cat; printf x); input=${input%x}
+RUNTIME=$(cd "$(dirname "$0")" && pwd)
+source "$RUNTIME/lib.sh"
+capture main.json "$input"
 
 CYAN=$'\033[36m'; GREEN=$'\033[32m'; YELLOW=$'\033[33m'; RED=$'\033[31m'; PURPLE=$'\033[35m'; BLUE=$'\033[34m'; DIM=$'\033[2m'; RESET=$'\033[0m'
 SHORT_AT=15
@@ -98,14 +100,13 @@ _path_tail() {
 }
 
 for f in "$RUNTIME"/components/*.sh; do source "$f"; done
-source "$RUNTIME/bin/lib.sh"
 
 seg_branch_none() { :; }
 seg_bar_flat6() { _bar_flat_w 6; }
 seg_bar_flat4() { _bar_flat_w 4; }
 
 COMPS="model effort state cwd branch status ahead pr bar tokens cache cost duration lines rate style"
-read_picks $COMPS
+read_config $COMPS
 want_seg=0; seg_comp=""
 for a in "$@"; do
     if [ "$a" = "--seg" ]; then want_seg=1; continue; fi
@@ -115,7 +116,7 @@ for a in "$@"; do
         eval "PICK_$k=\$v" ;;
     esac
 done
-check_picks $COMPS
+check_config $COMPS
 
 if [ "$want_seg" = 1 ]; then
     if [ -n "$seg_comp" ]; then
@@ -128,7 +129,25 @@ if [ "$want_seg" = 1 ]; then
 fi
 
 "seg_style_${PICK_style}"
-CLUSTERS=("model effort state" "cwd branch status ahead pr" "bar tokens cache" "cost" "duration" "lines" "rate")
+: "${STATUSLINE_LAB_LAYOUT:=$DEFAULT_LAYOUT}"
+parse_layout() {
+    CLUSTERS=()
+    local rest=$STATUSLINE_LAB_LAYOUT cluster word kept
+    while :; do
+        cluster=${rest%%\}*}
+        cluster=${cluster#*\{}
+        kept=""
+        for word in $cluster; do
+            case " $COMPS " in
+                *" $word "*) kept="$kept $word" ;;
+                *) echo "statusline: layout item '$word' is not available, skipped" >&2 ;;
+            esac
+        done
+        [ -n "$kept" ] && CLUSTERS+=("${kept# }")
+        case $rest in *'}'*) rest=${rest#*\}} ;; *) return ;; esac
+    done
+}
+parse_layout
 
 WIDTH=${COLUMNS:-200}
 case "$WIDTH" in ''|*[!0-9]*) WIDTH=200 ;; esac

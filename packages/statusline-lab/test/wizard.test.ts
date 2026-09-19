@@ -43,13 +43,13 @@ import {
 } from './runtime.js';
 
 const RUNTIME_COPY_BIN = fileURLToPath(
-  new URL('../assets/runtime/bin/statusline.sh', import.meta.url),
+  new URL('../assets/runtime/statusline.sh', import.meta.url),
 );
 const COMPONENTS_DIR = fileURLToPath(
   new URL('../assets/runtime/components', import.meta.url),
 );
 const LIB_SH = fileURLToPath(
-  new URL('../assets/runtime/bin/lib.sh', import.meta.url),
+  new URL('../assets/runtime/lib.sh', import.meta.url),
 );
 const P1_FIXTURE = fileURLToPath(
   new URL('../assets/payloads/p1.json', import.meta.url),
@@ -58,13 +58,13 @@ const P3_FIXTURE = fileURLToPath(
   new URL('../assets/payloads/p3.json', import.meta.url),
 );
 const PANEL_BIN = fileURLToPath(
-  new URL('../assets/runtime/bin/subagent.sh', import.meta.url),
+  new URL('../assets/runtime/subagent.sh', import.meta.url),
 );
 const MULTI_TICK = multiTick as unknown as {
   tasks: ReadonlyArray<{ id?: string }>;
 };
 
-// The runtime's own COMPS order (bin/statusline.sh CLUSTERS, bin/lib.sh) — the
+// The runtime's own COMPS order (statusline.sh COMPS, lib.sh) — the
 // wizard lists components in the order the line renders them.
 const CANONICAL_COMPS = [
   'model',
@@ -406,7 +406,7 @@ describe('wizard: the initial preview', () => {
 });
 
 describe('wizard: agent-panel preview', () => {
-  it('spawns bin/subagent.sh once per draw on the anchored multi tick', async () => {
+  it('spawns subagent.sh once per draw on the anchored multi tick', async () => {
     const home = homes.newHome();
     const { recorded } = await runWizard(['\x1b[B'], home);
 
@@ -564,7 +564,7 @@ describe('wizard: width preview', () => {
 });
 
 describe('wizard: end-to-end walk', () => {
-  it('writes byte-pinned picks and the next paint honors them', async () => {
+  it('writes byte-pinned picks; the paint no longer reads them', async () => {
     const home = homes.newHome();
     writeTrampoline(home, `${TRAMPOLINE_MARKER}\nstale body\n`);
 
@@ -593,19 +593,14 @@ describe('wizard: end-to-end walk', () => {
         home,
         repoDir: demo.repoDir,
       });
-      expect(picked.status).toBe(0);
-      expect(picked.stderr).toBe('');
-      expect(picked.stdout.toString('utf8')).toContain('Opus');
-      expect(picked.stdout.toString('utf8')).toContain('\u001b[48;5;61m');
-      expect(picked.stdout.toString('utf8')).not.toContain('$3.87');
-
       const control = renderStatusline({
         payload: 'p1',
         home: homes.newHome(),
         repoDir: demo.repoDir,
       });
-      expect(control.stdout.toString('utf8')).toContain('$3.87');
-      expect(control.stdout.equals(picked.stdout)).toBe(false);
+      expect(picked.status).toBe(0);
+      expect(picked.stderr).toBe('');
+      expect(picked.stdout).toEqual(control.stdout);
     } finally {
       rmSync(demo.home, { recursive: true, force: true });
     }

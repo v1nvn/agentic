@@ -9,6 +9,7 @@ import {
   createDemoHome,
   golden,
   renderStatusline,
+  variantEnv,
   type DemoHome,
 } from './runtime.js';
 
@@ -27,7 +28,7 @@ afterEach(() => {
 
 function render(
   payload: string,
-  options: { now?: string; picks?: string } = {},
+  options: { now?: string; env?: Readonly<Record<string, string>> } = {},
 ) {
   if (!demo) {
     throw new Error('demo home not materialized');
@@ -128,20 +129,20 @@ describe('determinism', () => {
   });
 });
 
-describe('picks from the data dir', () => {
-  it('a differing visible pick restyles the line', () => {
-    const restyled = render('p1', { picks: 'style=dots\n' });
+describe('env config', () => {
+  it('a differing visible variant restyles the line', () => {
+    const restyled = render('p1', { env: variantEnv('style=dots') });
     expect(restyled.status).toBe(0);
     expect(restyled.stdout.equals(golden('p1-default'))).toBe(false);
     expect(restyled.stdout).toEqual(golden('p1-style-dots'));
   });
 });
 
-describe('ramped picks', () => {
+describe('ramped variants', () => {
   it.each(['bar=gauge', 'cache=fuse', 'rate=strip'])(
-    '%s in the picks file renders without a warn',
+    '%s via env renders without a warn',
     pick => {
-      const run = render('p1', { picks: `${pick}\n` });
+      const run = render('p1', { env: variantEnv(pick) });
       expect(run.status).toBe(0);
       expect(run.stderr).toBe('');
       expect(run.stdout.equals(golden('p1-default'))).toBe(false);
@@ -149,9 +150,9 @@ describe('ramped picks', () => {
   );
 });
 
-describe('unknown picks', () => {
-  it('model=nope in the picks file warns and falls back to the default line', () => {
-    const run = render('p1', { picks: 'model=nope\n' });
+describe('unknown variants', () => {
+  it('STATUSLINE_LAB_MODEL=nope warns and falls back to the default line', () => {
+    const run = render('p1', { env: variantEnv('model=nope') });
     expect(run.status).toBe(0);
     expect(run.stderr.trim()).not.toBe('');
     expect(run.stdout).toEqual(golden('p1-default'));
@@ -162,11 +163,11 @@ describe('NOW sensitivity', () => {
   it('cache=coldin shifts as NOW crosses the fixture expiry', () => {
     const before = render('p1', {
       now: NOW_BEFORE_CACHE_EXPIRY,
-      picks: 'cache=coldin\n',
+      env: variantEnv('cache=coldin'),
     });
     const after = render('p1', {
       now: NOW_AFTER_CACHE_EXPIRY,
-      picks: 'cache=coldin\n',
+      env: variantEnv('cache=coldin'),
     });
     expect(before.status).toBe(0);
     expect(after.status).toBe(0);

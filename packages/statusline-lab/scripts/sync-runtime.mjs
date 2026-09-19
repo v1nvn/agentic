@@ -5,7 +5,7 @@ import { cpSync, existsSync, rmSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 const SOURCE = fileURLToPath(
-  new URL('../../../plugins/statusline-lab', import.meta.url),
+  new URL('../../../plugins/statusline-lab/runtime', import.meta.url),
 );
 const TARGET = fileURLToPath(new URL('../assets/runtime', import.meta.url));
 

@@ -1,17 +1,23 @@
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { dirname, join } from 'node:path';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { materializeDemoRepo } from '../src/demo-repo.js';
 
 export const RUNTIME_BIN = fileURLToPath(
-  new URL('../../../plugins/statusline-lab/bin/statusline.sh', import.meta.url),
+  new URL(
+    '../../../plugins/statusline-lab/runtime/statusline.sh',
+    import.meta.url,
+  ),
 );
 
 export const SUBAGENT_BIN = fileURLToPath(
-  new URL('../../../plugins/statusline-lab/bin/subagent.sh', import.meta.url),
+  new URL(
+    '../../../plugins/statusline-lab/runtime/subagent.sh',
+    import.meta.url,
+  ),
 );
 
 export const PICKS_PATH = join(
@@ -23,7 +29,7 @@ export const PICKS_PATH = join(
 );
 
 // 2026-09-08T12:20:00Z — after every fixture's cache expiry, inert under the
-// default picks (no default-picked segment reads NOW).
+// default config (no default-picked segment reads NOW).
 export const DEFAULT_NOW = '1788870000';
 export const NOW_BEFORE_CACHE_EXPIRY = '1788869000';
 export const NOW_AFTER_CACHE_EXPIRY = '1788869200';
@@ -45,7 +51,7 @@ export interface RenderInput {
   readonly home: string;
   readonly repoDir: string;
   readonly now?: string;
-  readonly picks?: string;
+  readonly env?: Readonly<Record<string, string>>;
   readonly columns?: number;
   readonly modelDisplayName?: string;
   readonly args?: readonly string[];
@@ -65,10 +71,9 @@ export interface Tick {
   }>;
 }
 
-function writePicks(home: string, picks: string): void {
-  const picksFile = join(home, PICKS_PATH);
-  mkdirSync(dirname(picksFile), { recursive: true });
-  writeFileSync(picksFile, picks);
+export function variantEnv(spec: string): Record<string, string> {
+  const [item, alt] = spec.split('=');
+  return { [`STATUSLINE_LAB_${item.toUpperCase()}`]: alt };
 }
 
 function spawnRender(
@@ -78,6 +83,7 @@ function spawnRender(
   now: string,
   columns?: number,
   args?: readonly string[],
+  env?: Readonly<Record<string, string>>,
 ): RenderResult {
   const run = spawnSync('bash', [bin, ...(args ?? [])], {
     input: stdin,
@@ -88,6 +94,7 @@ function spawnRender(
       LC_ALL: 'C',
       TZ: 'UTC',
       ...(columns === undefined ? {} : { COLUMNS: String(columns) }),
+      ...(env ?? {}),
     },
     timeout: 30_000,
   });
@@ -116,9 +123,6 @@ export function renderStatusline(input: RenderInput): RenderResult {
   if (input.modelDisplayName !== undefined) {
     payload.model.display_name = input.modelDisplayName;
   }
-  if (input.picks !== undefined) {
-    writePicks(input.home, input.picks);
-  }
   return spawnRender(
     RUNTIME_BIN,
     `${JSON.stringify(payload, null, 2)}\n`,
@@ -126,6 +130,7 @@ export function renderStatusline(input: RenderInput): RenderResult {
     input.now ?? DEFAULT_NOW,
     input.columns,
     input.args,
+    input.env,
   );
 }
 
@@ -134,7 +139,7 @@ export interface SubagentInput {
   readonly columns?: number;
   readonly home: string;
   readonly now?: string;
-  readonly picks?: string;
+  readonly env?: Readonly<Record<string, string>>;
 }
 
 export function renderSubagent(input: SubagentInput): RenderResult {
@@ -143,14 +148,14 @@ export function renderSubagent(input: SubagentInput): RenderResult {
     input.columns === undefined
       ? loaded
       : { ...loaded, columns: input.columns };
-  if (input.picks !== undefined) {
-    writePicks(input.home, input.picks);
-  }
   return spawnRender(
     SUBAGENT_BIN,
     `${JSON.stringify(tick, null, 2)}\n`,
     input.home,
     input.now ?? DEFAULT_NOW,
+    undefined,
+    undefined,
+    input.env,
   );
 }
 

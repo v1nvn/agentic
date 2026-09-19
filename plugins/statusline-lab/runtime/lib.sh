@@ -1,3 +1,7 @@
+DATA_DIR=$HOME/.claude/plugins/data/statusline-lab-agentic
+
+export DEFAULT_LAYOUT='{model effort state} {cwd branch status ahead pr} {bar tokens cache} {cost} {duration} {lines} {rate}'
+
 default_pick() {
     case $1 in
         model) echo plain ;;    effort) echo plain ;;    state) echo none ;;
@@ -9,27 +13,29 @@ default_pick() {
     esac
 }
 
-read_picks() {
-    local c line k v picks=$HOME/.claude/plugins/data/statusline-lab-agentic/picks
+read_config() {
+    local c name
     for c in "$@"; do
-        eval "PICK_$c=\$(default_pick \$c)"
+        name="STATUSLINE_LAB_$(printf '%s' "$c" | tr '[:lower:]' '[:upper:]')"
+        printf -v "PICK_$c" '%s' "${!name:-$(default_pick "$c")}"
     done
-    if [ -f "$picks" ]; then
-        while IFS= read -r line; do
-            case "$line" in ''|\#*) continue ;; esac
-            k=${line%%=*}; v=${line#*=}
-            case " $* " in *" $k "*) eval "PICK_$k=\$v" ;; esac
-        done < "$picks"
-    fi
 }
 
-check_picks() {
-    local c alt
+check_config() {
+    local c p alt
     for c in "$@"; do
-        eval "alt=\${PICK_$c}"
+        p="PICK_$c"
+        alt=${!p}
         if ! declare -f "seg_${c}_${alt}" >/dev/null; then
             echo "statusline: ${c}=${alt} is not available, using ${c}=$(default_pick "$c")" >&2
-            eval "PICK_$c=\$(default_pick \$c)"
+            printf -v "$p" '%s' "$(default_pick "$c")"
         fi
     done
+}
+
+capture() {
+    local dest="$DATA_DIR/captures/$1"
+    mkdir -p "${dest%/*}"
+    printf '%s' "$2" > "${dest}.tmp"
+    mv "${dest}.tmp" "$dest"
 }

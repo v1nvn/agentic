@@ -4,7 +4,12 @@ import { fileURLToPath } from 'node:url';
 
 import { describe, expect, it } from 'vitest';
 
-import { buildProgram, designsCatalog, parseArgs, VERSION } from '../src/cli.js';
+import {
+  buildProgram,
+  designsCatalog,
+  parseArgs,
+  VERSION,
+} from '../src/cli.js';
 import { createHomes } from './fixtures.js';
 import { PICKS_PATH } from './runtime.js';
 
@@ -14,10 +19,12 @@ const manifest = JSON.parse(
   readFileSync(new URL('../package.json', import.meta.url), 'utf8'),
 ) as { version: string };
 
-const RUNTIME_DIR = fileURLToPath(new URL('../assets/runtime', import.meta.url));
-const RUNTIME_BIN = join(RUNTIME_DIR, 'bin', 'statusline.sh');
+const RUNTIME_DIR = fileURLToPath(
+  new URL('../assets/runtime', import.meta.url),
+);
+const RUNTIME_BIN = join(RUNTIME_DIR, 'statusline.sh');
 const COMPONENTS_DIR = join(RUNTIME_DIR, 'components');
-const LIB_SH = join(RUNTIME_DIR, 'bin', 'lib.sh');
+const LIB_SH = join(RUNTIME_DIR, 'lib.sh');
 
 // Independent parses of the shipped runtime — the catalog is cross-checked
 // against these, never against the readers the implementation itself uses.
@@ -50,7 +57,7 @@ function declaredAlternatives(): Map<string, readonly string[]> {
 function declaredOrder(): string[] {
   const match = /^COMPS="(.+)"$/m.exec(readFileSync(RUNTIME_BIN, 'utf8'));
   if (match === null) {
-    throw new Error('bin/statusline.sh declares no COMPS order');
+    throw new Error('statusline.sh declares no COMPS order');
   }
   return match[1].split(' ');
 }
