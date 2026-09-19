@@ -58,3 +58,11 @@ Surface a real impasse; do not hack past it.
 
 - **The readability server never fetches URLs.** Only the host shell's `curl` does. The server
   reads HTML from a file path; the page bytes never enter the model context.
+
+## References
+
+- **`references/tracking.md`** — the work-tracking rules. Read before touching `TODO.md` or
+  any `progress/` file.
+- **`references/npm-publishing.md`** — the release train, keyless publishing, and the one-time
+  manual bootstrap a never-published package name needs. Read before cutting a release or
+  adding a package.
