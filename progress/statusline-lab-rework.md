@@ -212,4 +212,7 @@ both surfaces paint. Delete the dead artifacts: `~/.claude/statusline-command.sh
   `sync-runtime.mjs` source retargeted and 8 path constants re-anchored in
   `src/wizard.ts`/`cli.test.ts`/`wizard.test.ts` (the synced copy is flat
   now), and wizard.test's paint-honors-picks assertion flipped to
-  paint-ignores-picks — that premise is what unit 1 deletes.
+  paint-ignores-picks — that premise is what unit 1 deletes. Fix round 1
+  (822d4a4, blind review): `compose`'s two-line split now derives from the
+  layout's cluster count (`WRAP_AT` in `parse_layout`), not the literal 2;
+  pinned by a custom-layout wrap case in `responsive.test.ts`, gate 177/177.
