@@ -398,7 +398,7 @@ function renderPreview(
         stdin: sources.tick,
       }).replace(/\n+$/, ''),
     );
-    return `dry-run at 200 columns — nothing written\n${line}\npanel ${panel}\n`;
+    return `dry-run at 200 columns — no scripts or settings written\n${line}\npanel ${panel}\n`;
   } finally {
     sources.cleanup();
   }

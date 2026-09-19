@@ -65,8 +65,9 @@ live on the next paint. The configuration lives in the generated script itself �
 one export per layout item plus the layout, brace clusters of item ids:
 `--layout '{model effort} {cwd branch} {bar tokens cache}'`. With flags,
 `configure` is strict — every layout item needs a variant or a
-`--fallback=default|existing`; `--dry-run` renders both surfaces and writes
-nothing; a foreign settings key is refused unless `--force`. `/statusline-lab`
+`--fallback=default|existing`; `--dry-run` renders both surfaces, writing no
+scripts and touching no settings — the preview still refreshes `captures/`; a
+foreign settings key is refused unless `--force`. `/statusline-lab`
 inside a session runs the same two commands.
 
 Repo and machine:

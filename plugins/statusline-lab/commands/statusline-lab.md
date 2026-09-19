@@ -27,10 +27,7 @@ scripts or the settings keys:
 `configure` is strict: every item in the layout needs a variant flag, and a
 missing one fails naming what is unresolved. `--fallback=default` fills the
 unflagged layout items with the defaults; `--fallback=existing` keeps what
-the current script already holds. Flags always win over the fallback. Check
-first without writing:
-
-    npx -y @v1nvn/statusline-lab configure --model block --bar gauge --fallback=default --dry-run
+the current script already holds. Flags always win over the fallback.
 
 The layout — brace clusters of item ids, one cluster per rendered group — is
 the only way to put an item on the surface; `style` sits outside the default
@@ -60,3 +57,7 @@ layout first. It is the owner's to run, not the agent's; hand it off exactly
 once with this line:
 
     ! npx -y @v1nvn/statusline-lab configure
+
+The same line takes configuration flags plus `--dry-run` for a preview
+before the owner commits: no scripts written, no settings touched — the
+preview still refreshes `captures/`. The agent never runs a preview itself.
