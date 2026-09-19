@@ -58,10 +58,10 @@ export interface WizardOptions {
 const RUNTIME_ROOT = fileURLToPath(
   new URL('../assets/runtime', import.meta.url),
 );
-const RUNTIME_BIN = join(RUNTIME_ROOT, 'bin', 'statusline.sh');
-const PANEL_BIN = join(RUNTIME_ROOT, 'bin', 'subagent.sh');
+const RUNTIME_BIN = join(RUNTIME_ROOT, 'statusline.sh');
+const PANEL_BIN = join(RUNTIME_ROOT, 'subagent.sh');
 const COMPONENTS_DIR = join(RUNTIME_ROOT, 'components');
-const LIB_SH = join(RUNTIME_ROOT, 'bin', 'lib.sh');
+const LIB_SH = join(RUNTIME_ROOT, 'lib.sh');
 const PAYLOADS_DIR = fileURLToPath(
   new URL('../assets/payloads', import.meta.url),
 );
@@ -114,7 +114,7 @@ export function wizardComponents(): readonly WizardComponent[] {
   const declared = readDeclarations(COMPONENTS_DIR);
   const match = /^COMPS="(.+)"$/m.exec(readFileSync(RUNTIME_BIN, 'utf8'));
   if (match === null) {
-    throw new Error('bin/statusline.sh declares no COMPS order');
+    throw new Error('statusline.sh declares no COMPS order');
   }
   return match[1].split(' ').map(component => ({
     component,

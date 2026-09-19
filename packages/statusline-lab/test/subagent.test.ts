@@ -9,6 +9,7 @@ import {
   golden,
   loadTick,
   renderSubagent,
+  variantEnv,
   type RenderResult,
 } from './runtime.js';
 
@@ -51,7 +52,11 @@ afterEach(() => {
 });
 
 function render(
-  options: { columns?: number; now?: string; picks?: string } = {},
+  options: {
+    columns?: number;
+    now?: string;
+    env?: Readonly<Record<string, string>>;
+  } = {},
 ) {
   if (!home) {
     throw new Error('test home not created');
@@ -86,16 +91,16 @@ describe('subagent width rungs', () => {
   });
 });
 
-describe('subagent style pick', () => {
+describe('subagent style variant', () => {
   it('style=dots swaps the row separator', () => {
-    const run = render({ picks: 'style=dots\n' });
+    const run = render({ env: variantEnv('style=dots') });
     expect(run.status).toBe(0);
     expect(run.stdout.equals(golden('multi-default'))).toBe(false);
     expect(run.stdout).toEqual(golden('multi-style-dots'));
   });
 
   it('style=dim renders the separator with the dim attribute', () => {
-    const run = render({ picks: 'style=dim\n' });
+    const run = render({ env: variantEnv('style=dim') });
     expect(run.status).toBe(0);
     expect(run.stdout.equals(golden('multi-default'))).toBe(false);
     expect(run.stdout).toEqual(golden('multi-style-dim'));

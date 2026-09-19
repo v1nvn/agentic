@@ -9,6 +9,7 @@ import {
   createDemoHome,
   golden,
   renderStatusline,
+  variantEnv,
   type DemoHome,
   type RenderResult,
 } from './runtime.js';
@@ -201,9 +202,9 @@ const SIGNATURES: Readonly<Record<string, string>> = {
   'rate=strip': '· resets ',
 };
 
-describe('ramped picks', () => {
+describe('ramped variants', () => {
   it.each(['bar=gauge', 'cache=fuse', 'rate=strip'])(
-    '%s renders from the picks file without a warn',
+    '%s renders via env without a warn',
     pick => {
       if (!demo) {
         throw new Error('demo home not materialized');
@@ -213,7 +214,7 @@ describe('ramped picks', () => {
         home: demo.home,
         repoDir: demo.repoDir,
         now: DEFAULT_NOW,
-        picks: `${pick}\n`,
+        env: variantEnv(pick),
       });
       expect(run.status, pick).toBe(0);
       expect(run.stderr, pick).toBe('');
