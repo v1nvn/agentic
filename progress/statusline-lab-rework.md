@@ -22,6 +22,10 @@ change that lands the new one.**
    (read from the generated script's exports, defaults otherwise), zero ANSI.
    Boolean flags filter: `catalog --model --bar`. Item ids and alt ids are the
    currency everywhere (same ids as variant flags and the export lines).
+   The menu comes from the resolved runtime's component headers — catalog,
+   configure, and the wizard all resolve the runtime through the same install
+   seam; unresolvable → non-zero + the install hint (the package is pure TS
+   and carries no bash, so there is no other source for the table).
 3. **`configure` modes:**
    - TTY, no params → the wizard: browse variants, live preview of both
      surfaces at 80/120/200 columns, save = write both generated scripts + the
@@ -62,6 +66,10 @@ change that lands the new one.**
    surface has no variants yet; a `--subagent` mode is deferred until it does).
    Atomic write (`tmp` + `mv`), validate before write. **`configure` touches
    exactly four things: the 2 generated scripts + the 2 settings keys.**
+   The export set is **exactly the layout's items, in every mode** — a
+   fallback sources values, never membership: `--fallback=existing` keeps
+   values only for items the new layout still names, unresolved layout items
+   fail loudly, and exports for dropped items are deleted on write.
 6. **The runtime ships with the plugin.** Repo layout
    `plugins/statusline-lab/runtime/{statusline.sh,subagent.sh,lib.sh,components/*.sh}`
    (from today's `bin/` + `components/`). The npm package is pure TS — zero
