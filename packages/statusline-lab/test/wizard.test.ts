@@ -397,7 +397,9 @@ describe('wizard: save (the TTY mode of contract 3)', () => {
     );
   });
 
-  it('a foreign settings key fails the save — reported, nothing written', async () => {
+  // Fix round 1 flipped this pin on purpose: a refused save used to return
+  // 'saved'; it now reports failure so the outcome and exit code tell the truth.
+  it('a foreign settings key fails the save — a failure outcome, nothing written', async () => {
     const home = newInstalledHome();
     const seed = `${JSON.stringify(
       { statusLine: { command: './old-main.sh', type: 'command' } },
@@ -408,7 +410,7 @@ describe('wizard: save (the TTY mode of contract 3)', () => {
 
     const { outcome, recorded } = await runWizard(['\r'], home);
 
-    expect(outcome).toBe('saved');
+    expect(outcome).toBe('save-failed');
     const last = recorded.frames[recorded.frames.length - 1] ?? '';
     expect(last).toContain('statusLine');
     expect(last).toContain('--force');

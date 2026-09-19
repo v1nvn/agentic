@@ -13,7 +13,7 @@ export interface WizardDeps {
   render(frame: string): void;
 }
 
-export type WizardOutcome = 'cancelled' | 'saved';
+export type WizardOutcome = 'cancelled' | 'save-failed' | 'saved';
 
 export interface WizardOptions {
   readonly home: string;
@@ -178,12 +178,13 @@ export async function createWizard(
         layout,
         variants: Object.fromEntries(draft),
       });
-      deps.render('saved — live on the next paint\n');
     } catch (e) {
       deps.render(
         `save failed: ${(e as Error).message}\nfix it and rerun: npx -y @v1nvn/statusline-lab configure\n`,
       );
+      return 'save-failed';
     }
+    deps.render('saved — live on the next paint\n');
     return 'saved';
   }
 
