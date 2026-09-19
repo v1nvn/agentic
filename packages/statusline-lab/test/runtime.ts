@@ -6,26 +6,18 @@ import { fileURLToPath } from 'node:url';
 
 import { materializeDemoRepo } from '../src/demo-repo.js';
 
-export const RUNTIME_BIN = fileURLToPath(
+const RUNTIME_BIN = fileURLToPath(
   new URL(
     '../../../plugins/statusline-lab/runtime/statusline.sh',
     import.meta.url,
   ),
 );
 
-export const SUBAGENT_BIN = fileURLToPath(
+const SUBAGENT_BIN = fileURLToPath(
   new URL(
     '../../../plugins/statusline-lab/runtime/subagent.sh',
     import.meta.url,
   ),
-);
-
-export const PICKS_PATH = join(
-  '.claude',
-  'plugins',
-  'data',
-  'statusline-lab-agentic',
-  'picks',
 );
 
 // 2026-09-08T12:20:00Z — after every fixture's cache expiry, inert under the
@@ -54,7 +46,6 @@ export interface RenderInput {
   readonly env?: Readonly<Record<string, string>>;
   readonly columns?: number;
   readonly modelDisplayName?: string;
-  readonly args?: readonly string[];
 }
 
 const PAYLOADS_DIR = fileURLToPath(
@@ -82,10 +73,9 @@ function spawnRender(
   home: string,
   now: string,
   columns?: number,
-  args?: readonly string[],
   env?: Readonly<Record<string, string>>,
 ): RenderResult {
-  const run = spawnSync('bash', [bin, ...(args ?? [])], {
+  const run = spawnSync('bash', [bin], {
     input: stdin,
     env: {
       PATH: process.env.PATH ?? '',
@@ -129,7 +119,6 @@ export function renderStatusline(input: RenderInput): RenderResult {
     input.home,
     input.now ?? DEFAULT_NOW,
     input.columns,
-    input.args,
     input.env,
   );
 }
@@ -153,7 +142,6 @@ export function renderSubagent(input: SubagentInput): RenderResult {
     `${JSON.stringify(tick, null, 2)}\n`,
     input.home,
     input.now ?? DEFAULT_NOW,
-    undefined,
     undefined,
     input.env,
   );

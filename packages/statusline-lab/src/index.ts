@@ -1,16 +1,10 @@
 import { printUsageAndExit } from '@v1nvn/agentic-core';
 
-import { apply } from './apply.js';
-import { capture } from './capture.js';
+import { catalog } from './catalog.js';
 import { buildProgram, parseArgs, VERSION } from './cli.js';
-import { payloadJson, type PayloadName } from './payloads.js';
-import { resolve } from './resolve.js';
+import { configure } from './configure.js';
 import { terminalDeps } from './wizard-tui.js';
-import {
-  createWizard,
-  designsCatalog,
-  resolveWizardPayload,
-} from './wizard.js';
+import { createWizard } from './wizard.js';
 
 const parsed =
   parseArgs(process.argv.slice(2)) ?? printUsageAndExit(buildProgram());
@@ -23,56 +17,49 @@ function homeOf(flag: string | undefined): string {
   return home;
 }
 
-// Pipe stdin is not always a blocking fd (a node upstream leaves the read end
-// O_NONBLOCK on macOS), so read it as a stream, never readFileSync(0).
-async function readStdin(): Promise<string> {
-  const chunks: Buffer[] = [];
-  for await (const chunk of process.stdin) {
-    chunks.push(chunk as Buffer);
-  }
-  return Buffer.concat(chunks).toString('utf8');
-}
-
-if (parsed.version) {
-  console.log(VERSION);
-} else if (parsed.command === 'apply') {
-  const { steps } = apply({
-    home: homeOf(parsed.home),
-    force: parsed.force,
-    dryRun: parsed.dryRun,
-  });
-  for (const step of steps) {
-    const why = step.action === 'refuse' ? ' (--force to take over)' : '';
-    console.log(`${step.target}: ${step.action}${why}`);
-  }
-} else if (parsed.command === 'capture') {
+function run(job: () => void): void {
   try {
-    const filed = capture({
-      home: homeOf(parsed.home),
-      stdin: await readStdin(),
-    });
-    console.log(filed.path);
+    job();
   } catch (e) {
     console.error((e as Error).message);
     process.exitCode = 1;
   }
-} else if (parsed.command === 'designs') {
-  console.log(designsCatalog({ home: homeOf(parsed.home) }));
-} else if (parsed.command === 'payload' && parsed.payload !== undefined) {
-  console.log(payloadJson(parsed.payload as PayloadName));
-} else if (parsed.command === 'pick') {
+}
+
+if (parsed.version) {
+  console.log(VERSION);
+} else if (parsed.command === 'catalog') {
+  run(() => {
+    console.log(catalog({ home: homeOf(parsed.home), items: parsed.items }));
+  });
+} else if (parsed.command === 'configure') {
   const home = homeOf(parsed.home);
-  const payload = resolveWizardPayload({ home, payload: parsed.payload });
-  await createWizard(
-    {
-      home,
-      now: String(Math.floor(Date.now() / 1000)),
-      payloadPath: payload.path,
-    },
-    terminalDeps(),
-  );
-} else if (parsed.command === 'resolve') {
-  console.log(resolve({ home: homeOf(parsed.home) }).pluginDir ?? 'none');
-} else {
-  printUsageAndExit(buildProgram());
+  const interactive =
+    parsed.layout === undefined &&
+    parsed.variants === undefined &&
+    parsed.fallback === undefined &&
+    !parsed.dryRun &&
+    !parsed.force;
+  if (interactive && process.stdin.isTTY) {
+    await createWizard(
+      { home, now: String(Math.floor(Date.now() / 1000)) },
+      terminalDeps(),
+    );
+  } else {
+    run(() => {
+      const result = configure({
+        dryRun: parsed.dryRun,
+        fallback: parsed.fallback,
+        force: parsed.force,
+        home,
+        layout: parsed.layout,
+        variants: parsed.variants,
+      });
+      console.log(
+        result.mode === 'written'
+          ? 'configured — live on the next paint'
+          : result.text,
+      );
+    });
+  }
 }

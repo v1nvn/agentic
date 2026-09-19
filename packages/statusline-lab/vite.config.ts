@@ -22,7 +22,6 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
-    globalSetup: ['./test/global-setup.ts'],
     // Unpinned wizard tests spawn the bash runtime per draw; 300s gives
     // those runs headroom.
     testTimeout: 300_000,
