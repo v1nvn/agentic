@@ -1,4 +1,3 @@
-import { parseQuietly } from '@v1nvn/agentic-core';
 import { Command, Option } from 'commander';
 
 import pkg from '../package.json' with { type: 'json' };
@@ -33,6 +32,7 @@ export interface ParsedArgs {
   readonly dryRun?: boolean;
   readonly fallback?: 'default' | 'existing';
   readonly force?: boolean;
+  readonly help?: Subcommand;
   readonly home?: string;
   readonly items?: readonly string[];
   readonly layout?: string;
@@ -44,9 +44,21 @@ type SubcommandOptions = Record<string, unknown>;
 
 const QUIET = { writeOut: () => undefined, writeErr: () => undefined };
 
-function quiet(command: Command): Command {
+class HelpRequested extends Error {
+  constructor(readonly command: Subcommand) {
+    super(`${command} --help`);
+  }
+}
+
+function quiet(name: Subcommand, command: Command): Command {
   return command
-    .exitOverride()
+    .exitOverride(err => {
+      const code = (err as { code?: string }).code;
+      if (code === 'commander.help' || code === 'commander.helpDisplayed') {
+        throw new HelpRequested(name);
+      }
+      throw err;
+    })
     .configureOutput(QUIET)
     .allowExcessArguments(false);
 }
@@ -54,7 +66,7 @@ function quiet(command: Command): Command {
 export function buildProgram(
   onSubcommand?: (command: Subcommand, options: SubcommandOptions) => void,
 ): Command {
-  const catalog = quiet(new Command('catalog'))
+  const catalog = quiet('catalog', new Command('catalog'))
     .description('print one line per item — * marks the live variant')
     .option('--home <dir>', 'operate on this home instead of $HOME');
   for (const item of ITEM_IDS) {
@@ -64,7 +76,7 @@ export function buildProgram(
     onSubcommand?.('catalog', options),
   );
 
-  const configure = quiet(new Command('configure'))
+  const configure = quiet('configure', new Command('configure'))
     .description(
       'write the generated scripts and point both settings keys at them',
     )
@@ -79,7 +91,7 @@ export function buildProgram(
         'fill unflagged layout items from defaults or the existing script',
       ).choices(['default', 'existing']),
     )
-    .option('--dry-run', 'render both surfaces, persist nothing')
+    .option('--dry-run', 'render both surfaces, write no scripts or settings')
     .option('--force', 'take over foreign settings keys');
   for (const item of ITEM_IDS) {
     configure.option(`--${item} <alt>`, `variant for the ${item} item`);
@@ -97,17 +109,31 @@ export function buildProgram(
     .addCommand(configure);
 }
 
+export function subcommandHelp(name: Subcommand): string {
+  const command = buildProgram().commands.find(c => c.name() === name);
+  if (command === undefined) {
+    throw new Error(`no '${name}' command to describe`);
+  }
+  return command.helpInformation();
+}
+
 export function parseArgs(args: readonly string[]): ParsedArgs | undefined {
   let chosen:
     | undefined
     | { readonly command: Subcommand; readonly options: SubcommandOptions };
-  const program = parseQuietly(
-    buildProgram((command, options) => {
-      chosen = { command, options };
-    }),
-    args,
-  );
-  if (program === undefined) {
+  const program = buildProgram((command, options) => {
+    chosen = { command, options };
+  });
+  try {
+    program
+      .allowExcessArguments(false)
+      .exitOverride()
+      .configureOutput(QUIET)
+      .parse([...args], { from: 'user' });
+  } catch (e) {
+    if (e instanceof HelpRequested) {
+      return { version: false, help: e.command };
+    }
     return undefined;
   }
   const { version } = program.opts<{ version: boolean | undefined }>();

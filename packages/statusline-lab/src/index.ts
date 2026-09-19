@@ -1,7 +1,7 @@
 import { printUsageAndExit } from '@v1nvn/agentic-core';
 
 import { catalog } from './catalog.js';
-import { buildProgram, parseArgs, VERSION } from './cli.js';
+import { buildProgram, parseArgs, subcommandHelp, VERSION } from './cli.js';
 import { configure } from './configure.js';
 import { terminalDeps } from './wizard-tui.js';
 import { createWizard } from './wizard.js';
@@ -26,7 +26,9 @@ function run(job: () => void): void {
   }
 }
 
-if (parsed.version) {
+if (parsed.help !== undefined) {
+  console.log(subcommandHelp(parsed.help));
+} else if (parsed.version) {
   console.log(VERSION);
 } else if (parsed.command === 'catalog') {
   run(() => {
