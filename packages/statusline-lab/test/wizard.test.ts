@@ -15,6 +15,7 @@ import {
 } from '../src/wizard.js';
 import {
   DATA_REL,
+  backupPath,
   createHomes,
   installRuntime,
   mainKeyValue,
@@ -396,7 +397,9 @@ describe('wizard: save (the TTY mode of contract 3)', () => {
     );
     for (const path of Object.keys(snapshotTree(join(home, '.claude')))) {
       expect(
-        path === 'settings.json' || path.startsWith('plugins/cache/'),
+        path === 'settings.json' ||
+          path.startsWith('plugins/cache/') ||
+          path === 'plugins/data/statusline-lab-agentic/backup.json',
         `wizard save wrote outside the two-key footprint: ${path}`,
       ).toBe(true);
     }
@@ -404,6 +407,18 @@ describe('wizard: save (the TTY mode of contract 3)', () => {
     expect(catalog({ home }).split('\n')).toContain(
       'model: plain | block* | pill | zen',
     );
+  });
+
+  it('the save path writes the backup too — a file-creating save records createdFile (contract 4)', async () => {
+    const home = newInstalledHome();
+
+    const { outcome } = await runWizard(['\r'], home);
+
+    expect(outcome).toBe('saved');
+    expect(JSON.parse(readFileSync(backupPath(home), 'utf8'))).toEqual({
+      createdFile: true,
+      keys: {},
+    });
   });
 
   // Fix round 1 flipped this pin on purpose: a refused save used to return

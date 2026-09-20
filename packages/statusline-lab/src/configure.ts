@@ -1,8 +1,15 @@
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  renameSync,
+  writeFileSync,
+} from 'node:fs';
 import { dirname, join } from 'node:path';
 
 import { firstPanelRow, previewSources, runtimeRenderer } from './payloads.js';
 import {
+  backupPath,
   isOurMainCommand,
   mainKeyValue,
   readKeyConfig,
@@ -25,7 +32,9 @@ export type ConfigureResult =
   | { mode: 'printed'; text: string }
   | { mode: 'written' };
 
-type SettingsKey = 'statusLine' | 'subagentStatusLine';
+export type SettingsKey = 'statusLine' | 'subagentStatusLine';
+
+export const SETTINGS_KEYS = ['statusLine', 'subagentStatusLine'] as const;
 
 export function layoutItems(
   layout: string,
@@ -101,11 +110,11 @@ function parseClusters(layout: string): string[][] {
   return clusters;
 }
 
-function isObject(value: unknown): value is Record<string, unknown> {
+export function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-function readOrNull(file: string): null | string {
+export function readOrNull(file: string): null | string {
   try {
     return readFileSync(file, 'utf8');
   } catch (e) {
@@ -136,7 +145,7 @@ function memberCommand(value: unknown): null | string {
   return typeof value.command === 'string' ? value.command : null;
 }
 
-function ours(key: SettingsKey, value: unknown): boolean {
+export function isOurMember(key: SettingsKey, value: unknown): boolean {
   const command = memberCommand(value);
   if (command === null) {
     return false;
@@ -166,9 +175,7 @@ function planSettings(
   const raw = readOrNull(file);
   if (raw === null) {
     return {
-      adds: (Object.keys(wanted) as SettingsKey[]).map(
-        key => [key, wanted[key]] as const,
-      ),
+      adds: SETTINGS_KEYS.map(key => [key, wanted[key]] as const),
       file,
       raw: null,
       repoints: [],
@@ -177,14 +184,14 @@ function planSettings(
   const parsed = parseSettings(file, raw);
   const adds: (readonly [SettingsKey, string])[] = [];
   const repoints: (readonly [SettingsKey, string])[] = [];
-  for (const key of Object.keys(wanted) as SettingsKey[]) {
+  for (const key of SETTINGS_KEYS) {
     const command = wanted[key];
     const value = parsed[key];
     if (value === undefined) {
       adds.push([key, command]);
     } else if (memberCommand(value) === command) {
       continue;
-    } else if (ours(key, value) || force) {
+    } else if (isOurMember(key, value) || force) {
       repoints.push([key, command]);
     } else {
       throw new Error(
@@ -195,7 +202,7 @@ function planSettings(
   return { adds, file, raw, repoints };
 }
 
-function settingsValue(command: string): string {
+export function settingsValue(command: string): string {
   return JSON.stringify({ command, type: 'command' });
 }
 
@@ -251,10 +258,15 @@ function skipValue(raw: string, at: number): number {
   return i;
 }
 
-function rootMemberValueSpan(
-  raw: string,
-  key: string,
-): readonly [number, number] {
+interface RootMember {
+  readonly name: string;
+  readonly nameStart: number;
+  readonly valueEnd: number;
+  readonly valueStart: number;
+}
+
+function rootMembers(raw: string): readonly RootMember[] {
+  const members: RootMember[] = [];
   let i = raw.indexOf('{') + 1;
   while (i < raw.length) {
     while (/\s/.test(raw[i] ?? '~')) {
@@ -266,6 +278,7 @@ function rootMemberValueSpan(
     if (raw[i] !== '"') {
       throw new Error('malformed member in settings.json');
     }
+    const nameStart = i;
     const nameEnd = skipString(raw, i);
     const name = JSON.parse(raw.slice(i, nameEnd)) as string;
     i = nameEnd;
@@ -279,11 +292,10 @@ function rootMemberValueSpan(
     while (/\s/.test(raw[i] ?? '~')) {
       i += 1;
     }
-    const end = skipValue(raw, i);
-    if (name === key) {
-      return [i, end];
-    }
-    i = end;
+    const valueStart = i;
+    const valueEnd = skipValue(raw, i);
+    members.push({ name, nameStart, valueEnd, valueStart });
+    i = valueEnd;
     while (/\s/.test(raw[i] ?? '~')) {
       i += 1;
     }
@@ -293,12 +305,45 @@ function rootMemberValueSpan(
       throw new Error('malformed member in settings.json');
     }
   }
-  throw new Error(
-    `cannot find the "${key}" member to repoint in settings.json`,
-  );
+  return members;
 }
 
-function insertMembers(
+export function rootMemberValueSpan(
+  raw: string,
+  key: string,
+): null | readonly [number, number] {
+  const member = rootMembers(raw).find(m => m.name === key);
+  return member === undefined ? null : [member.valueStart, member.valueEnd];
+}
+
+export function removeMembers(raw: string, keys: readonly string[]): string {
+  let text = raw;
+  for (const key of keys) {
+    const members = rootMembers(text);
+    const at = members.findIndex(m => m.name === key);
+    if (at === -1) {
+      throw new Error(
+        `cannot find the "${key}" member to remove in settings.json`,
+      );
+    }
+    if (members.length === 1) {
+      return '{}';
+    }
+    const member = members[at];
+    if (at > 0) {
+      let start = member.nameStart;
+      while (/\s/.test(text[start - 1] ?? '~')) {
+        start -= 1;
+      }
+      text = `${text.slice(0, start - 1)}${text.slice(member.valueEnd)}`;
+    } else {
+      text = `${text.slice(0, member.nameStart)}${text.slice(members[1].nameStart)}`;
+    }
+  }
+  return text;
+}
+
+export function insertMembers(
   raw: string,
   members: readonly (readonly [SettingsKey, string])[],
 ): string {
@@ -320,10 +365,49 @@ function insertMembers(
 function splicedSettings(raw: string, plan: SettingsPlan): string {
   let text = plan.adds.length > 0 ? insertMembers(raw, plan.adds) : raw;
   for (const [key, command] of plan.repoints) {
-    const [start, end] = rootMemberValueSpan(text, key);
-    text = `${text.slice(0, start)}${settingsValue(command)}${text.slice(end)}`;
+    const span = rootMemberValueSpan(text, key);
+    if (span === null) {
+      throw new Error(
+        `cannot find the "${key}" member to repoint in settings.json`,
+      );
+    }
+    text = `${text.slice(0, span[0])}${settingsValue(command)}${text.slice(span[1])}`;
   }
   return text;
+}
+
+export interface SettingsBackup {
+  readonly createdFile: boolean;
+  readonly keys: Readonly<Partial<Record<SettingsKey, string>>>;
+}
+
+function writeBackupIfAbsent(home: string, plan: SettingsPlan): void {
+  const file = backupPath(home);
+  if (existsSync(file)) {
+    return;
+  }
+  const keys: Partial<Record<SettingsKey, string>> = {};
+  if (plan.raw !== null) {
+    for (const key of SETTINGS_KEYS) {
+      const span = rootMemberValueSpan(plan.raw, key);
+      if (span === null) {
+        continue;
+      }
+      const memberRaw = plan.raw.slice(span[0], span[1]);
+      if (isOurMember(key, JSON.parse(memberRaw))) {
+        continue;
+      }
+      keys[key] = memberRaw;
+    }
+  }
+  const dir = dirname(file);
+  mkdirSync(dir, { recursive: true });
+  const tmp = `${file}.tmp`;
+  writeFileSync(
+    tmp,
+    `${JSON.stringify({ createdFile: plan.raw === null, keys }, null, 2)}\n`,
+  );
+  renameSync(tmp, file);
 }
 
 function commitSettings(plan: SettingsPlan): void {
@@ -491,6 +575,9 @@ export function configure(options: ConfigureOptions): ConfigureResult {
     mainKeyValue(layout, assignments),
     options.force ?? false,
   );
+  if (plan.adds.length > 0 || plan.repoints.length > 0) {
+    writeBackupIfAbsent(options.home, plan);
+  }
   commitSettings(plan);
   return { mode: 'written' };
 }

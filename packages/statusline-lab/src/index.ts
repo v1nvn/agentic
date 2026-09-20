@@ -3,6 +3,7 @@ import { printUsageAndExit } from '@v1nvn/agentic-core';
 import { catalog } from './catalog.js';
 import { buildProgram, parseArgs, subcommandHelp, VERSION } from './cli.js';
 import { configure } from './configure.js';
+import { restore } from './restore.js';
 import { terminalDeps } from './wizard-tui.js';
 import { createWizard } from './wizard.js';
 
@@ -67,4 +68,17 @@ if (parsed.help !== undefined) {
       );
     });
   }
+} else if (parsed.command === 'restore') {
+  run(() => {
+    const result = restore({
+      dryRun: parsed.dryRun,
+      force: parsed.force,
+      home: homeOf(parsed.home),
+    });
+    console.log(
+      result.mode === 'restored'
+        ? 'restored — the lab keys hold their pre-lab values again'
+        : result.text,
+    );
+  });
 }

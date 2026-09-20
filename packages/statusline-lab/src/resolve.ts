@@ -12,6 +12,10 @@ export function capturePath(home: string, surface: 'main' | 'tick'): string {
   return join(home, DATA_REL, 'captures', `${surface}.json`);
 }
 
+export function backupPath(home: string): string {
+  return join(home, DATA_REL, 'backup.json');
+}
+
 export interface RuntimeItem {
   readonly alternatives: readonly string[];
   readonly default: string;

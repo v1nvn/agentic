@@ -25,7 +25,7 @@ const ITEM_IDS = [
   'style',
 ] as const satisfies readonly string[];
 
-export type Subcommand = 'catalog' | 'configure';
+export type Subcommand = 'catalog' | 'configure' | 'restore';
 
 export interface ParsedArgs {
   readonly command?: Subcommand;
@@ -98,13 +98,28 @@ export function buildProgram(
     onSubcommand?.('configure', options),
   );
 
+  const restore = quiet('restore', new Command('restore'))
+    .description(
+      'revert both settings keys to their pre-lab values, clean the data dir',
+    )
+    .option('--home <dir>', 'operate on this home instead of $HOME')
+    .option('--dry-run', 'print the plan, write nothing')
+    .option(
+      '--force',
+      'splice the saved value over a key changed after the takeover',
+    );
+  restore.action((options: SubcommandOptions) =>
+    onSubcommand?.('restore', options),
+  );
+
   return new Command()
     .name('statusline-lab')
     .description('Configure the status line and agent panel designs')
     .option('-V, --version', 'print the lab version and exit')
     .action(() => undefined)
     .addCommand(catalog)
-    .addCommand(configure);
+    .addCommand(configure)
+    .addCommand(restore);
 }
 
 export function subcommandHelp(name: Subcommand): string {
@@ -148,6 +163,17 @@ export function parseArgs(args: readonly string[]): ParsedArgs | undefined {
       version: false,
       command: 'catalog',
       ...(items.length > 0 ? { items } : {}),
+      ...(typeof options.home === 'string' ? { home: options.home } : {}),
+    };
+  }
+  if (chosen.command === 'restore') {
+    return {
+      version: false,
+      command: 'restore',
+      ...(typeof options.dryRun === 'boolean'
+        ? { dryRun: options.dryRun }
+        : {}),
+      ...(typeof options.force === 'boolean' ? { force: options.force } : {}),
       ...(typeof options.home === 'string' ? { home: options.home } : {}),
     };
   }

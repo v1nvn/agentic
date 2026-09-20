@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -152,7 +152,9 @@ describe('configure: strict mode (contract 3)', () => {
     expect(settingsCommand(home, 'subagentStatusLine')).toBe(
       subagentKeyValue,
     );
-    expect(existsSync(join(home, DATA_REL)), 'data dir').toBe(false);
+    expect(readdirSync(join(home, DATA_REL)), 'data dir').toEqual([
+      'backup.json',
+    ]);
   });
 
   it('reconfiguring an ours key repoints it in place, no --force needed', () => {
@@ -420,7 +422,9 @@ describe('configure: settings refusal (E4 port)', () => {
     expect(settingsCommand(home, 'subagentStatusLine')).toBe(subagentKeyValue);
     const settings = JSON.parse(readFileSync(settingsPath(home), 'utf8'));
     expect(settings.model).toBe('opus-4');
-    expect(existsSync(join(home, DATA_REL)), 'data dir').toBe(false);
+    expect(readdirSync(join(home, DATA_REL)), 'data dir').toEqual([
+      'backup.json',
+    ]);
   });
 });
 

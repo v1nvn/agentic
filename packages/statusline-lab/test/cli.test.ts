@@ -49,6 +49,28 @@ describe('parseArgs', () => {
       help: 'configure',
     });
   });
+
+  it('registers restore with --dry-run/--force/--home and routes to it', () => {
+    expect(
+      parseArgs(['restore', '--dry-run', '--force', '--home', '/tmp/lab-home']),
+    ).toEqual({
+      version: false,
+      command: 'restore',
+      dryRun: true,
+      force: true,
+      home: '/tmp/lab-home',
+    });
+    expect(parseArgs(['restore'])).toEqual({
+      version: false,
+      command: 'restore',
+    });
+    expect(parseArgs(['restore', '-h'])).toEqual({
+      version: false,
+      help: 'restore',
+    });
+    expect(parseArgs(['restore', 'stray'])).toBeUndefined();
+    expect(parseArgs(['restore', '--bogus'])).toBeUndefined();
+  });
 });
 
 describe('subcommandHelp', () => {
@@ -62,5 +84,12 @@ describe('subcommandHelp', () => {
     expect(help).toContain('--layout');
     expect(help).toContain('--dry-run');
     expect(help).not.toMatch(/script/);
+  });
+
+  it("names the restore's flags", () => {
+    const help = subcommandHelp('restore');
+    expect(help).toContain('--dry-run');
+    expect(help).toContain('--force');
+    expect(help).toContain('--home');
   });
 });

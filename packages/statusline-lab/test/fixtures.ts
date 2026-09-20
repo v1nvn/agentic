@@ -66,6 +66,10 @@ export function settingsCommand(
   return (value as { command: string }).command;
 }
 
+export function backupPath(home: string): string {
+  return join(home, DATA_REL, 'backup.json');
+}
+
 export const KEY_RESOLVER =
   "d=$(printf '%s\\n' ~/.claude/plugins/cache/agentic/statusline-lab/*/ | sort -V | tail -1)";
 

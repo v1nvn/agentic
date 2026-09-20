@@ -123,13 +123,13 @@ afterEach(() => {
   homes.dispose();
 });
 
-describe('the two-verb surface (contracts 1 and 10)', () => {
-  it('registers exactly catalog and configure', () => {
+describe('the verb surface (contracts 1 and 10)', () => {
+  it('registers exactly catalog, configure, and restore', () => {
     expect(
       buildProgram()
         .commands.map(command => command.name())
         .sort(),
-    ).toEqual(['catalog', 'configure']);
+    ).toEqual(['catalog', 'configure', 'restore']);
   });
 
   it('a bare invocation is a usage error the entry answers with help and a non-zero exit', () => {
