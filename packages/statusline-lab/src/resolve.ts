@@ -29,9 +29,8 @@ export interface ScriptConfig {
   readonly values: Readonly<Record<string, string>>;
 }
 
-// Ruling 1's canonical key template (byte-pinned by the golden tests): the
-// resolver staged into d= first; on the main key the env assignments hug
-// bash last. The bytes between the prefix and the suffix are the config.
+// The env assignments must immediately precede bash: a prefix on the d=
+// assignment dies with that statement.
 export const KEY_RESOLVER =
   "d=$(printf '%s\\n' ~/.claude/plugins/cache/agentic/statusline-lab/*/ | sort -V | tail -1)";
 const MAIN_PREFIX = `${KEY_RESOLVER}; `;
@@ -47,8 +46,6 @@ export function mainKeyValue(
 
 export const subagentKeyValue = `${KEY_RESOLVER}; bash "\${d}runtime/subagent.sh" 2>/dev/null || true`;
 
-// The ours predicate for the main key (contract 1): fixed resolver prefix,
-// fixed script suffix, free middle. The subagent key is an exact match.
 export function isOurMainCommand(command: string): boolean {
   return command.startsWith(MAIN_PREFIX) && command.endsWith(` ${MAIN_SUFFIX}`);
 }
