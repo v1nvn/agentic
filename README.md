@@ -50,25 +50,38 @@ npx -y @v1nvn/md         # last reply → Markdown-Viewer (--view for read-only;
 
 ## statusline-lab
 
-Two commands drive both surfaces:
+Four commands drive both surfaces:
 
 ```sh
 npx -y @v1nvn/statusline-lab catalog                                       # one line per item, * marks the live variant
 npx -y @v1nvn/statusline-lab configure --model block --bar gauge --fallback=default
 npx -y @v1nvn/statusline-lab configure                                     # the wizard — bare, on a TTY
+npx -y @v1nvn/statusline-lab restore                                       # both keys back to their pre-lab values
+npx -y @v1nvn/statusline-lab status                                        # rows + verdict — exit 0 healthy, 1 needs action
 ```
 
-`configure` writes two generated scripts under
-`~/.claude/plugins/data/statusline-lab-agentic/` and points the `statusLine` and
-`subagentStatusLine` keys of `~/.claude/settings.json` at them; both surfaces go
-live on the next paint. The configuration lives in the generated script itself —
-one export per layout item plus the layout, brace clusters of item ids:
-`--layout '{model effort} {cwd branch} {bar tokens cache}'`. With flags,
-`configure` is strict — every layout item needs a variant or a
-`--fallback=default|existing`; `--dry-run` renders both surfaces, writing no
-scripts and touching no settings — the preview still refreshes `captures/`; a
-foreign settings key is refused unless `--force`. `/statusline-lab`
-inside a session runs the same two commands.
+`configure` touches exactly the `statusLine` and `subagentStatusLine` keys of
+`~/.claude/settings.json` — the whole write footprint. Each value is one
+inline shell command: a resolver that picks the newest cached runtime, then
+the config as env assignments hugging `bash` (the subagent key carries none —
+the panel has no variants). Raw:
+
+```sh
+d=$(printf '%s\n' ~/.claude/plugins/cache/agentic/statusline-lab/*/ | sort -V | tail -1); STATUSLINE_LAB_LAYOUT='{model effort}' STATUSLINE_LAB_MODEL=block bash "${d}runtime/statusline.sh" 2>/dev/null || true
+d=$(printf '%s\n' ~/.claude/plugins/cache/agentic/statusline-lab/*/ | sort -V | tail -1); bash "${d}runtime/subagent.sh" 2>/dev/null || true
+```
+
+The layout — brace clusters of item ids — and one variant per item ride in
+that value: `--layout '{model effort} {cwd branch} {bar tokens cache}'`. With
+flags, `configure` is strict — every layout item needs a variant or a
+`--fallback=default|existing`; `--dry-run` renders both surfaces, writing
+nothing — the preview still refreshes `captures/`; a foreign settings key is
+refused unless `--force`. The first takeover saves the pre-lab key values to
+`backup.json`; `restore` splices them back byte-exact — keys absent before
+the lab are removed — then deletes the lab data. `status` checks the
+install: runtime, both keys, config drift against the resolved runtime,
+backup, captures — one row per fact plus a verdict, every action row naming
+its fix. `/statusline-lab` inside a session runs the same commands.
 
 Repo and machine:
 
@@ -85,16 +98,20 @@ repo
 machine, after `claude plugin install statusline-lab@agentic`
   ~/.claude/plugins/cache/agentic/statusline-lab/<version>/runtime/   the installed runtime
   ~/.claude/plugins/data/statusline-lab-agentic/
-    statusline-command.sh                 generated — exports the config, execs the cached runtime
-    subagent-statusline.sh                generated — same shape, empty config
+    backup.json                           pre-lab key values — first takeover wins
     captures/main.json  captures/tick.json  every paint's stdin, teed by the runtime; feeds previews
-  ~/.claude/settings.json                 statusLine + subagentStatusLine → the generated scripts
+  ~/.claude/settings.json                 statusLine + subagentStatusLine → the inline commands
 ```
 
 Install: `claude plugin marketplace add v1nvn/agentic`, then
 `claude plugin install statusline-lab@agentic`, then
 `npx -y @v1nvn/statusline-lab configure` — the wizard previews both surfaces at
 80/120/200 columns and saves.
+
+Uninstall runs `npx -y @v1nvn/statusline-lab restore` first, then uninstalls
+the plugin: a plain uninstall deletes the data dir with `backup.json`, and
+keys left behind keep globbing a cache dir that dies only ~14 days later — a
+blank line, delayed.
 
 ## Layout
 

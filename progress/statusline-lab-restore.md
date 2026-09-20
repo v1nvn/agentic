@@ -251,3 +251,14 @@ on the train. Archive this file when done.
   total), full gate green, echeck fully green — E1 PASS with the fourth
   verb, its last red. Real-CLI smoke on a scratch home confirmed both exit
   paths. Unit 4 owes the row grammar now written into its reading list.
+- 2026-09-20 — orchestrator decision: unit 3's commit subject overclaims
+  (`bb31fca` says backup/captures gate the exit code; they do not — the code
+  is correct per ruling 3, only the subject is wrong) — accepted, history
+  left as-is.
+- 2026-09-20 — unit 4 landed: skill + README moved to the two-write
+  four-verb surface (key shape raw, restore → uninstall with the one-line
+  why, status grammar sample, data-dir tree without scripts), CLAUDE.md
+  verb clause amended. Every npx line in both docs run verbatim against the
+  built CLI on a scratch home (catalog stars, configure two-key write,
+  status healthy exit 0, restore roundtrip to seed bytes); grep clean of
+  the script-era claims; full gate green.
