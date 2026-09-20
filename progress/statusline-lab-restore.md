@@ -151,21 +151,30 @@ wizard/CLI references to script paths. `DATA_REL`/`capturePath` stay
   `planSettings` now repoints ours→ours reconfigures too, so backup.json must
   stay first-takeover-wins — save the predecessor only when it is not ours.
   Plus `test/configure.test.ts`. Contract 4, host facts.
-- **Unit 3:** `src/{resolve,catalog,configure}.ts` (landed), `test/fixtures.ts`.
-  Key classification per contract 1 = `isOurMainCommand` for statusLine,
-  `subagentKeyValue` exact for subagentStatusLine; config decode =
-  `readKeyConfig`. Contract 5.
-  Unit-2 seams status consumes: `readBackup` in `src/restore.ts` (private —
-  export it, don't re-read) returns `SettingsBackup` (type in `configure.ts`):
-  `{createdFile: bool, keys: {statusLine?: subagentStatusLine?: <raw member
-  text>}}` — a missing `keys` entry means the key was absent-or-ours pre-lab
-  (nothing saved to show); `backupPath(home)` lives in `resolve.ts`. The
-  verb-list pin in `test/catalog.test.ts` now expects catalog/configure/restore
-  — unit 3 extends it to four.
+- **Unit 3:** DONE — `src/status.ts` landed (`bb31fca`). Status composes the
+  landed seams only: `resolveRuntime` (wrapped, null on throw), key
+  classification via `isOurMember`, config via `readKeyConfig`, `readBackup`
+  (exported from `src/restore.ts`), capture mtimes via `capturePath`.
+  Newly exported from `configure.ts` for the verb: `memberCommand`,
+  `parseClusters`, `parseSettings` — no second ours-checker, no new parsing.
 - **Unit 4:** `plugins/statusline-lab/commands/statusline-lab.md`, `README.md`
   (`## statusline-lab`, `## Install`), `CLAUDE.md` (one-command clause,
   layout rule), `.claude-plugin/marketplace.json`. Contract 6 + landed
-  `--help` text.
+  `--help` text. The check paragraph must show the landed `status` output
+  grammar (byte-pinned by `test/status.test.ts`, exit 0 on `healthy`, else 1):
+
+  ```
+  runtime: <version> — <n> items | runtime: missing — fix: claude plugin install statusline-lab@agentic
+  statusLine: ours — layout='{model effort}' model=block effort=dim   (assignments in layout order)
+  statusLine: foreign (./old-main.sh) — fix: rerun configure --force
+  statusLine: absent — fix: rerun configure --fallback=existing
+  subagentStatusLine: ours   (same foreign/absent shapes; ours carries no config)
+  config: no drift | config: drift — unknown variant 'x' for 'item', unknown item 'y' — fix: rerun configure --fallback=existing
+    (findings in layout order; the config row appears only when the main key is ours and a runtime resolved)
+  backup: absent | backup: present — saved statusLine, subagentStatusLine | backup: present — created settings.json, saved nothing
+  captures: main <age> ago | absent, tick <age> ago | absent   (age units s/m/h/d, floored)
+  healthy | unhealthy   (verdict last)
+  ```
 
 ### Enforcement inventory (orchestrator checks after every commit)
 
@@ -236,3 +245,9 @@ on the train. Archive this file when done.
   keys-restored vs lab-data-cleaned (never "restored" when no settings file
   was touched); restore.test.ts dropped its dynamic-import scaffold for a
   static import. Gate green, E4 PASS.
+- 2026-09-20 — unit 3 landed (`bb31fca`): `status` verb (`src/status.ts`)
+  prints plain rows + verdict and maps healthy onto the exit code in
+  index.ts (rows.join('\n'), exitCode 0/1). All 6 red tests green (187
+  total), full gate green, echeck fully green — E1 PASS with the fourth
+  verb, its last red. Real-CLI smoke on a scratch home confirmed both exit
+  paths. Unit 4 owes the row grammar now written into its reading list.
