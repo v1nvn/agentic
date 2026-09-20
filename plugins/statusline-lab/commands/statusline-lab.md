@@ -78,7 +78,8 @@ A healthy install prints:
 
 Exit 0 on `healthy`, 1 on `unhealthy` — branch on it: 0 ends the check; 1
 means read the rows, each naming its own fix (`rerun configure --force`,
-`restore`, `claude plugin install statusline-lab@agentic`). Run it right
+`rerun configure --fallback=existing`,
+`claude plugin install statusline-lab@agentic`). Run it right
 after configuring, and after a version bump — the config row names any item
 or variant the resolved runtime no longer offers.
 

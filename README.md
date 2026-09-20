@@ -67,7 +67,7 @@ the config as env assignments hugging `bash` (the subagent key carries none —
 the panel has no variants). Raw:
 
 ```sh
-d=$(printf '%s\n' ~/.claude/plugins/cache/agentic/statusline-lab/*/ | sort -V | tail -1); STATUSLINE_LAB_LAYOUT='{model effort}' STATUSLINE_LAB_MODEL=block bash "${d}runtime/statusline.sh" 2>/dev/null || true
+d=$(printf '%s\n' ~/.claude/plugins/cache/agentic/statusline-lab/*/ | sort -V | tail -1); STATUSLINE_LAB_LAYOUT='{model effort}' STATUSLINE_LAB_MODEL=block STATUSLINE_LAB_EFFORT=dim bash "${d}runtime/statusline.sh" 2>/dev/null || true
 d=$(printf '%s\n' ~/.claude/plugins/cache/agentic/statusline-lab/*/ | sort -V | tail -1); bash "${d}runtime/subagent.sh" 2>/dev/null || true
 ```
 
