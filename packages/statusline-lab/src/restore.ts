@@ -206,11 +206,13 @@ export function restore(options: RestoreOptions): RestoreResult {
   clearCaptures(capturesDir);
   rmSync(backupFile, { force: true });
   rmdirIfEmpty(dataDir);
-  return {
-    mode: 'restored',
-    text:
-      actions.length > 0
-        ? 'keys restored — settings.json holds its pre-lab values again'
-        : 'lab data cleaned — no lab keys in settings.json',
-  };
+  let line: string;
+  if (deleteFile) {
+    line = 'restored — settings.json is gone, exactly as before the lab';
+  } else if (actions.length > 0) {
+    line = 'keys restored — settings.json holds its pre-lab values again';
+  } else {
+    line = 'lab data cleaned — no lab keys in settings.json';
+  }
+  return { mode: 'restored', text: line };
 }

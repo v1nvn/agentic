@@ -92,7 +92,10 @@ describe('restore: createdFile endgame (contract 4)', () => {
       keys: {},
     });
 
-    expect(restore({ home })).toMatchObject({ mode: 'restored' });
+    expect(restore({ home })).toEqual({
+      mode: 'restored',
+      text: 'restored — settings.json is gone, exactly as before the lab',
+    });
     expect(existsSync(settingsPath(home))).toBe(false);
   });
 
