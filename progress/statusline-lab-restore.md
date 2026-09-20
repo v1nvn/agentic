@@ -155,6 +155,13 @@ wizard/CLI references to script paths. `DATA_REL`/`capturePath` stay
   Key classification per contract 1 = `isOurMainCommand` for statusLine,
   `subagentKeyValue` exact for subagentStatusLine; config decode =
   `readKeyConfig`. Contract 5.
+  Unit-2 seams status consumes: `readBackup` in `src/restore.ts` (private —
+  export it, don't re-read) returns `SettingsBackup` (type in `configure.ts`):
+  `{createdFile: bool, keys: {statusLine?: subagentStatusLine?: <raw member
+  text>}}` — a missing `keys` entry means the key was absent-or-ours pre-lab
+  (nothing saved to show); `backupPath(home)` lives in `resolve.ts`. The
+  verb-list pin in `test/catalog.test.ts` now expects catalog/configure/restore
+  — unit 3 extends it to four.
 - **Unit 4:** `plugins/statusline-lab/commands/statusline-lab.md`, `README.md`
   (`## statusline-lab`, `## Install`), `CLAUDE.md` (one-command clause,
   layout rule), `.claude-plugin/marketplace.json`. Contract 6 + landed
@@ -211,3 +218,15 @@ on the train. Archive this file when done.
   writer + script paths + `installed_plugins` read deleted. Five red tests
   green (168 total), full gate green, E3 PASS — E1/E4 stay red until units
   2–3.
+- 2026-09-20 — unit 2 landed (`acbdda8`): `restore` verb (`src/restore.ts`,
+  no `resolveRuntime`) splices saved raw member text back byte-exact, removes
+  ours-keys that were absent pre-lab, refuses a changed foreign key naming
+  `--force`, deletes a lab-created settings.json it empties, cleans
+  captures/ + backup.json by explicit path with rmdir-if-empty; configure
+  writes `backup.json` atomically before `commitSettings`, first-takeover-wins
+  (wizard save inherits it via configure). Span primitives exported from
+  `configure.ts` — one splice home (`removeMembers` added there). All 13 red
+  tests green (181 total), full gate green, E4 PASS — E1 red until unit 3.
+  Pins re-anchored for the deliberate surface change: the four backup.json
+  footprint assertions, plus a fifth unlisted one — the catalog verb-list pin
+  (`test/catalog.test.ts` "registers exactly…") now expects three verbs.
