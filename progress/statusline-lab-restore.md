@@ -230,3 +230,9 @@ on the train. Archive this file when done.
   Pins re-anchored for the deliberate surface change: the four backup.json
   footprint assertions, plus a fifth unlisted one — the catalog verb-list pin
   (`test/catalog.test.ts` "registers exactly…") now expects three verbs.
+- 2026-09-20 — unit 2 fix round (blind review, `8af851f`): captures cleanup is
+  flat (files only, no recursion; a stray subdir survives and the rmdir-if-empty
+  tolerates ENOTEMPTY); the restored result carries text so the CLI line says
+  keys-restored vs lab-data-cleaned (never "restored" when no settings file
+  was touched); restore.test.ts dropped its dynamic-import scaffold for a
+  static import. Gate green, E4 PASS.
