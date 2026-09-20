@@ -262,3 +262,9 @@ on the train. Archive this file when done.
   built CLI on a scratch home (catalog stars, configure two-key write,
   status healthy exit 0, restore roundtrip to seed bytes); grep clean of
   the script-era claims; full gate green.
+- 2026-09-20 — run closed: all four units landed with blind reviews and fix
+  rounds (E1–E5 green over 13 one-liner commits; suite 158→187); PR #3 opened
+  against main, surface-only body. Accepted-not-fixed: unit 3's commit subject
+  overclaims (backup/captures rows do not gate the exit code — code correct
+  per ruling 3). Reviewer-seam lesson: E4's grep cannot see hand-rolled
+  recursion — the blind review is the backstop (unit 2 proved it).
