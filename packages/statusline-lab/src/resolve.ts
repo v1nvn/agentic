@@ -8,14 +8,6 @@ export const DATA_REL = join(
   'statusline-lab-agentic',
 );
 
-export function mainScriptPath(home: string): string {
-  return join(home, DATA_REL, 'statusline-command.sh');
-}
-
-export function subagentScriptPath(home: string): string {
-  return join(home, DATA_REL, 'subagent-statusline.sh');
-}
-
 export function capturePath(home: string, surface: 'main' | 'tick'): string {
   return join(home, DATA_REL, 'captures', `${surface}.json`);
 }
@@ -37,17 +29,44 @@ export interface ScriptConfig {
   readonly values: Readonly<Record<string, string>>;
 }
 
-interface InstalledPluginsFile {
-  readonly plugins?: Record<
-    string,
-    readonly { readonly installPath?: unknown }[]
-  >;
+// Ruling 1's canonical key template (byte-pinned by the golden tests): the
+// resolver staged into d= first; on the main key the env assignments hug
+// bash last. The bytes between the prefix and the suffix are the config.
+export const KEY_RESOLVER =
+  "d=$(printf '%s\\n' ~/.claude/plugins/cache/agentic/statusline-lab/*/ | sort -V | tail -1)";
+const MAIN_PREFIX = `${KEY_RESOLVER}; `;
+const MAIN_SUFFIX = 'bash "${d}runtime/statusline.sh" 2>/dev/null || true';
+
+export function mainKeyValue(
+  layout: string,
+  assignments: readonly string[],
+): string {
+  const env = [`STATUSLINE_LAB_LAYOUT='${layout}'`, ...assignments].join(' ');
+  return `${MAIN_PREFIX}${env} ${MAIN_SUFFIX}`;
 }
 
-function installPathFrom(file: string): null | string {
+export const subagentKeyValue = `${KEY_RESOLVER}; bash "\${d}runtime/subagent.sh" 2>/dev/null || true`;
+
+// The ours predicate for the main key (contract 1): fixed resolver prefix,
+// fixed script suffix, free middle. The subagent key is an exact match.
+export function isOurMainCommand(command: string): boolean {
+  return command.startsWith(MAIN_PREFIX) && command.endsWith(` ${MAIN_SUFFIX}`);
+}
+
+function mainKeyMiddle(command: string): null | string {
+  if (!isOurMainCommand(command)) {
+    return null;
+  }
+  return command.slice(
+    MAIN_PREFIX.length,
+    command.length - MAIN_SUFFIX.length - 1,
+  );
+}
+
+function settingsCommand(home: string): null | string {
   let raw: string;
   try {
-    raw = readFileSync(file, 'utf8');
+    raw = readFileSync(join(home, '.claude', 'settings.json'), 'utf8');
   } catch {
     return null;
   }
@@ -57,12 +76,31 @@ function installPathFrom(file: string): null | string {
   } catch {
     return null;
   }
-  const installPath = (parsed as InstalledPluginsFile | null)?.plugins?.[
-    'statusline-lab@agentic'
-  ]?.[0]?.installPath;
-  return typeof installPath === 'string' && installPath !== ''
-    ? installPath
-    : null;
+  const member = (parsed as null | { statusLine?: unknown })?.statusLine;
+  if (typeof member !== 'object' || member === null) {
+    return null;
+  }
+  const command = (member as { command?: unknown }).command;
+  return typeof command === 'string' ? command : null;
+}
+
+export function readKeyConfig(home: string): ScriptConfig {
+  const command = settingsCommand(home);
+  const middle = command === null ? null : mainKeyMiddle(command);
+  if (middle === null) {
+    return { layout: null, values: {} };
+  }
+  const layout = /^STATUSLINE_LAB_LAYOUT='([^']*)'/.exec(middle);
+  if (layout === null) {
+    return { layout: null, values: {} };
+  }
+  const values: Record<string, string> = {};
+  for (const [, name, alt] of middle.matchAll(
+    /(?:^| )STATUSLINE_LAB_([A-Z][A-Z0-9_]*)=([a-z0-9]+)/g,
+  )) {
+    values[name.toLowerCase()] = alt;
+  }
+  return { layout: layout[1], values };
 }
 
 function byVersion(a: string, b: string): number {
@@ -161,14 +199,9 @@ function readDefaultLayout(dir: string): string {
 }
 
 export function resolveRuntime({ home }: { home: string }): ResolvedRuntime {
-  const installPath = installPathFrom(
-    join(home, '.claude', 'plugins', 'installed_plugins.json'),
+  const pluginDir = newestCacheDir(
+    join(home, '.claude', 'plugins', 'cache', 'agentic', 'statusline-lab'),
   );
-  const pluginDir =
-    installPath ??
-    newestCacheDir(
-      join(home, '.claude', 'plugins', 'cache', 'agentic', 'statusline-lab'),
-    );
   const dir = pluginDir === null ? null : join(pluginDir, 'runtime');
   if (dir === null || !existsSync(join(dir, 'statusline.sh'))) {
     throw new Error(
@@ -180,27 +213,4 @@ export function resolveRuntime({ home }: { home: string }): ResolvedRuntime {
     dir,
     items: readItems(dir),
   };
-}
-
-export function readScriptConfig(home: string): ScriptConfig {
-  const file = mainScriptPath(home);
-  if (!existsSync(file)) {
-    return { layout: null, values: {} };
-  }
-  const values: Record<string, string> = {};
-  let layout: null | string = null;
-  for (const line of readFileSync(file, 'utf8').split('\n')) {
-    const layoutMatch = /^export STATUSLINE_LAB_LAYOUT='(.*)'$/.exec(line);
-    if (layoutMatch) {
-      layout = layoutMatch[1];
-      continue;
-    }
-    const valueMatch = /^export STATUSLINE_LAB_([A-Z][A-Z0-9_]*)=(.+)$/.exec(
-      line,
-    );
-    if (valueMatch) {
-      values[valueMatch[1].toLowerCase()] = valueMatch[2];
-    }
-  }
-  return { layout, values };
 }

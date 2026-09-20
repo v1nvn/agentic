@@ -5,7 +5,7 @@ import type { RuntimeItem } from './resolve.js';
 
 import { configure, layoutItems } from './configure.js';
 import { firstPanelRow, previewSources } from './payloads.js';
-import { readScriptConfig, resolveRuntime } from './resolve.js';
+import { readKeyConfig, resolveRuntime } from './resolve.js';
 
 export interface WizardDeps {
   preview(spec: RenderSpec): string;
@@ -29,7 +29,7 @@ export async function createWizard(
   deps: WizardDeps,
 ): Promise<WizardOutcome> {
   const runtime = resolveRuntime({ home: options.home });
-  const existing = readScriptConfig(options.home);
+  const existing = readKeyConfig(options.home);
   const layout = existing.layout ?? runtime.defaultLayout;
   const byItem = new Map<string, RuntimeItem>(
     runtime.items.map(item => [item.item, item] as const),

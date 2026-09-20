@@ -61,5 +61,6 @@ describe('subcommandHelp', () => {
     expect(help).toContain('--fallback');
     expect(help).toContain('--layout');
     expect(help).toContain('--dry-run');
+    expect(help).not.toMatch(/script/);
   });
 });

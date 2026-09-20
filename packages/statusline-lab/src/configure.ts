@@ -1,20 +1,14 @@
-import {
-  chmodSync,
-  mkdirSync,
-  readFileSync,
-  renameSync,
-  writeFileSync,
-} from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 
 import { firstPanelRow, previewSources, runtimeRenderer } from './payloads.js';
 import {
-  DATA_REL,
-  mainScriptPath,
-  readScriptConfig,
+  isOurMainCommand,
+  mainKeyValue,
+  readKeyConfig,
   type ResolvedRuntime,
   resolveRuntime,
-  subagentScriptPath,
+  subagentKeyValue,
 } from './resolve.js';
 
 export interface ConfigureOptions {
@@ -31,16 +25,6 @@ export type ConfigureResult =
   | { mode: 'printed'; text: string }
   | { mode: 'written' };
 
-const MANAGED_BY =
-  '# statusline-lab — your config. Managed by `statusline-lab configure`.';
-const GLOB_NEWEST =
-  'd=$(printf \'%s\\n\' "$HOME"/.claude/plugins/cache/agentic/statusline-lab/*/ | sort -V | tail -1)';
-const MAIN_COMMAND = `~/${join(DATA_REL, 'statusline-command.sh')}`;
-const SUB_COMMAND = `~/${join(DATA_REL, 'subagent-statusline.sh')}`;
-const SETTINGS_COMMANDS: Readonly<Record<SettingsKey, string>> = {
-  statusLine: MAIN_COMMAND,
-  subagentStatusLine: SUB_COMMAND,
-};
 type SettingsKey = 'statusLine' | 'subagentStatusLine';
 
 export function layoutItems(
@@ -117,31 +101,6 @@ function parseClusters(layout: string): string[][] {
   return clusters;
 }
 
-function generatedScript(
-  bin: 'statusline.sh' | 'subagent.sh',
-  exports: readonly (readonly [string, string])[],
-  layout: null | string,
-): string {
-  const lines = [
-    '#!/bin/bash',
-    MANAGED_BY,
-    ...exports.map(([name, value]) => `export STATUSLINE_LAB_${name}=${value}`),
-    ...(layout === null ? [] : [`export STATUSLINE_LAB_LAYOUT='${layout}'`]),
-    GLOB_NEWEST,
-    `[ -f "\${d%/}/runtime/${bin}" ] && exec bash "\${d%/}/runtime/${bin}" "$@"`,
-    'exit 0',
-  ];
-  return `${lines.join('\n')}\n`;
-}
-
-function writeAtomic(file: string, bytes: string): void {
-  mkdirSync(dirname(file), { recursive: true });
-  const tmp = `${file}.tmp`;
-  writeFileSync(tmp, bytes);
-  chmodSync(tmp, 0o755);
-  renameSync(tmp, file);
-}
-
 function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
@@ -170,6 +129,23 @@ function parseSettings(file: string, raw: string): Record<string, unknown> {
   return parsed;
 }
 
+function memberCommand(value: unknown): null | string {
+  if (!isObject(value) || value.type !== 'command') {
+    return null;
+  }
+  return typeof value.command === 'string' ? value.command : null;
+}
+
+function ours(key: SettingsKey, value: unknown): boolean {
+  const command = memberCommand(value);
+  if (command === null) {
+    return false;
+  }
+  return key === 'statusLine'
+    ? isOurMainCommand(command)
+    : command === subagentKeyValue;
+}
+
 interface SettingsPlan {
   readonly adds: readonly (readonly [SettingsKey, string])[];
   readonly file: string;
@@ -177,15 +153,22 @@ interface SettingsPlan {
   readonly repoints: readonly (readonly [SettingsKey, string])[];
 }
 
-function planSettings(home: string, force: boolean): SettingsPlan {
+function planSettings(
+  home: string,
+  mainCommand: string,
+  force: boolean,
+): SettingsPlan {
   const file = join(home, '.claude', 'settings.json');
+  const wanted: Readonly<Record<SettingsKey, string>> = {
+    statusLine: mainCommand,
+    subagentStatusLine: subagentKeyValue,
+  };
   const raw = readOrNull(file);
   if (raw === null) {
     return {
-      adds: Object.entries(SETTINGS_COMMANDS).map(([key, command]) => [
-        key as SettingsKey,
-        command,
-      ]),
+      adds: (Object.keys(wanted) as SettingsKey[]).map(
+        key => [key, wanted[key]] as const,
+      ),
       file,
       raw: null,
       repoints: [],
@@ -194,19 +177,14 @@ function planSettings(home: string, force: boolean): SettingsPlan {
   const parsed = parseSettings(file, raw);
   const adds: (readonly [SettingsKey, string])[] = [];
   const repoints: (readonly [SettingsKey, string])[] = [];
-  for (const key of Object.keys(SETTINGS_COMMANDS) as SettingsKey[]) {
-    const command = SETTINGS_COMMANDS[key];
+  for (const key of Object.keys(wanted) as SettingsKey[]) {
+    const command = wanted[key];
     const value = parsed[key];
-    const ours =
-      isObject(value) &&
-      Object.keys(value).length === 2 &&
-      value.type === 'command' &&
-      value.command === command;
     if (value === undefined) {
       adds.push([key, command]);
-    } else if (ours) {
+    } else if (memberCommand(value) === command) {
       continue;
-    } else if (force) {
+    } else if (ours(key, value) || force) {
       repoints.push([key, command]);
     } else {
       throw new Error(
@@ -329,7 +307,7 @@ function insertMembers(
     throw new Error('settings.json has no closing brace to splice into');
   }
   let at = close;
-  while (/\s/.test(raw[at - 1] ?? '')) {
+  while (/\s/.test(raw[at - 1] ?? '~')) {
     at -= 1;
   }
   const rendered = members
@@ -351,9 +329,7 @@ function splicedSettings(raw: string, plan: SettingsPlan): string {
 function commitSettings(plan: SettingsPlan): void {
   if (plan.raw === null) {
     mkdirSync(dirname(plan.file), { recursive: true });
-    const members = (
-      Object.entries(SETTINGS_COMMANDS) as readonly [SettingsKey, string][]
-    )
+    const members = plan.adds
       .map(([key, command]) => `"${key}": ${settingsValue(command)}`)
       .join(',\n  ');
     writeFileSync(plan.file, `{\n  ${members}\n}\n`);
@@ -398,14 +374,14 @@ function renderPreview(
         stdin: sources.tick,
       }).replace(/\n+$/, ''),
     );
-    return `dry-run at 200 columns — no scripts or settings written\n${line}\npanel ${panel}\n`;
+    return `dry-run at 200 columns — nothing written\n${line}\npanel ${panel}\n`;
   } finally {
     sources.cleanup();
   }
 }
 
 function printedConfig(runtime: ResolvedRuntime, home: string): string {
-  const existing = readScriptConfig(home);
+  const existing = readKeyConfig(home);
   const lines = [
     `layout='${existing.layout ?? runtime.defaultLayout}'`,
     ...runtime.items.map(
@@ -432,7 +408,7 @@ function existingValue(
 
 export function configure(options: ConfigureOptions): ConfigureResult {
   const runtime = resolveRuntime({ home: options.home });
-  const existing = readScriptConfig(options.home);
+  const existing = readKeyConfig(options.home);
   const variants = options.variants ?? {};
   const explicit =
     options.layout !== undefined || Object.keys(variants).length > 0;
@@ -507,18 +483,13 @@ export function configure(options: ConfigureOptions): ConfigureResult {
     };
   }
 
-  const plan = planSettings(options.home, options.force ?? false);
-  const exports = items.map((item): readonly [string, string] => [
-    item.toUpperCase(),
-    values[item],
-  ]);
-  writeAtomic(
-    mainScriptPath(options.home),
-    generatedScript('statusline.sh', exports, layout),
+  const assignments = items.map(
+    item => `STATUSLINE_LAB_${item.toUpperCase()}=${values[item]}`,
   );
-  writeAtomic(
-    subagentScriptPath(options.home),
-    generatedScript('subagent.sh', [], null),
+  const plan = planSettings(
+    options.home,
+    mainKeyValue(layout, assignments),
+    options.force ?? false,
   );
   commitSettings(plan);
   return { mode: 'written' };

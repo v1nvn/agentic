@@ -77,9 +77,7 @@ export function buildProgram(
   );
 
   const configure = quiet('configure', new Command('configure'))
-    .description(
-      'write the generated scripts and point both settings keys at them',
-    )
+    .description('write both settings keys with the inline lab commands')
     .option('--home <dir>', 'operate on this home instead of $HOME')
     .option(
       '--layout <spec>',
@@ -88,10 +86,10 @@ export function buildProgram(
     .addOption(
       new Option(
         '--fallback <mode>',
-        'fill unflagged layout items from defaults or the existing script',
+        'fill unflagged layout items from defaults or the existing config',
       ).choices(['default', 'existing']),
     )
-    .option('--dry-run', 'render both surfaces, write no scripts or settings')
+    .option('--dry-run', 'render both surfaces, write nothing')
     .option('--force', 'take over foreign settings keys');
   for (const item of ITEM_IDS) {
     configure.option(`--${item} <alt>`, `variant for the ${item} item`);

@@ -1,20 +1,17 @@
-import {
-  cpSync,
-  mkdirSync,
-  mkdtempSync,
-  readFileSync,
-  readdirSync,
-  rmSync,
-  writeFileSync,
-} from 'node:fs';
-import { tmpdir } from 'node:os';
-import { dirname, join } from 'node:path';
+import { readFileSync, readdirSync } from 'node:fs';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { catalog } from '../src/catalog.js';
 import { buildProgram, parseArgs } from '../src/cli.js';
+import {
+  createHomes,
+  installRuntime,
+  mainKeyValue,
+  writeSettings,
+} from './fixtures.js';
 
 const RUNTIME_DIR = fileURLToPath(
   new URL('../../../plugins/statusline-lab/runtime', import.meta.url),
@@ -22,8 +19,6 @@ const RUNTIME_DIR = fileURLToPath(
 const RUNTIME_MAIN = join(RUNTIME_DIR, 'statusline.sh');
 const RUNTIME_COMPONENTS = join(RUNTIME_DIR, 'components');
 const RUNTIME_LIB = join(RUNTIME_DIR, 'lib.sh');
-
-const DATA_REL = join('.claude', 'plugins', 'data', 'statusline-lab-agentic');
 
 // Each dead verb is invoked the way a user would really type it — with the
 // arguments it used to accept — so a pass is a surviving verb, not a missing
@@ -102,54 +97,24 @@ function expectedLines(
   });
 }
 
-function mainScript(home: string): string {
-  return join(home, DATA_REL, 'statusline-command.sh');
-}
-
-function seedMainScript(home: string, exports: readonly string[]): void {
-  const file = mainScript(home);
-  mkdirSync(dirname(file), { recursive: true });
-  writeFileSync(
-    file,
-    `${['#!/bin/bash', '# seeded by the test', ...exports].join('\n')}\n`,
-  );
-}
-
-// A fake installed plugin (contract 6): the repo runtime copied into the
-// versioned cache dir the shared install seam resolves (contract 2).
-function installFakeRuntime(home: string): string {
-  const dest = join(
+function seedOursKey(
+  home: string,
+  layout: string,
+  assignments: readonly string[],
+): void {
+  writeSettings(
     home,
-    '.claude',
-    'plugins',
-    'cache',
-    'agentic',
-    'statusline-lab',
-    '0.19.0',
-    'runtime',
+    `${JSON.stringify(
+      {
+        statusLine: {
+          command: mainKeyValue(layout, assignments),
+          type: 'command',
+        },
+      },
+      null,
+      2,
+    )}\n`,
   );
-  cpSync(RUNTIME_DIR, dest, { recursive: true });
-  return dest;
-}
-
-function createHomes(): {
-  readonly newHome: () => string;
-  readonly dispose: () => void;
-} {
-  const homes: string[] = [];
-  return {
-    newHome(): string {
-      const home = mkdtempSync(join(tmpdir(), 'statusline-catalog-'));
-      homes.push(home);
-      return home;
-    },
-    dispose(): void {
-      for (const home of homes) {
-        rmSync(home, { recursive: true, force: true });
-      }
-      homes.length = 0;
-    },
-  };
 }
 
 const homes = createHomes();
@@ -219,7 +184,7 @@ describe('catalog: the runtime install seam (contract 2)', () => {
 describe('catalog: output (contract 2)', () => {
   it('lists one line per item with the lib default starred and zero ANSI', () => {
     const home = homes.newHome();
-    installFakeRuntime(home);
+    installRuntime(home);
 
     const out = catalog({ home });
 
@@ -227,12 +192,12 @@ describe('catalog: output (contract 2)', () => {
     expect(out.split('\n')).toEqual(expectedLines({}));
   });
 
-  it('stars follow the generated script exports in $HOME', () => {
+  it('stars follow the main key assignments in settings.json', () => {
     const home = homes.newHome();
-    installFakeRuntime(home);
-    seedMainScript(home, [
-      'export STATUSLINE_LAB_MODEL=block',
-      'export STATUSLINE_LAB_CACHE=none',
+    installRuntime(home);
+    seedOursKey(home, '{model cache}', [
+      'STATUSLINE_LAB_MODEL=block',
+      'STATUSLINE_LAB_CACHE=none',
     ]);
 
     const out = catalog({ home });
@@ -244,7 +209,7 @@ describe('catalog: output (contract 2)', () => {
 
   it('boolean flags cut the listing to those items', () => {
     const home = homes.newHome();
-    installFakeRuntime(home);
+    installRuntime(home);
 
     const out = catalog({ home, items: ['model', 'bar'] });
 

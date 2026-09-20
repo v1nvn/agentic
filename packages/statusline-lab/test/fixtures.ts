@@ -48,6 +48,38 @@ export function writeSettings(home: string, raw: string): void {
   writeFileSync(settingsPath(home), raw);
 }
 
+export function settingsCommand(
+  home: string,
+  key: 'statusLine' | 'subagentStatusLine',
+): string {
+  const settings = JSON.parse(
+    readFileSync(settingsPath(home), 'utf8'),
+  ) as Record<string, unknown>;
+  const value = settings[key];
+  if (
+    typeof value !== 'object' ||
+    value === null ||
+    typeof (value as { command?: unknown }).command !== 'string'
+  ) {
+    throw new Error(`${key} in ${settingsPath(home)} is not a command member`);
+  }
+  return (value as { command: string }).command;
+}
+
+export const KEY_RESOLVER =
+  "d=$(printf '%s\\n' ~/.claude/plugins/cache/agentic/statusline-lab/*/ | sort -V | tail -1)";
+
+export function mainKeyValue(
+  layout: string,
+  assignments: readonly string[],
+): string {
+  return `${KEY_RESOLVER}; STATUSLINE_LAB_LAYOUT='${layout}' ${assignments.join(
+    ' ',
+  )} bash "\${d}runtime/statusline.sh" 2>/dev/null || true`;
+}
+
+export const subagentKeyValue = `${KEY_RESOLVER}; bash "\${d}runtime/subagent.sh" 2>/dev/null || true`;
+
 export function snapshotTree(root: string): Record<string, Buffer> {
   const files: Record<string, Buffer> = {};
   const walk = (dir: string, rel: string): void => {

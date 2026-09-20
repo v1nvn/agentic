@@ -17,7 +17,11 @@ import {
   DATA_REL,
   createHomes,
   installRuntime,
+  mainKeyValue,
+  settingsCommand,
   settingsPath,
+  snapshotTree,
+  subagentKeyValue,
   writeSettings,
 } from './fixtures.js';
 import { DEFAULT_NOW } from './runtime.js';
@@ -38,6 +42,14 @@ const DEFAULT_LAYOUT_ITEMS = DEFAULT_LAYOUT.replaceAll('}', '')
 const MULTI_TICK = multiTick as unknown as {
   tasks: ReadonlyArray<{ id?: string }>;
 };
+
+const LIB_DEFAULTS = new Map<string, string>(
+  [
+    ...readFileSync(join(RUNTIME_DIR, 'lib.sh'), 'utf8').matchAll(
+      /([a-z]+)\) echo ([a-z]+) ;;/g,
+    ),
+  ].map(([, item, alt]) => [item, alt] as const),
+);
 
 interface Recorded {
   readonly frames: string[];
@@ -88,14 +100,24 @@ function seedCapture(
   writeFileSync(file, body);
 }
 
-function seedMainScript(home: string, raw: string): void {
-  const file = join(home, DATA_REL, 'statusline-command.sh');
-  mkdirSync(dirname(file), { recursive: true });
-  writeFileSync(file, raw);
-}
-
-function mainScript(home: string): string {
-  return join(home, DATA_REL, 'statusline-command.sh');
+function seedOursKey(
+  home: string,
+  layout: string,
+  assignments: readonly string[],
+): void {
+  writeSettings(
+    home,
+    `${JSON.stringify(
+      {
+        statusLine: {
+          command: mainKeyValue(layout, assignments),
+          type: 'command',
+        },
+      },
+      null,
+      2,
+    )}\n`,
+  );
 }
 
 afterEach(() => {
@@ -153,17 +175,9 @@ describe('wizard: offered items', () => {
     );
   });
 
-  it('offers exactly the items of the layout in an existing script', async () => {
+  it('offers exactly the items of the layout in the existing key', async () => {
     const home = newInstalledHome();
-    seedMainScript(
-      home,
-      [
-        '#!/bin/bash',
-        'export STATUSLINE_LAB_MODEL=block',
-        `export STATUSLINE_LAB_LAYOUT='{model effort}'`,
-        'exit 0',
-      ].join('\n') + '\n',
-    );
+    seedOursKey(home, '{model effort}', ['STATUSLINE_LAB_MODEL=block']);
 
     const { recorded } = await runWizard(['j'], home);
 
@@ -211,17 +225,9 @@ describe('wizard: the initial preview', () => {
     expect(recorded.frames.length).toBeGreaterThan(0);
   });
 
-  it('seeds the draft from the exports of the generated script', async () => {
+  it('seeds the draft from the assignments of the existing key', async () => {
     const home = newInstalledHome();
-    seedMainScript(
-      home,
-      [
-        '#!/bin/bash',
-        'export STATUSLINE_LAB_MODEL=block',
-        `export STATUSLINE_LAB_LAYOUT='{model effort}'`,
-        'exit 0',
-      ].join('\n') + '\n',
-    );
+    seedOursKey(home, '{model effort}', ['STATUSLINE_LAB_MODEL=block']);
 
     const { recorded } = await runWizard(['\x1b[B'], home);
 
@@ -368,29 +374,32 @@ describe('wizard: width preview', () => {
 });
 
 describe('wizard: save (the TTY mode of contract 3)', () => {
-  it('writes both scripts and both settings keys through the configure writer; catalog stars follow', async () => {
+  it('writes both settings keys through the configure writer and nothing else; catalog stars follow', async () => {
     const home = newInstalledHome();
 
     const { outcome } = await runWizard(['l', '\r'], home);
 
     expect(outcome).toBe('saved');
-    const main = readFileSync(mainScript(home), 'utf8');
-    expect(main).toContain('export STATUSLINE_LAB_MODEL=block');
-    expect(main).toContain(`export STATUSLINE_LAB_LAYOUT='${DEFAULT_LAYOUT}'`);
-    expect(main.endsWith('exit 0\n')).toBe(true);
-    expect(
-      readFileSync(join(home, DATA_REL, 'subagent-statusline.sh'), 'utf8'),
-    ).not.toContain('export STATUSLINE_LAB_');
-
-    const settings = JSON.parse(readFileSync(settingsPath(home), 'utf8'));
-    expect(settings.statusLine).toEqual({
-      command: `~/${join(DATA_REL, 'statusline-command.sh')}`,
-      type: 'command',
-    });
-    expect(settings.subagentStatusLine).toEqual({
-      command: `~/${join(DATA_REL, 'subagent-statusline.sh')}`,
-      type: 'command',
-    });
+    expect(settingsCommand(home, 'statusLine')).toBe(
+      mainKeyValue(
+        DEFAULT_LAYOUT,
+        DEFAULT_LAYOUT_ITEMS.map(
+          item =>
+            `STATUSLINE_LAB_${item.toUpperCase()}=${
+              item === 'model' ? 'block' : LIB_DEFAULTS.get(item)
+            }`,
+        ),
+      ),
+    );
+    expect(settingsCommand(home, 'subagentStatusLine')).toBe(
+      subagentKeyValue,
+    );
+    for (const path of Object.keys(snapshotTree(join(home, '.claude')))) {
+      expect(
+        path === 'settings.json' || path.startsWith('plugins/cache/'),
+        `wizard save wrote outside the two-key footprint: ${path}`,
+      ).toBe(true);
+    }
 
     expect(catalog({ home }).split('\n')).toContain(
       'model: plain | block* | pill | zen',
@@ -415,7 +424,6 @@ describe('wizard: save (the TTY mode of contract 3)', () => {
     expect(last).toContain('statusLine');
     expect(last).toContain('--force');
     expect(readFileSync(settingsPath(home), 'utf8')).toBe(seed);
-    expect(existsSync(mainScript(home))).toBe(false);
   });
 });
 
@@ -425,8 +433,8 @@ describe('wizard: cancel', () => {
     const { outcome } = await runWizard(['l', 'q'], home);
 
     expect(outcome).toBe('cancelled');
-    expect(existsSync(mainScript(home))).toBe(false);
     expect(existsSync(settingsPath(home))).toBe(false);
+    expect(existsSync(join(home, DATA_REL))).toBe(false);
   });
 
   it('Ctrl-C (\\x03) behaves like q', async () => {
@@ -434,7 +442,7 @@ describe('wizard: cancel', () => {
     const { outcome } = await runWizard(['\x03'], home);
 
     expect(outcome).toBe('cancelled');
-    expect(existsSync(mainScript(home))).toBe(false);
+    expect(existsSync(settingsPath(home))).toBe(false);
   });
 
   it('a closed key stream cancels — the adapter owning the TTY died', async () => {
@@ -442,23 +450,28 @@ describe('wizard: cancel', () => {
     const { outcome } = await runWizard([], home);
 
     expect(outcome).toBe('cancelled');
-    expect(existsSync(mainScript(home))).toBe(false);
+    expect(existsSync(settingsPath(home))).toBe(false);
   });
 
-  it('leaves a pre-existing generated script byte-untouched after draft edits', async () => {
+  it('leaves a pre-existing ours key byte-untouched after draft edits', async () => {
     const home = newInstalledHome();
-    const dotted = [
-      '#!/bin/bash',
-      'export STATUSLINE_LAB_MODEL=block',
-      `export STATUSLINE_LAB_LAYOUT='{model}'`,
-      'exit 0',
-    ].join('\n') + '\n';
-    seedMainScript(home, dotted);
+    seedOursKey(home, '{model}', ['STATUSLINE_LAB_MODEL=block']);
 
     const { outcome } = await runWizard(['h', 'q'], home);
 
     expect(outcome).toBe('cancelled');
-    expect(readFileSync(mainScript(home), 'utf8')).toBe(dotted);
+    expect(readFileSync(settingsPath(home), 'utf8')).toBe(
+      `${JSON.stringify(
+        {
+          statusLine: {
+            command: mainKeyValue('{model}', ['STATUSLINE_LAB_MODEL=block']),
+            type: 'command',
+          },
+        },
+        null,
+        2,
+      )}\n`,
+    );
   });
 });
 
