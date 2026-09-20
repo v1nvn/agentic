@@ -28,7 +28,7 @@ export interface RestoreOptions {
 export type RestoreResult =
   | { mode: 'dry-run'; text: string }
   | { mode: 'nothing'; text: string }
-  | { mode: 'restored' };
+  | { mode: 'restored'; text: string };
 
 type KeyAction =
   | { readonly key: SettingsKey; readonly kind: 'remove' }
@@ -67,19 +67,27 @@ function readBackup(home: string): null | SettingsBackup {
   return { createdFile: parsed.createdFile, keys };
 }
 
-function removeTree(dir: string): void {
+function rmdirIfEmpty(dir: string): void {
+  try {
+    rmdirSync(dir);
+  } catch (e) {
+    const code = (e as NodeJS.ErrnoException).code;
+    if (code !== 'ENOTEMPTY' && code !== 'ENOENT' && code !== 'ENOTDIR') {
+      throw e;
+    }
+  }
+}
+
+function clearCaptures(dir: string): void {
   if (!existsSync(dir)) {
     return;
   }
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
-    const child = join(dir, entry.name);
-    if (entry.isDirectory()) {
-      removeTree(child);
-    } else {
-      rmSync(child, { force: true });
+    if (entry.isFile()) {
+      rmSync(join(dir, entry.name), { force: true });
     }
   }
-  rmdirSync(dir);
+  rmdirIfEmpty(dir);
 }
 
 function planActions(
@@ -195,15 +203,14 @@ export function restore(options: RestoreOptions): RestoreResult {
   } else if (next !== null && actions.length > 0) {
     writeFileSync(settings, next);
   }
-  removeTree(capturesDir);
+  clearCaptures(capturesDir);
   rmSync(backupFile, { force: true });
-  try {
-    rmdirSync(dataDir);
-  } catch (e) {
-    const code = (e as NodeJS.ErrnoException).code;
-    if (code !== 'ENOTEMPTY' && code !== 'ENOENT' && code !== 'ENOTDIR') {
-      throw e;
-    }
-  }
-  return { mode: 'restored' };
+  rmdirIfEmpty(dataDir);
+  return {
+    mode: 'restored',
+    text:
+      actions.length > 0
+        ? 'keys restored — settings.json holds its pre-lab values again'
+        : 'lab data cleaned — no lab keys in settings.json',
+  };
 }

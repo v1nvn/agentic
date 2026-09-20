@@ -75,10 +75,6 @@ if (parsed.help !== undefined) {
       force: parsed.force,
       home: homeOf(parsed.home),
     });
-    console.log(
-      result.mode === 'restored'
-        ? 'restored — the lab keys hold their pre-lab values again'
-        : result.text,
-    );
+    console.log(result.text);
   });
 }

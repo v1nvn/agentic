@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { configure } from '../src/configure.js';
+import { restore } from '../src/restore.js';
 import {
   DATA_REL,
   backupPath,
@@ -16,35 +17,6 @@ import {
   writeSettings,
 } from './fixtures.js';
 import { capturePath, tmpFilesUnder } from './plugin-runtime.js';
-
-// Contract 4 pins. The restore verb is unit 2's seam: it is loaded through
-// a variable-specifier dynamic import plus this undefined guard so the suite
-// collects and each test reports red for the missing verb instead of dying
-// on an unresolvable static import (the unit-1 key-config suite's trick,
-// adapted to a module that does not exist yet).
-interface RestoreOptions {
-  readonly dryRun?: boolean;
-  readonly force?: boolean;
-  readonly home: string;
-}
-
-interface RestoreResult {
-  readonly mode: 'dry-run' | 'nothing' | 'restored';
-  readonly text?: string;
-}
-
-type Restore = (options: RestoreOptions) => RestoreResult;
-
-async function loadRestore(): Promise<Restore> {
-  const specifier = '../src/restore.js';
-  const mod = (await import(specifier).catch(() => null)) as
-    | null
-    | { readonly restore?: Restore };
-  if (mod === null || mod.restore === undefined) {
-    throw new Error('src/restore.ts does not export restore(options) yet');
-  }
-  return mod.restore;
-}
 
 const TAKEOVER_SEED = `{
   "model": "opus-4",
@@ -71,8 +43,7 @@ function takeover(home: string): void {
 }
 
 describe('restore: flagship roundtrip (contract 4)', () => {
-  it('seed foreign keys → configure --force → restore → settings.json bytes are the seed bytes', async () => {
-    const restore = await loadRestore();
+  it('seed foreign keys → configure --force → restore → settings.json bytes are the seed bytes', () => {
     const home = newInstalledHome();
     const seed = `{
   "model": "opus-4",
@@ -112,8 +83,7 @@ describe('restore: first-takeover-wins backup (contract 4)', () => {
 });
 
 describe('restore: createdFile endgame (contract 4)', () => {
-  it('a settings.json the lab created holding only our members is deleted by restore', async () => {
-    const restore = await loadRestore();
+  it('a settings.json the lab created holding only our members is deleted by restore', () => {
     const home = newInstalledHome();
 
     configure({ home, layout: '{model}', variants: { model: 'block' } });
@@ -126,8 +96,7 @@ describe('restore: createdFile endgame (contract 4)', () => {
     expect(existsSync(settingsPath(home))).toBe(false);
   });
 
-  it('keeps the lab-created file when a sibling member exists — ours removed, sibling intact', async () => {
-    const restore = await loadRestore();
+  it('keeps the lab-created file when a sibling member exists — ours removed, sibling intact', () => {
     const home = newInstalledHome();
     configure({ home, layout: '{model}', variants: { model: 'block' } });
     writeSettings(
@@ -148,8 +117,7 @@ describe('restore: createdFile endgame (contract 4)', () => {
 });
 
 describe('restore: refusal on a foreign current value (contract 4)', () => {
-  it('a value differing from the saved text refuses naming --force and touches nothing; --force splices the saved text back', async () => {
-    const restore = await loadRestore();
+  it('a value differing from the saved text refuses naming --force and touches nothing; --force splices the saved text back', () => {
     const home = newInstalledHome();
     writeSettings(home, TAKEOVER_SEED);
     takeover(home);
@@ -176,8 +144,7 @@ describe('restore: refusal on a foreign current value (contract 4)', () => {
 });
 
 describe('restore: no runtime resolution (contract 4)', () => {
-  it('restore works with the plugin cache dir entirely absent', async () => {
-    const restore = await loadRestore();
+  it('restore works with the plugin cache dir entirely absent', () => {
     const home = newInstalledHome();
     writeSettings(home, TAKEOVER_SEED);
     takeover(home);
@@ -192,8 +159,7 @@ describe('restore: no runtime resolution (contract 4)', () => {
 });
 
 describe('restore: --dry-run (contract 4)', () => {
-  it('prints a plan and writes nothing — settings, backup, and captures intact', async () => {
-    const restore = await loadRestore();
+  it('prints a plan and writes nothing — settings, backup, and captures intact', () => {
     const home = newInstalledHome();
     writeSettings(home, TAKEOVER_SEED);
     takeover(home);
@@ -215,8 +181,7 @@ describe('restore: --dry-run (contract 4)', () => {
 });
 
 describe('restore: cleanup endgame (contract 4)', () => {
-  it('deletes captures/ and backup.json, rmdirs the empty data dir, reverts the bytes exactly, and is idempotent', async () => {
-    const restore = await loadRestore();
+  it('deletes captures/ and backup.json, rmdirs the empty data dir, reverts the bytes exactly, and is idempotent', () => {
     const home = newInstalledHome();
     writeSettings(home, TAKEOVER_SEED);
     takeover(home);
@@ -237,8 +202,7 @@ describe('restore: cleanup endgame (contract 4)', () => {
     expect(readFileSync(settingsPath(home), 'utf8')).toBe(TAKEOVER_SEED);
   });
 
-  it('keeps the data dir when a host file lives in it', async () => {
-    const restore = await loadRestore();
+  it('keeps the data dir when a host file lives in it', () => {
     const home = newInstalledHome();
     writeSettings(home, TAKEOVER_SEED);
     takeover(home);
@@ -252,8 +216,7 @@ describe('restore: cleanup endgame (contract 4)', () => {
     expect(existsSync(join(home, DATA_REL))).toBe(true);
   });
 
-  it('keys absent before the lab are removed by recognizing ours — no backup entry', async () => {
-    const restore = await loadRestore();
+  it('keys absent before the lab are removed by recognizing ours — no backup entry', () => {
     const home = newInstalledHome();
     const seed = `{
   "model": "opus-4"
