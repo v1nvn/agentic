@@ -142,10 +142,19 @@ wizard/CLI references to script paths. `DATA_REL`/`capturePath` stay
   `plugins/statusline-lab/runtime/{lib.sh,statusline.sh}` (env contract
   only), `test/{fixtures.ts,configure.test.ts,splice.test.ts,cli.test.ts}`,
   `assets/payloads/p1.json`. Contracts 1–3, rulings 1–2, 4.
-- **Unit 2:** unit 1's landed shape + `src/configure.ts` span primitives,
-  `test/configure.test.ts`. Contract 4, host facts.
+- **Unit 2:** unit 1's landed seams in `src/resolve.ts` — `mainKeyValue(layout,
+  assignments)`, `subagentKeyValue`, `isOurMainCommand(command)` (prefix+suffix
+  ours-match, free middle), `readKeyConfig(home) → {layout, values}`;
+  `resolveRuntime` is glob-only. Span primitives still live private in
+  `src/configure.ts` (`rootMemberValueSpan`, `insertMembers`, `settingsValue`)
+  — unit 2 exports them there, no second splice home. Backup note:
+  `planSettings` now repoints ours→ours reconfigures too, so backup.json must
+  stay first-takeover-wins — save the predecessor only when it is not ours.
+  Plus `test/configure.test.ts`. Contract 4, host facts.
 - **Unit 3:** `src/{resolve,catalog,configure}.ts` (landed), `test/fixtures.ts`.
-  Contract 5.
+  Key classification per contract 1 = `isOurMainCommand` for statusLine,
+  `subagentKeyValue` exact for subagentStatusLine; config decode =
+  `readKeyConfig`. Contract 5.
 - **Unit 4:** `plugins/statusline-lab/commands/statusline-lab.md`, `README.md`
   (`## statusline-lab`, `## Install`), `CLAUDE.md` (one-command clause,
   layout rule), `.claude-plugin/marketplace.json`. Contract 6 + landed
@@ -195,3 +204,10 @@ on the train. Archive this file when done.
   commands"), empirical render test moved into unit 1's verification.
   Units 1–2 rewritten, units 3 (status) and 4 (docs) added; thread renamed
   config-in-key. No code moved yet.
+- 2026-09-20 — unit 1 landed (`4e7234b`): configure writes only the two keys
+  with the ruling-1 inline commands (golden-pinned, statement order fixed);
+  ours = prefix/suffix shape-match; `readKeyConfig` parses the key middle;
+  `resolveRuntime` glob-only; catalog/wizard/printed re-anchored; script
+  writer + script paths + `installed_plugins` read deleted. Five red tests
+  green (168 total), full gate green, E3 PASS — E1/E4 stay red until units
+  2–3.
