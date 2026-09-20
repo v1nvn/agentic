@@ -38,7 +38,7 @@ type KeyAction =
       readonly text: string;
     };
 
-function readBackup(home: string): null | SettingsBackup {
+export function readBackup(home: string): null | SettingsBackup {
   const file = backupPath(home);
   const raw = readOrNull(file);
   if (raw === null) {

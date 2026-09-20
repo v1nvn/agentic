@@ -4,6 +4,7 @@ import { catalog } from './catalog.js';
 import { buildProgram, parseArgs, subcommandHelp, VERSION } from './cli.js';
 import { configure } from './configure.js';
 import { restore } from './restore.js';
+import { status } from './status.js';
 import { terminalDeps } from './wizard-tui.js';
 import { createWizard } from './wizard.js';
 
@@ -76,5 +77,11 @@ if (parsed.help !== undefined) {
       home: homeOf(parsed.home),
     });
     console.log(result.text);
+  });
+} else if (parsed.command === 'status') {
+  run(() => {
+    const result = status({ home: homeOf(parsed.home) });
+    console.log(result.rows.join('\n'));
+    process.exitCode = result.healthy ? 0 : 1;
   });
 }

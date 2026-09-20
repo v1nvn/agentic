@@ -25,7 +25,7 @@ const ITEM_IDS = [
   'style',
 ] as const satisfies readonly string[];
 
-export type Subcommand = 'catalog' | 'configure' | 'restore';
+export type Subcommand = 'catalog' | 'configure' | 'restore' | 'status';
 
 export interface ParsedArgs {
   readonly command?: Subcommand;
@@ -112,6 +112,15 @@ export function buildProgram(
     onSubcommand?.('restore', options),
   );
 
+  const status = quiet('status', new Command('status'))
+    .description(
+      'check install, keys, config, and backup — exit 0 healthy, 1 when a row needs action',
+    )
+    .option('--home <dir>', 'operate on this home instead of $HOME');
+  status.action((options: SubcommandOptions) =>
+    onSubcommand?.('status', options),
+  );
+
   return new Command()
     .name('statusline-lab')
     .description('Configure the status line and agent panel designs')
@@ -119,7 +128,8 @@ export function buildProgram(
     .action(() => undefined)
     .addCommand(catalog)
     .addCommand(configure)
-    .addCommand(restore);
+    .addCommand(restore)
+    .addCommand(status);
 }
 
 export function subcommandHelp(name: Subcommand): string {
@@ -174,6 +184,13 @@ export function parseArgs(args: readonly string[]): ParsedArgs | undefined {
         ? { dryRun: options.dryRun }
         : {}),
       ...(typeof options.force === 'boolean' ? { force: options.force } : {}),
+      ...(typeof options.home === 'string' ? { home: options.home } : {}),
+    };
+  }
+  if (chosen.command === 'status') {
+    return {
+      version: false,
+      command: 'status',
       ...(typeof options.home === 'string' ? { home: options.home } : {}),
     };
   }

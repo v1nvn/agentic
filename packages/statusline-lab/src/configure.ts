@@ -57,7 +57,7 @@ export function layoutItems(
   return items;
 }
 
-function parseClusters(layout: string): string[][] {
+export function parseClusters(layout: string): string[][] {
   const clusters: string[][] = [];
   let words: string[] = [];
   let word = '';
@@ -125,7 +125,10 @@ export function readOrNull(file: string): null | string {
   }
 }
 
-function parseSettings(file: string, raw: string): Record<string, unknown> {
+export function parseSettings(
+  file: string,
+  raw: string,
+): Record<string, unknown> {
   let parsed: unknown;
   try {
     parsed = JSON.parse(raw);
@@ -138,7 +141,7 @@ function parseSettings(file: string, raw: string): Record<string, unknown> {
   return parsed;
 }
 
-function memberCommand(value: unknown): null | string {
+export function memberCommand(value: unknown): null | string {
   if (!isObject(value) || value.type !== 'command') {
     return null;
   }

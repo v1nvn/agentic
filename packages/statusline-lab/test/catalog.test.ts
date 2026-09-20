@@ -124,12 +124,12 @@ afterEach(() => {
 });
 
 describe('the verb surface (contracts 1 and 10)', () => {
-  it('registers exactly catalog, configure, and restore', () => {
+  it('registers exactly catalog, configure, restore, and status', () => {
     expect(
       buildProgram()
         .commands.map(command => command.name())
         .sort(),
-    ).toEqual(['catalog', 'configure', 'restore']);
+    ).toEqual(['catalog', 'configure', 'restore', 'status']);
   });
 
   it('a bare invocation is a usage error the entry answers with help and a non-zero exit', () => {

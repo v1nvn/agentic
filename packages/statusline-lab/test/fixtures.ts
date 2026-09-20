@@ -5,6 +5,7 @@ import {
   readdirSync,
   readFileSync,
   rmSync,
+  utimesSync,
   writeFileSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -68,6 +69,18 @@ export function settingsCommand(
 
 export function backupPath(home: string): string {
   return join(home, DATA_REL, 'backup.json');
+}
+
+export function writeCapture(
+  home: string,
+  surface: 'main' | 'tick',
+  ageMs: number,
+): void {
+  const file = join(home, DATA_REL, 'captures', `${surface}.json`);
+  mkdirSync(dirname(file), { recursive: true });
+  writeFileSync(file, '{}\n');
+  const at = new Date(Date.now() - ageMs);
+  utimesSync(file, at, at);
 }
 
 export const KEY_RESOLVER =
