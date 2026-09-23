@@ -46,8 +46,10 @@ name or shape wins.
   a skill (`SKILL.md` at the root for a one-skill plugin) when the model executes the
   body, a `commands/` shell when a `UserPromptExpansion` hook intercepts the
   invocation (the body is the no-hooks fallback, and model auto-invocation would
-  bypass the hook) — a hooks/mcp config whose `npx` invocations are version-pinned to
-  the train, and, for statusline only, the bash runtime payload under
+  bypass the hook) — a hooks/mcp config. Every `npx -y @v1nvn/*` line in the repo,
+  config or `.md` surface, is version-pinned to the train by `set-version.mjs`
+  (an unpinned npx resolves "latest" through the npx cache and runs a stale CLI).
+  For statusline only, the bash runtime payload under
   `plugins/statusline/runtime/` (the TS CLI is the package, pure TS, zero bash).
   No other code lives under `plugins/`.
 - **Scripts resolve binaries only from deps the workspace declares.** Each package

@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 // The repo version lives in .claude-plugin/marketplace.json and every package
-// manifest, plugin manifest, and npx pin mirrors it (lockstep release train —
-// release.yml publishes every package on it). One command bumps all of them;
-// CI runs --check so a missed mirror or stale pin fails the build.
+// manifest, plugin manifest, and npx pin — config files and .md surfaces alike —
+// mirrors it (lockstep release train: release.yml publishes every package on
+// it). One command bumps all of them; CI runs --check so a missed mirror,
+// stale pin, or unpinned npx line fails the build.
 import { readFileSync, writeFileSync } from 'node:fs';
 
 const SOURCE = '.claude-plugin/marketplace.json';
@@ -35,11 +36,35 @@ const PINNED_CONFIGS = [
   'plugins/tokens/hooks/hooks.json',
 ];
 
+// Skill bodies, hook-fallback command shells, and READMEs teach
+// `npx -y @v1nvn/<pkg>` invocations. An unpinned one resolves "latest"
+// through the npx cache and can run a stale CLI against a fresh plugin —
+// every npx line in an .md surface rides the train too.
+const MD_SURFACES = [
+  'README.md',
+  'plugins/statusline/SKILL.md',
+  'plugins/rm/commands/send.md',
+  'plugins/md/commands/edit.md',
+  'plugins/md/commands/view.md',
+  'plugins/zai/commands/usage.md',
+  'plugins/tokens/commands/usage.md',
+  'plugins/zai/README.md',
+  'plugins/tokens/README.md',
+  'packages/omlx-mcp/README.md',
+  'packages/readability-mcp/README.md',
+  'packages/statusline/README.md',
+];
+
 // Replace the single "version" key without reflowing the rest of the file —
 // these manifests are hand-formatted (literal em-dashes, one-line objects),
 // and a JSON round-trip would churn every line.
 const VERSION_KEY = /"version"\s*:\s*"[^"]*"/;
 const PIN = /(@v1nvn\/[a-z0-9-]+)@\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?/g;
+// An npx invocation with no version. The boundary must exclude name
+// characters too — a plain (?!@) lets the engine backtrack into the name
+// (@zai@1.0.0 would match as "za"), and never touch @pkg@<version> prose or
+// a registry path like @pkg/subpath.
+const UNPINNED_NPX = /npx -y (@v1nvn\/[a-z0-9-]+)(?![a-z0-9-@/])/g;
 const SEMVER = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/;
 
 function fail(messages) {
@@ -88,6 +113,26 @@ function rewritePins(path, version) {
   writeFileSync(path, updated);
 }
 
+function mdPinDrift(path, version) {
+  const contents = readFileSync(path, 'utf8');
+  const stale = (contents.match(PIN) ?? []).filter(pin => !pin.endsWith(`@${version}`));
+  if (stale.length > 0) {
+    return `${path}: pin ${stale[0]} != repo version ${version}`;
+  }
+  const unpinned = contents.match(UNPINNED_NPX) ?? [];
+  if (unpinned.length > 0) {
+    return `${path}: unpinned npx invocation "${unpinned[0]}"`;
+  }
+  return null;
+}
+
+function rewriteMdPins(path, version) {
+  const updated = readFileSync(path, 'utf8')
+    .replace(PIN, `$1@${version}`)
+    .replace(UNPINNED_NPX, `npx -y $1@${version}`);
+  writeFileSync(path, updated);
+}
+
 const check = process.argv[2] === '--check';
 if (check) {
   const repo = readVersion(SOURCE);
@@ -96,6 +141,9 @@ if (check) {
   );
   for (const path of PINNED_CONFIGS) {
     messages.push(pinDrift(path, repo));
+  }
+  for (const path of MD_SURFACES) {
+    messages.push(mdPinDrift(path, repo));
   }
   const errors = messages.filter(Boolean);
   if (errors.length > 0) {
@@ -115,6 +163,9 @@ for (const path of [SOURCE, ...MIRRORS]) {
 for (const path of PINNED_CONFIGS) {
   rewritePins(path, version);
 }
+for (const path of MD_SURFACES) {
+  rewriteMdPins(path, version);
+}
 console.log(
-  `${[SOURCE, ...MIRRORS].length} manifests and ${PINNED_CONFIGS.length} config pins now at ${version}`,
+  `${[SOURCE, ...MIRRORS].length} manifests, ${PINNED_CONFIGS.length} config pins, ${MD_SURFACES.length} md npx surfaces now at ${version}`,
 );

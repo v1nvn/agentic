@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import type { RenderSpec } from './payloads.js';
 import type { RuntimeItem } from './resolve.js';
 
+import { VERSION } from './cli.js';
 import { configure, layoutItems } from './configure.js';
 import { firstPanelRow, previewSources } from './payloads.js';
 import { readKeyConfig, resolveRuntime } from './resolve.js';
@@ -180,7 +181,7 @@ export async function createWizard(
       });
     } catch (e) {
       deps.render(
-        `save failed: ${(e as Error).message}\nfix it and rerun: npx -y @v1nvn/statusline configure\n`,
+        `save failed: ${(e as Error).message}\nfix it and rerun: npx -y @v1nvn/statusline@${VERSION} configure\n`,
       );
       return 'save-failed';
     }

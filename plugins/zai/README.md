@@ -18,7 +18,7 @@ skill, no tokens.
 In a plain shell the same CLI runs directly:
 
 ```
-npx -y @v1nvn/zai
+npx -y @v1nvn/zai@0.22.0
 ```
 
 ## Requirements
@@ -45,10 +45,10 @@ Bigmodel accounts point the base URL at their host; the monitor paths are
 identical: `ZAI_BASE_URL=https://open.bigmodel.cn`.
 
 ```sh
-npx -y @v1nvn/zai                       # ZAI_AUTH_TOKEN → api.z.ai
-npx -y @v1nvn/zai --auth-token TOKEN    # on the command line (visible in ps)
-npx -y @v1nvn/zai --auth-token=TOKEN    # = form works too (zsh quoting-safe)
-npx -y @v1nvn/zai --base-url https://open.bigmodel.cn
+npx -y @v1nvn/zai@0.22.0                       # ZAI_AUTH_TOKEN → api.z.ai
+npx -y @v1nvn/zai@0.22.0 --auth-token TOKEN    # on the command line (visible in ps)
+npx -y @v1nvn/zai@0.22.0 --auth-token=TOKEN    # = form works too (zsh quoting-safe)
+npx -y @v1nvn/zai@0.22.0 --base-url https://open.bigmodel.cn
 ```
 
 The hook reads the same env from the Claude Code process; flags are a CLI
@@ -59,7 +59,7 @@ affordance — `hooks.json` is static.
 ```
 /zai:usage
   └─ UserPromptExpansion hook (hooks/hooks.json)
-       └─ npx -y @v1nvn/zai@<version> --hook
+       └─ npx -y @v1nvn/za@0.22.0i@<version> --hook
             └─ fetches model/tool/quota data and renders a plain-text report
        └─ returns {"decision":"block","reason": <report>}  ← model never runs
 ```

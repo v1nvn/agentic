@@ -6,7 +6,8 @@
 ## The train
 
 The version lives in `.claude-plugin/marketplace.json`; every package
-manifest, plugin manifest, and npx pin mirrors it.
+manifest, plugin manifest, and npx pin — config files and `.md` surfaces —
+mirrors it.
 `node .github/scripts/set-version.mjs <version>` bumps all mirrors in one
 command; CI runs `--check` and fails any missed mirror. On push to `main`,
 `release.yml` publishes every package at the train version to npm (trusted
