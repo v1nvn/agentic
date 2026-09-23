@@ -177,7 +177,7 @@ describe('catalog: the runtime install seam (contract 2)', () => {
     const attempt = (): string => catalog({ home });
 
     expect(attempt).toThrowError(/install/);
-    expect(attempt).toThrowError(/lab/);
+    expect(attempt).toThrowError(/no statusline runtime/);
   });
 });
 

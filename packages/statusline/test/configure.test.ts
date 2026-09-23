@@ -435,7 +435,7 @@ describe('configure: install check', () => {
       configure({ home, layout: '{model}', variants: { model: 'block' } });
 
     expect(attempt).toThrowError(/install/);
-    expect(attempt).toThrowError(/lab/);
+    expect(attempt).toThrowError(/no statusline runtime/);
     assertNothingWritten(home);
   });
 });
