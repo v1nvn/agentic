@@ -19,16 +19,16 @@ claude plugin install rm@agentic
 In a terminal, last reply or a named file:
 
 ```sh
-npx -y @v1nvn/rm@0.23.0
-npx -y @v1nvn/rm@0.23.0 reply.md
+npx -y @v1nvn/rm@0.24.0
+npx -y @v1nvn/rm@0.24.0 reply.md
 ```
 
 ## Usage
 
 | Invocation | Does |
 |---|---|
-| `npx -y @v1nvn/rm@0.23.0` | the previous assistant reply from local transcripts → EPUB on the device |
-| `npx -y @v1nvn/rm@0.23.0 reply.md` | that file instead of the last reply |
+| `npx -y @v1nvn/rm@0.24.0` | the previous assistant reply from local transcripts → EPUB on the device |
+| `npx -y @v1nvn/rm@0.24.0 reply.md` | that file instead of the last reply |
 
 Needs `pandoc` locally and `ssh`/`scp` access to the device —
 `REMARKABLE_HOST`, default `remarkable`.
