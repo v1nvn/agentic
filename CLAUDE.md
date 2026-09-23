@@ -1,7 +1,7 @@
 # agentic — rules
 
 A Claude Code plugin marketplace: `readability` and `omlx` (MCP servers) plus `rm`,
-`md`, `zai`, `tokens` (zero-token hook plugins) and `statusline-lab` (status line +
+`md`, `zai`, `tokens` (zero-token hook plugins) and `statusline` (status line +
 agent panel) — seven independently-installable plugins in one repo. The code lives
 in eight npm packages (`@v1nvn/*`) under `packages/`; each plugin directory is only
 a manifest plus config wrapper.
@@ -15,6 +15,10 @@ source behind any anchor before relying on it — documentation drifts, and says
 Prefer clean code. DRY. No band-aids, no workarounds, no deprecated aliases, no dead branches,
 no commented-out code. A reader sees only what the code *is*, never archaeology of what it was.
 Surface a real impasse; do not hack past it.
+
+**Zero installs.** Only the owner runs this marketplace, often before adopting a surface at
+all — no compatibility shims, no migration paths; break the surface clean when a better
+name or shape wins.
 
 ## Commits
 
@@ -43,20 +47,20 @@ Surface a real impasse; do not hack past it.
   body, a `commands/` shell when a `UserPromptExpansion` hook intercepts the
   invocation (the body is the no-hooks fallback, and model auto-invocation would
   bypass the hook) — a hooks/mcp config whose `npx` invocations are version-pinned to
-  the train, and, for statusline-lab only, the bash runtime payload under
-  `plugins/statusline-lab/runtime/` (the TS CLI is the package, pure TS, zero bash).
+  the train, and, for statusline only, the bash runtime payload under
+  `plugins/statusline/runtime/` (the TS CLI is the package, pure TS, zero bash).
   No other code lives under `plugins/`.
 - **Scripts resolve binaries only from deps the workspace declares.** Each package
   declares the tools its scripts invoke (`vite`, `vitest`); the root declares the
   root-run tools (eslint stack, prettier, typescript).
 - **Seven independent plugins, one marketplace.** Never collapse them into a
   mega-plugin; each installs and runs on its own.
-- **statusline-lab ships exactly one skill** — root `SKILL.md`, invoked by its
-  bare short name `/statusline-lab` (the menu lists it namespaced as
-  `statusline-lab:statusline-lab`; the plugin prefix is irremovable), folding
+- **statusline ships exactly one skill** — root `SKILL.md`, invoked by its
+  bare short name `/lab` (the menu lists it namespaced as
+  `statusline:lab`; the plugin prefix is irremovable), folding
   show (`catalog`) · set (`configure`) · revert (`restore`) · check (`status`).
-  Never add a second; its name must not collide with Claude Code's built-in
-  `/statusline`.
+  Never add a second; its invocation name must stay off Claude Code's built-in
+  `/statusline` — the plugin's own name is a namespace, not a command.
 - **The terminal is the only rendering surface** — nothing opens a browser,
   nothing writes HTML.
 - **One author identity:** `v1nvn` / `v1n@outlook.com` in every manifest.

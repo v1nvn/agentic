@@ -39,7 +39,7 @@ describe('resolveRuntime', () => {
     writeSettings(home, '{"model":"opus-4"}\n');
 
     expect(() => resolveRuntime({ home })).toThrowError(/install/);
-    expect(() => resolveRuntime({ home })).toThrowError(/statusline-lab/);
+    expect(() => resolveRuntime({ home })).toThrowError(/lab/);
   });
 
   it('reads the menu and default layout off the resolved runtime', () => {

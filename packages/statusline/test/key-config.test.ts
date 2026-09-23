@@ -15,9 +15,9 @@ import {
 
 // Ruling 1's canonical bytes, typed in full — the golden the writer is pinned
 // against. Resolver staged into d= first; env assignments hug bash last.
-const GOLDEN_MAIN = `d=$(printf '%s\\n' ~/.claude/plugins/cache/agentic/statusline-lab/*/ | sort -V | tail -1); STATUSLINE_LAB_LAYOUT='{model effort}' STATUSLINE_LAB_MODEL=block STATUSLINE_LAB_EFFORT=dim bash "\${d}runtime/statusline.sh" 2>/dev/null || true`;
+const GOLDEN_MAIN = `d=$(printf '%s\\n' ~/.claude/plugins/cache/agentic/statusline/*/ | sort -V | tail -1); STATUSLINE_LAB_LAYOUT='{model effort}' STATUSLINE_LAB_MODEL=block STATUSLINE_LAB_EFFORT=dim bash "\${d}runtime/statusline.sh" 2>/dev/null || true`;
 
-const GOLDEN_SUB = `d=$(printf '%s\\n' ~/.claude/plugins/cache/agentic/statusline-lab/*/ | sort -V | tail -1); bash "\${d}runtime/subagent.sh" 2>/dev/null || true`;
+const GOLDEN_SUB = `d=$(printf '%s\\n' ~/.claude/plugins/cache/agentic/statusline/*/ | sort -V | tail -1); bash "\${d}runtime/subagent.sh" 2>/dev/null || true`;
 
 const homes = createHomes();
 

@@ -68,7 +68,7 @@ describe('configure on a scratch home (rulings 1 and 4)', () => {
       expect(
         path === 'settings.json' ||
           path.startsWith('plugins/cache/') ||
-          path === 'plugins/data/statusline-lab-agentic/backup.json',
+          path === 'plugins/data/statusline-agentic/backup.json',
         `configure wrote outside the two-key footprint: ${path}`,
       ).toBe(true);
     }
@@ -101,7 +101,7 @@ describe('the written main key in a real shell (host-fact pin)', () => {
 
     const sweptHome = homes.newHome();
     mkdirSync(
-      join(sweptHome, '.claude', 'plugins', 'cache', 'agentic', 'statusline-lab'),
+      join(sweptHome, '.claude', 'plugins', 'cache', 'agentic', 'statusline'),
       { recursive: true },
     );
     const swept = bashKey(key, sweptHome);

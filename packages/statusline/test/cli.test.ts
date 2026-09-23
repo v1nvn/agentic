@@ -17,7 +17,7 @@ const manifest = JSON.parse(
 
 describe('buildProgram', () => {
   it('names the bin after the package', () => {
-    expect(buildProgram().name()).toBe('statusline-lab');
+    expect(buildProgram().name()).toBe('statusline');
   });
 
   it('rides the manifest version', () => {

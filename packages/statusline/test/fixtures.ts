@@ -13,14 +13,14 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 export const RUNTIME_SOURCE = fileURLToPath(
-  new URL('../../../plugins/statusline-lab/runtime', import.meta.url),
+  new URL('../../../plugins/statusline/runtime', import.meta.url),
 );
 
 export const DATA_REL = join(
   '.claude',
   'plugins',
   'data',
-  'statusline-lab-agentic',
+  'statusline-agentic',
 );
 
 // A fake installed plugin (contract 6): the repo runtime copied into the
@@ -32,7 +32,7 @@ export function installRuntime(home: string, version = '0.19.0'): string {
     'plugins',
     'cache',
     'agentic',
-    'statusline-lab',
+    'statusline',
     version,
     'runtime',
   );
@@ -84,7 +84,7 @@ export function writeCapture(
 }
 
 export const KEY_RESOLVER =
-  "d=$(printf '%s\\n' ~/.claude/plugins/cache/agentic/statusline-lab/*/ | sort -V | tail -1)";
+  "d=$(printf '%s\\n' ~/.claude/plugins/cache/agentic/statusline/*/ | sort -V | tail -1)";
 
 export function mainKeyValue(
   layout: string,
@@ -125,7 +125,7 @@ export function createHomes(): Homes {
   const homes: string[] = [];
   return {
     newHome(): string {
-      const home = mkdtempSync(join(tmpdir(), 'statusline-lab-'));
+      const home = mkdtempSync(join(tmpdir(), 'statusline-'));
       homes.push(home);
       return home;
     },

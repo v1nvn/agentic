@@ -180,7 +180,7 @@ export async function createWizard(
       });
     } catch (e) {
       deps.render(
-        `save failed: ${(e as Error).message}\nfix it and rerun: npx -y @v1nvn/statusline-lab configure\n`,
+        `save failed: ${(e as Error).message}\nfix it and rerun: npx -y @v1nvn/statusline configure\n`,
       );
       return 'save-failed';
     }

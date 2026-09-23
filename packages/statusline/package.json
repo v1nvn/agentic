@@ -1,5 +1,5 @@
 {
-  "name": "@v1nvn/statusline-lab",
+  "name": "@v1nvn/statusline",
   "version": "0.21.0",
   "description": "Browse statusline variants and configure the live status line and agent panel — the statusline CLI behind the statusline plugin.",
   "type": "module",
@@ -19,7 +19,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/v1nvn/agentic.git",
-    "directory": "packages/statusline-lab"
+    "directory": "packages/statusline"
   },
   "files": [
     "dist",

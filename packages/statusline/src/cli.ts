@@ -122,7 +122,7 @@ export function buildProgram(
   );
 
   return new Command()
-    .name('statusline-lab')
+    .name('statusline')
     .description('Configure the status line and agent panel designs')
     .option('-V, --version', 'print the lab version and exit')
     .action(() => undefined)

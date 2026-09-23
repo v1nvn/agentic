@@ -12,7 +12,7 @@ its package through version-pinned `npx`.
 | **md**          | Send the last reply to a Markdown-Viewer as a `#share=` URL — editable or read-only.                                                   | `/md:edit`, `/md:view`                                |
 | **zai**         | Query GLM Coding Plan quota and usage.                                                                                                 | `/zai:usage`                                          |
 | **tokens**      | Per-model token usage and cache hit rate from local transcripts.                                                                       | `/tokens:usage`                                       |
-| **statusline-lab**  | Browse the design catalog and configure the status line + agent panel.                                                                | `/statusline-lab`                                 |
+| **statusline**  | Browse the design catalog and configure the status line + agent panel.                                                                | `/lab`                                 |
 
 `rm`, `md`, `zai`, and `tokens` run zero-token: a `UserPromptExpansion` hook intercepts the command before it reaches the model.
 
@@ -28,7 +28,7 @@ Add the marketplace, then install any subset. Each plugin stands alone.
 
 ```sh
 claude plugin marketplace add v1nvn/agentic
-claude plugin install rm@agentic        # or: readability, omlx, md, zai, tokens, statusline-lab
+claude plugin install rm@agentic        # or: readability, omlx, md, zai, tokens, statusline
 ```
 
 Start Claude Code and run the command shown above for the plugin you installed.
@@ -48,17 +48,17 @@ npx -y @v1nvn/md         # last reply → Markdown-Viewer (--view for read-only;
 `remarkable`); `md` honors `MD_VIEWER_URL` (default `https://md.v1n.space`) and
 `MD_NO_OPEN=1` to skip opening the browser.
 
-## statusline-lab
+## statusline
 
 Four commands drive both surfaces — the wizard is the default way in:
 
 ```sh
-npx -y @v1nvn/statusline-lab configure                                     # the wizard — bare, on a TTY
-npx -y @v1nvn/statusline-lab configure --model block --bar gauge --fallback=default --dry-run   # known picks — preview first
-npx -y @v1nvn/statusline-lab configure --model block --bar gauge --fallback=default             # then the write
-npx -y @v1nvn/statusline-lab catalog                                       # one line per item, * marks the live variant
-npx -y @v1nvn/statusline-lab restore                                       # both keys back to their pre-lab values
-npx -y @v1nvn/statusline-lab status                                        # rows + verdict — exit 0 healthy, 1 needs action
+npx -y @v1nvn/statusline configure                                     # the wizard — bare, on a TTY
+npx -y @v1nvn/statusline configure --model block --bar gauge --fallback=default --dry-run   # known picks — preview first
+npx -y @v1nvn/statusline configure --model block --bar gauge --fallback=default             # then the write
+npx -y @v1nvn/statusline catalog                                       # one line per item, * marks the live variant
+npx -y @v1nvn/statusline restore                                       # both keys back to their pre-lab values
+npx -y @v1nvn/statusline status                                        # rows + verdict — exit 0 healthy, 1 needs action
 ```
 
 `configure` touches exactly the `statusLine` and `subagentStatusLine` keys of
@@ -68,8 +68,8 @@ the config as env assignments hugging `bash` (the subagent key carries none —
 the panel has no variants). Raw:
 
 ```sh
-d=$(printf '%s\n' ~/.claude/plugins/cache/agentic/statusline-lab/*/ | sort -V | tail -1); STATUSLINE_LAB_LAYOUT='{model effort}' STATUSLINE_LAB_MODEL=block STATUSLINE_LAB_EFFORT=dim bash "${d}runtime/statusline.sh" 2>/dev/null || true
-d=$(printf '%s\n' ~/.claude/plugins/cache/agentic/statusline-lab/*/ | sort -V | tail -1); bash "${d}runtime/subagent.sh" 2>/dev/null || true
+d=$(printf '%s\n' ~/.claude/plugins/cache/agentic/statusline/*/ | sort -V | tail -1); STATUSLINE_LAB_LAYOUT='{model effort}' STATUSLINE_LAB_MODEL=block STATUSLINE_LAB_EFFORT=dim bash "${d}runtime/statusline.sh" 2>/dev/null || true
+d=$(printf '%s\n' ~/.claude/plugins/cache/agentic/statusline/*/ | sort -V | tail -1); bash "${d}runtime/subagent.sh" 2>/dev/null || true
 ```
 
 The layout — brace clusters of item ids — and one variant per item ride in
@@ -83,34 +83,34 @@ refused unless `--force`. The first takeover saves the pre-lab key values to
 the lab are removed — then deletes the lab data. `status` checks the
 install: runtime, both keys, config drift against the resolved runtime,
 backup, captures — one row per fact plus a verdict, every action row naming
-its fix. `/statusline-lab` inside a session runs the same commands.
+its fix. `/lab` inside a session runs the same commands.
 
 Repo and machine:
 
 ```
 repo
-  packages/statusline-lab/                the CLI — pure TS, zero bash
+  packages/statusline/                the CLI — pure TS, zero bash
     src/  test/  dist/
     assets/payloads/  p1–p4.json          preview fixtures, main surface
     assets/ticks/     multi.json          preview fixtures, agent panel
-  plugins/statusline-lab/
-    SKILL.md                              the /statusline-lab skill — model-taught entry point
+  plugins/statusline/
+    SKILL.md                              the /lab skill — model-taught entry point
     runtime/                              the bash runtime — statusline.sh, subagent.sh, lib.sh, components/*.sh
 
-machine, after `claude plugin install statusline-lab@agentic`
-  ~/.claude/plugins/cache/agentic/statusline-lab/<version>/runtime/   the installed runtime
-  ~/.claude/plugins/data/statusline-lab-agentic/
+machine, after `claude plugin install statusline@agentic`
+  ~/.claude/plugins/cache/agentic/statusline/<version>/runtime/   the installed runtime
+  ~/.claude/plugins/data/statusline-agentic/
     backup.json                           pre-lab key values — first takeover wins
     captures/main.json  captures/tick.json  every paint's stdin, teed by the runtime; feeds previews
   ~/.claude/settings.json                 statusLine + subagentStatusLine → the inline commands
 ```
 
 Install: `claude plugin marketplace add v1nvn/agentic`, then
-`claude plugin install statusline-lab@agentic`, then
-`npx -y @v1nvn/statusline-lab configure` — the wizard previews both surfaces at
+`claude plugin install statusline@agentic`, then
+`npx -y @v1nvn/statusline configure` — the wizard previews both surfaces at
 80/120/200 columns and saves.
 
-Uninstall runs `npx -y @v1nvn/statusline-lab restore` first, then uninstalls
+Uninstall runs `npx -y @v1nvn/statusline restore` first, then uninstalls
 the plugin: a plain uninstall deletes the data dir with `backup.json`, and
 keys left behind keep globbing a cache dir that dies only ~14 days later — a
 blank line, delayed.
@@ -123,11 +123,11 @@ packages/                           the eight npm packages — one yarn workspac
   readability-mcp/  omlx-mcp/       the two MCP servers (@v1nvn/readability-mcp, @v1nvn/omlx-mcp)
   core/                             @v1nvn/agentic-core — last-reply + text formatting, shared by the tools
   zai/  tokens/  rm/  md/           the tool CLIs (zai-usage, tokens-report, rm-send, md-send)
-  statusline-lab/                    the catalog + configure CLI — pure TS (@v1nvn/statusline-lab)
-plugins/                            the seven plugins — manifests + config wrappers; code only in statusline-lab's runtime payload
+  statusline/                    the catalog + configure CLI — pure TS (@v1nvn/statusline)
+plugins/                            the seven plugins — manifests + config wrappers; code only in statusline's runtime payload
   readability/  omlx/               .mcp.json (pinned npx) + plugin.json
   zai/  tokens/  rm/  md/           hooks.json (pinned npx) + plugin.json + commands/
-  statusline-lab/                   root SKILL.md + the bash runtime (see statusline-lab above)
+  statusline/                   root SKILL.md + the bash runtime (see statusline above)
 ```
 
 Versions ride one lockstep train: `.claude-plugin/marketplace.json` is the source, and

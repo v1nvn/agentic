@@ -6,10 +6,10 @@ import { fileURLToPath } from 'node:url';
 import { DEFAULT_NOW } from './runtime.js';
 
 // Unit 1's target shape: the bash runtime ships with the plugin under
-// plugins/statusline-lab/runtime/ (contract 6) and takes its config from
+// plugins/statusline/runtime/ (contract 6) and takes its config from
 // STATUSLINE_LAB_* env vars (contract 5), not from the picks file.
 export const RUNTIME_DIR = fileURLToPath(
-  new URL('../../../plugins/statusline-lab/runtime', import.meta.url),
+  new URL('../../../plugins/statusline/runtime', import.meta.url),
 );
 export const RUNTIME_MAIN = join(RUNTIME_DIR, 'statusline.sh');
 export const RUNTIME_SUBAGENT = join(RUNTIME_DIR, 'subagent.sh');
@@ -22,7 +22,7 @@ export function capturePath(home: string, surface: 'main' | 'tick'): string {
     '.claude',
     'plugins',
     'data',
-    'statusline-lab-agentic',
+    'statusline-agentic',
     'captures',
     `${surface}.json`,
   );
@@ -91,7 +91,7 @@ export function tmpFilesUnder(home: string): string[] {
     '.claude',
     'plugins',
     'data',
-    'statusline-lab-agentic',
+    'statusline-agentic',
   );
   if (!existsSync(root)) {
     return [];

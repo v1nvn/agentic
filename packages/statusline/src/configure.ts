@@ -482,7 +482,7 @@ function printedConfig(runtime: ResolvedRuntime, home: string): string {
   ];
   return [
     ...lines,
-    'nothing written — pass variants (`statusline-lab configure --model block`) or run bare on a TTY for the wizard',
+    'nothing written — pass variants (`statusline configure --model block`) or run bare on a TTY for the wizard',
   ].join('\n');
 }
 

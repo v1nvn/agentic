@@ -28,7 +28,7 @@ import {
 import { DEFAULT_NOW } from './runtime.js';
 
 const RUNTIME_DIR = fileURLToPath(
-  new URL('../../../plugins/statusline-lab/runtime', import.meta.url),
+  new URL('../../../plugins/statusline/runtime', import.meta.url),
 );
 const DEFAULT_LAYOUT = /^export DEFAULT_LAYOUT='(.*)'$/m.exec(
   readFileSync(join(RUNTIME_DIR, 'lib.sh'), 'utf8'),
@@ -203,7 +203,7 @@ describe('wizard: the initial preview', () => {
         'plugins',
         'cache',
         'agentic',
-        'statusline-lab',
+        'statusline',
         '0.19.0',
         'runtime',
         'statusline.sh',
@@ -399,7 +399,7 @@ describe('wizard: save (the TTY mode of contract 3)', () => {
       expect(
         path === 'settings.json' ||
           path.startsWith('plugins/cache/') ||
-          path === 'plugins/data/statusline-lab-agentic/backup.json',
+          path === 'plugins/data/statusline-agentic/backup.json',
         `wizard save wrote outside the two-key footprint: ${path}`,
       ).toBe(true);
     }

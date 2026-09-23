@@ -5,7 +5,7 @@ export const DATA_REL = join(
   '.claude',
   'plugins',
   'data',
-  'statusline-lab-agentic',
+  'statusline-agentic',
 );
 
 export function capturePath(home: string, surface: 'main' | 'tick'): string {
@@ -36,7 +36,7 @@ export interface ScriptConfig {
 // The env assignments must immediately precede bash: a prefix on the d=
 // assignment dies with that statement.
 export const KEY_RESOLVER =
-  "d=$(printf '%s\\n' ~/.claude/plugins/cache/agentic/statusline-lab/*/ | sort -V | tail -1)";
+  "d=$(printf '%s\\n' ~/.claude/plugins/cache/agentic/statusline/*/ | sort -V | tail -1)";
 const MAIN_PREFIX = `${KEY_RESOLVER}; `;
 const MAIN_SUFFIX = 'bash "${d}runtime/statusline.sh" 2>/dev/null || true';
 
@@ -201,12 +201,12 @@ function readDefaultLayout(dir: string): string {
 
 export function resolveRuntime({ home }: { home: string }): ResolvedRuntime {
   const pluginDir = newestCacheDir(
-    join(home, '.claude', 'plugins', 'cache', 'agentic', 'statusline-lab'),
+    join(home, '.claude', 'plugins', 'cache', 'agentic', 'statusline'),
   );
   const dir = pluginDir === null ? null : join(pluginDir, 'runtime');
   if (dir === null || !existsSync(join(dir, 'statusline.sh'))) {
     throw new Error(
-      `no statusline-lab runtime under ${home} — install the plugin first: claude plugin install statusline-lab@agentic`,
+      `no statusline runtime under ${home} — install the plugin first: claude plugin install statusline@agentic`,
     );
   }
   return {

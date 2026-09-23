@@ -1,4 +1,4 @@
-DATA_DIR=$HOME/.claude/plugins/data/statusline-lab-agentic
+DATA_DIR=$HOME/.claude/plugins/data/statusline-agentic
 
 export DEFAULT_LAYOUT='{model effort state} {cwd branch status ahead pr} {bar tokens cache} {cost} {duration} {lines} {rate}'
 

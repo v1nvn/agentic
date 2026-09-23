@@ -14,7 +14,7 @@ import {
 } from './fixtures.js';
 
 const RUNTIME_DIR = fileURLToPath(
-  new URL('../../../plugins/statusline-lab/runtime', import.meta.url),
+  new URL('../../../plugins/statusline/runtime', import.meta.url),
 );
 const RUNTIME_MAIN = join(RUNTIME_DIR, 'statusline.sh');
 const RUNTIME_COMPONENTS = join(RUNTIME_DIR, 'components');
@@ -177,7 +177,7 @@ describe('catalog: the runtime install seam (contract 2)', () => {
     const attempt = (): string => catalog({ home });
 
     expect(attempt).toThrowError(/install/);
-    expect(attempt).toThrowError(/statusline-lab/);
+    expect(attempt).toThrowError(/lab/);
   });
 });
 

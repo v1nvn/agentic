@@ -2,7 +2,7 @@
   "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
   "name": "agentic",
   "version": "0.21.0",
-  "description": "Seven independent Claude Code plugins — readability (MCP server), omlx (local inference MCP server), rm (reMarkable), md (Markdown-Viewer), zai (GLM usage), tokens (local token usage), statusline-lab (status line + agent panel).",
+  "description": "Seven independent Claude Code plugins — readability (MCP server), omlx (local inference MCP server), rm (reMarkable), md (Markdown-Viewer), zai (GLM usage), tokens (local token usage), statusline (status line + agent panel).",
   "owner": {
     "name": "v1nvn",
     "email": "v1n@outlook.com"
@@ -45,8 +45,8 @@
       "description": "Per-model token usage and cache hit rate from local transcripts."
     },
     {
-      "name": "statusline-lab",
-      "source": "./plugins/statusline-lab",
+      "name": "statusline",
+      "source": "./plugins/statusline",
       "category": "productivity",
       "description": "Render the status line and agent-panel rows from a component library of pickable designs."
     }

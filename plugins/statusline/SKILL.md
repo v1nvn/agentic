@@ -1,7 +1,7 @@
 ---
-name: statusline-lab
+name: lab
 description: Show, preview, and set the Claude Code status line and agent panel from a library of pickable designs — or revert to the previous setup
-when_to_use: Use when the user wants to browse, change, check, or revert their status line or agent panel — e.g. "statusline", "agent panel", "make the status line show the git branch", or a bare /statusline-lab
+when_to_use: Use when the user wants to browse, change, check, or revert their status line or agent panel — e.g. "statusline", "agent panel", "make the status line show the git branch", or a bare /lab
 ---
 
 Four jobs, one skill: show, set, revert, check. The agent runs the CLI and
@@ -15,7 +15,7 @@ text.
 the live variant, zero ANSI — so its output can go into the chat as-is. Run
 it and show the owner the catalog as a plain table:
 
-    npx -y @v1nvn/statusline-lab catalog
+    npx -y @v1nvn/statusline catalog
 
 Boolean flags cut the listing: `catalog --model --bar`.
 
@@ -24,7 +24,7 @@ job — both surfaces, live previews at 80/120/200 columns (`j/k` move, `h/l`
 variant, `w` width, enter saves, `q` cancels). It is the owner's to run, not
 the agent's; hand it off exactly once with this line:
 
-    ! npx -y @v1nvn/statusline-lab configure
+    ! npx -y @v1nvn/statusline configure
 
 Previews prefer the captures the runtime itself files
 (`captures/main.json`, `captures/tick.json` — real session data), fixtures
@@ -40,12 +40,12 @@ composes them whole, config included — and always preview before the write.
 First the flags line with `--dry-run`, handed off so the true render lands
 in the owner's terminal, nothing written:
 
-    ! npx -y @v1nvn/statusline-lab configure --model block --bar gauge --fallback=default --dry-run
+    ! npx -y @v1nvn/statusline configure --model block --bar gauge --fallback=default --dry-run
 
 On the owner's yes, the agent runs the same line without `--dry-run` — the
 write prints `configured — live on the next paint`, plain text:
 
-    npx -y @v1nvn/statusline-lab configure --model block --bar gauge --fallback=default
+    npx -y @v1nvn/statusline configure --model block --bar gauge --fallback=default
 
 `configure` is strict: every item in the layout needs a variant flag, and a
 missing one fails naming what is unresolved. `--fallback=default` fills the
@@ -57,18 +57,18 @@ the only way to put an item on the surface; `style` sits outside the default
 layout, so it takes a `--layout` that names it, and a variant for an item the
 layout does not name is an error:
 
-    npx -y @v1nvn/statusline-lab configure --layout '{model effort} {cwd branch} {bar tokens cache} {style}' --style dots --fallback=default
+    npx -y @v1nvn/statusline configure --layout '{model effort} {cwd branch} {bar tokens cache} {style}' --style dots --fallback=default
 
 A foreign `statusLine` or `subagentStatusLine` key in `~/.claude/settings.json`
 is refused, never silently overwritten; take it over only on the owner's word,
 with `--force` added to the configuration flags:
 
-    npx -y @v1nvn/statusline-lab configure --model block --bar gauge --fallback=default --force
+    npx -y @v1nvn/statusline configure --model block --bar gauge --fallback=default --force
 
 On success both surfaces are live on the next paint: `configure` writes
 exactly the two settings keys, config riding in the main key's value as env
 assignments, and on the first takeover saves the pre-lab key values to
-`backup.json` under `~/.claude/plugins/data/statusline-lab-agentic/`.
+`backup.json` under `~/.claude/plugins/data/statusline-agentic/`.
 Without a TTY and without flags, `configure` prints the effective config and
 writes nothing. The agent never runs a preview itself — the wizard and the
 `--dry-run` render both belong to the owner's terminal.
@@ -79,7 +79,7 @@ deletes the lab data (`captures/`, `backup.json`). Plain text,
 agent-runnable; a foreign key changed since the takeover is refused unless
 `--force` rides along:
 
-    npx -y @v1nvn/statusline-lab restore
+    npx -y @v1nvn/statusline restore
 
 Before the owner uninstalls the plugin, run `restore` first: a plain
 uninstall deletes the data dir with the backup, and the keys keep globbing a
@@ -88,7 +88,7 @@ cache dir that dies only ~14 days later — a blank line, delayed.
 **Check.** `status` prints one row per fact, then a verdict — plain text,
 zero ANSI, agent-runnable:
 
-    npx -y @v1nvn/statusline-lab status
+    npx -y @v1nvn/statusline status
 
 A healthy install prints:
 
@@ -105,6 +105,6 @@ means read the rows, each naming a fix that runs exactly as printed: a
 foreign key takes `rerun configure --force --fallback=default`; an absent
 key or a drifted variant takes `rerun configure --fallback=default`; a drift
 naming an unknown item adds `--layout '<default layout>'` to that; a missing
-runtime takes `claude plugin install statusline-lab@agentic`. Run it right
+runtime takes `claude plugin install statusline@agentic`. Run it right
 after configuring, and after a version bump — the config row names any item
 or variant the resolved runtime no longer offers.

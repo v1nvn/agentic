@@ -8,14 +8,14 @@ import { materializeDemoRepo } from '../src/demo-repo.js';
 
 const RUNTIME_BIN = fileURLToPath(
   new URL(
-    '../../../plugins/statusline-lab/runtime/statusline.sh',
+    '../../../plugins/statusline/runtime/statusline.sh',
     import.meta.url,
   ),
 );
 
 const SUBAGENT_BIN = fileURLToPath(
   new URL(
-    '../../../plugins/statusline-lab/runtime/subagent.sh',
+    '../../../plugins/statusline/runtime/subagent.sh',
     import.meta.url,
   ),
 );

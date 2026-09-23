@@ -30,7 +30,7 @@ export interface StatusResult {
   readonly rows: readonly string[];
 }
 
-const INSTALL_FIX = 'claude plugin install statusline-lab@agentic';
+const INSTALL_FIX = 'claude plugin install statusline@agentic';
 
 type KeyState =
   | { readonly command: null | string; readonly kind: 'foreign' }

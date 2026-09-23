@@ -157,7 +157,7 @@ describe('status: no runtime (contract 5)', () => {
 
     expect(result.healthy).toBe(false);
     expect(result.rows).toEqual([
-      'runtime: missing — fix: claude plugin install statusline-lab@agentic',
+      'runtime: missing — fix: claude plugin install statusline@agentic',
       "statusLine: ours — layout='{model}' model=block",
       'subagentStatusLine: ours',
       'backup: present — created settings.json, saved nothing',
@@ -186,7 +186,7 @@ describe('status: unreadable backup (contract 5)', () => {
       "statusLine: ours — layout='{model effort}' model=block effort=dim",
       'subagentStatusLine: ours',
       'config: no drift',
-      'backup: unreadable — fix: delete ~/.claude/plugins/data/statusline-lab-agentic/backup.json',
+      'backup: unreadable — fix: delete ~/.claude/plugins/data/statusline-agentic/backup.json',
       'captures: main absent, tick absent',
       'healthy',
     ]);

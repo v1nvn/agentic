@@ -20,7 +20,7 @@ import {
 import { tmpFilesUnder } from './plugin-runtime.js';
 
 const RUNTIME_MAIN = fileURLToPath(
-  new URL('../../../plugins/statusline-lab/runtime/statusline.sh', import.meta.url),
+  new URL('../../../plugins/statusline/runtime/statusline.sh', import.meta.url),
 );
 
 function itemIds(): string[] {
@@ -435,7 +435,7 @@ describe('configure: install check', () => {
       configure({ home, layout: '{model}', variants: { model: 'block' } });
 
     expect(attempt).toThrowError(/install/);
-    expect(attempt).toThrowError(/statusline-lab/);
+    expect(attempt).toThrowError(/lab/);
     assertNothingWritten(home);
   });
 });

@@ -1,11 +1,11 @@
-# @v1nvn/statusline-lab
+# @v1nvn/statusline
 
-The CLI behind the statusline-lab plugin: it composes the two settings keys
+The CLI behind the statusline plugin: it composes the two settings keys
 that paint Claude Code's status line and agent panel, then reverts and checks
 them. Pure TypeScript — the bash runtime it points at ships inside the plugin
-(`plugins/statusline-lab/runtime/`), not in this package.
+(`plugins/statusline/runtime/`), not in this package.
 
-User-facing docs: [root README § statusline-lab](../../README.md#statusline-lab).
+User-facing docs: [root README § statusline](../../README.md#statusline).
 
 ## Quickstart
 
@@ -15,27 +15,27 @@ Install once (the runtime the keys point at lives in the plugin cache):
 
 ```sh
 claude plugin marketplace add v1nvn/agentic
-claude plugin install statusline-lab@agentic
+claude plugin install statusline@agentic
 ```
 
-In Claude Code — type `/statusline-lab`, run the wizard it hands you (`!`
+In Claude Code — type `/lab`, run the wizard it hands you (`!`
 runs it in your session with a real terminal):
 
 ```
-! npx -y @v1nvn/statusline-lab configure
+! npx -y @v1nvn/statusline configure
 ```
 
 In a terminal — same command, bare:
 
 ```sh
-npx -y @v1nvn/statusline-lab configure
+npx -y @v1nvn/statusline configure
 ```
 
 `j/k` move · `h/l` switch design · `w` width · enter saves · `q` cancels.
 
 ## Usage
 
-One CLI, both ways: `/statusline-lab` inside a session runs these same
+One CLI, both ways: `/lab` inside a session runs these same
 commands; `npx` runs them in a terminal.
 
 | Command | Does |
@@ -46,18 +46,18 @@ commands; `npx` runs them in a terminal.
 | `restore` | both keys back to their pre-lab values from `backup.json`, then deletes the lab data — run it before uninstalling |
 
 ```sh
-npx -y @v1nvn/statusline-lab catalog
-npx -y @v1nvn/statusline-lab configure --model block --bar gauge --fallback=default --dry-run   # preview, write nothing
-npx -y @v1nvn/statusline-lab configure --model block --bar gauge --fallback=default             # the write
-npx -y @v1nvn/statusline-lab status
-npx -y @v1nvn/statusline-lab restore
+npx -y @v1nvn/statusline catalog
+npx -y @v1nvn/statusline configure --model block --bar gauge --fallback=default --dry-run   # preview, write nothing
+npx -y @v1nvn/statusline configure --model block --bar gauge --fallback=default             # the write
+npx -y @v1nvn/statusline status
+npx -y @v1nvn/statusline restore
 ```
 
 ## Develop
 
 ```sh
-yarn workspace @v1nvn/statusline-lab build    # vite → dist/, chmod +x the bin
-yarn workspace @v1nvn/statusline-lab test     # vitest
+yarn workspace @v1nvn/statusline build    # vite → dist/, chmod +x the bin
+yarn workspace @v1nvn/statusline test     # vitest
 yarn lint && yarn typecheck                   # from the repo root
 ```
 

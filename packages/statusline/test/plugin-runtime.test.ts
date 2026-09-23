@@ -19,10 +19,10 @@ import {
 } from './runtime.js';
 
 const OLD_BIN_DIR = fileURLToPath(
-  new URL('../../../plugins/statusline-lab/bin', import.meta.url),
+  new URL('../../../plugins/statusline/bin', import.meta.url),
 );
 const OLD_COMPONENTS_DIR = fileURLToPath(
-  new URL('../../../plugins/statusline-lab/components', import.meta.url),
+  new URL('../../../plugins/statusline/components', import.meta.url),
 );
 
 const ANSI = /\x1b\[[0-9;]*m/g;
