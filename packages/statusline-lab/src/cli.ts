@@ -25,7 +25,7 @@ const ITEM_IDS = [
   'style',
 ] as const satisfies readonly string[];
 
-export type Subcommand = 'catalog' | 'configure';
+export type Subcommand = 'catalog' | 'configure' | 'restore' | 'status';
 
 export interface ParsedArgs {
   readonly command?: Subcommand;
@@ -77,9 +77,7 @@ export function buildProgram(
   );
 
   const configure = quiet('configure', new Command('configure'))
-    .description(
-      'write the generated scripts and point both settings keys at them',
-    )
+    .description('write both settings keys with the inline lab commands')
     .option('--home <dir>', 'operate on this home instead of $HOME')
     .option(
       '--layout <spec>',
@@ -88,10 +86,10 @@ export function buildProgram(
     .addOption(
       new Option(
         '--fallback <mode>',
-        'fill unflagged layout items from defaults or the existing script',
+        'fill unflagged layout items from defaults or the existing config',
       ).choices(['default', 'existing']),
     )
-    .option('--dry-run', 'render both surfaces, write no scripts or settings')
+    .option('--dry-run', 'render both surfaces, write nothing')
     .option('--force', 'take over foreign settings keys');
   for (const item of ITEM_IDS) {
     configure.option(`--${item} <alt>`, `variant for the ${item} item`);
@@ -100,13 +98,38 @@ export function buildProgram(
     onSubcommand?.('configure', options),
   );
 
+  const restore = quiet('restore', new Command('restore'))
+    .description(
+      'revert both settings keys to their pre-lab values, clean the data dir',
+    )
+    .option('--home <dir>', 'operate on this home instead of $HOME')
+    .option('--dry-run', 'print the plan, write nothing')
+    .option(
+      '--force',
+      'splice the saved value over a key changed after the takeover',
+    );
+  restore.action((options: SubcommandOptions) =>
+    onSubcommand?.('restore', options),
+  );
+
+  const status = quiet('status', new Command('status'))
+    .description(
+      'check install, keys, config, and backup — exit 0 healthy, 1 when a row needs action',
+    )
+    .option('--home <dir>', 'operate on this home instead of $HOME');
+  status.action((options: SubcommandOptions) =>
+    onSubcommand?.('status', options),
+  );
+
   return new Command()
     .name('statusline-lab')
     .description('Configure the status line and agent panel designs')
     .option('-V, --version', 'print the lab version and exit')
     .action(() => undefined)
     .addCommand(catalog)
-    .addCommand(configure);
+    .addCommand(configure)
+    .addCommand(restore)
+    .addCommand(status);
 }
 
 export function subcommandHelp(name: Subcommand): string {
@@ -150,6 +173,24 @@ export function parseArgs(args: readonly string[]): ParsedArgs | undefined {
       version: false,
       command: 'catalog',
       ...(items.length > 0 ? { items } : {}),
+      ...(typeof options.home === 'string' ? { home: options.home } : {}),
+    };
+  }
+  if (chosen.command === 'restore') {
+    return {
+      version: false,
+      command: 'restore',
+      ...(typeof options.dryRun === 'boolean'
+        ? { dryRun: options.dryRun }
+        : {}),
+      ...(typeof options.force === 'boolean' ? { force: options.force } : {}),
+      ...(typeof options.home === 'string' ? { home: options.home } : {}),
+    };
+  }
+  if (chosen.command === 'status') {
+    return {
+      version: false,
+      command: 'status',
       ...(typeof options.home === 'string' ? { home: options.home } : {}),
     };
   }

@@ -1,5 +1,5 @@
 import {
-  chmodSync,
+  existsSync,
   mkdirSync,
   readFileSync,
   renameSync,
@@ -9,12 +9,13 @@ import { dirname, join } from 'node:path';
 
 import { firstPanelRow, previewSources, runtimeRenderer } from './payloads.js';
 import {
-  DATA_REL,
-  mainScriptPath,
-  readScriptConfig,
+  backupPath,
+  isOurMainCommand,
+  mainKeyValue,
+  readKeyConfig,
   type ResolvedRuntime,
   resolveRuntime,
-  subagentScriptPath,
+  subagentKeyValue,
 } from './resolve.js';
 
 export interface ConfigureOptions {
@@ -31,17 +32,9 @@ export type ConfigureResult =
   | { mode: 'printed'; text: string }
   | { mode: 'written' };
 
-const MANAGED_BY =
-  '# statusline-lab — your config. Managed by `statusline-lab configure`.';
-const GLOB_NEWEST =
-  'd=$(printf \'%s\\n\' "$HOME"/.claude/plugins/cache/agentic/statusline-lab/*/ | sort -V | tail -1)';
-const MAIN_COMMAND = `~/${join(DATA_REL, 'statusline-command.sh')}`;
-const SUB_COMMAND = `~/${join(DATA_REL, 'subagent-statusline.sh')}`;
-const SETTINGS_COMMANDS: Readonly<Record<SettingsKey, string>> = {
-  statusLine: MAIN_COMMAND,
-  subagentStatusLine: SUB_COMMAND,
-};
-type SettingsKey = 'statusLine' | 'subagentStatusLine';
+export type SettingsKey = 'statusLine' | 'subagentStatusLine';
+
+export const SETTINGS_KEYS = ['statusLine', 'subagentStatusLine'] as const;
 
 export function layoutItems(
   layout: string,
@@ -64,7 +57,7 @@ export function layoutItems(
   return items;
 }
 
-function parseClusters(layout: string): string[][] {
+export function parseClusters(layout: string): string[][] {
   const clusters: string[][] = [];
   let words: string[] = [];
   let word = '';
@@ -117,36 +110,11 @@ function parseClusters(layout: string): string[][] {
   return clusters;
 }
 
-function generatedScript(
-  bin: 'statusline.sh' | 'subagent.sh',
-  exports: readonly (readonly [string, string])[],
-  layout: null | string,
-): string {
-  const lines = [
-    '#!/bin/bash',
-    MANAGED_BY,
-    ...exports.map(([name, value]) => `export STATUSLINE_LAB_${name}=${value}`),
-    ...(layout === null ? [] : [`export STATUSLINE_LAB_LAYOUT='${layout}'`]),
-    GLOB_NEWEST,
-    `[ -f "\${d%/}/runtime/${bin}" ] && exec bash "\${d%/}/runtime/${bin}" "$@"`,
-    'exit 0',
-  ];
-  return `${lines.join('\n')}\n`;
-}
-
-function writeAtomic(file: string, bytes: string): void {
-  mkdirSync(dirname(file), { recursive: true });
-  const tmp = `${file}.tmp`;
-  writeFileSync(tmp, bytes);
-  chmodSync(tmp, 0o755);
-  renameSync(tmp, file);
-}
-
-function isObject(value: unknown): value is Record<string, unknown> {
+export function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-function readOrNull(file: string): null | string {
+export function readOrNull(file: string): null | string {
   try {
     return readFileSync(file, 'utf8');
   } catch (e) {
@@ -157,7 +125,10 @@ function readOrNull(file: string): null | string {
   }
 }
 
-function parseSettings(file: string, raw: string): Record<string, unknown> {
+export function parseSettings(
+  file: string,
+  raw: string,
+): Record<string, unknown> {
   let parsed: unknown;
   try {
     parsed = JSON.parse(raw);
@@ -170,6 +141,23 @@ function parseSettings(file: string, raw: string): Record<string, unknown> {
   return parsed;
 }
 
+export function memberCommand(value: unknown): null | string {
+  if (!isObject(value) || value.type !== 'command') {
+    return null;
+  }
+  return typeof value.command === 'string' ? value.command : null;
+}
+
+export function isOurMember(key: SettingsKey, value: unknown): boolean {
+  const command = memberCommand(value);
+  if (command === null) {
+    return false;
+  }
+  return key === 'statusLine'
+    ? isOurMainCommand(command)
+    : command === subagentKeyValue;
+}
+
 interface SettingsPlan {
   readonly adds: readonly (readonly [SettingsKey, string])[];
   readonly file: string;
@@ -177,15 +165,20 @@ interface SettingsPlan {
   readonly repoints: readonly (readonly [SettingsKey, string])[];
 }
 
-function planSettings(home: string, force: boolean): SettingsPlan {
+function planSettings(
+  home: string,
+  mainCommand: string,
+  force: boolean,
+): SettingsPlan {
   const file = join(home, '.claude', 'settings.json');
+  const wanted: Readonly<Record<SettingsKey, string>> = {
+    statusLine: mainCommand,
+    subagentStatusLine: subagentKeyValue,
+  };
   const raw = readOrNull(file);
   if (raw === null) {
     return {
-      adds: Object.entries(SETTINGS_COMMANDS).map(([key, command]) => [
-        key as SettingsKey,
-        command,
-      ]),
+      adds: SETTINGS_KEYS.map(key => [key, wanted[key]] as const),
       file,
       raw: null,
       repoints: [],
@@ -194,19 +187,14 @@ function planSettings(home: string, force: boolean): SettingsPlan {
   const parsed = parseSettings(file, raw);
   const adds: (readonly [SettingsKey, string])[] = [];
   const repoints: (readonly [SettingsKey, string])[] = [];
-  for (const key of Object.keys(SETTINGS_COMMANDS) as SettingsKey[]) {
-    const command = SETTINGS_COMMANDS[key];
+  for (const key of SETTINGS_KEYS) {
+    const command = wanted[key];
     const value = parsed[key];
-    const ours =
-      isObject(value) &&
-      Object.keys(value).length === 2 &&
-      value.type === 'command' &&
-      value.command === command;
     if (value === undefined) {
       adds.push([key, command]);
-    } else if (ours) {
+    } else if (memberCommand(value) === command) {
       continue;
-    } else if (force) {
+    } else if (isOurMember(key, value) || force) {
       repoints.push([key, command]);
     } else {
       throw new Error(
@@ -217,7 +205,7 @@ function planSettings(home: string, force: boolean): SettingsPlan {
   return { adds, file, raw, repoints };
 }
 
-function settingsValue(command: string): string {
+export function settingsValue(command: string): string {
   return JSON.stringify({ command, type: 'command' });
 }
 
@@ -273,10 +261,15 @@ function skipValue(raw: string, at: number): number {
   return i;
 }
 
-function rootMemberValueSpan(
-  raw: string,
-  key: string,
-): readonly [number, number] {
+interface RootMember {
+  readonly name: string;
+  readonly nameStart: number;
+  readonly valueEnd: number;
+  readonly valueStart: number;
+}
+
+function rootMembers(raw: string): readonly RootMember[] {
+  const members: RootMember[] = [];
   let i = raw.indexOf('{') + 1;
   while (i < raw.length) {
     while (/\s/.test(raw[i] ?? '~')) {
@@ -288,6 +281,7 @@ function rootMemberValueSpan(
     if (raw[i] !== '"') {
       throw new Error('malformed member in settings.json');
     }
+    const nameStart = i;
     const nameEnd = skipString(raw, i);
     const name = JSON.parse(raw.slice(i, nameEnd)) as string;
     i = nameEnd;
@@ -301,11 +295,10 @@ function rootMemberValueSpan(
     while (/\s/.test(raw[i] ?? '~')) {
       i += 1;
     }
-    const end = skipValue(raw, i);
-    if (name === key) {
-      return [i, end];
-    }
-    i = end;
+    const valueStart = i;
+    const valueEnd = skipValue(raw, i);
+    members.push({ name, nameStart, valueEnd, valueStart });
+    i = valueEnd;
     while (/\s/.test(raw[i] ?? '~')) {
       i += 1;
     }
@@ -315,12 +308,45 @@ function rootMemberValueSpan(
       throw new Error('malformed member in settings.json');
     }
   }
-  throw new Error(
-    `cannot find the "${key}" member to repoint in settings.json`,
-  );
+  return members;
 }
 
-function insertMembers(
+export function rootMemberValueSpan(
+  raw: string,
+  key: string,
+): null | readonly [number, number] {
+  const member = rootMembers(raw).find(m => m.name === key);
+  return member === undefined ? null : [member.valueStart, member.valueEnd];
+}
+
+export function removeMembers(raw: string, keys: readonly string[]): string {
+  let text = raw;
+  for (const key of keys) {
+    const members = rootMembers(text);
+    const at = members.findIndex(m => m.name === key);
+    if (at === -1) {
+      throw new Error(
+        `cannot find the "${key}" member to remove in settings.json`,
+      );
+    }
+    if (members.length === 1) {
+      return '{}';
+    }
+    const member = members[at];
+    if (at > 0) {
+      let start = member.nameStart;
+      while (/\s/.test(text[start - 1] ?? '~')) {
+        start -= 1;
+      }
+      text = `${text.slice(0, start - 1)}${text.slice(member.valueEnd)}`;
+    } else {
+      text = `${text.slice(0, member.nameStart)}${text.slice(members[1].nameStart)}`;
+    }
+  }
+  return text;
+}
+
+export function insertMembers(
   raw: string,
   members: readonly (readonly [SettingsKey, string])[],
 ): string {
@@ -329,7 +355,7 @@ function insertMembers(
     throw new Error('settings.json has no closing brace to splice into');
   }
   let at = close;
-  while (/\s/.test(raw[at - 1] ?? '')) {
+  while (/\s/.test(raw[at - 1] ?? '~')) {
     at -= 1;
   }
   const rendered = members
@@ -342,18 +368,55 @@ function insertMembers(
 function splicedSettings(raw: string, plan: SettingsPlan): string {
   let text = plan.adds.length > 0 ? insertMembers(raw, plan.adds) : raw;
   for (const [key, command] of plan.repoints) {
-    const [start, end] = rootMemberValueSpan(text, key);
-    text = `${text.slice(0, start)}${settingsValue(command)}${text.slice(end)}`;
+    const span = rootMemberValueSpan(text, key);
+    if (span === null) {
+      throw new Error(
+        `cannot find the "${key}" member to repoint in settings.json`,
+      );
+    }
+    text = `${text.slice(0, span[0])}${settingsValue(command)}${text.slice(span[1])}`;
   }
   return text;
+}
+
+export interface SettingsBackup {
+  readonly createdFile: boolean;
+  readonly keys: Readonly<Partial<Record<SettingsKey, string>>>;
+}
+
+function writeBackupIfAbsent(home: string, plan: SettingsPlan): void {
+  const file = backupPath(home);
+  if (existsSync(file)) {
+    return;
+  }
+  const keys: Partial<Record<SettingsKey, string>> = {};
+  if (plan.raw !== null) {
+    for (const key of SETTINGS_KEYS) {
+      const span = rootMemberValueSpan(plan.raw, key);
+      if (span === null) {
+        continue;
+      }
+      const memberRaw = plan.raw.slice(span[0], span[1]);
+      if (isOurMember(key, JSON.parse(memberRaw))) {
+        continue;
+      }
+      keys[key] = memberRaw;
+    }
+  }
+  const dir = dirname(file);
+  mkdirSync(dir, { recursive: true });
+  const tmp = `${file}.tmp`;
+  writeFileSync(
+    tmp,
+    `${JSON.stringify({ createdFile: plan.raw === null, keys }, null, 2)}\n`,
+  );
+  renameSync(tmp, file);
 }
 
 function commitSettings(plan: SettingsPlan): void {
   if (plan.raw === null) {
     mkdirSync(dirname(plan.file), { recursive: true });
-    const members = (
-      Object.entries(SETTINGS_COMMANDS) as readonly [SettingsKey, string][]
-    )
+    const members = plan.adds
       .map(([key, command]) => `"${key}": ${settingsValue(command)}`)
       .join(',\n  ');
     writeFileSync(plan.file, `{\n  ${members}\n}\n`);
@@ -398,14 +461,14 @@ function renderPreview(
         stdin: sources.tick,
       }).replace(/\n+$/, ''),
     );
-    return `dry-run at 200 columns — no scripts or settings written\n${line}\npanel ${panel}\n`;
+    return `dry-run at 200 columns — nothing written\n${line}\npanel ${panel}\n`;
   } finally {
     sources.cleanup();
   }
 }
 
 function printedConfig(runtime: ResolvedRuntime, home: string): string {
-  const existing = readScriptConfig(home);
+  const existing = readKeyConfig(home);
   const lines = [
     `layout='${existing.layout ?? runtime.defaultLayout}'`,
     ...runtime.items.map(
@@ -432,7 +495,7 @@ function existingValue(
 
 export function configure(options: ConfigureOptions): ConfigureResult {
   const runtime = resolveRuntime({ home: options.home });
-  const existing = readScriptConfig(options.home);
+  const existing = readKeyConfig(options.home);
   const variants = options.variants ?? {};
   const explicit =
     options.layout !== undefined || Object.keys(variants).length > 0;
@@ -507,19 +570,17 @@ export function configure(options: ConfigureOptions): ConfigureResult {
     };
   }
 
-  const plan = planSettings(options.home, options.force ?? false);
-  const exports = items.map((item): readonly [string, string] => [
-    item.toUpperCase(),
-    values[item],
-  ]);
-  writeAtomic(
-    mainScriptPath(options.home),
-    generatedScript('statusline.sh', exports, layout),
+  const assignments = items.map(
+    item => `STATUSLINE_LAB_${item.toUpperCase()}=${values[item]}`,
   );
-  writeAtomic(
-    subagentScriptPath(options.home),
-    generatedScript('subagent.sh', [], null),
+  const plan = planSettings(
+    options.home,
+    mainKeyValue(layout, assignments),
+    options.force ?? false,
   );
+  if (plan.adds.length > 0 || plan.repoints.length > 0) {
+    writeBackupIfAbsent(options.home, plan);
+  }
   commitSettings(plan);
   return { mode: 'written' };
 }

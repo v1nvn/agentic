@@ -10,9 +10,8 @@ import {
 } from './runtime.js';
 
 // The rung ladder and 2-line wrap are pinned from the live responsive engine
-// (~/.claude/statusline-command.sh, FULL_STEPS/L1_STEPS/L2_STEPS): details
-// step down least-valuable-first and the wrap splits between the location
-// and context clusters, never mid-segment.
+// (FULL_STEPS/L1_STEPS/L2_STEPS): details step down least-valuable-first and
+// the wrap splits between the location and context clusters, never mid-segment.
 
 const stripAnsi = (line: string) => line.replace(/\x1b\[[0-9;]*m/g, '');
 // the engine's vlen counts ⚡ as 2 visible columns

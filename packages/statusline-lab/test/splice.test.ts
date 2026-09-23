@@ -1,19 +1,19 @@
 import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
 
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { configure } from '../src/configure.js';
 import {
-  DATA_REL,
   createHomes,
   installRuntime,
+  mainKeyValue,
   settingsPath,
+  subagentKeyValue,
   writeSettings,
 } from './fixtures.js';
 
-const MAIN_COMMAND = `~/${join(DATA_REL, 'statusline-command.sh')}`;
-const SUB_COMMAND = `~/${join(DATA_REL, 'subagent-statusline.sh')}`;
+const MAIN_COMMAND = mainKeyValue('{model}', ['STATUSLINE_LAB_MODEL=block']);
+const SUB_COMMAND = subagentKeyValue;
 
 // Valid JSON, deliberately ugly — mixed indent widths, a space before a
 // colon, blank lines. A whole-file rewrite (plain jq output) normalizes every
@@ -87,7 +87,7 @@ describe('configure: the settings splice preserves owner bytes', () => {
     const inserted = insertionBetween(ODD_SETTINGS, after);
     expect(inserted).toContain('"statusLine"');
     expect(inserted).toContain('"subagentStatusLine"');
-    expect(inserted.length).toBeLessThan(400);
+    expect(inserted.length).toBeLessThan(500);
     expect(JSON.parse(after)).toEqual({
       model: 'opus-4',
       spinnerTipsEnabled: false,
@@ -117,7 +117,7 @@ describe('configure: --force over foreign commands carrying braces', () => {
     return `{
  "model" : "opus-4",
   "statusLine": {"type": "command", "command": ${JSON.stringify(statusLineCommand)}},
-  "subagentStatusLine": {"type": "command", "command": "~/.claude/subagent-statusline.sh"}
+  "subagentStatusLine": {"type": "command", "command": "~/.claude/old-panel.sh"}
 }
 `;
   }

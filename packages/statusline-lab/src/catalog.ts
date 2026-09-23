@@ -1,4 +1,4 @@
-import { readScriptConfig, resolveRuntime } from './resolve.js';
+import { readKeyConfig, resolveRuntime } from './resolve.js';
 
 export interface CatalogOptions {
   readonly home: string;
@@ -7,7 +7,7 @@ export interface CatalogOptions {
 
 export function catalog(options: CatalogOptions): string {
   const runtime = resolveRuntime({ home: options.home });
-  const live = readScriptConfig(options.home).values;
+  const live = readKeyConfig(options.home).values;
   const byItem = new Map(runtime.items.map(item => [item.item, item]));
   const wanted = options.items ?? runtime.items.map(item => item.item);
   return wanted
