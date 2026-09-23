@@ -1,26 +1,47 @@
 ---
-description: Run the statusline-lab CLI — show the catalog, tour the variants, configure both surfaces, revert, check the install; the terminal wizard is the only preview surface
+description: Run the statusline-lab CLI — show the catalog, configure both surfaces through the wizard or flags, revert, check the install; the terminal is the only preview surface
 ---
 
-Four jobs, one command: show, set, revert, check. The agent runs the CLI and writes plain
-text; the terminal wizard is the only preview surface. Never add a second
-command. Never open anything — no browser, no HTML page, no `open`. Never
-render previews into the chat: Bash-tool ANSI collapses to a ~3-line preview,
-and the bar designs emit 24-bit color that can arrive as literal text.
+Four jobs, one command: show, set, revert, check. The agent runs the CLI and
+writes plain text; the terminal is the only preview surface. Never add a
+second command. Never open anything — no browser, no HTML page, no `open`.
+Never render previews into the chat: Bash-tool ANSI collapses to a ~3-line
+preview, and the bar designs emit 24-bit color that can arrive as literal
+text.
 
 **Show.** `catalog` prints one line per item — `item: alt | alt*`, `*` marks
-the live variant, zero ANSI — so its output can go into the chat as-is. Run it
-and show the owner the catalog as a plain table:
+the live variant, zero ANSI — so its output can go into the chat as-is. Run
+it and show the owner the catalog as a plain table:
 
     npx -y @v1nvn/statusline-lab catalog
 
 Boolean flags cut the listing: `catalog --model --bar`.
 
-**Tour + set.** Ask which of the catalog's items the owner cares about and
-walk them one at a time — the alternatives from the table, what each one
-shows in plain words, one variant per item. Describe, never render. Then
-configure with one variant flag per item — never hand-write the settings
-keys; `configure` composes them whole, config included:
+**Set — the wizard, the default.** Seeing designs rendered is the wizard's
+job — both surfaces, live previews at 80/120/200 columns (`j/k` move, `h/l`
+variant, `w` width, enter saves, `q` cancels). It is the owner's to run, not
+the agent's; hand it off exactly once with this line:
+
+    ! npx -y @v1nvn/statusline-lab configure
+
+Previews prefer the captures the runtime itself files
+(`captures/main.json`, `captures/tick.json` — real session data), fixtures
+otherwise; no payload choosing anywhere. The wizard offers exactly the
+layout's items — on a fresh install that is every item but `style`, which
+sits outside the default layout and needs the flags path.
+
+**Set — flags, when the owner names the picks.** Walk the catalog's items in
+words — the alternatives from the table, what each one shows in plain words,
+one variant per item; describe, never render. Then configure with one
+variant flag per item — never hand-write the settings keys; `configure`
+composes them whole, config included — and always preview before the write.
+First the flags line with `--dry-run`, handed off so the true render lands
+in the owner's terminal, nothing written:
+
+    ! npx -y @v1nvn/statusline-lab configure --model block --bar gauge --fallback=default --dry-run
+
+On the owner's yes, the agent runs the same line without `--dry-run` — the
+write prints `configured — live on the next paint`, plain text:
 
     npx -y @v1nvn/statusline-lab configure --model block --bar gauge --fallback=default
 
@@ -47,7 +68,8 @@ exactly the two settings keys, config riding in the main key's value as env
 assignments, and on the first takeover saves the pre-lab key values to
 `backup.json` under `~/.claude/plugins/data/statusline-lab-agentic/`.
 Without a TTY and without flags, `configure` prints the effective config and
-writes nothing.
+writes nothing. The agent never runs a preview itself — the wizard and the
+`--dry-run` render both belong to the owner's terminal.
 
 **Revert.** `restore` puts both keys back to their pre-lab values — saved
 text spliced back byte-exact, keys absent before the lab removed — then
@@ -84,18 +106,3 @@ naming an unknown item adds `--layout '<default layout>'` to that; a missing
 runtime takes `claude plugin install statusline-lab@agentic`. Run it right
 after configuring, and after a version bump — the config row names any item
 or variant the resolved runtime no longer offers.
-
-**Visual browsing.** Seeing designs rendered is the wizard's job — both
-surfaces, live previews at 80/120/200 columns (`j/k` move, `h/l` variant,
-`w` width, enter saves, `q` cancels). Previews prefer the captures the
-runtime itself files (`captures/main.json`, `captures/tick.json` — real
-session data), fixtures otherwise; no payload choosing anywhere. The wizard
-offers exactly the layout's items — to browse one more, put it in the
-layout first. It is the owner's to run, not the agent's; hand it off exactly
-once with this line:
-
-    ! npx -y @v1nvn/statusline-lab configure
-
-The same line takes configuration flags plus `--dry-run` for a preview
-before the owner commits: nothing written, no settings touched — the
-preview still refreshes `captures/`. The agent never runs a preview itself.

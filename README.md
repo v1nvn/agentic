@@ -50,12 +50,13 @@ npx -y @v1nvn/md         # last reply → Markdown-Viewer (--view for read-only;
 
 ## statusline-lab
 
-Four commands drive both surfaces:
+Four commands drive both surfaces — the wizard is the default way in:
 
 ```sh
-npx -y @v1nvn/statusline-lab catalog                                       # one line per item, * marks the live variant
-npx -y @v1nvn/statusline-lab configure --model block --bar gauge --fallback=default
 npx -y @v1nvn/statusline-lab configure                                     # the wizard — bare, on a TTY
+npx -y @v1nvn/statusline-lab configure --model block --bar gauge --fallback=default --dry-run   # known picks — preview first
+npx -y @v1nvn/statusline-lab configure --model block --bar gauge --fallback=default             # then the write
+npx -y @v1nvn/statusline-lab catalog                                       # one line per item, * marks the live variant
 npx -y @v1nvn/statusline-lab restore                                       # both keys back to their pre-lab values
 npx -y @v1nvn/statusline-lab status                                        # rows + verdict — exit 0 healthy, 1 needs action
 ```
@@ -74,8 +75,9 @@ d=$(printf '%s\n' ~/.claude/plugins/cache/agentic/statusline-lab/*/ | sort -V | 
 The layout — brace clusters of item ids — and one variant per item ride in
 that value: `--layout '{model effort} {cwd branch} {bar tokens cache}'`. With
 flags, `configure` is strict — every layout item needs a variant or a
-`--fallback=default|existing`; `--dry-run` renders both surfaces, writing
-nothing — the preview still refreshes `captures/`; a foreign settings key is
+`--fallback=default|existing`; a flags run previews first (`--dry-run`
+renders both surfaces, writing nothing — the preview still refreshes
+`captures/`) and writes only on confirmation; a foreign settings key is
 refused unless `--force`. The first takeover saves the pre-lab key values to
 `backup.json`; `restore` splices them back byte-exact — keys absent before
 the lab are removed — then deletes the lab data. `status` checks the

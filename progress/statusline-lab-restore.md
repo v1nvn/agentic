@@ -281,3 +281,13 @@ on the train. Archive this file when done.
   never gates the verdict (ruling 3). Seam test added: every rerun-configure
   fix row is executed through configure() on its fixture home and must
   restore healthy.
+- 2026-09-23 — owner ruling: the wizard is the primary configure path, both
+  surfaces (chat and CLI). Skill rewritten wizard-first ("Set — the wizard,
+  the default"; flags path now mandates preview-then-confirm: `--dry-run`
+  handed off to the owner's terminal, the write run by the agent — it prints
+  plain `configured — live on the next paint`, so chat stays ANSI-free).
+  Root README command block reordered wizard-first with the preview/write
+  pair; package README added (`packages/statusline-lab/README.md` — npm
+  landing page: Quickstart wizard/terminal split, Usage table, Develop,
+  Modules, Contracts). Changed doc lines run verbatim on a scratch home
+  (dry-run writes nothing; write → status healthy exit 0).
