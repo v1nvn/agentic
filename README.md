@@ -94,7 +94,7 @@ repo
     assets/payloads/  p1–p4.json          preview fixtures, main surface
     assets/ticks/     multi.json          preview fixtures, agent panel
   plugins/statusline-lab/
-    commands/statusline-lab.md            the /statusline-lab command
+    SKILL.md                              the /statusline-lab skill — model-taught entry point
     runtime/                              the bash runtime — statusline.sh, subagent.sh, lib.sh, components/*.sh
 
 machine, after `claude plugin install statusline-lab@agentic`
@@ -127,7 +127,7 @@ packages/                           the eight npm packages — one yarn workspac
 plugins/                            the seven plugins — manifests + config wrappers; code only in statusline-lab's runtime payload
   readability/  omlx/               .mcp.json (pinned npx) + plugin.json
   zai/  tokens/  rm/  md/           hooks.json (pinned npx) + plugin.json + commands/
-  statusline-lab/                   one command + the bash runtime (see statusline-lab above)
+  statusline-lab/                   root SKILL.md + the bash runtime (see statusline-lab above)
 ```
 
 Versions ride one lockstep train: `.claude-plugin/marketplace.json` is the source, and

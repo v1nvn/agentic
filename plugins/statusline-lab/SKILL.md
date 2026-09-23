@@ -1,10 +1,12 @@
 ---
-description: Run the statusline-lab CLI — show the catalog, configure both surfaces through the wizard or flags, revert, check the install; the terminal is the only preview surface
+name: statusline-lab
+description: Show, preview, and set the Claude Code status line and agent panel from a library of pickable designs — or revert to the previous setup
+when_to_use: Use when the user wants to browse, change, check, or revert their status line or agent panel — e.g. "statusline", "agent panel", "make the status line show the git branch", or a bare /statusline-lab
 ---
 
-Four jobs, one command: show, set, revert, check. The agent runs the CLI and
+Four jobs, one skill: show, set, revert, check. The agent runs the CLI and
 writes plain text; the terminal is the only preview surface. Never add a
-second command. Never open anything — no browser, no HTML page, no `open`.
+second skill. Never open anything — no browser, no HTML page, no `open`.
 Never render previews into the chat: Bash-tool ANSI collapses to a ~3-line
 preview, and the bar designs emit 24-bit color that can arrive as literal
 text.
@@ -90,7 +92,7 @@ zero ANSI, agent-runnable:
 
 A healthy install prints:
 
-    runtime: 0.19.0 — 16 items
+    runtime: 0.21.0 — 16 items
     statusLine: ours — layout='{model effort}' model=block effort=dim
     subagentStatusLine: ours
     config: no drift

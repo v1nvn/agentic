@@ -38,16 +38,22 @@ Surface a real impasse; do not hack past it.
 
 - **Code in `packages/`, manifests in `plugins/`.** One yarn workspace at the root
   (`"workspaces": ["packages/*"]`); each package builds with vite and publishes to npm
-  under `@v1nvn/*`. A plugin directory holds only `plugin.json`, `commands/`, a
-  hooks/mcp config whose `npx` invocations are version-pinned to the train — and, for
-  statusline-lab only, the bash runtime payload under `plugins/statusline-lab/runtime/`
-  (the TS CLI is the package, pure TS, zero bash). No other code lives under `plugins/`.
+  under `@v1nvn/*`. A plugin directory holds only `plugin.json`, one `.md` surface —
+  a skill (`SKILL.md` at the root for a one-skill plugin) when the model executes the
+  body, a `commands/` shell when a `UserPromptExpansion` hook intercepts the
+  invocation (the body is the no-hooks fallback, and model auto-invocation would
+  bypass the hook) — a hooks/mcp config whose `npx` invocations are version-pinned to
+  the train, and, for statusline-lab only, the bash runtime payload under
+  `plugins/statusline-lab/runtime/` (the TS CLI is the package, pure TS, zero bash).
+  No other code lives under `plugins/`.
 - **Scripts resolve binaries only from deps the workspace declares.** Each package
   declares the tools its scripts invoke (`vite`, `vitest`); the root declares the
   root-run tools (eslint stack, prettier, typescript).
 - **Seven independent plugins, one marketplace.** Never collapse them into a
   mega-plugin; each installs and runs on its own.
-- **statusline-lab ships exactly one command** — `/statusline-lab`, folding
+- **statusline-lab ships exactly one skill** — root `SKILL.md`, invoked by its
+  bare short name `/statusline-lab` (the menu lists it namespaced as
+  `statusline-lab:statusline-lab`; the plugin prefix is irremovable), folding
   show (`catalog`) · set (`configure`) · revert (`restore`) · check (`status`).
   Never add a second; its name must not collide with Claude Code's built-in
   `/statusline`.
