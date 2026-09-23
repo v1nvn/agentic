@@ -37,3 +37,8 @@ Close: steps 1–3 verified → TODO line deleted, this file archived.
   `name:` frontmatter governs the last segment. The superseded
   statusline-lab-rework thread (PR #2 merged 2026-09-19) archived in this
   thread's opening commit.
+- 2026-09-23 — closed. Gates green (190 tests, five plugin validates), four
+  commits on main, release.yml green at v0.21.0, local plugin updated
+  0.20.0 → 0.21.0 with `SKILL.md` + `runtime/` in the cache. Owner's last
+  10-second confirmation after restart: type `/statusline-lab` bare — the
+  menu lists it as `statusline-lab:statusline-lab`.
