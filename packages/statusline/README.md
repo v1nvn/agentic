@@ -22,13 +22,13 @@ In Claude Code — type `/lab`, run the wizard it hands you (`!`
 runs it in your session with a real terminal):
 
 ```
-! npx -y @v1nvn/statusline@0.22.0 configure
+! npx -y @v1nvn/statusline@0.23.0 configure
 ```
 
 In a terminal — same command, bare:
 
 ```sh
-npx -y @v1nvn/statusline@0.22.0 configure
+npx -y @v1nvn/statusline@0.23.0 configure
 ```
 
 `j/k` move · `h/l` switch design · `w` width · enter saves · `q` cancels.
@@ -46,11 +46,11 @@ commands; `npx` runs them in a terminal.
 | `restore` | both keys back to their pre-lab values from `backup.json`, then deletes the lab data — run it before uninstalling |
 
 ```sh
-npx -y @v1nvn/statusline@0.22.0 catalog
-npx -y @v1nvn/statusline@0.22.0 configure --model block --bar gauge --fallback=default --dry-run   # preview, write nothing
-npx -y @v1nvn/statusline@0.22.0 configure --model block --bar gauge --fallback=default             # the write
-npx -y @v1nvn/statusline@0.22.0 status
-npx -y @v1nvn/statusline@0.22.0 restore
+npx -y @v1nvn/statusline@0.23.0 catalog
+npx -y @v1nvn/statusline@0.23.0 configure --model block --bar gauge --fallback=default --dry-run   # preview, write nothing
+npx -y @v1nvn/statusline@0.23.0 configure --model block --bar gauge --fallback=default             # the write
+npx -y @v1nvn/statusline@0.23.0 status
+npx -y @v1nvn/statusline@0.23.0 restore
 ```
 
 ## Develop
