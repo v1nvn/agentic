@@ -1,5 +1,5 @@
 ---
-description: Beam the last reply to the reMarkable (zero-token via UserPromptExpansion hook)
+description: Beam the last reply to the reMarkable as EPUB
 ---
 
 Beam the previous assistant reply to the reMarkable Paper Pro, then report the result.

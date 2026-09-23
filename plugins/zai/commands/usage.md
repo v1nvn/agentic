@@ -1,5 +1,5 @@
 ---
-description: Query GLM Coding Plan usage (zero-token via UserPromptExpansion hook)
+description: Query GLM Coding Plan quota and usage
 ---
 
 Query quota and usage statistics for the current GLM Coding Plan account.

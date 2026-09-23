@@ -1,5 +1,5 @@
 ---
-description: Send the last reply to the Markdown-Viewer, editable (zero-token via UserPromptExpansion hook)
+description: Send the last reply to the Markdown-Viewer, editable
 ---
 
 Send the previous assistant reply to the self-hosted Markdown-Viewer (`md.v1n.space`)

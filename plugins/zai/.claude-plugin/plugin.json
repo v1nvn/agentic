@@ -1,6 +1,6 @@
 {
   "name": "zai",
-  "description": "Query quota and usage statistics for GLM Coding Plan — zero-token via UserPromptExpansion hook",
+  "description": "Query quota and usage statistics for GLM Coding Plan",
   "version": "0.20.0",
   "author": {
     "name": "v1nvn",
