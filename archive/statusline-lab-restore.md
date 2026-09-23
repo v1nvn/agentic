@@ -291,3 +291,8 @@ on the train. Archive this file when done.
   landing page: Quickstart wizard/terminal split, Usage table, Develop,
   Modules, Contracts). Changed doc lines run verbatim on a scratch home
   (dry-run writes nothing; write → status healthy exit 0).
+- 2026-09-23 — closed: every repo-side close criterion landed (four units,
+  PR #3, v0.20.0). The never-run owner adoption step was superseded by the
+  skill-migration and name-unification threads — the plugin is now
+  `statusline@agentic` with the `/lab` skill; adoption lives on the TODO
+  owner line, this file is history.

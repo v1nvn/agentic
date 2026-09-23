@@ -41,3 +41,7 @@ Close: steps 1–2 verified → TODO line deleted, this file archived.
   through the npx cache — stale CLI against a fresh plugin. All 12 md
   surfaces now ride the train; owner's npm deletion of the old name
   (unpublish within 72h + support for 0.19.0) handed off, outcome pending.
+- 2026-09-23 — closed: v0.23.0 release green, plugin installed as
+  `statusline@agentic` on the owner machine. The two pending owner bits (npm
+  deletion outcome, `/lab` adoption) moved to a TODO owner line — they are
+  product usage and an external registry action, not thread work.
