@@ -8,10 +8,12 @@ import {
   parseSettings,
   readOrNull,
   SETTINGS_KEYS,
+  type SettingsBackup,
   type SettingsKey,
 } from './configure.js';
 import {
   capturePath,
+  DATA_REL,
   readKeyConfig,
   type ResolvedRuntime,
   resolveRuntime,
@@ -50,9 +52,9 @@ function keyRow(key: SettingsKey, state: KeyState, detail = ''): string {
     return `${key}: ours${detail === '' ? '' : ` — ${detail}`}`;
   }
   if (state.kind === 'absent') {
-    return `${key}: absent — fix: rerun configure --fallback=existing`;
+    return `${key}: absent — fix: rerun configure --fallback=default`;
   }
-  return `${key}: foreign${state.command === null ? '' : ` (${state.command})`} — fix: rerun configure --force`;
+  return `${key}: foreign${state.command === null ? '' : ` (${state.command})`} — fix: rerun configure --force --fallback=default`;
 }
 
 function layoutItemsOf(layout: string): readonly string[] {
@@ -77,24 +79,38 @@ function configDetail(config: ScriptConfig): string {
   return [`layout='${config.layout}'`, ...assignments].join(' ');
 }
 
+type DriftFinding =
+  | {
+      readonly alt: string;
+      readonly item: string;
+      readonly kind: 'unknown-variant';
+    }
+  | { readonly item: string; readonly kind: 'unknown-item' };
+
+function findingText(finding: DriftFinding): string {
+  return finding.kind === 'unknown-item'
+    ? `unknown item '${finding.item}'`
+    : `unknown variant '${finding.alt}' for '${finding.item}'`;
+}
+
 function driftFindings(
   config: ScriptConfig,
   runtime: ResolvedRuntime,
-): readonly string[] {
+): readonly DriftFinding[] {
   if (config.layout === null) {
     return [];
   }
   const byItem = new Map(runtime.items.map(entry => [entry.item, entry]));
-  const findings: string[] = [];
+  const findings: DriftFinding[] = [];
   for (const item of layoutItemsOf(config.layout)) {
     const entry = byItem.get(item);
     if (entry === undefined) {
-      findings.push(`unknown item '${item}'`);
+      findings.push({ item, kind: 'unknown-item' });
       continue;
     }
     const alt = Object.hasOwn(config.values, item) ? config.values[item] : null;
     if (alt !== null && !entry.alternatives.includes(alt)) {
-      findings.push(`unknown variant '${alt}' for '${item}'`);
+      findings.push({ alt, item, kind: 'unknown-variant' });
     }
   }
   return findings;
@@ -108,15 +124,26 @@ function runtimeRow(runtime: null | ResolvedRuntime): string {
   return `runtime: ${version} — ${runtime.items.length} items`;
 }
 
-function configRow(findings: readonly string[]): string {
+function configRow(
+  findings: readonly DriftFinding[],
+  runtime: ResolvedRuntime,
+): string {
   if (findings.length === 0) {
     return 'config: no drift';
   }
-  return `config: drift — ${findings.join(', ')} — fix: rerun configure --fallback=existing`;
+  const fix = findings.some(finding => finding.kind === 'unknown-item')
+    ? `rerun configure --layout '${runtime.defaultLayout}' --fallback=default`
+    : 'rerun configure --fallback=default';
+  return `config: drift — ${findings.map(findingText).join(', ')} — fix: ${fix}`;
 }
 
 function backupRow(home: string): string {
-  const backup = readBackup(home);
+  let backup: null | SettingsBackup;
+  try {
+    backup = readBackup(home);
+  } catch {
+    return `backup: unreadable — fix: delete ~/${DATA_REL}/backup.json`;
+  }
   if (backup === null) {
     return 'backup: absent';
   }
@@ -190,7 +217,9 @@ export function status(options: StatusOptions): StatusResult {
     runtimeRow(runtime),
     keyRow('statusLine', main, configDetail(config)),
     keyRow('subagentStatusLine', subagent),
-    ...(runtime !== null && main.kind === 'ours' ? [configRow(findings)] : []),
+    ...(runtime !== null && main.kind === 'ours'
+      ? [configRow(findings, runtime)]
+      : []),
     backupRow(options.home),
     capturesRow(options.home),
   ];

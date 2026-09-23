@@ -77,9 +77,11 @@ A healthy install prints:
     healthy
 
 Exit 0 on `healthy`, 1 on `unhealthy` — branch on it: 0 ends the check; 1
-means read the rows, each naming its own fix (`rerun configure --force`,
-`rerun configure --fallback=existing`,
-`claude plugin install statusline-lab@agentic`). Run it right
+means read the rows, each naming a fix that runs exactly as printed: a
+foreign key takes `rerun configure --force --fallback=default`; an absent
+key or a drifted variant takes `rerun configure --fallback=default`; a drift
+naming an unknown item adds `--layout '<default layout>'` to that; a missing
+runtime takes `claude plugin install statusline-lab@agentic`. Run it right
 after configuring, and after a version bump — the config row names any item
 or variant the resolved runtime no longer offers.
 

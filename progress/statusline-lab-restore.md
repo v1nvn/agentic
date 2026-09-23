@@ -268,3 +268,16 @@ on the train. Archive this file when done.
   overclaims (backup/captures rows do not gate the exit code — code correct
   per ruling 3). Reviewer-seam lesson: E4's grep cannot see hand-rolled
   recursion — the blind review is the backstop (unit 2 proved it).
+- 2026-09-23 — post-review fix round on PR #3, four findings: the absent,
+  foreign, and drift fix lines named configure commands that fail when
+  followed (`--fallback=existing` has nothing to reuse on an absent key, bare
+  `--force` is the printed-config no-op, both drift kinds reuse the broken
+  config), and a valid-JSON non-lab backup.json killed status outright. New
+  fix-line rule: absent → `configure --fallback=default`; foreign →
+  `configure --force --fallback=default`; drift → `--fallback=default`, with
+  `--layout '<runtime defaultLayout>'` when a finding is an unknown item.
+  Unreadable backup prints `backup: unreadable — fix: delete
+  ~/.claude/plugins/data/statusline-lab-agentic/backup.json` — informational,
+  never gates the verdict (ruling 3). Seam test added: every rerun-configure
+  fix row is executed through configure() on its fixture home and must
+  restore healthy.
