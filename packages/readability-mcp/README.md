@@ -4,6 +4,9 @@ Turn **already-rendered HTML** (captured post-JavaScript from a browser or [chro
 
 The key idea: **rendering and extraction are decoupled.** A real browser (chrome-devtools) owns rendering; this server only transforms HTML it reads from a file. **The server makes no outbound requests** — there is no `fetch`, no SSRF surface. Every HTML-input tool takes a `localPath` (a file on disk), never an inline string, so a full rendered page never enters the model context. The optional `baseUrl` is *origin context only*, used to absolutize relative links; it is never fetched.
 
+Also a Claude Code plugin: `claude plugin install readability@agentic`.
+User-facing docs: [root README](../../README.md).
+
 ## Install
 
 ```bash

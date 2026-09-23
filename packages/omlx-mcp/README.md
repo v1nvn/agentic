@@ -10,6 +10,7 @@ omlx serve              # the inference server, if it is not already up
 ```
 
 Install as a Claude Code plugin: `claude plugin install omlx@agentic`.
+User-facing docs: [root README](../../README.md).
 
 ## Tools
 
