@@ -63,8 +63,9 @@ name or shape wins.
   show (`catalog`) · set (`configure`) · revert (`restore`) · check (`status`).
   Never add a second; its invocation name must stay off Claude Code's built-in
   `/statusline` — the plugin's own name is a namespace, not a command.
-- **The terminal is the only rendering surface** — nothing opens a browser,
-  nothing writes HTML.
+- **Terminal surfaces render to the terminal only** — statusline and the report
+  CLIs never open a browser, never write HTML. The one intended exception is
+  md's share flow, which opens the Markdown-Viewer page (`MD_NO_OPEN` skips it).
 - **One author identity:** `v1nvn` / `v1n@outlook.com` in every manifest.
 
 ## Invariants
