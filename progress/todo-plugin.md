@@ -211,7 +211,7 @@ rules (a PR); the six push-repos take one direct commit each on their default br
    invocation or a repo state — nothing rests on the seeding conversation alone.
 1. **Scaffold** — `plugins/todo/` per the tree above. Close: `claude plugin validate
    plugins/todo/.claude-plugin/plugin.json` passes; `node .github/scripts/build-skills.mjs`
-   passes; `grep -in "sync-tracking\|tracking-template\|tracking:generic\|.claude"
+   passes; `grep -rin "sync-tracking\|tracking-template\|tracking:generic\|\.claude"
    plugins/todo/skills/` is quiet; the rules skill's description names all four surfaces;
    every verb skill's frontmatter carries `name`, `description`, `argument-hint`.
 2. **Train discovery by glob** — ported verbatim from `archive/workflow-plugin.md` unit 2
