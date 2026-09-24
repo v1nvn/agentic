@@ -370,19 +370,16 @@ function renderMembers(
     .join(',\n  ');
 }
 
-/** Splice each rendered value over its root member; `verb` names the failure. */
+/** Splice each rendered value over its root member. */
 export function repointRootMembers(
   raw: string,
   entries: readonly { key: string; value: string }[],
-  verb: string,
 ): string {
   let text = raw;
   for (const { key, value } of entries) {
     const span = rootMemberValueSpan(text, key);
     if (span === null) {
-      throw new Error(
-        `cannot find the "${key}" member to ${verb} in settings.json`,
-      );
+      throw new Error(`cannot find the "${key}" member in settings.json`);
     }
     text = `${text.slice(0, span[0])}${value}${text.slice(span[1])}`;
   }
@@ -397,7 +394,6 @@ function splicedSettings(raw: string, plan: SettingsPlan): string {
       key,
       value: settingsValue(command),
     })),
-    'repoint',
   );
 }
 

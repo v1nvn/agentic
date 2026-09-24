@@ -11,8 +11,6 @@ export interface ServerConfig {
   readonly version: string;
 }
 
-export type { LogLevel };
-
 const VALID_LEVELS: readonly LogLevel[] = [
   'debug',
   'info',

@@ -146,7 +146,6 @@ export function restore(options: RestoreOptions): RestoreResult {
     const text = repointRootMembers(
       stripped,
       splices.map(({ key, text: value }) => ({ key, value })),
-      'restore',
     );
     const membersLeft = Object.keys(JSON.parse(text) as object).length;
     if (backup !== null && backup.createdFile && membersLeft === 0) {
