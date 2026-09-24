@@ -14,14 +14,15 @@ import {
   fmtTokens,
   meter,
   MONTHS,
+  pad2,
   padL,
   padR,
+  rule,
+  RULE_WIDTH,
 } from '@v1nvn/agentic-core';
 
 // Lower-half block eighths for vertical bars (1/8 .. 7/8); a full cell uses '█'.
 const VBLOCKS = '▁▂▃▄▅▆▇';
-
-const W = 68; // overall rule width
 
 export interface ModelMixEntry {
   modelName?: string;
@@ -108,8 +109,8 @@ function shiftSlot(
   const dt = new Date(utcMs + toOffsetMin * 60000);
   return {
     h: dt.getUTCHours(),
-    day: `${MONTHS[dt.getUTCMonth()]} ${String(dt.getUTCDate()).padStart(2, '0')}`,
-    time: `${String(dt.getUTCHours()).padStart(2, '0')}:${String(dt.getUTCMinutes()).padStart(2, '0')}`,
+    day: `${MONTHS[dt.getUTCMonth()]} ${pad2(dt.getUTCDate())}`,
+    time: `${pad2(dt.getUTCHours())}:${pad2(dt.getUTCMinutes())}`,
   };
 }
 
@@ -218,7 +219,7 @@ function hourlyVerticalChart({
   const IND = 1; // leading indent
   const AXIS = IND + L + 1; // axis spine col (1-space gap after the label)
   const P0 = AXIS + 2; // first bar column (axis + 1-char gap)
-  const PW = W - P0; // columns available for bars + gaps
+  const PW = RULE_WIDTH - P0; // columns available for bars + gaps
   const slot = Math.max(1, Math.floor(PW / nh));
   const barW = slot >= 2 ? slot - 1 : 1;
   function barLeft(i: number): number {
@@ -229,7 +230,7 @@ function hourlyVerticalChart({
   }
   const usedCols = nh * slot;
   function blank(): string[] {
-    return Array<string>(W).fill(' ');
+    return Array<string>(RULE_WIDTH).fill(' ');
   }
 
   // bar glyph for hour i at row r (0 = bottom bar-row, ROWS-1 = top)
@@ -313,7 +314,7 @@ function hourlyVerticalChart({
       continue;
     }
     const s = slotOf(i);
-    const txt = s ? String(s.h).padStart(2, '0') : '  ';
+    const txt = s ? pad2(s.h) : '  ';
     hr[col] = txt[0];
     hr[col + 1] = txt[1];
     last = col;
@@ -333,7 +334,7 @@ function hourlyVerticalChart({
       continue;
     }
     const col = barCenter(i);
-    if (col - last >= s.day.length && col + s.day.length <= W) {
+    if (col - last >= s.day.length && col + s.day.length <= RULE_WIDTH) {
       for (let k = 0; k < s.day.length; k++) {
         day[col + k] = s.day[k];
       }
@@ -372,9 +373,6 @@ export function render({
   now = new Date(),
 }: RenderInput): string {
   const out: string[] = [];
-  function rule(): string {
-    return '─'.repeat(W);
-  }
 
   // The monitor API labels every bucket in Beijing time (UTC+8). Shift each
   // timestamp to the caller's offset (minutes east of UTC) for display.
@@ -426,7 +424,7 @@ export function render({
       ? `${firstSlot.day} ${firstSlot.time} → ${lastSlot.day} ${lastSlot.time} · ${nh}h`
       : platform;
   out.push(rule());
-  out.push(left + padL(win, W - left.length));
+  out.push(left + padL(win, RULE_WIDTH - left.length));
   out.push(rule());
 
   // ---- lead ----
@@ -484,7 +482,7 @@ export function render({
   // ---- hourly chart (vertical bars) ----
   out.push('');
   const chartHdr = ' Hourly tokens · ↑ peak hour ';
-  out.push(chartHdr + '─'.repeat(Math.max(0, W - chartHdr.length)));
+  out.push(chartHdr + '─'.repeat(Math.max(0, RULE_WIDTH - chartHdr.length)));
   const maxTok = peakTok || 1;
   const chartLines = hourlyVerticalChart({
     x,
@@ -507,7 +505,7 @@ export function render({
 
   // ---- model mix ----
   out.push('');
-  out.push(' Model mix ' + '─'.repeat(Math.max(0, W - 11)));
+  out.push(' Model mix ' + '─'.repeat(Math.max(0, RULE_WIDTH - 11)));
   const mixSrc = model.modelSummaryList ?? model.modelDataList ?? [];
   const denom = mixSrc.reduce((a, m) => a + (m.totalTokens ?? 0), 0) || 1;
   const mixSorted = [...mixSrc].sort(
@@ -522,7 +520,7 @@ export function render({
 
   // ---- limits ----
   out.push('');
-  out.push(' Limits ' + '─'.repeat(Math.max(0, W - 8)));
+  out.push(' Limits ' + '─'.repeat(Math.max(0, RULE_WIDTH - 8)));
 
   // Peak-window row, always present under Limits. The bar is now's progress
   // through the 14:00–18:00 Beijing window: empty before it opens, full after

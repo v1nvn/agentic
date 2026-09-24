@@ -4,6 +4,8 @@
  * renders the plain-text report.
  */
 
+import { pad2 } from '@v1nvn/agentic-core';
+
 import type { ZaiModelUsage, ZaiQuota, ZaiToolUsage } from './format.js';
 import type { ResolvedConfig } from './resolve.js';
 
@@ -53,10 +55,7 @@ function queryParams(now = new Date()): string {
     999,
   );
   function formatDateTime(date: Date): string {
-    function p(n: number): string {
-      return String(n).padStart(2, '0');
-    }
-    return `${date.getFullYear()}-${p(date.getMonth() + 1)}-${p(date.getDate())} ${p(date.getHours())}:${p(date.getMinutes())}:${p(date.getSeconds())}`;
+    return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())} ${pad2(date.getHours())}:${pad2(date.getMinutes())}:${pad2(date.getSeconds())}`;
   }
   return `?startTime=${encodeURIComponent(formatDateTime(startDate))}&endTime=${encodeURIComponent(formatDateTime(endDate))}`;
 }

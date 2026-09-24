@@ -11,13 +11,15 @@ import {
   fmtNum,
   fmtTokens,
   MONTHS,
+  pad2,
   padL,
   padR,
+  rule,
+  RULE_WIDTH,
+  ymd,
 } from '@v1nvn/agentic-core';
 
 import type { DayRow, ModelRow, ScanResult, UsageAcc } from './scan.js';
-
-const W = 68; // overall rule width
 
 /** cacheRead / modeled context; input_tokens is uncached input only. */
 export function hitRate({
@@ -45,12 +47,7 @@ function dayLabel(day: string): string {
 }
 
 function fmtClock(date: Date): string {
-  return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
-}
-
-/** Local-time 'YYYY-MM-DD' for a Date, without depending on toLocaleString. */
-function localKey(date: Date): string {
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  return `${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
 }
 
 export function render(
@@ -58,9 +55,6 @@ export function render(
   { now = new Date() } = {},
 ): string {
   const out: string[] = [];
-  function rule(): string {
-    return '─'.repeat(W);
-  }
 
   const allRows: ModelRow[] = scanResult.last24;
   const rows = allRows.filter(r => totalTokens(r) > 0); // <synthetic> etc. carry no tokens
@@ -80,9 +74,9 @@ export function render(
   // ---- header ----
   const left = ' Token usage · transcripts';
   const winStart = new Date(now.getTime() - 24 * 3600 * 1000);
-  const win = `${dayLabel(localKey(winStart))} ${fmtClock(winStart)} → ${dayLabel(localKey(now))} ${fmtClock(now)} · 24h`;
+  const win = `${dayLabel(ymd(winStart))} ${fmtClock(winStart)} → ${dayLabel(ymd(now))} ${fmtClock(now)} · 24h`;
   out.push(rule());
-  out.push(left + padL(win, W - left.length));
+  out.push(left + padL(win, RULE_WIDTH - left.length));
   out.push(rule());
 
   // ---- lead ----
@@ -93,7 +87,7 @@ export function render(
 
   // ---- model mix · last 24h ----
   out.push('');
-  out.push(' Model mix · last 24h ' + '─'.repeat(Math.max(0, W - 22)));
+  out.push(' Model mix · last 24h ' + '─'.repeat(Math.max(0, RULE_WIDTH - 22)));
   if (rows.length === 0) {
     out.push('   (no usage recorded in the last 24 hours)');
   }
@@ -110,7 +104,7 @@ export function render(
   // day — drop it (unless the window began at midnight, which scan would have
   // bucketed as a full day).
   let days: DayRow[] = scanResult.days;
-  const firstDay = localKey(new Date(now.getTime() - 7 * 24 * 3600 * 1000));
+  const firstDay = ymd(new Date(now.getTime() - 7 * 24 * 3600 * 1000));
   if (
     days.length &&
     days[0].day === firstDay &&
@@ -119,7 +113,7 @@ export function render(
     days = days.slice(1);
   }
   out.push('');
-  out.push(' Daily · last 7 days ' + '─'.repeat(Math.max(0, W - 21)));
+  out.push(' Daily · last 7 days ' + '─'.repeat(Math.max(0, RULE_WIDTH - 21)));
   const maxDay = Math.max(0, ...days.map(totalTokens));
   for (const d of [...days].reverse()) {
     const pct = Math.round(hitRate(d));

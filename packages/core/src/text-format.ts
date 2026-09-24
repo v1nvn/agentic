@@ -22,6 +22,21 @@ export const MONTHS = [
 
 const EIGHTHS = ['', '▏', '▎', '▍', '▌', '▋', '▊', '▉'];
 
+export const RULE_WIDTH = 68;
+
+export function rule(): string {
+  return '─'.repeat(RULE_WIDTH);
+}
+
+export function pad2(n: number): string {
+  return String(n).padStart(2, '0');
+}
+
+/** Local-time `YYYY-MM-DD` key. */
+export function ymd(date: Date): string {
+  return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
+}
+
 export function fmtTokens(n: null | number | undefined): string {
   if (n == null || Number.isNaN(n)) {
     return '—';

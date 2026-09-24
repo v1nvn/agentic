@@ -7,16 +7,14 @@
  * Env knobs: REMARKABLE_HOST (default: remarkable), REMARKABLE_DIR (default: /home/root/books)
  */
 
+import { pad2 } from '@v1nvn/agentic-core';
 import { spawnSync } from 'node:child_process';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 function timestamp(now: Date): string {
-  function p(n: number): string {
-    return String(n).padStart(2, '0');
-  }
-  return `${now.getFullYear()}-${p(now.getMonth() + 1)}-${p(now.getDate())} ${p(now.getHours())}:${p(now.getMinutes())}`;
+  return `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())} ${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
 }
 
 /** Title = first Markdown heading, else a timestamp. */

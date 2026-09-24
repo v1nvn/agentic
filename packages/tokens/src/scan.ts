@@ -9,7 +9,7 @@
  * input (uncached), output, cacheRead, cacheCreation, call count.
  */
 
-import { claudeProjectsDir } from '@v1nvn/agentic-core';
+import { claudeProjectsDir, ymd } from '@v1nvn/agentic-core';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -140,7 +140,7 @@ export function scan({
         }
 
         const local = new Date(ts);
-        const dayKey = `${local.getFullYear()}-${String(local.getMonth() + 1).padStart(2, '0')}-${String(local.getDate()).padStart(2, '0')}`;
+        const dayKey = ymd(local);
         add(bucket(days, dayKey), u);
         add(bucket(models, model), u);
         if (ts >= last24Start) {
