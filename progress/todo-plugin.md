@@ -148,17 +148,17 @@ Port list for `skills/rules/SKILL.md` from `~/.claude/tracking-template.md`:
   rules on a big deviation alone. Scope changes, contract/semantic changes, anything the
   plan didn't name → post it and wait. Butterfly effect: a small early deviation compounds
   into places the plan never chose.
-- **Chain rule** *(proposed)* — the mechanical test for "big": a deviation that forces a
+- **Chain rule** *(owner-ruled, 2026-09-24)* — the mechanical test for "big": a deviation that forces a
   second deviation to land, touches a file the plan doesn't name, or mints/splits a unit
   is impactful by definition → stop and ask. A single mechanical pick inside named scope
   proceeds and logs.
-- **Cold-resume re-verify** *(proposed)* — 15/52 runs stopped mid (429 kills, user
+- **Cold-resume re-verify** *(owner-ruled, 2026-09-24)* — 15/52 runs stopped mid (429 kills, user
   interruptions, checkpoint handoffs; resume is exercised about every other day). On
   resume, re-run the last landed unit's close criteria instead of trusting its log line.
-- **Blocked-tooling rule** *(proposed)* — a blocked batch operation (permission classifier)
+- **Blocked-tooling rule** *(owner-ruled, 2026-09-24)* — a blocked batch operation (permission classifier)
   → split it; still blocked → log the blocker and continue other units. Never leave
   silent divergence (the testril six).
-- **No self-verdict** *(proposed)* — a unit closes only on its stated close criteria
+- **No self-verdict** *(owner-ruled, 2026-09-24)* — a unit closes only on its stated close criteria
   (greps/tests), never on the builder's say-so; review stays a blind subagent.
 
 ## Sources — read whole before starting
@@ -223,7 +223,10 @@ rules (a PR); the six push-repos take one direct commit each on their default br
    .github/scripts/set-version.mjs --check` fails **red naming
    `plugins/todo/.claude-plugin/plugin.json`** (the 0.0.0 deliberate mismatch) — U4's bump
    turns it green; `grep "readability omlx" .github/workflows/build.yml` finds nothing.
-3. **Six verb skills** — bodies per the verb table; `/todo:handoff` carries its source's
+3. **Six verb skills** — opens with the 87-start derivation sweep (sonnet batches over
+   the C1–C3 hit lists in `/tmp/tracking-survey/`, rubric per the Evidence sample;
+   findings amend the `new` body before it is written). Bodies per the verb table;
+   `/todo:handoff` carries its source's
    semantics whole, pointers renamed; `/todo:run` carries its source's semantics plus the
    Hardening clauses. Close: each verb skill's first line loads the rules; every
    vocabulary clause greps in exactly one file (rules or the one skill owning it); a
@@ -285,20 +288,6 @@ convention. Nothing partial ships: the plugin PR is atomic.
 - `/todo:run` — keeps the full §Models ladder (15 plans carry model columns across 3 repos).
 - `/todo:init` — seeds `archive/completed.md` (fresh and migrate paths).
 
-## Open — 2026-09-24
-
-- **`new` without arg — derivation evidence.** Sample of 3 sittings / 13 slugs
-  (2026-09-24, transcripts quoted per slug): **13/13 derivable-prose** — none
-  owner-named, none minted from nothing; the subject sat in prose before the sitting's
-  first write in 12/13 (the 13th, `root-repo-info`, accreted in a follow-on session). The
-  judgment is segmentation, not naming: slugs carve multi-defect reports into threads, and
-  the one grouping call observed was put to the owner ("draft as (a) collapse B/D/F into
-  three threads, or (b) leave every line" → owner: "a"). So no-arg `new` derives titles
-  from the session's own reports and proposes the split, asking the owner when a sitting
-  carries more than one candidate thread. Sweep of all 87 starts pending nudge.
-- **Run hardening list** — stop-and-ask ruled; chain rule, cold-resume re-verify,
-  blocked-tooling rule, no self-verdict proposed (## Hardening), owner ruling pending.
-
 ## Evidence — U0 census (2026-09-23)
 
 Corpus: 27 project dirs (22 with transcripts — 643 sessions, ~2.3 GB), 2026-08-24 → 09-23.
@@ -354,8 +343,21 @@ Method: regex nets → per-hit transcript reads (`/tmp/tracking-survey/probe.py`
 - **Anchor drift in this plan** — main is at 0.24.0 (8 manifests), not 0.19.0: the train
   rides **0.25.0**, not 0.20.0. `set-version.mjs` is still a list on main (U2 premise
   holds). The "27 project dirs" count holds.
+- **Start-title derivation sample (2026-09-24, pre-sweep).** 3 sittings / 13 slugs, every
+  creating Write verified in-transcript: **13/13 derivable-prose** — none owner-named,
+  none minted from nothing; subject in prose before the sitting's first write in 12/13
+  (`root-repo-info` accreted in a follow-on session). The judgment is segmentation, not
+  naming: the one grouping call observed was put to the owner ("draft as (a) collapse
+  B/D/F into three threads, or (b) leave every line" → owner: "a"). Design consequence:
+  no-arg `new` derives titles from the session's own reports and proposes the split,
+  asking the owner when a sitting carries more than one candidate thread. Full 87-start
+  sweep ordered (owner, 2026-09-24) — U3's opening step.
 
 **Log.**
+- 2026-09-24 — owner closed both opens: all four hardening clauses ruled in (markers
+  updated); full 87-start sweep ordered before U3 — Open section dissolved, sample
+  findings moved to Evidence, sweep made U3's opening step. Plan is execution-ready:
+  one run U1→U10, pause points at U5 (restart) and U10 (merge).
 - 2026-09-24 — readiness pass: train re-anchored to 0.25.0 → 0.26.0 (0.25.0 shipped
   after the 09-23 verification; Settled/U4/U10 fixed), U2 premise re-verified
   (`set-version.mjs` still a list on main), pause points folded into U5/U10 — restart
