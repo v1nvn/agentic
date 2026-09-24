@@ -22,13 +22,13 @@ In Claude Code — type `/lab`, run the wizard it hands you (`!`
 runs it in your session with a real terminal):
 
 ```
-! npx -y @v1nvn/statusline@0.27.0 configure
+! npx -y @v1nvn/statusline@0.27.1 configure
 ```
 
 In a terminal — same command, bare:
 
 ```sh
-npx -y @v1nvn/statusline@0.27.0 configure
+npx -y @v1nvn/statusline@0.27.1 configure
 ```
 
 `j/k` move · `h/l` switch design · `s` sets the focused item to none · `w`
@@ -48,11 +48,11 @@ to operate on another home instead of `$HOME`.
 | `restore` | both keys back to their pre-lab values from `backup.json`, then deletes the lab data — `--dry-run` prints the plan; `--force` splices over a key changed after the takeover |
 
 ```sh
-npx -y @v1nvn/statusline@0.27.0 catalog
-npx -y @v1nvn/statusline@0.27.0 configure --model block --bar gauge --fallback=default --dry-run   # preview, write nothing
-npx -y @v1nvn/statusline@0.27.0 configure --model block --bar gauge --fallback=default             # the write
-npx -y @v1nvn/statusline@0.27.0 status
-npx -y @v1nvn/statusline@0.27.0 restore
+npx -y @v1nvn/statusline@0.27.1 catalog
+npx -y @v1nvn/statusline@0.27.1 configure --model block --bar gauge --fallback=default --dry-run   # preview, write nothing
+npx -y @v1nvn/statusline@0.27.1 configure --model block --bar gauge --fallback=default             # the write
+npx -y @v1nvn/statusline@0.27.1 status
+npx -y @v1nvn/statusline@0.27.1 restore
 ```
 
 ## Develop

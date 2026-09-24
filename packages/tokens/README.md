@@ -20,14 +20,14 @@ claude plugin install tokens@agentic
 In a terminal, bare:
 
 ```sh
-npx -y @v1nvn/tokens@0.27.0
+npx -y @v1nvn/tokens@0.27.1
 ```
 
 ## Usage
 
 | Invocation | Does |
 |---|---|
-| `npx -y @v1nvn/tokens@0.27.0` | per-model table: input/output/cache-write/cache-read tokens, cache hit rate, 24 h window + 7-day daily totals |
+| `npx -y @v1nvn/tokens@0.27.1` | per-model table: input/output/cache-write/cache-read tokens, cache hit rate, 24 h window + 7-day daily totals |
 
 Works for every profile writing to `~/.claude/projects` — default `claude`,
 `claudez`, headless `claude -p` runs alike. Files older than the 7-day window

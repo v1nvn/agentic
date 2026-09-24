@@ -18,17 +18,17 @@ claude plugin install zai@agentic
 In a terminal, bare:
 
 ```sh
-npx -y @v1nvn/zai@0.27.0
+npx -y @v1nvn/zai@0.27.1
 ```
 
 ## Usage
 
 | Invocation | Does |
 |---|---|
-| `npx -y @v1nvn/zai@0.27.0` | usage report — models, quota window, remaining balance |
-| `npx -y @v1nvn/zai@0.27.0 --auth-token TOKEN` | same, key on the command line (visible in `ps`) |
-| `npx -y @v1nvn/zai@0.27.0 --auth-token=TOKEN` | `=` form — zsh quoting-safe |
-| `npx -y @v1nvn/zai@0.27.0 --base-url URL` | another GLM endpoint (default `api.z.ai`) |
+| `npx -y @v1nvn/zai@0.27.1` | usage report — models, quota window, remaining balance |
+| `npx -y @v1nvn/zai@0.27.1 --auth-token TOKEN` | same, key on the command line (visible in `ps`) |
+| `npx -y @v1nvn/zai@0.27.1 --auth-token=TOKEN` | `=` form — zsh quoting-safe |
+| `npx -y @v1nvn/zai@0.27.1 --base-url URL` | another GLM endpoint (default `api.z.ai`) |
 
 Each setting takes the first source that provides it:
 
