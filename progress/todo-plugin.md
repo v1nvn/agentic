@@ -362,6 +362,12 @@ Method: regex nets → per-hit transcript reads (`/tmp/tracking-survey/probe.py`
   moment births successors. Tables: `/tmp/tracking-survey/sweep-u3/out-C{1,2,3}-derivation.md`.
 
 **Log.**
+- 2026-09-24 — subset run U1–U5 (strict no-deviation from mid-run): U1–U4 landed on
+  branch todo-plugin, PR #4 open, enforced gate green at the U4 boundary (0.27.0).
+  U5's settings edit landed (`todo@agentic: true`); its closes verify at the owner's
+  restart nudge — the marketplace resolves from github main, so full verification
+  needs the merge. Next: U6 migrate agentic on the same branch. Out-of-run debt:
+  `yarn lint` red on main in packages/core, omlx-mcp, readability-mcp (7 errors).
 - 2026-09-24 — owner rulings mid-run: strictly no deviations (Hardening carries it);
   U4 bumps 0.26.0 → 0.27.0 (anchors amended in place); U1's three coherence picks kept.
 - 2026-09-24 — owner closed both opens: all four hardening clauses ruled in (markers
