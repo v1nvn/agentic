@@ -39,10 +39,31 @@ can drift. Supersedes `archive/workflow-plugin.md` (2026-09-22): of its three sk
 
 - **Name `todo`.** Shorter at the keyboard (`/todo:run`), names the artifact every session
   touches. The rules text keeps calling the system *work tracking*.
-- **Six verbs, capped:** `init` · `new` · `run` · `status` · `done` · `handoff`. A seventh
+- **Six verbs, capped:** `init` · `new` · `run` · `status` · `cleanup` · `handoff`. A seventh
   earns its place only by owning a rule the step-0 evidence shows violated — never as
   convenience. **No sync verb, ever:** nothing is copied anymore; the verb is dead by
   design, and the plugin README says so.
+- **`new` derives from the session** (owner, 2026-09-24). `[title]` is optional: given, it
+  is used; skipped, the title — and how many lines the sitting owes — come from what the
+  session discussed.
+- **Runs close their threads; FINISH dies as a rule** (owner, 2026-09-24). A run that lands
+  a thread's final unit closes it in the same sitting: deferral gate first, index line
+  deleted, `git mv` to archive, one commit — successor lines may be born in the same edit.
+  Never waits for the PR to merge. Threads ended outside a run close by hand (data is
+  data, no ritual); `cleanup` is optional hygiene, never required.
+- **`init` is fresh setup only** (owner, 2026-09-24). No repo arg, no migration path: it
+  creates `TODO.md` (with the `> Rules: /todo:rules` header), `progress/`, `archive/`,
+  `archive/completed.md`. The one-time fold of the 8 existing repos is the orchestrator's
+  hand work (U6–U8), after release.
+- **Progress files realign; they never accumulate** (owner, 2026-09-24). The log is not
+  append-only history and dated sections are not state: at every realignment the file is
+  rewritten as current contracts — spent log entries deleted, dated/how-it-ran sections
+  folded into undated current state, only live context (pending rulings, blockers, open
+  questions) surviving in the log. Git is the history. Measured 2026-09-24: testril
+  `native-functions.md` 1027 lines (99-line log + 4 dated section headers),
+  `data-liquidity-framework.md` 951, `shape-survey.md` 248 (54-line log + 2 dated
+  headers); this repo's own `todo-plugin.md` log hit 29 lines in two days. The shape
+  lands with the plugin (U3); pre-adoption strays are `cleanup`'s sweep.
 - **Every surface is a skill — no commands, no hooks.** Verbs are
   `skills/<verb>/SKILL.md` (frontmatter `name` + `description` + `argument-hint`),
   invocable typed via the namespaced name (`/todo:new`) and auto-invocable when the
@@ -75,8 +96,8 @@ can drift. Supersedes `archive/workflow-plugin.md` (2026-09-22): of its three sk
 - **Manifest + markdown only — no code, no runtime payload.** Skills precedent:
   `plugins/readability/` (`skills/read-url/SKILL.md`) — the layout precedent for both
   the rules skill and the six verbs.
-  No exception to the CLAUDE.md layout rule. Rides the next minor train: 0.24.0 → 0.25.0
-  (main moved past the seeded 0.19.0; verified 2026-09-23).
+  No exception to the CLAUDE.md layout rule. Rides the next minor train: 0.25.0 → 0.26.0
+  (0.25.0 shipped after the 2026-09-23 verification; re-verified 2026-09-24).
 
 ## Design
 
@@ -85,16 +106,16 @@ plugins/todo/
   .claude-plugin/plugin.json      ← name todo, author v1nvn / v1n@outlook.com, version 0.0.0 (deliberate — see U2)
   README.md                       ← verb table, install line, the no-sync note
   skills/rules/SKILL.md           ← the generic rules, the single copy
-  skills/{init,new,run,status,done,handoff}/SKILL.md
+  skills/{init,new,run,status,cleanup,handoff}/SKILL.md
 ```
 
 | Verb | Args | Replaces / does |
 |---|---|---|
-| `/todo:init` | `[repo]` | the create path **and** the one-time migration. Fresh repo: creates `TODO.md` with the `> Rules: /todo:rules` header, `progress/`, `archive/`, `archive/completed.md`. Existing repo holding `references/tracking.md`: folds its `## This repo` deltas into a `## Tracking — this repo` section at `TODO.md` top, repoints the header line, rewrites every progress back-ref, deletes `tracking.md`; seeds `archive/completed.md` when absent (6 of 8 repos have one). |
-| `/todo:new` | `<title>` | START-A-TASK RULE, end-of-session: writes the index line from what the session discussed; creates `progress/<slug>.md` (goal · grain · back-ref) only when the discussion carries enough to fill it — a pointer-less line is legitimate until pickup. The rules text shrinks to "a thread starts via `/todo:new`". |
-| `/todo:run` | `<plan> [units]` | the run-plan loop, body verbatim, pointers renamed. Close criteria, models, red lines unchanged. Keeps the full §Models ladder. |
-| `/todo:status` | `[plan]` | read-only projection, arg shape mirroring `/todo:run`. No arg: pinned top + in-flight threads, next step read off each thread file — never the index alone (a stale line produced a wrong answer in the wild). With `[plan]`: that thread's state · next step · latest log. No new state. |
-| `/todo:done` | `[slug]` | FINISH-A-TASK RULE. Deferral gate first — every cut item becomes a `TODO.md` line or the close names why none is owed (the census caught one evaporation). Then index line deleted, `git mv progress/<slug>.md archive/` — git mv always, plain mv loses rename tracking — one commit, one thread per invocation. |
+| `/todo:init` | — | fresh setup only: `TODO.md` with the `> Rules: /todo:rules` header, `progress/`, `archive/`, `archive/completed.md`. No repo arg, no migration — the one-time fold of the 8 existing repos is hand work (U6–U8), after release. |
+| `/todo:new` | `[title]` | START-A-TASK RULE, end-of-session. Title given: used. Skipped: derived from what the session discussed — including how many lines the sitting owes. Index line always; `progress/<slug>.md` (goal · grain · back-ref) only when the discussion carries enough to fill it. The rules text shrinks to "a thread starts via `/todo:new`". |
+| `/todo:run` | `<plan> [units]` | the run-plan loop, pointers renamed, hardened (## Hardening). Close criteria, models, red lines otherwise unchanged; keeps the full §Models ladder. Landing a thread's final unit closes it in the same sitting — deferral gate, index line deleted, `git mv` archive, one commit, and the thread file realigned (log collapsed to live context, dated sections folded); successor lines may be born in the same edit; never waits for merge. |
+| `/todo:status` | `[plan]` | read-only projection, arg shape mirroring `/todo:run`. No arg: pinned top + in-flight threads, next step read off each thread file — never the index alone (a stale line produced a wrong answer in the wild). With `[plan]`: that thread's state · next step · live log (may be empty). No new state. |
+| `/todo:cleanup` | — | optional hygiene, never required: archive sweep of threads whose runs landed pre-adoption, log-realign sweep of pre-adoption thread files, index/`progress/` divergence repair (the testril incident's six never-archived threads), evaporated-deferral detection (the census's one verified loss). No rule behind it — nothing waits on `cleanup`. |
 | `/todo:handoff` | — | handoff's Case 1 / Case 2 as today. |
 
 Port list for `skills/rules/SKILL.md` from `~/.claude/tracking-template.md`:
@@ -102,8 +123,15 @@ Port list for `skills/rules/SKILL.md` from `~/.claude/tracking-template.md`:
 - strip both `<!-- tracking:generic… -->` marker lines and every mention of
   `sync-tracking` / `tracking-template.md` — nothing may point at `~/.claude`
 - START-A-TASK → "a thread starts via `/todo:new` — the skill is the rule"
-- FINISH-A-TASK → "a thread closes via `/todo:done`; deferrals are its first step"
+- FINISH-A-TASK → dies as a rule; the text becomes "a `/todo:run` run closes its thread when
+  it lands the final unit — deferral gate first, `git mv`, one commit, no waiting on
+  merge"; threads ended outside a run close by hand; `cleanup` is optional hygiene
 - the progress-file back-ref spelling becomes `> Rules: /todo:rules · Index: ../TODO.md`
+- the shape clause "goal · current state · next step · append-only log" becomes
+  "goal · current state · next step · log (live context only)": every close realigns —
+  the unit-close duty widens from "rewrite in place anything the unit made false" to
+  "…false **or spent**"; spent log entries and dated sections die at realignment, their
+  still-true content folded into undated current state
 - "what a `run-plan` run needs" → "what a `/todo:run` run needs"
 - the pointer spelling stays the arrow form (`→ progress/<slug>.md`) — it is what
   `/todo:new` writes mechanically; hand-typed almost nowhere today. `init` normalizes
@@ -113,6 +141,25 @@ Port list for `skills/rules/SKILL.md` from `~/.claude/tracking-template.md`:
   use headings, only testril's deltas formalize them)
 - frontmatter `description` triggers on any touch of `TODO.md`, `progress/`,
   `references/`, `archive/` — this is the hook that replaces the CLAUDE.md bullet
+
+## Hardening `/todo:run` — the port is not verbatim
+
+- **Stop-and-ask on impactful deviations** *(owner-ruled, 2026-09-24)* — the model never
+  rules on a big deviation alone. Scope changes, contract/semantic changes, anything the
+  plan didn't name → post it and wait. Butterfly effect: a small early deviation compounds
+  into places the plan never chose.
+- **Chain rule** *(proposed)* — the mechanical test for "big": a deviation that forces a
+  second deviation to land, touches a file the plan doesn't name, or mints/splits a unit
+  is impactful by definition → stop and ask. A single mechanical pick inside named scope
+  proceeds and logs.
+- **Cold-resume re-verify** *(proposed)* — 15/52 runs stopped mid (429 kills, user
+  interruptions, checkpoint handoffs; resume is exercised about every other day). On
+  resume, re-run the last landed unit's close criteria instead of trusting its log line.
+- **Blocked-tooling rule** *(proposed)* — a blocked batch operation (permission classifier)
+  → split it; still blocked → log the blocker and continue other units. Never leave
+  silent divergence (the testril six).
+- **No self-verdict** *(proposed)* — a unit closes only on its stated close criteria
+  (greps/tests), never on the builder's say-so; review stays a blind subagent.
 
 ## Sources — read whole before starting
 
@@ -176,15 +223,18 @@ rules (a PR); the six push-repos take one direct commit each on their default br
    .github/scripts/set-version.mjs --check` fails **red naming
    `plugins/todo/.claude-plugin/plugin.json`** (the 0.0.0 deliberate mismatch) — U4's bump
    turns it green; `grep "readability omlx" .github/workflows/build.yml` finds nothing.
-3. **Six verb skills** — bodies per the verb table; `/todo:run` and `/todo:handoff` carry
-   their sources' semantics whole, pointers renamed. Close: each verb skill's first line
-   loads the rules; every vocabulary clause greps in exactly one file (rules or the one
-   skill owning it); a scratch repo smoke-tests `new` (index line always; file only
-   when the brief carries a goal), `done` (deferral gate first, `git mv`, one commit),
-   `status` (board without arg, single thread with `[plan]`).
+3. **Six verb skills** — bodies per the verb table; `/todo:handoff` carries its source's
+   semantics whole, pointers renamed; `/todo:run` carries its source's semantics plus the
+   Hardening clauses. Close: each verb skill's first line loads the rules; every
+   vocabulary clause greps in exactly one file (rules or the one skill owning it); a
+   scratch repo smoke-tests `new` (arg path: index line always, file only when the brief
+   carries a goal — the no-arg derivation path is exercised live in U5), `run` (a seeded
+   stale log and dated section collapse at the final unit's close), `cleanup`
+   (divergence repair on a scratch repo seeded with a stray finished thread), `status`
+   (board without arg, single thread with `[plan]`).
 4. **Register + bump + docs** — marketplace.json entry (name `todo`, source
    `./plugins/todo`, category `productivity`, one-line description); bump the train
-   0.24.0 → 0.25.0 via `set-version.mjs`; rewrite every count and shape sentence:
+   0.25.0 → 0.26.0 via `set-version.mjs`; rewrite every count and shape sentence:
    `README.md` (opener count, plugin-table row, layout tree), `CLAUDE.md` (header
    enumeration, Layout, "Seven independent plugins" bullet). Close: `set-version.mjs
    --check` passes; `grep -in seven README.md CLAUDE.md .claude-plugin/marketplace.json`
@@ -194,7 +244,9 @@ rules (a PR); the six push-repos take one direct commit each on their default br
    `todo:*` skills (six verbs + rules); touching a `TODO.md` loads the rules skill;
    `/todo:rules` answers.
    (The loose `~/.claude/skills/run-plan`/`handoff` still exist here — they die in U9.)
-6. **Migrate agentic** (dogfood `/todo:init`) — deltas are currently empty, so this is the
+   **Pause point** — the run edits `settings.json` and stops: the restart is the owner's;
+   the fresh-session closes verify at the nudge.
+6. **Migrate agentic** (hand fold) — deltas are currently empty, so this is the
    clean first fold: header repoint, back-refs in `progress/*.md`, delete
    `references/tracking.md`, drop the References line in `CLAUDE.md`. This file's own
    back-ref rewrites in the same commit. Close: `grep -rn "references/tracking" .`
@@ -214,9 +266,11 @@ rules (a PR); the six push-repos take one direct commit each on their default br
    `explain`, `hinglish`; `grep -rn "run-plan\|handoff\|tracking-template\|sync-tracking"
    ~/.claude/CLAUDE.md ~/.claude/settings.json` is quiet; `/todo:run` still resolves in a
    fresh session; `/run-plan` does not.
-10. **Ship + close** — merge the agentic PR, confirm release.yml cuts v0.25.0 (`gh release
-    view`), FINISH rule on this thread (deferrals first). Close: release visible; final
-    veto report per the run's Close section.
+10. **Ship + close** — merge the agentic PR, confirm release.yml cuts v0.26.0 (`gh release
+    view`), close this thread (deferral gate first). Close: release visible; final
+    veto report per the run's Close section. **Pause point** — the run opens the PR and
+    stops: the merge is the owner's (a run never merges its own PR); U9's fresh-session
+    closes verify here too.
 
 **Grain.** One unit = one plugin component, one registration surface, or one repo's
 migration. One PR holds the whole agentic side (U1–U6); the other repos land per their own
@@ -230,6 +284,20 @@ convention. Nothing partial ships: the plugin PR is atomic.
   the discussion carries enough to fill it. No flags.
 - `/todo:run` — keeps the full §Models ladder (15 plans carry model columns across 3 repos).
 - `/todo:init` — seeds `archive/completed.md` (fresh and migrate paths).
+
+## Open — 2026-09-24
+
+- **`new` without arg — derivation evidence.** Sample of 3 sittings / 13 slugs
+  (2026-09-24, transcripts quoted per slug): **13/13 derivable-prose** — none
+  owner-named, none minted from nothing; the subject sat in prose before the sitting's
+  first write in 12/13 (the 13th, `root-repo-info`, accreted in a follow-on session). The
+  judgment is segmentation, not naming: slugs carve multi-defect reports into threads, and
+  the one grouping call observed was put to the owner ("draft as (a) collapse B/D/F into
+  three threads, or (b) leave every line" → owner: "a"). So no-arg `new` derives titles
+  from the session's own reports and proposes the split, asking the owner when a sitting
+  carries more than one candidate thread. Sweep of all 87 starts pending nudge.
+- **Run hardening list** — stop-and-ask ruled; chain rule, cold-resume re-verify,
+  blocked-tooling rule, no self-verdict proposed (## Hardening), owner ruling pending.
 
 ## Evidence — U0 census (2026-09-23)
 
@@ -288,6 +356,28 @@ Method: regex nets → per-hit transcript reads (`/tmp/tracking-survey/probe.py`
   holds). The "27 project dirs" count holds.
 
 **Log.**
+- 2026-09-24 — readiness pass: train re-anchored to 0.25.0 → 0.26.0 (0.25.0 shipped
+  after the 09-23 verification; Settled/U4/U10 fixed), U2 premise re-verified
+  (`set-version.mjs` still a list on main), pause points folded into U5/U10 — restart
+  and merge are the owner's, a run stops and asks, fresh-session closes verify at the
+  pauses. Remaining before a full run: owner ruling on the four hardening proposals;
+  sweep-or-skip on the 87-start audit.
+- 2026-09-24 — owner ruled the log defect: progress files realign, never accumulate —
+  the log is not append-only history, spent entries and dated sections die at
+  realignment (git is the history), the file carries current contracts only. Measured:
+  testril native-functions 1027 (99-line log, 4 dated headers), data-liquidity 951,
+  shape-survey 248; this file's own log was 29 lines in two days. Amendments: Settled
+  (+realign bullet), port list (shape clause + "false or spent"), verb table (run close
+  realigns, cleanup sweeps logs, status reads live log), U3 smoke (+run realign). Sample
+  audit returned: 13/13 titles derivable from prior prose, segmentation is the owner
+  ask — Open item updated; this file's own log collapses at its close (dogfood).
+- 2026-09-24 — owner re-ruled four: `new [title]` (derive from session when skipped;
+  audit ordered, sample-first), `done` → `cleanup` and demoted to optional hygiene — runs
+  close their own threads at final-unit landing and never wait on merge, FINISH dies as a
+  rule; `init` fresh-only (no arg, no migration — U6–U8 are hand folds); `/todo:run`
+  hardened — the model stops and asks on impactful deviations, never rules alone.
+  Amendments: Settled (+3 bullets), verb table, port list, Hardening section added,
+  U3/U6/U10 rewritten.
 - 2026-09-23 — U0 run: 7 sonnet batches + mechanical cross-tab over 643 sessions + 8 repos;
   Evidence section above; four open decisions answered by evidence, owner ruling pending;
   plan amendments proposed (train 0.25.0, problem framing, `status [slug]`, `done` gates).

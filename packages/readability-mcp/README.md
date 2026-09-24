@@ -24,18 +24,9 @@ yarn build         # bundles to dist/index.js
 node dist/index.js # starts the stdio MCP server
 ```
 
-### Docker / Smithery
+### Smithery
 
-A `Dockerfile` (multi-stage `node:22-bookworm-slim`, runs as non-root `node`) and a `smithery.yaml` (stdio runtime) are included for container and [Smithery](https://smithery.ai) deployment:
-
-```bash
-# from the repo root — the workspace installs from root manifests
-docker build -f packages/readability-mcp/Dockerfile -t readability-mcp .
-docker run --rm -i readability-mcp            # stdio MCP server on stdin/stdout
-docker run --rm -i readability-mcp extract --format md < page.html
-```
-
-The Smithery manifest pins the `stdio` startCommand (this server ships `StdioServerTransport` only — the HTTP container runtime cannot launch it) and surfaces `READABILITY_MCP_LOG_LEVEL` as the one config knob.
+A `smithery.yaml` (stdio runtime) is included for [Smithery](https://smithery.ai) deployment. It pins the `stdio` startCommand (this server ships `StdioServerTransport` only — the HTTP container runtime cannot launch it) and surfaces `READABILITY_MCP_LOG_LEVEL` as the one config knob.
 
 ## The chrome-devtools handoff
 
@@ -335,9 +326,9 @@ cat saved.html | readability-mcp extract
 ## Development
 
 ```bash
-yarn typecheck   # tsc --noEmit
+yarn typecheck   # tsc --noEmit — from the repo root
 yarn build       # vite build -> dist/index.js
-yarn lint        # eslint
+yarn lint        # eslint — from the repo root
 yarn test        # vitest run
 yarn test:update-goldens   # UPDATE_GOLDENS=1 vitest run
 ```
