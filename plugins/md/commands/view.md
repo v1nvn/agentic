@@ -7,7 +7,7 @@ read-only — preview pane only, no edit pane — then report the result.
 
 Run this exactly:
 
-    npx -y @v1nvn/md@0.25.0 --view
+    npx -y @v1nvn/md@0.26.0 --view
 
 Report the single status line it prints (e.g. "Opened in Markdown-Viewer (link copied).") —
 the page is opened in the browser and the link is copied to the clipboard. (A
