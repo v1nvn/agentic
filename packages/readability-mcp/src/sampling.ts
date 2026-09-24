@@ -28,9 +28,9 @@ const summarizeInputShape = {
     .int()
     .min(1)
     .describe(
-      'Upper bound on the summary length in tokens, forwarded to the host as `sampling/createMessage` maxTokens. The host chooses the actual length.',
+      'Ceiling on tokens the host model may generate, forwarded as `sampling/createMessage` maxTokens. Thinking counts toward it on thinking models, so a low value truncates the summary; the system prompt already asks for a concise one.',
     )
-    .default(512),
+    .default(4096),
 } as const;
 
 const summarizeInputSchema = z.object(summarizeInputShape);

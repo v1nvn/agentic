@@ -261,7 +261,7 @@ Delegates summarization to the **host's** model via MCP `sampling/createMessage`
 | Option | Default | Description |
 | --- | --- | --- |
 | `text` *(required)* | — | Markdown or text to summarize. Passed through to the host model verbatim; the server does not parse or modify it. |
-| `maxTokens` | `512` | Upper bound on the summary length in tokens, forwarded as `sampling/createMessage` `maxTokens`. The host chooses the actual length. |
+| `maxTokens` | `4096` | Ceiling on tokens the host model may generate, forwarded as `sampling/createMessage` `maxTokens`. Thinking counts toward it on thinking models; summary length comes from the prompt. |
 
 Output shape: a single `content[0].text` entry holding the host's summary. No `structuredContent` — the server returns whatever the host model produces. A non-text response from the host (e.g. an image) surfaces as `{ "isError": true }`.
 

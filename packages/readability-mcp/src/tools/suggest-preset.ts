@@ -76,7 +76,7 @@ const excludeProposalSchema = z.object({
   exclude: z.array(z.string().min(1)).max(12),
 });
 
-const MAX_SAMPLING_TOKENS = 1024;
+const MAX_SAMPLING_TOKENS = 8192;
 
 export const SUGGEST_PRESET_TOOL_DESCRIPTION = `Ask the HOST's model to propose a site preset (detectors + selectors) for a page whose extraction was lost, then verify it: proposals are validated deterministically, applied through the real pipeline, and a converged preset is stored in memory and persisted to the local preset cache so later extractions of the same site apply it automatically. Runs a bounded two-round loop over MCP \`sampling/createMessage\` — the server embeds no model. The tool is only listed when the connected client advertises the sampling capability, and it refuses to run when the baseline extraction looks healthy: call it after \`extract\` reports gated content, a fallback extraction, a near-empty result, or visible debris such as video-player controls.`;
 
