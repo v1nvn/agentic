@@ -1,8 +1,8 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
   "name": "agentic",
-  "version": "0.26.0",
-  "description": "Seven independent Claude Code plugins — readability (MCP server), omlx (local inference MCP server), rm (reMarkable), md (Markdown-Viewer), zai (GLM usage), tokens (local token usage), statusline (status line + agent panel).",
+  "version": "0.27.0",
+  "description": "Eight independent Claude Code plugins — readability (MCP server), omlx (local inference MCP server), rm (reMarkable), md (Markdown-Viewer), zai (GLM usage), tokens (local token usage), statusline (status line + agent panel), todo (work tracking).",
   "owner": {
     "name": "v1nvn",
     "email": "v1n@outlook.com"
@@ -49,6 +49,12 @@
       "source": "./plugins/statusline",
       "category": "productivity",
       "description": "Render the status line and agent-panel rows from a component library of pickable designs."
+    },
+    {
+      "name": "todo",
+      "source": "./plugins/todo",
+      "category": "productivity",
+      "description": "Work tracking — the rules plus six verbs (init, new, run, status, cleanup, handoff) over TODO.md, progress/, references/, archive/."
     }
   ]
 }

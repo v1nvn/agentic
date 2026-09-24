@@ -1,8 +1,8 @@
 # agentic
 
-Seven Claude Code plugins, installed independently from one marketplace. The code lives
+Eight Claude Code plugins, installed independently from one marketplace. The code lives
 in eight npm packages (`@v1nvn/*`); each plugin directory is a thin manifest that runs
-its package through version-pinned `npx`.
+its package through version-pinned `npx` — except todo: manifest + skills, no package.
 
 | Plugin          | What it does                                                                                                                           | Invoke                                                |
 | --------------- | -------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
@@ -13,6 +13,7 @@ its package through version-pinned `npx`.
 | **zai**         | Query GLM Coding Plan quota and usage.                                                                                                 | `/zai:usage`                                          |
 | **tokens**      | Per-model token usage and cache hit rate from local transcripts.                                                                       | `/tokens:usage`                                       |
 | **statusline**  | Browse the design catalog and configure the status line + agent panel.                                                                | `/lab`                                 |
+| **todo**        | Work tracking — the rules plus six verbs over `TODO.md`, `progress/`, `references/`, `archive/`. Every repo carries data only.         | `/todo:run <plan>`, or a what's-next ask |
 
 `rm`, `md`, `zai`, and `tokens` run zero-token: a `UserPromptExpansion` hook intercepts the command before it reaches the model.
 
@@ -28,7 +29,7 @@ Add the marketplace, then install any subset. Each plugin stands alone.
 
 ```sh
 claude plugin marketplace add v1nvn/agentic
-claude plugin install rm@agentic        # or: readability, omlx, md, zai, tokens, statusline
+claude plugin install rm@agentic        # or: readability, omlx, md, zai, tokens, statusline, todo
 ```
 
 Start Claude Code and run the command shown above for the plugin you installed.
@@ -38,10 +39,10 @@ Start Claude Code and run the command shown above for the plugin you installed.
 The four tool CLIs run outside Claude Code too, same bins the hooks use:
 
 ```sh
-npx -y @v1nvn/zai@0.26.0        # GLM Coding Plan usage report
-npx -y @v1nvn/tokens@0.26.0     # token usage + cache hit rate from local transcripts
-npx -y @v1nvn/rm@0.26.0         # last reply → reMarkable (or a file: npx -y @v1nvn/rm@0.26.0 reply.md)
-npx -y @v1nvn/md@0.26.0         # last reply → Markdown-Viewer (--view for read-only; or a file: npx -y @v1nvn/md@0.26.0 reply.md)
+npx -y @v1nvn/zai@0.27.0        # GLM Coding Plan usage report
+npx -y @v1nvn/tokens@0.27.0     # token usage + cache hit rate from local transcripts
+npx -y @v1nvn/rm@0.27.0         # last reply → reMarkable (or a file: npx -y @v1nvn/rm@0.27.0 reply.md)
+npx -y @v1nvn/md@0.27.0         # last reply → Markdown-Viewer (--view for read-only; or a file: npx -y @v1nvn/md@0.27.0 reply.md)
 ```
 
 `rm` needs `pandoc` plus `ssh`/`scp` access to the device (`REMARKABLE_HOST`, default
@@ -54,12 +55,12 @@ the browser.
 Four commands drive both surfaces — the wizard is the default way in:
 
 ```sh
-npx -y @v1nvn/statusline@0.26.0 configure                                     # the wizard — bare, on a TTY
-npx -y @v1nvn/statusline@0.26.0 configure --model block --bar gauge --fallback=default --dry-run   # known picks — preview first
-npx -y @v1nvn/statusline@0.26.0 configure --model block --bar gauge --fallback=default             # then the write
-npx -y @v1nvn/statusline@0.26.0 catalog                                       # one line per item, * marks the live variant
-npx -y @v1nvn/statusline@0.26.0 restore                                       # both keys back to their pre-lab values
-npx -y @v1nvn/statusline@0.26.0 status                                        # rows + verdict — exit 0 healthy, 1 needs action
+npx -y @v1nvn/statusline@0.27.0 configure                                     # the wizard — bare, on a TTY
+npx -y @v1nvn/statusline@0.27.0 configure --model block --bar gauge --fallback=default --dry-run   # known picks — preview first
+npx -y @v1nvn/statusline@0.27.0 configure --model block --bar gauge --fallback=default             # then the write
+npx -y @v1nvn/statusline@0.27.0 catalog                                       # one line per item, * marks the live variant
+npx -y @v1nvn/statusline@0.27.0 restore                                       # both keys back to their pre-lab values
+npx -y @v1nvn/statusline@0.27.0 status                                        # rows + verdict — exit 0 healthy, 1 needs action
 ```
 
 `configure` touches exactly the `statusLine` and `subagentStatusLine` keys of
@@ -108,10 +109,10 @@ machine, after `claude plugin install statusline@agentic`
 
 Install: `claude plugin marketplace add v1nvn/agentic`, then
 `claude plugin install statusline@agentic`, then
-`npx -y @v1nvn/statusline@0.26.0 configure` — the wizard previews both surfaces at
+`npx -y @v1nvn/statusline@0.27.0 configure` — the wizard previews both surfaces at
 80/120/200 columns and saves.
 
-Uninstall runs `npx -y @v1nvn/statusline@0.26.0 restore` first, then uninstalls
+Uninstall runs `npx -y @v1nvn/statusline@0.27.0 restore` first, then uninstalls
 the plugin: a plain uninstall deletes the data dir with `backup.json`, and
 keys left behind keep globbing a cache dir that dies only ~14 days later — a
 blank line, delayed.
@@ -125,10 +126,11 @@ packages/                           the eight npm packages — one yarn workspac
   core/                             @v1nvn/agentic-core — last-reply + text formatting, shared by the tools
   zai/  tokens/  rm/  md/           the tool CLIs (zai-usage, tokens-report, rm-send, md-send)
   statusline/                    the catalog + configure CLI — pure TS (@v1nvn/statusline)
-plugins/                            the seven plugins — manifests + config wrappers; code only in statusline's runtime payload
+plugins/                            the eight plugins — manifests, skills, config wrappers; code only in statusline's runtime payload
   readability/  omlx/               .mcp.json (pinned npx) + plugin.json
   zai/  tokens/  rm/  md/           hooks.json (pinned npx) + plugin.json + commands/
   statusline/                   root SKILL.md + the bash runtime (see statusline above)
+  todo/                         plugin.json + skills/ — the rules and six verbs, no package
 ```
 
 Versions ride one lockstep train: `.claude-plugin/marketplace.json` is the source, and
