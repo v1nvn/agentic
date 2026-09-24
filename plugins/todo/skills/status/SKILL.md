@@ -4,4 +4,16 @@ description: Read-only projection of work tracking — the board (no arg) or one
 argument-hint: [plan]
 ---
 
-Read-only projection — no arg: the board (pinned top plus in-flight threads, next step read off each thread file, never the index alone); with `[plan]`: that thread's state · next step · live log. Scaffold: the full procedure is not written yet.
+Load `/todo:rules` first — the index and thread-file shapes this projection reads live there.
+
+Read-only: write no file, mint no state. No arg answers the board; `[plan]` answers one
+thread.
+
+- **The board.** Read `TODO.md` for its lines — the repo's pinned top first, where its
+  deltas say one exists. Then read every line's own thread file and take the next step
+  from the file, never from the index line: a stale line has answered wrong in the
+  wild. Where a file and its line disagree, the file wins and the disagreement is
+  named in the answer. A line with no file is an unstarted thread — say so.
+- **One thread.** Resolve `[plan]` to its `progress/<slug>.md` — a slug, a path, or a
+  title the index's pointers match — and report its current state, its next step, and
+  its live log, which may be empty. No file for it: say so and stop.
