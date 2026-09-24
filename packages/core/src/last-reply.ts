@@ -34,6 +34,11 @@ function textBlocks(entry: TranscriptEntry): ContentBlock[] | undefined {
   return blocks.length > 0 ? blocks : undefined;
 }
 
+export function claudeProjectsDir(): string {
+  const claudeDir = process.env.CLAUDE_DIR ?? join(homedir(), '.claude');
+  return join(claudeDir, 'projects');
+}
+
 /**
  * The last assistant text reply from a Claude Code session, reproducing Claude
  * Code's `/copy` byte-for-byte: the last assistant entry that contains a
@@ -44,14 +49,13 @@ function textBlocks(entry: TranscriptEntry): ContentBlock[] | undefined {
  *   nothing to use the newest session for the current project.
  */
 export function lastReply(arg?: string): string {
-  const claudeDir = process.env.CLAUDE_DIR ?? join(homedir(), '.claude');
   // Claude Code keys transcripts under the project root with "/" → "-".
   // Prefer $CLAUDE_PROJECT_DIR (exported to hook processes) over $PWD.
   const proj = (process.env.CLAUDE_PROJECT_DIR ?? process.cwd()).replaceAll(
     '/',
     '-',
   );
-  const projDir = join(claudeDir, 'projects', proj);
+  const projDir = join(claudeProjectsDir(), proj);
 
   let file: string | undefined;
   if (arg !== undefined) {

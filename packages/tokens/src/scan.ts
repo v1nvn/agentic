@@ -2,14 +2,15 @@
  * Transcript token scanner.
  *
  * Claude Code persists every assistant message's `usage` block to session
- * transcripts at ~/.claude/projects/<project-dir>/<session>.jsonl — for every
- * profile (default claude, claudez, …), interactive and headless alike. This
+ * transcripts at $CLAUDE_DIR/projects/<project-dir>/<session>.jsonl
+ * (default ~/.claude) — for every profile (default claude, claudez, …),
+ * interactive and headless alike. This
  * scans those files and aggregates token usage per model and per local day:
  * input (uncached), output, cacheRead, cacheCreation, call count.
  */
 
+import { claudeProjectsDir } from '@v1nvn/agentic-core';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
-import { homedir } from 'node:os';
 import { join } from 'node:path';
 
 const DAYS = 7;
@@ -91,7 +92,7 @@ export function scan({
   projectsDir,
   now = new Date(),
 }: { now?: Date; projectsDir?: string } = {}): ScanResult {
-  const dir = projectsDir ?? join(homedir(), '.claude', 'projects');
+  const dir = projectsDir ?? claudeProjectsDir();
   if (!existsSync(dir)) {
     throw new Error(`no transcripts directory at ${dir}`);
   }

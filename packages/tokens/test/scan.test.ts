@@ -81,4 +81,30 @@ describe('scan', () => {
       'no transcripts directory at /nonexistent/projects',
     );
   });
+
+  it('resolves the default root through $CLAUDE_DIR, not $HOME', () => {
+    const claudeDir = mkdtempSync(join(tmpdir(), 'tokens-claude-dir-'));
+    const homeDir = mkdtempSync(join(tmpdir(), 'tokens-home-'));
+    const plant = (root: string, model: string): void => {
+      mkdirSync(join(root, 'projects', '-probe'), { recursive: true });
+      writeFileSync(
+        join(root, 'projects', '-probe', 's.jsonl'),
+        JSON.stringify(usage(model, { input_tokens: 42 }, '2026-08-15T04:00:00Z')) + '\n',
+      );
+    };
+    plant(claudeDir, 'glm-from-claude-dir');
+    plant(homeDir, 'glm-from-home');
+    const realHome = process.env.HOME;
+    process.env.CLAUDE_DIR = claudeDir;
+    process.env.HOME = homeDir;
+    try {
+      const result = scan({ now });
+      expect(result.models.map((m) => m.model)).toEqual(['glm-from-claude-dir']);
+    } finally {
+      process.env.HOME = realHome;
+      delete process.env.CLAUDE_DIR;
+      rmSync(claudeDir, { recursive: true, force: true });
+      rmSync(homeDir, { recursive: true, force: true });
+    }
+  });
 });
