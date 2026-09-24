@@ -1,40 +1,30 @@
 #!/usr/bin/env node
-// The repo version lives in .claude-plugin/marketplace.json and every package
-// manifest, plugin manifest, and npx pin — config files and .md surfaces alike —
-// mirrors it (lockstep release train: release.yml publishes every package on
-// it). One command bumps all of them; CI runs --check so a missed mirror,
-// stale pin, name fragment, or unpinned registry invocation fails the build.
-import { readFileSync, writeFileSync } from 'node:fs';
+// The repo version lives in .claude-plugin/marketplace.json; every package
+// manifest, plugin manifest, and npx pin mirrors it (release.yml publishes
+// every package on the one train). CI runs --check so a missed mirror, stale
+// pin, name fragment, or unpinned registry invocation fails the build.
+import { globSync, readFileSync, writeFileSync } from 'node:fs';
 
 const SOURCE = '.claude-plugin/marketplace.json';
-const MIRRORS = [
-  'packages/readability-mcp/package.json',
-  'packages/omlx-mcp/package.json',
-  'packages/core/package.json',
-  'packages/zai/package.json',
-  'packages/tokens/package.json',
-  'packages/rm/package.json',
-  'packages/md/package.json',
-  'packages/statusline/package.json',
-  'plugins/readability/.claude-plugin/plugin.json',
-  'plugins/omlx/.claude-plugin/plugin.json',
-  'plugins/rm/.claude-plugin/plugin.json',
-  'plugins/md/.claude-plugin/plugin.json',
-  'plugins/zai/.claude-plugin/plugin.json',
-  'plugins/tokens/.claude-plugin/plugin.json',
-  'plugins/statusline/.claude-plugin/plugin.json',
-];
+
+// Discovery by glob, sorted for deterministic output — a manifest or config
+// joining the tree rides the train with zero script edits; a pattern that
+// matches nothing is not an error.
+function discover(patterns) {
+  return patterns.flatMap(pattern => globSync(pattern)).sort();
+}
+
+const MIRRORS = discover([
+  'packages/*/package.json',
+  'plugins/*/.claude-plugin/plugin.json',
+]);
 
 // Plugin configs invoke the published bins via npx; every @v1nvn/<pkg>@<version>
 // pin must ride the train with everything else.
-const PINNED_CONFIGS = [
-  'plugins/readability/.mcp.json',
-  'plugins/omlx/.mcp.json',
-  'plugins/rm/hooks/hooks.json',
-  'plugins/md/hooks/hooks.json',
-  'plugins/zai/hooks/hooks.json',
-  'plugins/tokens/hooks/hooks.json',
-];
+const PINNED_CONFIGS = discover([
+  'plugins/*/.mcp.json',
+  'plugins/*/hooks/hooks.json',
+]);
 
 // Skill bodies, hook-fallback command shells, and READMEs teach
 // `npx -y @v1nvn/<pkg>` invocations. An unpinned one resolves "latest"
