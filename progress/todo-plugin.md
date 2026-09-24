@@ -96,8 +96,9 @@ can drift. Supersedes `archive/workflow-plugin.md` (2026-09-22): of its three sk
 - **Manifest + markdown only — no code, no runtime payload.** Skills precedent:
   `plugins/readability/` (`skills/read-url/SKILL.md`) — the layout precedent for both
   the rules skill and the six verbs.
-  No exception to the CLAUDE.md layout rule. Rides the next minor train: 0.25.0 → 0.26.0
-  (0.25.0 shipped after the 2026-09-23 verification; re-verified 2026-09-24).
+  No exception to the CLAUDE.md layout rule. Rides the next minor train: 0.26.0 → 0.27.0
+  (0.26.0 shipped as d2e627f; owner-ruled 2026-09-24 when the plan's 0.25.0 anchor went
+  stale).
 
 ## Design
 
@@ -240,7 +241,7 @@ rules (a PR); the six push-repos take one direct commit each on their default br
    (board without arg, single thread with `[plan]`).
 4. **Register + bump + docs** — marketplace.json entry (name `todo`, source
    `./plugins/todo`, category `productivity`, one-line description); bump the train
-   0.25.0 → 0.26.0 via `set-version.mjs`; rewrite every count and shape sentence:
+   0.26.0 → 0.27.0 via `set-version.mjs`; rewrite every count and shape sentence:
    `README.md` (opener count, plugin-table row, layout tree), `CLAUDE.md` (header
    enumeration, Layout, "Seven independent plugins" bullet). Close: `set-version.mjs
    --check` passes; `grep -in seven README.md CLAUDE.md .claude-plugin/marketplace.json`
@@ -272,7 +273,7 @@ rules (a PR); the six push-repos take one direct commit each on their default br
    `explain`, `hinglish`; `grep -rn "run-plan\|handoff\|tracking-template\|sync-tracking"
    ~/.claude/CLAUDE.md ~/.claude/settings.json` is quiet; `/todo:run` still resolves in a
    fresh session; `/run-plan` does not.
-10. **Ship + close** — merge the agentic PR, confirm release.yml cuts v0.26.0 (`gh release
+10. **Ship + close** — merge the agentic PR, confirm release.yml cuts v0.27.0 (`gh release
     view`), close this thread (deferral gate first). Close: release visible; final
     veto report per the run's Close section. **Pause point** — the run opens the PR and
     stops: the merge is the owner's (a run never merges its own PR); U9's fresh-session
@@ -357,6 +358,8 @@ Method: regex nets → per-hit transcript reads (`/tmp/tracking-survey/probe.py`
   sweep ordered (owner, 2026-09-24) — U3's opening step.
 
 **Log.**
+- 2026-09-24 — owner rulings mid-run: strictly no deviations (Hardening carries it);
+  U4 bumps 0.26.0 → 0.27.0 (anchors amended in place); U1's three coherence picks kept.
 - 2026-09-24 — owner closed both opens: all four hardening clauses ruled in (markers
   updated); full 87-start sweep ordered before U3 — Open section dissolved, sample
   findings moved to Evidence, sweep made U3's opening step. Plan is execution-ready:
