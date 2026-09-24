@@ -51,8 +51,6 @@ const MD_SURFACES = [
   'plugins/md/commands/view.md',
   'plugins/zai/commands/usage.md',
   'plugins/tokens/commands/usage.md',
-  'plugins/zai/README.md',
-  'plugins/tokens/README.md',
   'packages/zai/README.md',
   'packages/tokens/README.md',
   'packages/rm/README.md',

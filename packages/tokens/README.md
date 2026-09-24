@@ -30,7 +30,15 @@ npx -y @v1nvn/tokens@0.25.0
 | `npx -y @v1nvn/tokens@0.25.0` | per-model table: input/output/cache-write/cache-read tokens, cache hit rate, 24 h window + 7-day daily totals |
 
 Works for every profile writing to `~/.claude/projects` — default `claude`,
-`claudez`, headless `claude -p` runs alike.
+`claudez`, headless `claude -p` runs alike. Files older than the 7-day window
+are skipped by mtime, keeping the scan under a second even with a large
+transcript history.
+
+**Semantics:** `input_tokens` is the *uncached* input only; the modeled context
+is `input + cacheRead + cacheCreation`. Hit rate =
+`cacheRead / (input + cacheRead + cacheCreation)`. On the GLM Coding Plan,
+cached tokens count fully against quota, so a high hit rate saves latency, not
+quota.
 
 ## Develop
 

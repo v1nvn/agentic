@@ -27,12 +27,26 @@ npx -y @v1nvn/zai@0.25.0
 |---|---|
 | `npx -y @v1nvn/zai@0.25.0` | usage report — models, quota window, remaining balance |
 | `npx -y @v1nvn/zai@0.25.0 --auth-token TOKEN` | same, key on the command line (visible in `ps`) |
+| `npx -y @v1nvn/zai@0.25.0 --auth-token=TOKEN` | `=` form — zsh quoting-safe |
 | `npx -y @v1nvn/zai@0.25.0 --base-url URL` | another GLM endpoint (default `api.z.ai`) |
 
-Auth resolves in order: `--auth-token` → `ZAI_AUTH_TOKEN` →
-`ANTHROPIC_AUTH_TOKEN`. The key talks to `api.z.ai` — a Claude proxy var
-pointing elsewhere is not zai config; set `ZAI_AUTH_TOKEN`. The base URL
-follows `--base-url` → `ZAI_BASE_URL` → default `api.z.ai`.
+Each setting takes the first source that provides it:
+
+| Setting | Flag | zai env | Claude Code env | Default |
+|---|---|---|---|---|
+| API key | `--auth-token` | `ZAI_AUTH_TOKEN` | `ANTHROPIC_AUTH_TOKEN` ¹ | — required |
+| Base URL | `--base-url` | `ZAI_BASE_URL` | `ANTHROPIC_BASE_URL` ¹ | `https://api.z.ai` |
+
+¹ Inherited only when the resolved base URL names a GLM host (`api.z.ai`,
+`open.bigmodel.cn`, `dev.bigmodel.cn`) — that is what proves the token belongs
+to a GLM Coding Plan. Claude Code routed elsewhere (plain Anthropic, another
+proxy) is not a zai configuration; set `ZAI_AUTH_TOKEN`. Bigmodel accounts
+point the base URL at their host; the monitor paths are identical
+(`ZAI_BASE_URL=https://open.bigmodel.cn`). The hook reads the same env from
+the Claude Code process; flags are a CLI affordance — `hooks.json` is static.
+
+The API labels every bucket in Beijing time (UTC+8); the report shifts each
+timestamp to your local zone for display.
 
 ## Develop
 
