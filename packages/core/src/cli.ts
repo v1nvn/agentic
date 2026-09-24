@@ -4,10 +4,11 @@ import { emitHookBlock, readHookEvent } from './hook.js';
 
 import type { Command } from 'commander';
 
-export function parseQuietly(
+export function parseQuietly<T = never>(
   program: Command,
   args: readonly string[],
-): Command | undefined {
+  recover?: (err: unknown) => T | undefined,
+): Command | T | undefined {
   try {
     program
       .allowExcessArguments(false)
@@ -15,8 +16,8 @@ export function parseQuietly(
       .configureOutput({ writeOut: () => undefined, writeErr: () => undefined })
       .parse([...args], { from: 'user' });
     return program;
-  } catch {
-    return undefined;
+  } catch (err) {
+    return recover?.(err);
   }
 }
 

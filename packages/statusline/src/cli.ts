@@ -1,3 +1,4 @@
+import { parseQuietly } from '@v1nvn/agentic-core';
 import { Command, Option } from 'commander';
 
 import pkg from '../package.json' with { type: 'json' };
@@ -147,17 +148,14 @@ export function parseArgs(args: readonly string[]): ParsedArgs | undefined {
   const program = buildProgram((command, options) => {
     chosen = { command, options };
   });
-  try {
-    program
-      .allowExcessArguments(false)
-      .exitOverride()
-      .configureOutput(QUIET)
-      .parse([...args], { from: 'user' });
-  } catch (e) {
-    if (e instanceof HelpRequested) {
-      return { version: false, help: e.command };
-    }
+  const parsed = parseQuietly(program, args, err =>
+    err instanceof HelpRequested ? { help: err.command } : undefined,
+  );
+  if (parsed === undefined) {
     return undefined;
+  }
+  if (!(parsed instanceof Command)) {
+    return { version: false, help: parsed.help };
   }
   const { version } = program.opts<{ version: boolean | undefined }>();
   if (version) {
