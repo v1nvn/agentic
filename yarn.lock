@@ -764,6 +764,7 @@ __metadata:
   resolution: "@v1nvn/omlx-mcp@workspace:packages/omlx-mcp"
   dependencies:
     "@modelcontextprotocol/sdk": "npm:^1.29.0"
+    "@v1nvn/agentic-core": "workspace:^"
     vite: "npm:^8.1.4"
     vite-node: "npm:^6.0.0"
     vitest: "npm:^4.1.10"

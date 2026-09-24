@@ -1,3 +1,5 @@
+import type { LogLevel } from '@v1nvn/agentic-core';
+
 import pkg from '../package.json' with { type: 'json' };
 
 export interface ServerConfig {
@@ -9,7 +11,7 @@ export interface ServerConfig {
   readonly version: string;
 }
 
-export type LogLevel = 'debug' | 'error' | 'info' | 'silent' | 'warn';
+export type { LogLevel };
 
 const VALID_LEVELS: readonly LogLevel[] = [
   'debug',
@@ -18,14 +20,6 @@ const VALID_LEVELS: readonly LogLevel[] = [
   'error',
   'silent',
 ];
-
-const LEVEL_RANK: Record<LogLevel, number> = {
-  debug: 10,
-  info: 20,
-  warn: 30,
-  error: 40,
-  silent: Number.MAX_SAFE_INTEGER,
-};
 
 const DEFAULT_LOG_LEVEL: LogLevel = 'info';
 
@@ -69,11 +63,4 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): ServerConfig {
     instructions: SERVER_INSTRUCTIONS,
     logLevel: resolveLogLevel(env),
   };
-}
-
-export function levelEnabled(
-  config: ServerConfig,
-  level: Exclude<LogLevel, 'silent'>,
-): boolean {
-  return LEVEL_RANK[level] >= LEVEL_RANK[config.logLevel];
 }

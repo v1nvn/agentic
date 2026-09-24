@@ -4,6 +4,7 @@
 // the whole process and only the tool registrations are swapped. Never bundled
 // into dist (build entry is src/index.ts). Diagnostics go to stderr.
 
+import { shutdownOnSignals, watchWithReload } from '@v1nvn/agentic-core';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { dirname, resolve } from 'node:path';
@@ -26,14 +27,6 @@ interface RuntimeModule {
 const here = dirname(fileURLToPath(import.meta.url));
 const root = resolve(here, '..');
 const serverEntry = resolve(here, 'server.ts');
-
-const RELOAD_DEBOUNCE_MS = 150;
-
-const ignoredSegments = ['/node_modules/', '/dist/', '/.git/', '/coverage/'];
-
-function shouldReload(file: string): boolean {
-  return ignoredSegments.every(seg => !file.includes(seg));
-}
 
 async function main(): Promise<void> {
   const vite = await createViteServer({
@@ -61,14 +54,6 @@ async function main(): Promise<void> {
   const transport = new StdioServerTransport();
   await server.connect(transport);
 
-  // Serialized via a promise chain: concurrent saves never overlap, and a
-  // mid-reload save still produces a follow-up.
-  let reloadChain: Promise<void> = Promise.resolve();
-
-  function scheduleReload(): void {
-    reloadChain = reloadChain.then(runOneReload);
-  }
-
   async function runOneReload(): Promise<void> {
     try {
       runner.evaluatedModules.clear();
@@ -85,39 +70,11 @@ async function main(): Promise<void> {
     }
   }
 
-  let timer: NodeJS.Timeout | undefined;
-  vite.watcher.on('change', file => {
-    if (!shouldReload(file)) {
-      return;
-    }
-    if (timer) {
-      clearTimeout(timer);
-    }
-    timer = setTimeout(() => {
-      timer = undefined;
-      scheduleReload();
-    }, RELOAD_DEBOUNCE_MS);
-  });
+  watchWithReload(vite, runOneReload);
 
   logger.info('[reload] ready');
 
-  async function shutdown(): Promise<void> {
-    try {
-      await server.close();
-    } catch {
-      // best-effort during shutdown
-    }
-    try {
-      await vite.close();
-    } catch {
-      // best-effort during shutdown
-    }
-    // Force-exit on signal; the n/no-process-exit rule targets libraries.
-    // eslint-disable-next-line n/no-process-exit
-    process.exit(0);
-  }
-  process.on('SIGINT', () => void shutdown());
-  process.on('SIGTERM', () => void shutdown());
+  shutdownOnSignals([server, vite]);
 }
 
 main().catch((error: unknown) => {
