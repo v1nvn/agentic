@@ -91,8 +91,6 @@ time, so it speaks only to that model.
 
 ## References
 
-- **`references/tracking.md`** — the work-tracking rules. Read before touching `TODO.md` or
-  any `progress/` file.
 - **`references/npm-publishing.md`** — the release train, keyless publishing, and the one-time
   manual bootstrap a never-published package name needs. Read before cutting a release or
   adding a package.

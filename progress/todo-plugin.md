@@ -1,6 +1,6 @@
 # Todo plugin — all of work tracking in one place
 
-> Rules: ../references/tracking.md · Index: ../TODO.md
+> Rules: /todo:rules · Index: ../TODO.md
 
 **Run:** opus
 

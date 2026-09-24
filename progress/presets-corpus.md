@@ -1,6 +1,6 @@
 # Site presets — real-world corpus and backlog
 
-> Rules: ../references/tracking.md · Index: ../TODO.md
+> Rules: /todo:rules · Index: ../TODO.md
 
 **Goal.** Extraction that serves the daily workload — stonks research on the
 Indian financial web — with per-site presets where generic extraction loses.
