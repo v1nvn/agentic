@@ -1,0 +1,6 @@
+{
+  "name": "todo",
+  "version": "0.0.0",
+  "description": "Work tracking — the rules plus six verbs (init, new, run, status, cleanup, handoff) over TODO.md, progress/, references/, archive/.",
+  "author": { "name": "v1nvn", "email": "v1n@outlook.com" }
+}
