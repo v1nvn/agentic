@@ -20,7 +20,10 @@
     "local-llm",
     "model-context-protocol"
   ],
-  "author": "v1nvn",
+  "author": {
+    "name": "v1nvn",
+    "email": "v1n@outlook.com"
+  },
   "license": "MIT",
   "repository": {
     "type": "git",
