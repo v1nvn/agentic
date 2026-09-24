@@ -256,8 +256,9 @@ rules (a PR); the six push-repos take one direct commit each on their default br
 6. **Migrate agentic** (hand fold) — deltas are currently empty, so this is the
    clean first fold: header repoint, back-refs in `progress/*.md`, delete
    `references/tracking.md`, drop the References line in `CLAUDE.md`. This file's own
-   back-ref rewrites in the same commit. Close: `grep -rn "references/tracking" .`
-   (excluding `archive/`) is quiet.
+   back-ref rewrites in the same commit. Close: `grep -rn --exclude-dir=.git
+   --exclude-dir=node_modules --exclude-dir=archive --exclude=todo-plugin.md
+   "references/tracking" .` is quiet (the thread's own prose names the file it deletes).
 7. **Migrate testril** — the pilot with the biggest deltas, via its handover rules (branch
    + PR; the run never merges). Close: `## Tracking — this repo` at `TODO.md` top carrying
    every delta; `references/tracking.md` gone (its other `references/` files untouched);
