@@ -52,15 +52,6 @@ export interface ChatCompletionRequest {
   temperature?: number;
 }
 
-export interface ChatCompletionRequest {
-  max_tokens: number;
-  messages: ChatMessage[];
-  model: string;
-  reasoning_effort?: string;
-  response_format?: ResponseFormat;
-  temperature?: number;
-}
-
 export interface Completion {
   reasoningFallback: boolean;
   text: string;
