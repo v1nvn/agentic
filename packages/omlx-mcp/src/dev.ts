@@ -4,9 +4,9 @@
 // the whole process and only the tool registrations are swapped. Never bundled
 // into dist (build entry is src/index.ts). Diagnostics go to stderr.
 
-import { shutdownOnSignals, watchWithReload } from '@v1nvn/agentic-core';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { shutdownOnSignals, watchWithReload } from '@v1nvn/agentic-core';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {

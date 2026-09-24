@@ -1,6 +1,6 @@
-import type { LogLevel } from '@v1nvn/agentic-core';
-
 import pkg from '../package.json' with { type: 'json' };
+
+import type { LogLevel } from '@v1nvn/agentic-core';
 
 export interface ServerConfig {
   readonly description: string;

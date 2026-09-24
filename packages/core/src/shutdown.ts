@@ -3,7 +3,7 @@ export function shutdownOnSignals(
   closables: readonly { close(): Promise<unknown> }[],
   signals: readonly NodeJS.Signals[] = ['SIGINT', 'SIGTERM'],
 ): void {
-  const shutdown = (): void => {
+  function shutdown(): void {
     void closables
       .reduce(
         (acc: Promise<void>, closable) =>
@@ -13,6 +13,7 @@ export function shutdownOnSignals(
             } catch {
               // best-effort; exiting regardless
             }
+            return;
           }),
         Promise.resolve(),
       )
@@ -21,7 +22,7 @@ export function shutdownOnSignals(
         // eslint-disable-next-line n/no-process-exit
         process.exit(0);
       });
-  };
+  }
   for (const signal of signals) {
     process.on(signal, shutdown);
   }
