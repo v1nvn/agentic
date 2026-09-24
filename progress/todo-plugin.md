@@ -144,6 +144,9 @@ Port list for `skills/rules/SKILL.md` from `~/.claude/tracking-template.md`:
 
 ## Hardening `/todo:run` — the port is not verbatim
 
+- **Strictly no deviations** *(owner-ruled, 2026-09-24, mid-run)* — the run deviates from
+  nothing this plan's text does not already name: any pick, mechanical or not, stops the
+  run and is posted to the owner. No accept-and-log.
 - **Stop-and-ask on impactful deviations** *(owner-ruled, 2026-09-24)* — the model never
   rules on a big deviation alone. Scope changes, contract/semantic changes, anything the
   plan didn't name → post it and wait. Butterfly effect: a small early deviation compounds
