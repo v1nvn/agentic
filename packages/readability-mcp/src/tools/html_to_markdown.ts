@@ -1,7 +1,7 @@
 import type { SanitizationDiagnostics } from '../pipeline/context.js';
 import type { ToolHandle } from '../server.js';
 
-import { toErrorResult } from '../errors.js';
+import { describeError, toErrorResult } from '../errors.js';
 import { logger } from '../logger.js';
 import { formatPayload } from '../output/format.js';
 import { buildDocument } from '../pipeline/dom.js';
@@ -175,11 +175,7 @@ export function htmlToMarkdownHandler(args: unknown): CallToolResult {
   try {
     return htmlToMarkdown(args);
   } catch (err) {
-    logger.error(
-      `html_to_markdown failed: ${
-        err instanceof Error ? err.message : String(err)
-      }`,
-    );
+    logger.error(`html_to_markdown failed: ${describeError(err)}`);
     return toErrorResult(err);
   }
 }

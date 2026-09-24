@@ -3,6 +3,7 @@ import { homedir } from 'node:os';
 import { join } from 'node:path';
 
 import pkg from '../package.json' with { type: 'json' };
+import { describeError } from './errors.js';
 import { logger } from './logger.js';
 
 export interface OmlxConfig {
@@ -75,18 +76,14 @@ function readSettings(path: string): OmlxSettings | undefined {
     raw = readFileSync(path, 'utf8');
   } catch (err) {
     if ((err as NodeJS.ErrnoException).code !== 'ENOENT') {
-      logger.error(
-        `unreadable settings at ${path}: ${err instanceof Error ? err.message : String(err)}`,
-      );
+      logger.error(`unreadable settings at ${path}: ${describeError(err)}`);
     }
     return undefined;
   }
   try {
     return JSON.parse(raw) as OmlxSettings;
   } catch (err) {
-    logger.error(
-      `unparseable settings at ${path}: ${err instanceof Error ? err.message : String(err)}`,
-    );
+    logger.error(`unparseable settings at ${path}: ${describeError(err)}`);
     return undefined;
   }
 }

@@ -1,7 +1,7 @@
 import type { Metadata } from '../pipeline/context.js';
 import type { ToolHandle } from '../server.js';
 
-import { toErrorResult } from '../errors.js';
+import { describeError, toErrorResult } from '../errors.js';
 import { logger } from '../logger.js';
 import { buildDocument } from '../pipeline/dom.js';
 import { normalizeDocument } from '../pipeline/normalize.js';
@@ -95,9 +95,7 @@ export function extractMetadataHandler(args: unknown): CallToolResult {
   try {
     return extractMetadataDocument(args);
   } catch (err) {
-    logger.error(
-      `extract_metadata failed: ${err instanceof Error ? err.message : String(err)}`,
-    );
+    logger.error(`extract_metadata failed: ${describeError(err)}`);
     return toErrorResult(err);
   }
 }

@@ -15,6 +15,7 @@ import {
 
 import type { PresetCacheReport } from './preset-cache.js';
 
+import { describeError } from './errors.js';
 import { logger } from './logger.js';
 
 // Loaded through Vite (not imported statically) so the runner controls its cache
@@ -110,9 +111,7 @@ async function main(): Promise<void> {
       capabilityGatedHandles = next.registerCapabilityGatedTools(server);
       logger.info('[reload] success');
     } catch (err) {
-      logger.error(
-        `[reload] failed: ${err instanceof Error ? err.message : String(err)}`,
-      );
+      logger.error(`[reload] failed: ${describeError(err)}`);
     }
   }
 
@@ -152,9 +151,7 @@ async function main(): Promise<void> {
 }
 
 main().catch((error: unknown) => {
-  logger.error(
-    `dev failed: ${error instanceof Error ? error.message : String(error)}`,
-  );
+  logger.error(`dev failed: ${describeError(error)}`);
   // eslint-disable-next-line n/no-process-exit
   process.exit(1);
 });

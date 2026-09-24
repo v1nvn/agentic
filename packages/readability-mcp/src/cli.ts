@@ -1,6 +1,7 @@
 import { parseQuietly } from '@v1nvn/agentic-core';
 import { Command, InvalidArgumentError, Option } from 'commander';
 
+import { describeError } from './errors.js';
 import { extractArticleFromHtml } from './tools/extract.js';
 import { readHtmlFile } from './tools/html-source.js';
 
@@ -110,9 +111,7 @@ export async function runCli(argv: readonly string[]): Promise<number> {
     }
     return 0;
   } catch (err) {
-    process.stderr.write(
-      `${err instanceof Error ? err.message : String(err)}\n`,
-    );
+    process.stderr.write(`${describeError(err)}\n`);
     return 1;
   }
 }

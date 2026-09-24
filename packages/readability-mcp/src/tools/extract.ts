@@ -1,7 +1,7 @@
 import type { SanitizationDiagnostics } from '../pipeline/context.js';
 import type { ToolHandle } from '../server.js';
 
-import { ExtractionError, toErrorResult } from '../errors.js';
+import { describeError, ExtractionError, toErrorResult } from '../errors.js';
 import { logger } from '../logger.js';
 import { formatPayload } from '../output/format.js';
 import { buildDocument } from '../pipeline/dom.js';
@@ -364,9 +364,7 @@ export function extractHandler(args: unknown): CallToolResult {
   try {
     return extractArticle(args);
   } catch (err) {
-    logger.error(
-      `extract failed: ${err instanceof Error ? err.message : String(err)}`,
-    );
+    logger.error(`extract failed: ${describeError(err)}`);
     return toErrorResult(err);
   }
 }

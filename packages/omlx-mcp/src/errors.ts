@@ -10,7 +10,7 @@ export class OmlxError extends Error {
   }
 }
 
-function describeError(err: unknown): string {
+export function describeError(err: unknown): string {
   if (err instanceof Error) {
     return err.message;
   }

@@ -18,6 +18,7 @@ import { z } from 'zod';
 
 import type { SitePreset } from './policy/presets.js';
 
+import { describeError } from './errors.js';
 import { logger } from './logger.js';
 import { addPreset, normalizeSiteKey } from './policy/presets.js';
 
@@ -143,11 +144,7 @@ function pruneRanked(
       unlinkSync(join(dir, name));
       pruned++;
     } catch (err) {
-      logger.warn(
-        `could not prune preset file ${name}: ${
-          err instanceof Error ? err.message : String(err)
-        }`,
-      );
+      logger.warn(`could not prune preset file ${name}: ${describeError(err)}`);
     }
   }
   return pruned;
@@ -189,7 +186,7 @@ export function savePreset(
   } catch (err) {
     return {
       persisted: false,
-      reason: err instanceof Error ? err.message : String(err),
+      reason: describeError(err),
     };
   }
   const over = rankPresetFiles(
@@ -206,9 +203,7 @@ function loadPresetFile(path: string): boolean {
     parsed = JSON.parse(readFileSync(path, 'utf8')) as unknown;
   } catch (err) {
     logger.warn(
-      `${path}: not readable JSON (${
-        err instanceof Error ? err.message : String(err)
-      }), preset skipped`,
+      `${path}: not readable JSON (${describeError(err)}), preset skipped`,
     );
     return false;
   }

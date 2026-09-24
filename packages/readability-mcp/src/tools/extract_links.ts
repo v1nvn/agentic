@@ -1,6 +1,6 @@
 import type { ToolHandle } from '../server.js';
 
-import { toErrorResult } from '../errors.js';
+import { describeError, toErrorResult } from '../errors.js';
 import { logger } from '../logger.js';
 import { buildDocument } from '../pipeline/dom.js';
 import { applySelectors } from '../pipeline/normalize.js';
@@ -133,9 +133,7 @@ export function extractLinksHandler(args: unknown): CallToolResult {
   try {
     return extractLinks(args);
   } catch (err) {
-    logger.error(
-      `extract_links failed: ${err instanceof Error ? err.message : String(err)}`,
-    );
+    logger.error(`extract_links failed: ${describeError(err)}`);
     return toErrorResult(err);
   }
 }

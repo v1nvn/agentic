@@ -1,6 +1,6 @@
 import type { ToolHandle } from '../server.js';
 
-import { ExtractionError, toErrorResult } from '../errors.js';
+import { describeError, ExtractionError, toErrorResult } from '../errors.js';
 import { logger } from '../logger.js';
 import { buildDocument } from '../pipeline/dom.js';
 import { normalizeDocument } from '../pipeline/normalize.js';
@@ -73,11 +73,7 @@ export function extractSectionHandler(args: unknown): CallToolResult {
   try {
     return extractSection(args);
   } catch (err) {
-    logger.error(
-      `extract_section failed: ${
-        err instanceof Error ? err.message : String(err)
-      }`,
-    );
+    logger.error(`extract_section failed: ${describeError(err)}`);
     return toErrorResult(err);
   }
 }

@@ -3,7 +3,7 @@ import { z } from 'zod';
 import type { ExplainReport } from '../policy/explain.js';
 import type { ToolHandle } from '../server.js';
 
-import { toErrorResult } from '../errors.js';
+import { describeError, toErrorResult } from '../errors.js';
 import { logger } from '../logger.js';
 import { buildExplainReport } from '../policy/explain.js';
 import { readHtmlFile } from './html-source.js';
@@ -291,9 +291,7 @@ export function explainHandler(args: unknown): CallToolResult {
   try {
     return explain(args);
   } catch (err) {
-    logger.error(
-      `explain failed: ${err instanceof Error ? err.message : String(err)}`,
-    );
+    logger.error(`explain failed: ${describeError(err)}`);
     return toErrorResult(err);
   }
 }

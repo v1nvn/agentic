@@ -3,7 +3,7 @@ import { z } from 'zod';
 import type { ToolHandle } from '../server.js';
 
 import { loadConfig, type ServerConfig } from '../config.js';
-import { toErrorResult } from '../errors.js';
+import { describeError, toErrorResult } from '../errors.js';
 import { logger } from '../logger.js';
 import { omlxPost } from '../omlx.js';
 import {
@@ -105,9 +105,7 @@ export function chatCompletion(
 
 export function askHandler(args: unknown): Promise<CallToolResult> {
   return runAsk(args).catch((err: unknown) => {
-    logger.error(
-      `ask failed: ${err instanceof Error ? err.message : String(err)}`,
-    );
+    logger.error(`ask failed: ${describeError(err)}`);
     return toErrorResult(err);
   });
 }

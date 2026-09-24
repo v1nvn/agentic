@@ -3,7 +3,7 @@ import { z } from 'zod';
 import type { ToolHandle } from '../server.js';
 
 import { loadConfig } from '../config.js';
-import { OmlxError, toErrorResult } from '../errors.js';
+import { describeError, OmlxError, toErrorResult } from '../errors.js';
 import { logger } from '../logger.js';
 import { askInputShape, chatCompletion } from './ask.js';
 import {
@@ -77,9 +77,7 @@ export async function runAskStructured(
 
 export function askStructuredHandler(args: unknown): Promise<CallToolResult> {
   return runAskStructured(args).catch((err: unknown) => {
-    logger.error(
-      `ask_structured failed: ${err instanceof Error ? err.message : String(err)}`,
-    );
+    logger.error(`ask_structured failed: ${describeError(err)}`);
     return toErrorResult(err);
   });
 }

@@ -6,7 +6,7 @@ import type { SelectorViolation } from '../policy/selector-lint.js';
 import type { ToolHandle } from '../server.js';
 import type { StructuredContent } from './output-schema.js';
 
-import { toErrorResult } from '../errors.js';
+import { describeError, toErrorResult } from '../errors.js';
 import { sampleJson, SuggestParseError } from '../host-sampling.js';
 import { logger } from '../logger.js';
 import { buildDocument } from '../pipeline/dom.js';
@@ -207,9 +207,7 @@ export function registerSuggestPresetTool(server: McpServer): ToolHandle {
       try {
         return await runSuggestLoop(args, server);
       } catch (err) {
-        logger.error(
-          `suggest_preset failed: ${err instanceof Error ? err.message : String(err)}`,
-        );
+        logger.error(`suggest_preset failed: ${describeError(err)}`);
         return toErrorResult(err);
       }
     },

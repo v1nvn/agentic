@@ -1,6 +1,6 @@
 import type { ToolHandle } from '../server.js';
 
-import { toErrorResult } from '../errors.js';
+import { describeError, toErrorResult } from '../errors.js';
 import { logger } from '../logger.js';
 import { buildDocument } from '../pipeline/dom.js';
 import { applySelectors } from '../pipeline/normalize.js';
@@ -87,11 +87,7 @@ export function extractListHandler(args: unknown): CallToolResult {
   try {
     return extractList(args);
   } catch (err) {
-    logger.error(
-      `extract_list failed: ${
-        err instanceof Error ? err.message : String(err)
-      }`,
-    );
+    logger.error(`extract_list failed: ${describeError(err)}`);
     return toErrorResult(err);
   }
 }

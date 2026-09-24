@@ -6,7 +6,7 @@ import { z } from 'zod';
 
 import type { ToolHandle } from './server.js';
 
-import { toErrorResult } from './errors.js';
+import { describeError, toErrorResult } from './errors.js';
 import { sampleText } from './host-sampling.js';
 import { logger } from './logger.js';
 import { registerSuggestPresetTool } from './tools/suggest-preset.js';
@@ -64,9 +64,7 @@ export function registerSummarizeTool(server: McpServer): ToolHandle {
           content: [{ type: 'text', text: summary }],
         };
       } catch (err) {
-        logger.error(
-          `summarize failed: ${err instanceof Error ? err.message : String(err)}`,
-        );
+        logger.error(`summarize failed: ${describeError(err)}`);
         return toErrorResult(err);
       }
     },

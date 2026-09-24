@@ -3,7 +3,7 @@ import { z } from 'zod';
 import type { ToolHandle } from '../server.js';
 
 import { loadConfig } from '../config.js';
-import { toErrorResult } from '../errors.js';
+import { describeError, toErrorResult } from '../errors.js';
 import { logger } from '../logger.js';
 import { omlxGet } from '../omlx.js';
 
@@ -160,9 +160,7 @@ export async function runModels(): Promise<CallToolResult> {
 
 export function modelsHandler(): Promise<CallToolResult> {
   return runModels().catch((err: unknown) => {
-    logger.error(
-      `models failed: ${err instanceof Error ? err.message : String(err)}`,
-    );
+    logger.error(`models failed: ${describeError(err)}`);
     return toErrorResult(err);
   });
 }

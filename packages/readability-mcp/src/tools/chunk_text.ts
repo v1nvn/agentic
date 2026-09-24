@@ -1,7 +1,7 @@
 import type { Chunk } from '../policy/chunk.js';
 import type { ToolHandle } from '../server.js';
 
-import { toErrorResult } from '../errors.js';
+import { describeError, toErrorResult } from '../errors.js';
 import { logger } from '../logger.js';
 import { chunkMarkdown } from '../policy/chunk.js';
 import { chunkTextOutputShape } from './output-schema.js';
@@ -45,9 +45,7 @@ export function chunkTextHandler(args: unknown): CallToolResult {
   try {
     return chunkTextDocument(args);
   } catch (err) {
-    logger.error(
-      `chunk_text failed: ${err instanceof Error ? err.message : String(err)}`,
-    );
+    logger.error(`chunk_text failed: ${describeError(err)}`);
     return toErrorResult(err);
   }
 }
