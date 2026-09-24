@@ -71,7 +71,6 @@ export function render(
   );
   const pctHit = Math.round(hitRate(sum));
 
-  // ---- header ----
   const left = ' Token usage · transcripts';
   const winStart = new Date(now.getTime() - 24 * 3600 * 1000);
   const win = `${dayLabel(ymd(winStart))} ${fmtClock(winStart)} → ${dayLabel(ymd(now))} ${fmtClock(now)} · 24h`;
@@ -79,13 +78,11 @@ export function render(
   out.push(left + padL(win, RULE_WIDTH - left.length));
   out.push(rule());
 
-  // ---- lead ----
   out.push('');
   out.push(
     ` ${fmtTokens(totalTokens(sum))} tokens across ${fmtNum(sum.calls)} model calls — ${pctHit}% cache hit rate.`,
   );
 
-  // ---- model mix · last 24h ----
   out.push('');
   out.push(' Model mix · last 24h ' + '─'.repeat(Math.max(0, RULE_WIDTH - 22)));
   if (rows.length === 0) {
@@ -99,7 +96,6 @@ export function render(
     );
   }
 
-  // ---- daily · last 7 days ----
   // The bucket holding the window-start day covers only part of that calendar
   // day — drop it (unless the window began at midnight, which scan would have
   // bucketed as a full day).

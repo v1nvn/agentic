@@ -415,7 +415,6 @@ export function render({
     ? quota.level.charAt(0).toUpperCase() + quota.level.slice(1)
     : '';
 
-  // ---- header ----
   const left = ` GLM Coding Plan${level ? ' · ' + level : ''}`;
   const firstSlot = convertSlot(x[0]);
   const lastSlot = convertSlot(x[nh - 1]);
@@ -427,7 +426,6 @@ export function render({
   out.push(left + padL(win, RULE_WIDTH - left.length));
   out.push(rule());
 
-  // ---- lead ----
   let lead = ` ${fmtTokens(total)} tokens across ${fmtNum(totalCalls)} model calls`;
   if (peakIdx >= 0 && peakSlot) {
     lead += ` — ${Math.round(pctPeak)}% of it in a single hour (${peakSlot.day} ${peakSlot.time}, ${fmtTokens(peakTok)} tokens / ${fmtNum(peakCalls)} calls)`;
@@ -436,7 +434,6 @@ export function render({
   out.push('');
   out.push(lead);
 
-  // ---- stat block ----
   const activeHours = tok.filter(t => t > 0).length;
   const longest = idleRuns(tok)
     .filter(r => r.len >= 2)
@@ -479,7 +476,6 @@ export function render({
     );
   }
 
-  // ---- hourly chart (vertical bars) ----
   out.push('');
   const chartHdr = ' Hourly tokens · ↑ peak hour ';
   out.push(chartHdr + '─'.repeat(Math.max(0, RULE_WIDTH - chartHdr.length)));
@@ -503,7 +499,6 @@ export function render({
     out.push('   (not enough hourly data to chart)');
   }
 
-  // ---- model mix ----
   out.push('');
   out.push(' Model mix ' + '─'.repeat(Math.max(0, RULE_WIDTH - 11)));
   const mixSrc = model.modelSummaryList ?? model.modelDataList ?? [];
@@ -518,7 +513,6 @@ export function render({
     );
   }
 
-  // ---- limits ----
   out.push('');
   out.push(' Limits ' + '─'.repeat(Math.max(0, RULE_WIDTH - 8)));
 
