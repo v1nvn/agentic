@@ -5,8 +5,8 @@ when_to_use: Use when the user wants to browse, change, check, or revert their s
 ---
 
 Four jobs, one skill: show, set, revert, check. The agent runs the CLI and
-writes plain text; the terminal is the only preview surface. Never add a
-second skill. Never open anything — no browser, no HTML page, no `open`.
+writes plain text; the terminal is the only preview surface. Never open
+anything — no browser, no HTML page, no `open`.
 Never render previews into the chat: Bash-tool ANSI collapses to a ~3-line
 preview, and the bar designs emit 24-bit color that can arrive as literal
 text.

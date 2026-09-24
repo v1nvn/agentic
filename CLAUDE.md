@@ -71,6 +71,21 @@ name or shape wins.
 
 - **The readability server never fetches URLs.** Only the host shell's `curl` does. The server
   reads HTML from a file path; the page bytes never enter the model context.
+- **MCP server `instructions` stay ≤ 2048 chars** — Claude Code truncates the rest silently,
+  and a test pins the cap per server. Instructions carry routing (which tool when); each
+  tool's description and schema carry its contract.
+
+## Prompt surfaces
+
+Every skill, command body, tool description, and sampling prompt is read by the model at run
+time, so it speaks only to that model.
+
+- **Maintainer rules live here, not in a surface.** A rule the running model cannot act on
+  (never add a second skill, keep a version pinned) is noise in a `SKILL.md`.
+- **Emphasis is earned by a reason.** State a constraint plainly with its *because*; caps and
+  `NEVER` are for contract facts and routing, not for steering behavior.
+- **Size sampling `maxTokens` for thinking models.** Thinking counts toward the cap, so a
+  ceiling tuned to the visible reply truncates it. Reply length belongs in the prompt, not the cap.
 
 ## References
 

@@ -104,5 +104,6 @@ describe('loadConfig', () => {
     expect(config.title.length).toBeGreaterThan(0);
     expect(config.description.length).toBeGreaterThan(0);
     expect(config.instructions.length).toBeGreaterThan(0);
+    expect(config.instructions.length).toBeLessThanOrEqual(2048);
   });
 });
