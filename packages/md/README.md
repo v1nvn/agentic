@@ -20,18 +20,18 @@ claude plugin install md@agentic
 In a terminal, last reply or a named file:
 
 ```sh
-npx -y @v1nvn/md@0.24.0              # editable — both panes
-npx -y @v1nvn/md@0.24.0 --view       # read-only — preview pane only
-npx -y @v1nvn/md@0.24.0 reply.md
+npx -y @v1nvn/md@0.25.0              # editable — both panes
+npx -y @v1nvn/md@0.25.0 --view       # read-only — preview pane only
+npx -y @v1nvn/md@0.25.0 reply.md
 ```
 
 ## Usage
 
 | Invocation | Does |
 |---|---|
-| `npx -y @v1nvn/md@0.24.0` | last reply → viewer, edit pane enabled, link copied |
-| `npx -y @v1nvn/md@0.24.0 --view` | read-only share |
-| `npx -y @v1nvn/md@0.24.0 reply.md` | that file instead of the last reply |
+| `npx -y @v1nvn/md@0.25.0` | last reply → viewer, edit pane enabled, link copied |
+| `npx -y @v1nvn/md@0.25.0 --view` | read-only share |
+| `npx -y @v1nvn/md@0.25.0 reply.md` | that file instead of the last reply |
 
 `MD_VIEWER_URL` sets the viewer (default `https://md.v1n.space`);
 `MD_NO_OPEN=1` skips opening the browser.

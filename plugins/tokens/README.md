@@ -20,7 +20,7 @@ agent, no skill, no tokens.
 In a plain shell the same CLI runs directly:
 
 ```
-npx -y @v1nvn/tokens@0.24.0
+npx -y @v1nvn/tokens@0.25.0
 ```
 
 ## Requirements
@@ -35,7 +35,7 @@ npx -y @v1nvn/tokens@0.24.0
 ```
 /tokens:usage
   └─ UserPromptExpansion hook (hooks/hooks.json)
-       └─ npx -y @v1nvn/token@0.24.0s@<version> --hook
+       └─ npx -y @v1nvn/token@0.25.0s@<version> --hook
             └─ scans transcripts (per model, per local day, last 24h + 7 days)
             └─ renders the plain-text report
        └─ returns {"decision":"block","reason": <report>}  ← model never runs

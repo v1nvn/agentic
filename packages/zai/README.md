@@ -18,15 +18,15 @@ claude plugin install zai@agentic
 In a terminal, bare:
 
 ```sh
-npx -y @v1nvn/zai@0.24.0
+npx -y @v1nvn/zai@0.25.0
 ```
 
 ## Usage
 
 | Invocation | Does |
 |---|---|
-| `npx -y @v1nvn/zai@0.24.0` | usage report — models, quota window, remaining balance |
-| `npx -y @v1nvn/zai@0.24.0 --auth-token TOKEN` | same, key on the command line (visible in `ps`) |
+| `npx -y @v1nvn/zai@0.25.0` | usage report — models, quota window, remaining balance |
+| `npx -y @v1nvn/zai@0.25.0 --auth-token TOKEN` | same, key on the command line (visible in `ps`) |
 
 Auth resolves in order: `--auth-token` → `ZAI_AUTH_TOKEN` →
 `ANTHROPIC_AUTH_TOKEN`. The key talks to `api.z.ai` — a Claude proxy var
