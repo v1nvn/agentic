@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { isObject } from './configure.js';
 import { materializeDemoRepo } from './demo-repo.js';
 import { capturePath } from './resolve.js';
 
@@ -33,10 +34,6 @@ export interface PreviewSources {
 }
 
 type Loose = Record<string, unknown>;
-
-function isObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
 
 function anchoredP1(repoDir: string, now: number): string {
   const payload = JSON.parse(

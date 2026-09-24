@@ -358,25 +358,47 @@ export function insertMembers(
   while (/\s/.test(raw[at - 1] ?? '~')) {
     at -= 1;
   }
-  const rendered = members
-    .map(([key, command]) => `"${key}": ${settingsValue(command)}`)
-    .join(',\n  ');
   const comma = raw.replace(/\s/g, '') === '{}' ? '' : ',';
-  return `${raw.slice(0, at)}${comma}\n  ${rendered}${raw.slice(at)}`;
+  return `${raw.slice(0, at)}${comma}\n  ${renderMembers(members)}${raw.slice(at)}`;
 }
 
-function splicedSettings(raw: string, plan: SettingsPlan): string {
-  let text = plan.adds.length > 0 ? insertMembers(raw, plan.adds) : raw;
-  for (const [key, command] of plan.repoints) {
+function renderMembers(
+  members: readonly (readonly [string, string])[],
+): string {
+  return members
+    .map(([key, command]) => `"${key}": ${settingsValue(command)}`)
+    .join(',\n  ');
+}
+
+/** Splice each rendered value over its root member; `verb` names the failure. */
+export function repointRootMembers(
+  raw: string,
+  entries: readonly { key: string; value: string }[],
+  verb: string,
+): string {
+  let text = raw;
+  for (const { key, value } of entries) {
     const span = rootMemberValueSpan(text, key);
     if (span === null) {
       throw new Error(
-        `cannot find the "${key}" member to repoint in settings.json`,
+        `cannot find the "${key}" member to ${verb} in settings.json`,
       );
     }
-    text = `${text.slice(0, span[0])}${settingsValue(command)}${text.slice(span[1])}`;
+    text = `${text.slice(0, span[0])}${value}${text.slice(span[1])}`;
   }
   return text;
+}
+
+function splicedSettings(raw: string, plan: SettingsPlan): string {
+  const text = plan.adds.length > 0 ? insertMembers(raw, plan.adds) : raw;
+  return repointRootMembers(
+    text,
+    plan.repoints.map(([key, command]) => ({
+      key,
+      value: settingsValue(command),
+    })),
+    'repoint',
+  );
 }
 
 export interface SettingsBackup {
@@ -473,11 +495,7 @@ function printedConfig(runtime: ResolvedRuntime, home: string): string {
     `layout='${existing.layout ?? runtime.defaultLayout}'`,
     ...runtime.items.map(
       item =>
-        `${item.item}=${
-          item.item in existing.values
-            ? existing.values[item.item]
-            : item.default
-        }`,
+        `${item.item}=${existingValue(existing.values, item.item) ?? item.default}`,
     ),
   ];
   return [

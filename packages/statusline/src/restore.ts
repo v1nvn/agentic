@@ -12,6 +12,7 @@ import {
   isOurMember,
   readOrNull,
   removeMembers,
+  repointRootMembers,
   rootMemberValueSpan,
   SETTINGS_KEYS,
   type SettingsBackup,
@@ -141,16 +142,12 @@ export function restore(options: RestoreOptions): RestoreResult {
   let next: null | string = raw;
   let deleteFile = false;
   if (actions.length > 0 && raw !== null) {
-    let text = removals.length > 0 ? removeMembers(raw, removals) : raw;
-    for (const splice of splices) {
-      const span = rootMemberValueSpan(text, splice.key);
-      if (span === null) {
-        throw new Error(
-          `cannot find the "${splice.key}" member to restore in settings.json`,
-        );
-      }
-      text = `${text.slice(0, span[0])}${splice.text}${text.slice(span[1])}`;
-    }
+    const stripped = removals.length > 0 ? removeMembers(raw, removals) : raw;
+    const text = repointRootMembers(
+      stripped,
+      splices.map(({ key, text: value }) => ({ key, value })),
+      'restore',
+    );
     const membersLeft = Object.keys(JSON.parse(text) as object).length;
     if (backup !== null && backup.createdFile && membersLeft === 0) {
       deleteFile = true;
