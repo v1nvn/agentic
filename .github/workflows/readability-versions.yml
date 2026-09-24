@@ -34,6 +34,9 @@ jobs:
           cache: yarn
           cache-dependency-path: yarn.lock
       - run: yarn install --immutable
+      # version-snapshot imports the tool graph, which resolves
+      # @v1nvn/agentic-core through the workspace link — build its dist first.
+      - run: yarn workspace @v1nvn/agentic-core build
 
       - name: Snapshot baseline version
         run: |

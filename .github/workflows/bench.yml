@@ -27,4 +27,7 @@ jobs:
           cache: yarn
           cache-dependency-path: yarn.lock
       - run: yarn install --immutable
+      # The bench runs vite-node against src, which imports @v1nvn/agentic-core
+      # through the workspace link — its dist must exist before benching.
+      - run: yarn workspace @v1nvn/agentic-core build
       - run: yarn bench
