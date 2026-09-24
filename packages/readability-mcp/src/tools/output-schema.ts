@@ -80,7 +80,7 @@ const metadataObjectSchema = z
     'Resolved article metadata. Each field is the first non-empty value across a priority cascade.',
   );
 
-export const chunkObjectSchema = z
+const chunkObjectSchema = z
   .object({
     index: z
       .number()
@@ -109,7 +109,7 @@ export const chunkObjectSchema = z
     'One token-bounded slice of the extracted markdown, with its section heading for context.',
   );
 
-export const imageEntrySchema = z
+const imageEntrySchema = z
   .object({
     src: z
       .string()
@@ -428,11 +428,7 @@ export const chunkTextOutputShape = {
     ),
 } as const;
 
-export const chunkTextOutput = z.object(chunkTextOutputShape);
-
-export type ChunkTextStructuredContent = z.infer<typeof chunkTextOutput>;
-
-export const linkObjectSchema = z
+const linkObjectSchema = z
   .object({
     text: z
       .string()
@@ -487,9 +483,7 @@ export const extractLinksOutputShape = {
 
 export const extractLinksOutput = z.object(extractLinksOutputShape);
 
-export type ExtractLinksStructuredContent = z.infer<typeof extractLinksOutput>;
-
-export const tableEntrySchema = z
+const tableEntrySchema = z
   .object({
     index: z
       .number()
@@ -542,11 +536,7 @@ export const extractTablesOutputShape = {
 
 export const extractTablesOutput = z.object(extractTablesOutputShape);
 
-export type ExtractTablesStructuredContent = z.infer<
-  typeof extractTablesOutput
->;
-
-export const gridEntrySchema = z
+const gridEntrySchema = z
   .object({
     rows: z
       .number()
@@ -634,8 +624,6 @@ export const extractGridOutputShape = {
 } as const;
 
 export const extractGridOutput = z.object(extractGridOutputShape);
-
-export type ExtractGridStructuredContent = z.infer<typeof extractGridOutput>;
 
 const listItemSchema = z
   .object({

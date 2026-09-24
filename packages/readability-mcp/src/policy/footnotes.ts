@@ -137,11 +137,7 @@ export function processFootnotes(html: string): FootnoteResult | null {
   }
 
   for (const { n, sup } of refHits) {
-    try {
-      sup.replaceWith(document.createTextNode(`[^${n}]`));
-    } catch {
-      // skip
-    }
+    sup.replaceWith(document.createTextNode(`[^${n}]`));
   }
 
   // Drop the rendered references list so it doesn't duplicate the appended

@@ -1,9 +1,8 @@
-import { isElement } from '../pipeline/dom.js';
 import { resolveCellText } from './cell-text.js';
 import {
   CONTAINER_TAGS,
   describeSelector,
-  shapeKey,
+  groupChildrenByShape,
   stripLandmarkChrome,
 } from './sibling-scan.js';
 
@@ -233,22 +232,7 @@ function detectAuto(document: Document, minRows: number): GridDetectionResult {
     if (!CONTAINER_TAGS.has(container.tagName)) {
       continue;
     }
-    // Group direct element-children by shape so a homogeneous row cluster
-    // surfaces as one candidate and mixed-shape siblings (header row vs data
-    // rows) split apart rather than blending into a ragged group.
-    const groups = new Map<string, Element[]>();
-    for (const child of Array.from(container.childNodes)) {
-      if (!isElement(child)) {
-        continue;
-      }
-      const key = shapeKey(child);
-      const bucket = groups.get(key);
-      if (bucket) {
-        bucket.push(child);
-      } else {
-        groups.set(key, [child]);
-      }
-    }
+    const groups = groupChildrenByShape(container);
     for (const members of groups.values()) {
       if (members.length < minRows) {
         continue;

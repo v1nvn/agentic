@@ -1,3 +1,5 @@
+import { isElement } from '../pipeline/dom.js';
+
 // Shared pre-pass for the sibling-cluster detectors (list-detector,
 // grid-detector). Both walk the document for a container whose direct children
 // form a same-shape sibling group; the constants and helpers here are the
@@ -51,9 +53,30 @@ export function shapeKey(el: Element): string {
   return normalized ? `${el.tagName}|${normalized}` : el.tagName;
 }
 
+// Group a container's direct element-children by shape so a homogeneous
+// cluster surfaces as one candidate and mixed-shape siblings (header row vs
+// data rows, HN's athing + subtext) split apart rather than blending.
+export function groupChildrenByShape(container: Node): Map<string, Element[]> {
+  const groups = new Map<string, Element[]>();
+  for (const child of Array.from(container.childNodes)) {
+    if (!isElement(child)) {
+      continue;
+    }
+    const key = shapeKey(child);
+    const bucket = groups.get(key);
+    if (bucket) {
+      bucket.push(child);
+    } else {
+      groups.set(key, [child]);
+    }
+  }
+  return groups;
+}
+
 // tag#id.class hint for the winning container. Best-effort, not a unique
 // locator — used only for diagnostics so a human can see which subtree won.
-export function describeSelector(el: Element): string {
+// `maxClasses` caps the class list for compact diagnostic output.
+export function describeSelector(el: Element, maxClasses?: number): string {
   const parts = [el.tagName.toLowerCase()];
   const id = el.getAttribute('id');
   if (id) {
@@ -61,9 +84,14 @@ export function describeSelector(el: Element): string {
   }
   const cls = el.getAttribute('class');
   if (cls) {
+    let used = 0;
     for (const token of cls.trim().split(/\s+/)) {
       if (token) {
         parts.push(`.${token}`);
+        used += 1;
+      }
+      if (maxClasses !== undefined && used >= maxClasses) {
+        break;
       }
     }
   }

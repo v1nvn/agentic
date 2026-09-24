@@ -15,6 +15,7 @@ import { assembleDiagnostics } from './diagnostics.js';
 import { detectGating } from './gating.js';
 import { detectPagination } from './pagination.js';
 import { resolveReadabilityOptions } from './resolver.js';
+import { describeSelector } from './sibling-scan.js';
 
 // Readability stamps `{ contentScore }` on candidate DOM nodes under a
 // `readability` expando (Readability.js:894/1272/1288). The property is
@@ -66,27 +67,6 @@ export interface BuildExplainOptions {
 const DEFAULT_SNAPSHOT_MAX = 4000;
 const DEFAULT_TOP_N = 5;
 
-function describeSelector(parts: {
-  className: string;
-  id: string;
-  tag: string;
-}): string {
-  // A CSS-ish hint for the host, not a unique locator — Readability's expando is
-  // a JS-only property invisible to CSS, and we deliberately avoid an nth-child
-  // chain that would be brittle against the host's live DOM. Tag + id + first
-  // two classes is enough for a human to pick the node out of a small candidate
-  // list.
-  const idPart = parts.id ? `#${parts.id}` : '';
-  const cls = parts.className
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .join('.');
-  const classPart = cls ? `.${cls}` : '';
-  return `${parts.tag.toLowerCase()}${idPart}${classPart}`;
-}
-
 function readScored(el: Element): ExplainCandidate | null {
   const stamp = (el as unknown as { readability?: ReadabilityExpando })
     .readability;
@@ -102,7 +82,11 @@ function readScored(el: Element): ExplainCandidate | null {
     tag: el.tagName,
     textLength: el.textContent.trim().length,
   };
-  return { ...candidate, selector: describeSelector(candidate) };
+  // Two classes cap the hint's width — Readability's expando is invisible to
+  // CSS and an nth-child chain would be brittle against the host's live DOM,
+  // so tag + id + a couple of classes is all a human needs to pick the node
+  // out of a small candidate list.
+  return { ...candidate, selector: describeSelector(el, 2) };
 }
 
 function truncateSnapshot(html: string, max: number): ExplainSnapshot {

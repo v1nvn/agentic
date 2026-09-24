@@ -1,11 +1,12 @@
-// Token-bounded chunking of extracted markdown for RAG/embedding. The
-// `chars/4` estimator mirrors policy/metadata.ts so a chunk's `tokenCount` is
+// Token-bounded chunking of extracted markdown for RAG/embedding. Chunk
+// `tokenCount` uses the shared chars/4 estimator (policy/text.ts), keeping it
 // directly comparable to `metadata.tokenEstimate`. This is the server-side
 // chunking path for large documents; transport-level streaming was rejected —
 // MCP tool-result progress isn't universally host-supported, and this option
 // already keeps a multi-MB page from returning as one payload.
 
 import { hardSplitLines, headingText, parseBlocks } from './markdown.js';
+import { estimateTokens } from './text.js';
 
 export interface Chunk {
   readonly headingContext: string;
@@ -23,11 +24,6 @@ export interface ChunkOptions {
 }
 
 interface Block {
-  readonly headingContext: string;
-  readonly text: string;
-}
-
-interface Unit {
   readonly headingContext: string;
   readonly text: string;
 }
@@ -60,15 +56,15 @@ function splitBlocks(markdown: string): Block[] {
 }
 
 // Char strategy may break a code block — the semantic strategy avoids that.
-function splitOversizedBlock(block: Block, maxChars: number): Unit[] {
+function splitOversizedBlock(block: Block, maxChars: number): Block[] {
   return hardSplitLines(block.text, maxChars).map(text => ({
     headingContext: block.headingContext,
     text,
   }));
 }
 
-function toUnits(blocks: readonly Block[], maxChars: number): Unit[] {
-  const units: Unit[] = [];
+function toUnits(blocks: readonly Block[], maxChars: number): Block[] {
+  const units: Block[] = [];
   for (const block of blocks) {
     if (block.text.length <= maxChars) {
       units.push(block);
@@ -167,7 +163,7 @@ function chunkMarkdownChar(
         headingContext: spans[0]?.headingContext ?? '',
         index: chunks.length,
         text,
-        tokenCount: Math.round(text.length / 4),
+        tokenCount: estimateTokens(text).tokenEstimate,
       });
     }
 
@@ -469,7 +465,7 @@ function chunkMarkdownSemantic(
       headingContext: group.headingContext,
       index: chunks.length,
       text,
-      tokenCount: Math.round(text.length / 4),
+      tokenCount: estimateTokens(text).tokenEstimate,
     });
   }
   return chunks;

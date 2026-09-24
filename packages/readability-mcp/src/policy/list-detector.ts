@@ -1,9 +1,8 @@
-import { isElement } from '../pipeline/dom.js';
 import { absolutize } from '../pipeline/urls.js';
 import {
   CONTAINER_TAGS,
   describeSelector,
-  shapeKey,
+  groupChildrenByShape,
   stripLandmarkChrome,
 } from './sibling-scan.js';
 
@@ -197,22 +196,7 @@ function collectCandidates(document: Document, baseUrl: string | undefined) {
     if (!CONTAINER_TAGS.has(container.tagName)) {
       continue;
     }
-    // Group direct element-children by shape so homogeneous sibling lists
-    // surface as one cluster and mixed-shape siblings (e.g. HN's athing +
-    // subtext rows) split apart.
-    const groups = new Map<string, Element[]>();
-    for (const child of Array.from(container.childNodes)) {
-      if (!isElement(child)) {
-        continue;
-      }
-      const key = shapeKey(child);
-      const bucket = groups.get(key);
-      if (bucket) {
-        bucket.push(child);
-      } else {
-        groups.set(key, [child]);
-      }
-    }
+    const groups = groupChildrenByShape(container);
     for (const children of groups.values()) {
       if (children.length < MIN_ITEMS) {
         continue;

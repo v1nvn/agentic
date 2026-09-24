@@ -88,12 +88,8 @@ function convertOrphanedKatex(document: Document): void {
     if (!katex.isConnected) {
       continue;
     }
-    try {
-      const display = katex.closest(`.${KATEX_DISPLAY_CLASS}`) !== null;
-      katex.replaceWith(createMarker(document, BROKEN_PLACEHOLDER, display));
-    } catch {
-      // Defensive: malformed markup must not break the extract pipeline.
-    }
+    const display = katex.closest(`.${KATEX_DISPLAY_CLASS}`) !== null;
+    katex.replaceWith(createMarker(document, BROKEN_PLACEHOLDER, display));
   }
 }
 
