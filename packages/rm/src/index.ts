@@ -3,10 +3,10 @@ import {
   lastReply,
   parseQuietly,
   printUsageAndExit,
+  readMarkdownFile,
   replyTarget,
 } from '@v1nvn/agentic-core';
 import { Command } from 'commander';
-import { readFileSync, statSync } from 'node:fs';
 
 import { sendToRemarkable } from './send.js';
 
@@ -22,14 +22,7 @@ const file = parsed.args.at(0);
 const { hook } = parsed.opts<{ hook: boolean | undefined }>();
 
 function readMarkdown(): string {
-  if (file === undefined) {
-    return lastReply();
-  }
-  const stats = statSync(file, { throwIfNoEntry: false });
-  if (!stats?.isFile()) {
-    throw new Error(`no such file: ${file}`);
-  }
-  return readFileSync(file, 'utf8');
+  return file === undefined ? lastReply() : readMarkdownFile(file);
 }
 
 await hookOrPrint(hook ?? false, 'send failed', event =>

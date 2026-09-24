@@ -2,6 +2,8 @@ import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 
+import { isFile } from './hook.js';
+
 interface ContentBlock {
   text?: string;
   type: string;
@@ -10,14 +12,6 @@ interface ContentBlock {
 interface TranscriptEntry {
   message?: { content?: unknown };
   type?: string;
-}
-
-function isFile(path: string): boolean {
-  try {
-    return statSync(path).isFile();
-  } catch {
-    return false;
-  }
 }
 
 function textBlocks(entry: TranscriptEntry): ContentBlock[] | undefined {

@@ -1,5 +1,7 @@
 import { statSync } from 'node:fs';
 
+import { readAll } from './input.js';
+
 export interface HookEvent {
   cwd?: string;
   session_id?: string;
@@ -13,23 +15,16 @@ export interface HookEvent {
 export function readHookEvent(
   stream: NodeJS.ReadableStream = process.stdin,
 ): Promise<HookEvent> {
-  return new Promise(resolve => {
-    let data = '';
-    stream.setEncoding('utf8');
-    stream.on('data', (chunk: string) => {
-      data += chunk;
-    });
-    stream.on('end', () => {
+  return readAll(stream).then(
+    data => {
       try {
-        resolve(JSON.parse(data) as HookEvent);
+        return JSON.parse(data) as HookEvent;
       } catch {
-        resolve({});
+        return {};
       }
-    });
-    stream.on('error', () => {
-      resolve({});
-    });
-  });
+    },
+    () => ({}),
+  );
 }
 
 /**
@@ -44,7 +39,7 @@ export function replyTarget(event: HookEvent): string | undefined {
   return event.session_id || undefined;
 }
 
-function isFile(path: string): boolean {
+export function isFile(path: string): boolean {
   try {
     return statSync(path).isFile();
   } catch {

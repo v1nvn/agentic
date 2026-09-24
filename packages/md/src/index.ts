@@ -3,10 +3,11 @@ import {
   lastReply,
   parseQuietly,
   printUsageAndExit,
+  readMarkdownFile,
+  readStdin,
   replyTarget,
 } from '@v1nvn/agentic-core';
 import { Command } from 'commander';
-import { readFileSync, statSync } from 'node:fs';
 
 import { mdSend } from './share.js';
 
@@ -25,20 +26,6 @@ const { hook, view } = parsed.opts<{
   view: boolean | undefined;
 }>();
 
-function readStdin(): Promise<string> {
-  return new Promise((resolve, reject) => {
-    let data = '';
-    process.stdin.setEncoding('utf8');
-    process.stdin.on('data', (chunk: string) => {
-      data += chunk;
-    });
-    process.stdin.on('end', () => {
-      resolve(data);
-    });
-    process.stdin.on('error', reject);
-  });
-}
-
 function readMarkdown(): Promise<string> | string {
   if (arg === '-') {
     return readStdin();
@@ -46,11 +33,7 @@ function readMarkdown(): Promise<string> | string {
   if (arg === undefined) {
     return lastReply();
   }
-  const stats = statSync(arg, { throwIfNoEntry: false });
-  if (!stats?.isFile()) {
-    throw new Error(`no such file: ${arg}`);
-  }
-  return readFileSync(arg, 'utf8');
+  return readMarkdownFile(arg);
 }
 
 await hookOrPrint(hook ?? false, 'send failed', async event =>
