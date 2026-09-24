@@ -310,7 +310,8 @@ Method: regex nets → per-hit transcript reads (`/tmp/tracking-survey/probe.py`
   update) 14, Case-2 (self-contained block) 5 — all Case-2 in testril, mostly cross-model
   handoffs. Both cases live. Auto-invocation is native to skills — the verb skills'
   descriptions carry the trigger, no `commands/` detour needed.
-- **START (C1+C2+C3) — 87 thread creations, all hand-rolled** (no command exists): 85
+- **START (C1+C2+C3) — 87 counted / 86 distinct thread creations** (one fork/resume
+  pair double-counted — corrected by the 09-24 sweep), all hand-rolled (no command exists): 85
   ritual-followed, 2 broken-index — and both were self-declared scratch ("not a thread
   yet"), one parked via `git rm` the next day, one line added same-day by the successor
   session. The rule is followed at cost, not violated: each start is 3–4 records of
@@ -347,15 +348,18 @@ Method: regex nets → per-hit transcript reads (`/tmp/tracking-survey/probe.py`
 - **Anchor drift in this plan** — main is at 0.24.0 (8 manifests), not 0.19.0: the train
   rides **0.25.0**, not 0.20.0. `set-version.mjs` is still a list on main (U2 premise
   holds). The "27 project dirs" count holds.
-- **Start-title derivation sample (2026-09-24, pre-sweep).** 3 sittings / 13 slugs, every
-  creating Write verified in-transcript: **13/13 derivable-prose** — none owner-named,
-  none minted from nothing; subject in prose before the sitting's first write in 12/13
-  (`root-repo-info` accreted in a follow-on session). The judgment is segmentation, not
-  naming: the one grouping call observed was put to the owner ("draft as (a) collapse
-  B/D/F into three threads, or (b) leave every line" → owner: "a"). Design consequence:
-  no-arg `new` derives titles from the session's own reports and proposes the split,
-  asking the owner when a sitting carries more than one candidate thread. Full 87-start
-  sweep ordered (owner, 2026-09-24) — U3's opening step.
+- **Start-title derivation sweep (2026-09-24, full corpus).** 86 distinct starts (the
+  census's 87 double-counted one fork/resume pair — identical tool-use uuid in two
+  transcripts); 83 readable, 3 transcripts already gone (derivation happens at mint
+  time, written into the thread file — never transcript-dependent). **80/83
+  derivable-prose, 2 owner-named (successor generations at kill/close boundaries), 1
+  from repo state (a forward-ledger row), 0 minted-from-nothing.** The judgment is
+  segmentation: 38 grouping moments, mostly owner-visible (all of C2's, 11/16 of C3's);
+  model-alone calls cluster in three sittings and still produced well-named threads.
+  Consequences carried into the `new` body: derivation window spans the sitting's reads
+  and tool results, propose the partition ask-once then mint-N, detect merge/supersede,
+  check `archive/` for slug collisions, proposal-stage files stay non-threads, the close
+  moment births successors. Tables: `/tmp/tracking-survey/sweep-u3/out-C{1,2,3}-derivation.md`.
 
 **Log.**
 - 2026-09-24 — owner rulings mid-run: strictly no deviations (Hardening carries it);
