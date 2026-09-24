@@ -1,9 +1,10 @@
 # TODO — open-work index
 
-> Tracking rules: `references/tracking.md` — read them before adding or editing a line here.
+> Rules: /todo:rules
 
 ---
 
 - Statusline adoption + old npm name cleanup — owner steps: run the wizard (`/lab`), verify paint + `status` healthy; finish npm deletion of `@v1nvn/statusline-lab` (0.20/0.21 unpublish, 0.19.0 via support) — LOW
 - Site-matched extraction presets + real-world corpus (stonks: Indian financial web) — HIGH — → progress/presets-corpus.md — corpus seeded (six captures: four losses, two negatives); next: triage the four pipeline-level losses
-- Centralize work tracking — todo plugin (rules skill, six verbs, migrate every repo) — HIGH — → progress/todo-plugin.md — U0 closed 2026-09-23 (census + rulings); next U1 scaffold
+- Todo plugin — release + adopt (owner steps): merge PR #4 and lint PR #5, confirm release.yml cuts v0.27.0 (`gh release view`), re-add `"todo@agentic": true` in `~/.claude/settings.json`, verify in a fresh session the seven `todo:*` skills, `/todo:rules` answering, and the rules skill loading on a `TODO.md` touch — HIGH
+- Todo plugin — land the seven migrated repos: testril via its handover rules (branch + PR); the six by one commit each on their default branches — the folds sit unstaged in each working tree, and firstmenu/action/webapp currently sit on feature branches, so land deliberately — MEDIUM

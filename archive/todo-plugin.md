@@ -1,6 +1,6 @@
 # Todo plugin — all of work tracking in one place
 
-> Rules: ../references/tracking.md · Index: ../TODO.md
+> Rules: /todo:rules · Index: ../TODO.md
 
 **Run:** opus
 
@@ -96,8 +96,9 @@ can drift. Supersedes `archive/workflow-plugin.md` (2026-09-22): of its three sk
 - **Manifest + markdown only — no code, no runtime payload.** Skills precedent:
   `plugins/readability/` (`skills/read-url/SKILL.md`) — the layout precedent for both
   the rules skill and the six verbs.
-  No exception to the CLAUDE.md layout rule. Rides the next minor train: 0.25.0 → 0.26.0
-  (0.25.0 shipped after the 2026-09-23 verification; re-verified 2026-09-24).
+  No exception to the CLAUDE.md layout rule. Rides the next minor train: 0.26.0 → 0.27.0
+  (0.26.0 shipped as d2e627f; owner-ruled 2026-09-24 when the plan's 0.25.0 anchor went
+  stale).
 
 ## Design
 
@@ -144,21 +145,24 @@ Port list for `skills/rules/SKILL.md` from `~/.claude/tracking-template.md`:
 
 ## Hardening `/todo:run` — the port is not verbatim
 
+- **Strictly no deviations** *(owner-ruled, 2026-09-24, mid-run)* — the run deviates from
+  nothing this plan's text does not already name: any pick, mechanical or not, stops the
+  run and is posted to the owner. No accept-and-log.
 - **Stop-and-ask on impactful deviations** *(owner-ruled, 2026-09-24)* — the model never
   rules on a big deviation alone. Scope changes, contract/semantic changes, anything the
   plan didn't name → post it and wait. Butterfly effect: a small early deviation compounds
   into places the plan never chose.
-- **Chain rule** *(proposed)* — the mechanical test for "big": a deviation that forces a
+- **Chain rule** *(owner-ruled, 2026-09-24)* — the mechanical test for "big": a deviation that forces a
   second deviation to land, touches a file the plan doesn't name, or mints/splits a unit
   is impactful by definition → stop and ask. A single mechanical pick inside named scope
   proceeds and logs.
-- **Cold-resume re-verify** *(proposed)* — 15/52 runs stopped mid (429 kills, user
+- **Cold-resume re-verify** *(owner-ruled, 2026-09-24)* — 15/52 runs stopped mid (429 kills, user
   interruptions, checkpoint handoffs; resume is exercised about every other day). On
   resume, re-run the last landed unit's close criteria instead of trusting its log line.
-- **Blocked-tooling rule** *(proposed)* — a blocked batch operation (permission classifier)
+- **Blocked-tooling rule** *(owner-ruled, 2026-09-24)* — a blocked batch operation (permission classifier)
   → split it; still blocked → log the blocker and continue other units. Never leave
   silent divergence (the testril six).
-- **No self-verdict** *(proposed)* — a unit closes only on its stated close criteria
+- **No self-verdict** *(owner-ruled, 2026-09-24)* — a unit closes only on its stated close criteria
   (greps/tests), never on the builder's say-so; review stays a blind subagent.
 
 ## Sources — read whole before starting
@@ -211,7 +215,7 @@ rules (a PR); the six push-repos take one direct commit each on their default br
    invocation or a repo state — nothing rests on the seeding conversation alone.
 1. **Scaffold** — `plugins/todo/` per the tree above. Close: `claude plugin validate
    plugins/todo/.claude-plugin/plugin.json` passes; `node .github/scripts/build-skills.mjs`
-   passes; `grep -in "sync-tracking\|tracking-template\|tracking:generic\|.claude"
+   passes; `grep -rin "sync-tracking\|tracking-template\|tracking:generic\|\.claude"
    plugins/todo/skills/` is quiet; the rules skill's description names all four surfaces;
    every verb skill's frontmatter carries `name`, `description`, `argument-hint`.
 2. **Train discovery by glob** — ported verbatim from `archive/workflow-plugin.md` unit 2
@@ -223,7 +227,10 @@ rules (a PR); the six push-repos take one direct commit each on their default br
    .github/scripts/set-version.mjs --check` fails **red naming
    `plugins/todo/.claude-plugin/plugin.json`** (the 0.0.0 deliberate mismatch) — U4's bump
    turns it green; `grep "readability omlx" .github/workflows/build.yml` finds nothing.
-3. **Six verb skills** — bodies per the verb table; `/todo:handoff` carries its source's
+3. **Six verb skills** — opens with the 87-start derivation sweep (sonnet batches over
+   the C1–C3 hit lists in `/tmp/tracking-survey/`, rubric per the Evidence sample;
+   findings amend the `new` body before it is written). Bodies per the verb table;
+   `/todo:handoff` carries its source's
    semantics whole, pointers renamed; `/todo:run` carries its source's semantics plus the
    Hardening clauses. Close: each verb skill's first line loads the rules; every
    vocabulary clause greps in exactly one file (rules or the one skill owning it); a
@@ -234,7 +241,7 @@ rules (a PR); the six push-repos take one direct commit each on their default br
    (board without arg, single thread with `[plan]`).
 4. **Register + bump + docs** — marketplace.json entry (name `todo`, source
    `./plugins/todo`, category `productivity`, one-line description); bump the train
-   0.25.0 → 0.26.0 via `set-version.mjs`; rewrite every count and shape sentence:
+   0.26.0 → 0.27.0 via `set-version.mjs`; rewrite every count and shape sentence:
    `README.md` (opener count, plugin-table row, layout tree), `CLAUDE.md` (header
    enumeration, Layout, "Seven independent plugins" bullet). Close: `set-version.mjs
    --check` passes; `grep -in seven README.md CLAUDE.md .claude-plugin/marketplace.json`
@@ -249,8 +256,9 @@ rules (a PR); the six push-repos take one direct commit each on their default br
 6. **Migrate agentic** (hand fold) — deltas are currently empty, so this is the
    clean first fold: header repoint, back-refs in `progress/*.md`, delete
    `references/tracking.md`, drop the References line in `CLAUDE.md`. This file's own
-   back-ref rewrites in the same commit. Close: `grep -rn "references/tracking" .`
-   (excluding `archive/`) is quiet.
+   back-ref rewrites in the same commit. Close: `grep -rn --exclude-dir=.git
+   --exclude-dir=node_modules --exclude-dir=archive --exclude=todo-plugin.md
+   "references/tracking" .` is quiet (the thread's own prose names the file it deletes).
 7. **Migrate testril** — the pilot with the biggest deltas, via its handover rules (branch
    + PR; the run never merges). Close: `## Tracking — this repo` at `TODO.md` top carrying
    every delta; `references/tracking.md` gone (its other `references/` files untouched);
@@ -266,7 +274,7 @@ rules (a PR); the six push-repos take one direct commit each on their default br
    `explain`, `hinglish`; `grep -rn "run-plan\|handoff\|tracking-template\|sync-tracking"
    ~/.claude/CLAUDE.md ~/.claude/settings.json` is quiet; `/todo:run` still resolves in a
    fresh session; `/run-plan` does not.
-10. **Ship + close** — merge the agentic PR, confirm release.yml cuts v0.26.0 (`gh release
+10. **Ship + close** — merge the agentic PR, confirm release.yml cuts v0.27.0 (`gh release
     view`), close this thread (deferral gate first). Close: release visible; final
     veto report per the run's Close section. **Pause point** — the run opens the PR and
     stops: the merge is the owner's (a run never merges its own PR); U9's fresh-session
@@ -284,20 +292,6 @@ convention. Nothing partial ships: the plugin PR is atomic.
   the discussion carries enough to fill it. No flags.
 - `/todo:run` — keeps the full §Models ladder (15 plans carry model columns across 3 repos).
 - `/todo:init` — seeds `archive/completed.md` (fresh and migrate paths).
-
-## Open — 2026-09-24
-
-- **`new` without arg — derivation evidence.** Sample of 3 sittings / 13 slugs
-  (2026-09-24, transcripts quoted per slug): **13/13 derivable-prose** — none
-  owner-named, none minted from nothing; the subject sat in prose before the sitting's
-  first write in 12/13 (the 13th, `root-repo-info`, accreted in a follow-on session). The
-  judgment is segmentation, not naming: slugs carve multi-defect reports into threads, and
-  the one grouping call observed was put to the owner ("draft as (a) collapse B/D/F into
-  three threads, or (b) leave every line" → owner: "a"). So no-arg `new` derives titles
-  from the session's own reports and proposes the split, asking the owner when a sitting
-  carries more than one candidate thread. Sweep of all 87 starts pending nudge.
-- **Run hardening list** — stop-and-ask ruled; chain rule, cold-resume re-verify,
-  blocked-tooling rule, no self-verdict proposed (## Hardening), owner ruling pending.
 
 ## Evidence — U0 census (2026-09-23)
 
@@ -317,7 +311,8 @@ Method: regex nets → per-hit transcript reads (`/tmp/tracking-survey/probe.py`
   update) 14, Case-2 (self-contained block) 5 — all Case-2 in testril, mostly cross-model
   handoffs. Both cases live. Auto-invocation is native to skills — the verb skills'
   descriptions carry the trigger, no `commands/` detour needed.
-- **START (C1+C2+C3) — 87 thread creations, all hand-rolled** (no command exists): 85
+- **START (C1+C2+C3) — 87 counted / 86 distinct thread creations** (one fork/resume
+  pair double-counted — corrected by the 09-24 sweep), all hand-rolled (no command exists): 85
   ritual-followed, 2 broken-index — and both were self-declared scratch ("not a thread
   yet"), one parked via `git rm` the next day, one line added same-day by the successor
   session. The rule is followed at cost, not violated: each start is 3–4 records of
@@ -354,49 +349,24 @@ Method: regex nets → per-hit transcript reads (`/tmp/tracking-survey/probe.py`
 - **Anchor drift in this plan** — main is at 0.24.0 (8 manifests), not 0.19.0: the train
   rides **0.25.0**, not 0.20.0. `set-version.mjs` is still a list on main (U2 premise
   holds). The "27 project dirs" count holds.
+- **Start-title derivation sweep (2026-09-24, full corpus).** 86 distinct starts (the
+  census's 87 double-counted one fork/resume pair — identical tool-use uuid in two
+  transcripts); 83 readable, 3 transcripts already gone (derivation happens at mint
+  time, written into the thread file — never transcript-dependent). **80/83
+  derivable-prose, 2 owner-named (successor generations at kill/close boundaries), 1
+  from repo state (a forward-ledger row), 0 minted-from-nothing.** The judgment is
+  segmentation: 38 grouping moments, mostly owner-visible (all of C2's, 11/16 of C3's);
+  model-alone calls cluster in three sittings and still produced well-named threads.
+  Consequences carried into the `new` body: derivation window spans the sitting's reads
+  and tool results, propose the partition ask-once then mint-N, detect merge/supersede,
+  check `archive/` for slug collisions, proposal-stage files stay non-threads, the close
+  moment births successors. Tables: `/tmp/tracking-survey/sweep-u3/out-C{1,2,3}-derivation.md`.
 
 **Log.**
-- 2026-09-24 — readiness pass: train re-anchored to 0.25.0 → 0.26.0 (0.25.0 shipped
-  after the 09-23 verification; Settled/U4/U10 fixed), U2 premise re-verified
-  (`set-version.mjs` still a list on main), pause points folded into U5/U10 — restart
-  and merge are the owner's, a run stops and asks, fresh-session closes verify at the
-  pauses. Remaining before a full run: owner ruling on the four hardening proposals;
-  sweep-or-skip on the 87-start audit.
-- 2026-09-24 — owner ruled the log defect: progress files realign, never accumulate —
-  the log is not append-only history, spent entries and dated sections die at
-  realignment (git is the history), the file carries current contracts only. Measured:
-  testril native-functions 1027 (99-line log, 4 dated headers), data-liquidity 951,
-  shape-survey 248; this file's own log was 29 lines in two days. Amendments: Settled
-  (+realign bullet), port list (shape clause + "false or spent"), verb table (run close
-  realigns, cleanup sweeps logs, status reads live log), U3 smoke (+run realign). Sample
-  audit returned: 13/13 titles derivable from prior prose, segmentation is the owner
-  ask — Open item updated; this file's own log collapses at its close (dogfood).
-- 2026-09-24 — owner re-ruled four: `new [title]` (derive from session when skipped;
-  audit ordered, sample-first), `done` → `cleanup` and demoted to optional hygiene — runs
-  close their own threads at final-unit landing and never wait on merge, FINISH dies as a
-  rule; `init` fresh-only (no arg, no migration — U6–U8 are hand folds); `/todo:run`
-  hardened — the model stops and asks on impactful deviations, never rules alone.
-  Amendments: Settled (+3 bullets), verb table, port list, Hardening section added,
-  U3/U6/U10 rewritten.
-- 2026-09-23 — U0 run: 7 sonnet batches + mechanical cross-tab over 643 sessions + 8 repos;
-  Evidence section above; four open decisions answered by evidence, owner ruling pending;
-  plan amendments proposed (train 0.25.0, problem framing, `status [slug]`, `done` gates).
-- 2026-09-23 — owner ruled all four: `status` mirrors `run`'s arg shape (DRY); `new` is
-  end-of-session (line always, file when the discussion carries enough); ladder kept;
-  `init` seeds completed.md. Amendments applied: problem framing rewritten, verb table
-  (init seeds, new end-of-session, run keeps ladder, status [plan], done deferral gate +
-  git-mv-only + one-per-invocation), port list (+pointer spelling, +sections sentence),
-  train 0.24.0 → 0.25.0 in Settled/U4/U10, U3 smoke-test updated. U0 closed.
-- 2026-09-23 — owner re-alignment: (1) verbs are skills, not commands — the repo's
-  `commands/` shells are hook-intercepted only (rm/md/zai/tokens), readability is the
-  layout precedent, so `skills/<verb>/SKILL.md` × 7; Settled, tree, U1/U3/U5 closes
-  rewritten; (2) the repo tracking files (testril's tracking.md + TODO.md, stonks,
-  firstmenu, webapp, streamdeck + their CLAUDE.md sections) are build references, not
-  mere migration targets — Sources split into verbatim ports vs build references;
-  (3) sync-tracking is the dying copy-and-stamp machinery only — nothing ports from it.
-- 2026-09-22 — seeded from the centralization session with Vineet. Recon: 8 repos in sync
-  under `sync-tracking`; `~/.claude` unversioned; `set-version.mjs` still a list on main;
-  0.19.0 shipped with seven plugins, so this rides 0.20.0. Supersedes
-  `workflow-plugin.md` (archived today, verbatim): its seventh-slot premise died when
-  statusline-lab took 0.19.0, and the three-skill move is subsumed — `handoff` and
-  `run-plan` move into `todo`, `explain` settled loose.
+- Closed 2026-09-24 — the run landed the plugin on PR #4 (U1-U4, U6 fold, thread close)
+  and the lint fix on PR #5; all 8 repos folded - agentic committed, testril + the six
+  unstaged in their working trees; ~/.claude scrubbed (template, sync-tracking, both
+  loose skills, the global work-tracking bullet). Owner steps outstanding as TODO.md
+  lines: merge + release v0.27.0 + local adopt + fresh-session verify; land the seven
+  unstaged folds (testril via its handover rules; firstmenu/action/webapp sit on
+  feature branches).

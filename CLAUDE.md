@@ -1,10 +1,11 @@
 # agentic — rules
 
 A Claude Code plugin marketplace: `readability` and `omlx` (MCP servers) plus `rm`,
-`md`, `zai`, `tokens` (zero-token hook plugins) and `statusline` (status line +
-agent panel) — seven independently-installable plugins in one repo. The code lives
-in eight npm packages (`@v1nvn/*`) under `packages/`; each plugin directory is only
-a manifest plus config wrapper.
+`md`, `zai`, `tokens` (zero-token hook plugins), `statusline` (status line +
+agent panel), and `todo` (work tracking) — eight independently-installable plugins
+in one repo. The code lives in eight npm packages (`@v1nvn/*`) under `packages/`;
+each plugin directory is only a manifest plus config wrapper — `todo` is
+manifest + skills, no package.
 
 ## Philosophy
 
@@ -42,8 +43,8 @@ name or shape wins.
 
 - **Code in `packages/`, manifests in `plugins/`.** One yarn workspace at the root
   (`"workspaces": ["packages/*"]`); each package builds with vite and publishes to npm
-  under `@v1nvn/*`. A plugin directory holds only `plugin.json`, one `.md` surface —
-  a skill (`SKILL.md` at the root for a one-skill plugin) when the model executes the
+  under `@v1nvn/*`. A plugin directory holds only `plugin.json`, `.md` surfaces —
+  skills (a `SKILL.md` at the root or under `skills/<name>/`) when the model executes the
   body, a `commands/` shell when a `UserPromptExpansion` hook intercepts the
   invocation (the body is the no-hooks fallback, and model auto-invocation would
   bypass the hook) — a hooks/mcp config. Every `npx -y @v1nvn/*` line in the repo,
@@ -55,7 +56,7 @@ name or shape wins.
 - **Scripts resolve binaries only from deps the workspace declares.** Each package
   declares the tools its scripts invoke (`vite`, `vitest`); the root declares the
   root-run tools (eslint stack, prettier, typescript).
-- **Seven independent plugins, one marketplace.** Never collapse them into a
+- **Eight independent plugins, one marketplace.** Never collapse them into a
   mega-plugin; each installs and runs on its own.
 - **statusline ships exactly one skill** — root `SKILL.md`, invoked by its
   bare short name `/lab` (the menu lists it namespaced as
@@ -90,8 +91,6 @@ time, so it speaks only to that model.
 
 ## References
 
-- **`references/tracking.md`** — the work-tracking rules. Read before touching `TODO.md` or
-  any `progress/` file.
 - **`references/npm-publishing.md`** — the release train, keyless publishing, and the one-time
   manual bootstrap a never-published package name needs. Read before cutting a release or
   adding a package.
