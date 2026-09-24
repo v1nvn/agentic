@@ -32,9 +32,10 @@ npx -y @v1nvn/md@0.25.0 reply.md
 | `npx -y @v1nvn/md@0.25.0` | last reply → viewer, edit pane enabled, link copied |
 | `npx -y @v1nvn/md@0.25.0 --view` | read-only share |
 | `npx -y @v1nvn/md@0.25.0 reply.md` | that file instead of the last reply |
+| `npx -y @v1nvn/md@0.25.0 -` | Markdown from stdin |
 
-`MD_VIEWER_URL` sets the viewer (default `https://md.v1n.space`);
-`MD_NO_OPEN=1` skips opening the browser.
+`MD_VIEWER_URL` sets the viewer (default `https://md.v1n.space`); any set
+`MD_NO_OPEN` value (not just `1`) skips opening the browser.
 
 ## Develop
 

@@ -93,6 +93,7 @@ Extracts the main article from rendered HTML and returns Markdown + metadata + d
 | `maxChars` | — | Truncate the payload at a block boundary — **never inside a fenced code block**. |
 | `wordsPerMinute` | `200` | For `readingTimeMin`. |
 | `keepClasses` | `false` | Retain all classes (default strips non-language classes). |
+| `cleanChrome` | `true` | Strip browser chrome (scrollbars, consent/cookie banners, fixed nav and overlays) before conversion — these poison Readability's density scoring. |
 | `readabilityOverrides` | — | Escape hatch — passed verbatim to `new Readability(doc, …)`. Unstable. |
 | `chunk` | — | Split the extracted markdown into token-bounded chunks (RAG/embedding-ready). `{maxTokens, overlap?, strategy?}` (strategy defaults to `semantic`) — when set, `structuredContent.chunks` is an array of `{index, text, tokenCount, headingContext}`. Only applies to `format:"markdown" \| "text"`; HTML/JSON payloads carry no markdown body to slice and leave `chunks` unset. |
 | `imageInventory` | `false` | Emit `structuredContent.images` — an array of `{src, alt, width?, height?, caption}` for every `<img>` in the extracted article (absolute resolved srcs, placeholders skipped, caption from the enclosing `<figure>`'s `<figcaption>` else `alt`). Independent of the `images` inline-rendering option. |
@@ -128,7 +129,7 @@ Presets load at server start from a local cache directory — one `<site>.json` 
 
 ### `html_to_markdown` — fragment path
 
-Converts an arbitrary HTML fragment to Markdown **without** Readability scoring (e.g. a snippet already isolated via chrome-devtools). Same Turndown + DOMPurify path; reports `fallbackUsed: true`, `extractedNode: "fragment"`. Takes `localPath` plus the same `format`, `gfm`, `headingStyle`, `codeBlockStyle`, `images`, `tables`, `sanitize`, `maxChars`, `wordsPerMinute`, `selectors`, `baseUrl`, and `debug` options as `extract`. Metadata is minimal (`baseUrl`, `wordCount`, `readingTimeMin`, and a title from the fragment's first heading).
+Converts an arbitrary HTML fragment to Markdown **without** Readability scoring (e.g. a snippet already isolated via chrome-devtools). Same Turndown + DOMPurify path; reports `fallbackUsed: true`, `extractedNode: "fragment"`. Takes `localPath` plus the same `format`, `gfm`, `headingStyle`, `codeBlockStyle`, `images`, `tables`, `sanitize`, `maxChars`, `wordsPerMinute`, `selectors`, `baseUrl`, `metadataMode`, `cleanChrome`, and `debug` options as `extract`. Metadata is minimal (`baseUrl`, `wordCount`, `readingTimeMin`, and a title from the fragment's first heading).
 
 ### `extract_section` — one section by selector or heading
 

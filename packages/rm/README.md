@@ -31,7 +31,8 @@ npx -y @v1nvn/rm@0.25.0 reply.md
 | `npx -y @v1nvn/rm@0.25.0 reply.md` | that file instead of the last reply |
 
 Needs `pandoc` locally and `ssh`/`scp` access to the device —
-`REMARKABLE_HOST`, default `remarkable`.
+`REMARKABLE_HOST`, default `remarkable`; the device directory is
+`REMARKABLE_DIR`, default `/home/root/books`.
 
 ## Develop
 

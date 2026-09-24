@@ -21,7 +21,8 @@ Boolean flags cut the listing: `catalog --model --bar`.
 
 **Set — the wizard, the default.** Seeing designs rendered is the wizard's
 job — both surfaces, live previews at 80/120/200 columns (`j/k` move, `h/l`
-variant, `w` width, enter saves, `q` cancels). It is the owner's to run, not
+variant, `s` sets the focused item to none, `w` width, enter saves, `q`
+cancels). It is the owner's to run, not
 the agent's; hand it off exactly once with this line:
 
     ! npx -y @v1nvn/statusline@0.25.0 configure

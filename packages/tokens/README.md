@@ -51,4 +51,5 @@ yarn lint && yarn typecheck       # from the repo root
 ## Contracts
 
 - Reads transcripts only; writes nothing.
-- No flags — the report shape is the contract the plugin's hook prints too.
+- One flag: `--hook` emits the UserPromptExpansion block the plugin's hook
+  prints; bare invocation prints the same report.

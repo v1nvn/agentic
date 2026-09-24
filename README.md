@@ -45,8 +45,9 @@ npx -y @v1nvn/md@0.25.0         # last reply → Markdown-Viewer (--view for rea
 ```
 
 `rm` needs `pandoc` plus `ssh`/`scp` access to the device (`REMARKABLE_HOST`, default
-`remarkable`); `md` honors `MD_VIEWER_URL` (default `https://md.v1n.space`) and
-`MD_NO_OPEN=1` to skip opening the browser.
+`remarkable`, device dir `REMARKABLE_DIR`, default `/home/root/books`); `md` honors
+`MD_VIEWER_URL` (default `https://md.v1n.space`) and `MD_NO_OPEN=1` to skip opening
+the browser.
 
 ## statusline
 

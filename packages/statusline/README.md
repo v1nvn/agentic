@@ -31,19 +31,21 @@ In a terminal — same command, bare:
 npx -y @v1nvn/statusline@0.25.0 configure
 ```
 
-`j/k` move · `h/l` switch design · `w` width · enter saves · `q` cancels.
+`j/k` move · `h/l` switch design · `s` sets the focused item to none · `w`
+width · enter saves · `q` cancels.
 
 ## Usage
 
 One CLI, both ways: `/lab` inside a session runs these same
-commands; `npx` runs them in a terminal.
+commands; `npx` runs them in a terminal. Every subcommand takes `--home <dir>`
+to operate on another home instead of `$HOME`.
 
 | Command | Does |
 |---|---|
-| `configure` | bare on a TTY: the wizard. With flags: strict — every layout item needs a variant flag or `--fallback=default\|existing`; `--dry-run` renders without writing; a foreign key needs `--force` |
+| `configure` | bare on a TTY: the wizard. With flags: strict — `--layout '{model effort} {cwd branch}'` names the items, every unflagged item needs `--fallback=default\|existing`; `--dry-run` renders without writing; a foreign key needs `--force` |
 | `catalog` | one line per item, `*` marks the live variant |
 | `status` | one row per fact plus a verdict — exit 0 healthy, 1 needs action, every action row names its fix |
-| `restore` | both keys back to their pre-lab values from `backup.json`, then deletes the lab data — run it before uninstalling |
+| `restore` | both keys back to their pre-lab values from `backup.json`, then deletes the lab data — `--dry-run` prints the plan; `--force` splices over a key changed after the takeover |
 
 ```sh
 npx -y @v1nvn/statusline@0.25.0 catalog

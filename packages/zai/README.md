@@ -27,10 +27,12 @@ npx -y @v1nvn/zai@0.25.0
 |---|---|
 | `npx -y @v1nvn/zai@0.25.0` | usage report — models, quota window, remaining balance |
 | `npx -y @v1nvn/zai@0.25.0 --auth-token TOKEN` | same, key on the command line (visible in `ps`) |
+| `npx -y @v1nvn/zai@0.25.0 --base-url URL` | another GLM endpoint (default `api.z.ai`) |
 
 Auth resolves in order: `--auth-token` → `ZAI_AUTH_TOKEN` →
 `ANTHROPIC_AUTH_TOKEN`. The key talks to `api.z.ai` — a Claude proxy var
-pointing elsewhere is not zai config; set `ZAI_AUTH_TOKEN`.
+pointing elsewhere is not zai config; set `ZAI_AUTH_TOKEN`. The base URL
+follows `--base-url` → `ZAI_BASE_URL` → default `api.z.ai`.
 
 ## Develop
 
