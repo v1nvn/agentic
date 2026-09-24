@@ -3,7 +3,7 @@
 // manifest, plugin manifest, and npx pin — config files and .md surfaces alike —
 // mirrors it (lockstep release train: release.yml publishes every package on
 // it). One command bumps all of them; CI runs --check so a missed mirror,
-// stale pin, or unpinned npx line fails the build.
+// stale pin, name fragment, or unpinned registry invocation fails the build.
 import { readFileSync, writeFileSync } from 'node:fs';
 
 const SOURCE = '.claude-plugin/marketplace.json';
@@ -39,7 +39,10 @@ const PINNED_CONFIGS = [
 // Skill bodies, hook-fallback command shells, and READMEs teach
 // `npx -y @v1nvn/<pkg>` invocations. An unpinned one resolves "latest"
 // through the npx cache and can run a stale CLI against a fresh plugin —
-// every npx line in an .md surface rides the train too.
+// every registry invocation in an .md surface rides the train too, and a pin
+// must name a package that actually exists (a corrupted fragment like
+// `token@0.25.0s` parses as a valid pin and hides forever without the
+// name check).
 const MD_SURFACES = [
   'README.md',
   'plugins/statusline/SKILL.md',
@@ -64,11 +67,11 @@ const MD_SURFACES = [
 // and a JSON round-trip would churn every line.
 const VERSION_KEY = /"version"\s*:\s*"[^"]*"/;
 const PIN = /(@v1nvn\/[a-z0-9-]+)@\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?/g;
-// An npx invocation with no version. The boundary must exclude name
-// characters too — a plain (?!@) lets the engine backtrack into the name
-// (@zai@1.0.0 would match as "za"), and never touch @pkg@<version> prose or
-// a registry path like @pkg/subpath.
-const UNPINNED_NPX = /npx -y (@v1nvn\/[a-z0-9-]+)(?![a-z0-9-@/])/g;
+// Any @v1nvn/<name> mention not already versioned. The lookahead must exclude
+// name characters too — a plain (?!@) lets the engine backtrack into the name
+// (@zai@1.0.0 would match as "za"), and it must skip registry paths and the
+// @v1nvn/* glob (which `*` fails to match anyway).
+const UNPINNED_MENTION = /@v1nvn\/[a-z0-9-]+(?![a-z0-9-@/])/g;
 const SEMVER = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/;
 
 function fail(messages) {
@@ -98,44 +101,59 @@ function writeVersion(path, version) {
   writeFileSync(path, updated);
 }
 
-function pinDrift(path, version) {
+// A mention must carry a version exactly when a machine resolves it through
+// the npm registry: quoted (a JSON config example's args array) or preceded
+// on its line by a registry runner. `yarn workspace` names, headings, and
+// prose stay bare — versions break workspace resolution.
+function resolvesThroughRegistry(contents, index) {
+  if (contents[index - 1] === '"') {
+    return true;
+  }
+  const prefix = contents.slice(contents.lastIndexOf('\n', index) + 1, index);
+  return /\b(?:npx|npm\s+(?:i|install)|yarn\s+(?:add|dlx))\b/.test(prefix);
+}
+
+function pinDrift(path, version, known, requirePin) {
   const contents = readFileSync(path, 'utf8');
   const pins = contents.match(PIN) ?? [];
-  if (pins.length === 0) {
+  if (requirePin && pins.length === 0) {
     return `${path}: no @v1nvn/<pkg>@<version> pin found`;
   }
-  const stale = pins.filter(pin => !pin.endsWith(`@${version}`));
-  if (stale.length > 0) {
-    return `${path}: pin ${stale[0]} != repo version ${version}`;
+  for (const pin of pins) {
+    const name = pin.slice('@v1nvn/'.length, pin.lastIndexOf('@'));
+    if (!known.has(`@v1nvn/${name}`)) {
+      return `${path}: "@v1nvn/${name}" is not a package in this repo`;
+    }
+    if (!pin.endsWith(`@${version}`)) {
+      return `${path}: pin ${pin} != repo version ${version}`;
+    }
+  }
+  for (const mention of contents.matchAll(UNPINNED_MENTION)) {
+    if (resolvesThroughRegistry(contents, mention.index)) {
+      return `${path}: "@v1nvn/${mention[0].slice('@v1nvn/'.length)}" resolves through npm unpinned`;
+    }
   }
   return null;
 }
 
 function rewritePins(path, version) {
-  const updated = readFileSync(path, 'utf8').replace(PIN, `$1@${version}`);
-  JSON.parse(updated); // the edit must leave valid JSON
-  writeFileSync(path, updated);
-}
-
-function mdPinDrift(path, version) {
-  const contents = readFileSync(path, 'utf8');
-  const stale = (contents.match(PIN) ?? []).filter(pin => !pin.endsWith(`@${version}`));
-  if (stale.length > 0) {
-    return `${path}: pin ${stale[0]} != repo version ${version}`;
-  }
-  const unpinned = contents.match(UNPINNED_NPX) ?? [];
-  if (unpinned.length > 0) {
-    return `${path}: unpinned npx invocation "${unpinned[0]}"`;
-  }
-  return null;
-}
-
-function rewriteMdPins(path, version) {
   const updated = readFileSync(path, 'utf8')
     .replace(PIN, `$1@${version}`)
-    .replace(UNPINNED_NPX, `npx -y $1@${version}`);
+    .replace(UNPINNED_MENTION, (mention, offset, contents) =>
+      resolvesThroughRegistry(contents, offset) ? `${mention}@${version}` : mention,
+    );
+  if (path.endsWith('.json')) {
+    JSON.parse(updated); // the edit must leave valid JSON
+  }
   writeFileSync(path, updated);
 }
+
+// Pins invoke npm packages, so the valid names are the scoped ones — plugin
+// manifests carry bare short names that must not leak into the comparison.
+const KNOWN = new Set(
+  MIRRORS.map(path => JSON.parse(readFileSync(path, 'utf8')).name)
+    .filter(name => name.startsWith('@v1nvn/')),
+);
 
 const check = process.argv[2] === '--check';
 if (check) {
@@ -144,10 +162,10 @@ if (check) {
     path => `${path}: ${readVersion(path)} != repo version ${repo}`,
   );
   for (const path of PINNED_CONFIGS) {
-    messages.push(pinDrift(path, repo));
+    messages.push(pinDrift(path, repo, KNOWN, true));
   }
   for (const path of MD_SURFACES) {
-    messages.push(mdPinDrift(path, repo));
+    messages.push(pinDrift(path, repo, KNOWN, false));
   }
   const errors = messages.filter(Boolean);
   if (errors.length > 0) {
@@ -164,11 +182,8 @@ if (!SEMVER.test(version ?? '')) {
 for (const path of [SOURCE, ...MIRRORS]) {
   writeVersion(path, version);
 }
-for (const path of PINNED_CONFIGS) {
+for (const path of [...PINNED_CONFIGS, ...MD_SURFACES]) {
   rewritePins(path, version);
-}
-for (const path of MD_SURFACES) {
-  rewriteMdPins(path, version);
 }
 console.log(
   `${[SOURCE, ...MIRRORS].length} manifests, ${PINNED_CONFIGS.length} config pins, ${MD_SURFACES.length} md npx surfaces now at ${version}`,

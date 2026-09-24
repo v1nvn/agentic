@@ -59,7 +59,7 @@ affordance — `hooks.json` is static.
 ```
 /zai:usage
   └─ UserPromptExpansion hook (hooks/hooks.json)
-       └─ npx -y @v1nvn/za@0.25.0i@<version> --hook
+       └─ npx -y @v1nvn/zai@0.25.0 --hook
             └─ fetches model/tool/quota data and renders a plain-text report
        └─ returns {"decision":"block","reason": <report>}  ← model never runs
 ```
