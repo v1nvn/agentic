@@ -1,8 +1,5 @@
 # npm publishing — the release train
 
-> Verified against live sessions 2026-09-01 → 2026-09-19 (bootstrap story in
-> archive/monorepo-npx.md).
-
 ## The train
 
 The version lives in `.claude-plugin/marketplace.json`; every package
