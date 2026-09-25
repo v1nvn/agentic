@@ -86,6 +86,9 @@ time, so it speaks only to that model.
   (never add a second skill, keep a version pinned) is noise in a `SKILL.md`.
 - **Emphasis is earned by a reason.** State a constraint plainly with its *because*; caps and
   `NEVER` are for contract facts and routing, not for steering behavior.
+- **todo: `/todo:run` is the primary skill.** It is the battle-tested one; `rules` defines
+  the progress-file shape `run` consumes, and every other todo skill stays in sync with
+  both — a change to one lands in the others in the same change.
 - **Size sampling `maxTokens` for thinking models.** Thinking counts toward the cap, so a
   ceiling tuned to the visible reply truncates it. Reply length belongs in the prompt, not the cap.
 
