@@ -15,7 +15,7 @@ text.
 the live variant, zero ANSI — so its output can go into the chat as-is. Run
 it and show the owner the catalog as a plain table:
 
-    npx -y @v1nvn/statusline@0.27.1 catalog
+    npx -y @v1nvn/statusline@0.27.2 catalog
 
 Boolean flags cut the listing: `catalog --model --bar`.
 
@@ -25,7 +25,7 @@ variant, `s` sets the focused item to none, `w` width, enter saves, `q`
 cancels). It is the owner's to run, not
 the agent's; hand it off exactly once with this line:
 
-    ! npx -y @v1nvn/statusline@0.27.1 configure
+    ! npx -y @v1nvn/statusline@0.27.2 configure
 
 Previews prefer the captures the runtime itself files
 (`captures/main.json`, `captures/tick.json` — real session data), fixtures
@@ -41,12 +41,12 @@ composes them whole, config included — and always preview before the write.
 First the flags line with `--dry-run`, handed off so the true render lands
 in the owner's terminal, nothing written:
 
-    ! npx -y @v1nvn/statusline@0.27.1 configure --model block --bar gauge --fallback=default --dry-run
+    ! npx -y @v1nvn/statusline@0.27.2 configure --model block --bar gauge --fallback=default --dry-run
 
 On the owner's yes, the agent runs the same line without `--dry-run` — the
 write prints `configured — live on the next paint`, plain text:
 
-    npx -y @v1nvn/statusline@0.27.1 configure --model block --bar gauge --fallback=default
+    npx -y @v1nvn/statusline@0.27.2 configure --model block --bar gauge --fallback=default
 
 `configure` is strict: every item in the layout needs a variant flag, and a
 missing one fails naming what is unresolved. `--fallback=default` fills the
@@ -58,13 +58,13 @@ the only way to put an item on the surface; `style` sits outside the default
 layout, so it takes a `--layout` that names it, and a variant for an item the
 layout does not name is an error:
 
-    npx -y @v1nvn/statusline@0.27.1 configure --layout '{model effort} {cwd branch} {bar tokens cache} {style}' --style dots --fallback=default
+    npx -y @v1nvn/statusline@0.27.2 configure --layout '{model effort} {cwd branch} {bar tokens cache} {style}' --style dots --fallback=default
 
 A foreign `statusLine` or `subagentStatusLine` key in `~/.claude/settings.json`
 is refused, never silently overwritten; take it over only on the owner's word,
 with `--force` added to the configuration flags:
 
-    npx -y @v1nvn/statusline@0.27.1 configure --model block --bar gauge --fallback=default --force
+    npx -y @v1nvn/statusline@0.27.2 configure --model block --bar gauge --fallback=default --force
 
 On success both surfaces are live on the next paint: `configure` writes
 exactly the two settings keys, config riding in the main key's value as env
@@ -80,7 +80,7 @@ deletes the lab data (`captures/`, `backup.json`). Plain text,
 agent-runnable; a foreign key changed since the takeover is refused unless
 `--force` rides along:
 
-    npx -y @v1nvn/statusline@0.27.1 restore
+    npx -y @v1nvn/statusline@0.27.2 restore
 
 Before the owner uninstalls the plugin, run `restore` first: a plain
 uninstall deletes the data dir with the backup, and the keys keep globbing a
@@ -89,7 +89,7 @@ cache dir that dies only ~14 days later — a blank line, delayed.
 **Check.** `status` prints one row per fact, then a verdict — plain text,
 zero ANSI, agent-runnable:
 
-    npx -y @v1nvn/statusline@0.27.1 status
+    npx -y @v1nvn/statusline@0.27.2 status
 
 A healthy install prints:
 

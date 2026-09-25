@@ -1,7 +1,7 @@
 {
   "name": "statusline",
   "description": "Status line and agent-panel rows from a component library of pickable designs — bash render runtime, adopted with the statusline CLI",
-  "version": "0.27.1",
+  "version": "0.27.2",
   "author": {
     "name": "v1nvn",
     "email": "v1n@outlook.com"
