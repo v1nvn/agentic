@@ -10,8 +10,7 @@ Fresh setup only, in the repo the session sits in, where no tracking exists yet:
 `TODO.md`, `progress/`, or `archive/` is already present, stop and say so — folding an
 existing system in is hand work, never this verb. Create:
 
-- `TODO.md` — the heading `# TODO — open-work index`, then the header line
-  `> Rules: /todo:rules`, then nothing else: no seeded lines.
+- `TODO.md` — the heading `# TODO — open-work index` and nothing else: no seeded entries.
 - `progress/` — empty.
 - `archive/` — holding `completed.md`, seeded with its heading
   `# Completed — trivial one-shots` and nothing else.

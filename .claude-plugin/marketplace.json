@@ -54,7 +54,7 @@
       "name": "todo",
       "source": "./plugins/todo",
       "category": "productivity",
-      "description": "Work tracking — the rules plus six verbs (init, new, run, status, cleanup, handoff) over TODO.md, progress/, references/, archive/."
+      "description": "Work tracking — the rules plus six verbs (init, new, run, status, audit, handoff) over TODO.md, progress/, references/, archive/."
     }
   ]
 }

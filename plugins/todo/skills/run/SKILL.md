@@ -1,6 +1,6 @@
 ---
 name: run
-description: Execute a progress/<plan>.md plan file unit by unit — one subagent per unit, each closed on its stated criteria, one commit per unit; landing the final unit closes the thread in the same sitting. Use when the user points at a plan file and asks to run it, fully or a named subset of units.
+description: Execute a progress/<plan>.md plan file unit by unit — fresh subagents per unit, each closed on its stated criteria, one commit per unit; landing the final unit closes the thread in the same sitting. Use when the user points at a plan file and asks to run it, fully or a named subset of units.
 argument-hint: <plan> [units]
 ---
 
@@ -11,38 +11,40 @@ units to run — ids exactly as the plan names them (phase, step, block, unit), 
 `P7-P11`. No scope means the whole thread. If the path or a scope id doesn't resolve,
 stop and say so.
 
-The plan carries the work: goal, unit list in dependency order, per-unit verify
-criteria, reading lists, protected tests, PR grouping, open questions, audit list. This
+The plan carries the work in the rules' progress-file shape: Goal, the Steps unit table
+(dependency order, close criteria, `model`, `review`), and its Plan section — reading
+lists, the enforcement inventory, PR grouping, open questions, audit list. This
 skill carries the loop. Where the plan is silent, derive from the repo and CLAUDE.md,
-decide, and log the decision — inside the deviation law below.
+decide, and write the decision into the plan — inside the deviation law below.
 
 ## Deviations
 
 The run deviates from nothing the plan's text does not already name. Any pick outside
-that — mechanical or not — stops the run and is posted to the owner: no accept-and-log,
+that — mechanical or not — stops the run and is posted to the owner: no accept-and-note,
 never a ruling made alone. Scope changes, contract or semantic changes, anything
 unnamed → post it and wait — a small early deviation compounds into places the plan
 never chose. The mechanical test for what must stop: a deviation that forces a second
 deviation to land, touches a file the plan doesn't name, or mints or splits a unit. A
-single mechanical pick inside the plan's named scope proceeds and is logged.
+single mechanical pick inside the plan's named scope proceeds and is written into the plan.
 
 ## Session frame
 
 The session is orchestrator, verifier and decision-maker only. The owner is not
 available during the run; there are no checkpoints. Every decision is written into the
-plan as it is made and reported in the final veto table. The plan's own log is the
-resume record — a later session picks up from the plan file alone; write no parallel
-run document. On resume, re-run the last landed unit's close criteria instead of
-trusting its log line.
+plan as it is made and reported in the final veto table. The plan file, with its
+scratch notes, is the resume record — a later session picks up from those alone;
+write no parallel run document. On resume, fold any scratch notes in first, then
+re-run the last landed unit's close criteria instead of trusting its row.
 
 ## Models
 
 The plan names its models; this skill's defaults are the fallback.
 
-- A `**Run:**` line near the plan's top names the orchestrator model. A session on a
-  different model says so before its first dispatch and continues — it cannot switch
+- A `**Run:**` line near the plan's top names the orchestrator model when the plan needs
+  one; without it, the launching session orchestrates. A session on a different model
+  than the line names says so before its first dispatch and continues — it cannot switch
   itself; the owner launched it.
-- A `model` column on the unit table names that unit's builder. The reviewer takes the
+- A `model` column on the Steps table names that unit's builder. The reviewer takes the
   stronger of the unit's model and the default (`fable` > `opus` > `sonnet`); the test
   writer takes the default. A blank cell is the default. A `review` column tiers the
   reviewer: `blind` (the default, the model rule above), `checklist` (`sonnet`, the
@@ -61,17 +63,17 @@ The plan names its models; this skill's defaults are the fallback.
    reading lists is a design, not a runnable plan: the first unit is a docs-only
    hardening unit that writes them — plus an enforcement inventory (tests that must
    survive byte-for-byte, forbidden idioms, counts that must never rise) — into the
-   plan, and commits. Nothing builds before they exist.
+   plan's Steps table and Plan section, and commits. Nothing builds before they exist.
 3. Resolve the scope to an ordered unit list. Steps the plan marks trivial may bundle
    into one unit with one-line commits each. A unit whose diff would pass the plan's
-   line ceiling is split before dispatch and the split logged; a pure deletion is
-   exempt, because a tree that must stay green cannot lose a crate in halves.
+   line ceiling is split before dispatch and the split written into the plan; a pure deletion is
+   exempt, because a tree that must stay green cannot lose a component in halves.
 4. Derive the run mechanics:
-   - Gate command(s) from the repo (type-check/lint/test/build, or a workspace cargo
+   - Gate command(s) from the repo (type-check/lint/test/build, or a workspace-wide
      gate). Each unit's row may name its gate scope — the components it touches plus
      their dependents; a row that names none takes the repo's whole gate, and the whole
      gate runs at the group boundary either way. The full gate fires immediately before
-     a commit that changes code it exercises, and the unit's log names every firing and
+     a commit that changes code it exercises, and the unit's scratch notes name every firing and
      what it answered; a firing that answered nothing is a deviation. Iteration inside
      a unit uses scoped commands only. Where builds are slow, ration every run to the
      narrowest scope that answers the question.
@@ -92,7 +94,7 @@ The plan names its models; this skill's defaults are the fallback.
    branch when the plan names none) — when the prompt asks for a worktree, the run creates
    one on a new branch off that base and the check applies there; the gate green at the start; every unit on another
    thread the scope is gated on has landed there — its closing test is in the tree, or
-   its plan's log says so; the environment the scoped units need (cluster, env vars,
+   its plan's Steps table says so; the environment the scoped units need (cluster, env vars,
    secrets, disk, `gh` auth, quiet neighbors — file watchers, IDE indexers and
    test-discovery runners on the tree, where the machine has them). Any violation:
    stop and say so.
@@ -103,8 +105,8 @@ The plan names its models; this skill's defaults are the fallback.
   copies the orchestrator's context.
 - One `sonnet` clerk per run, continued by message, owns the run's mechanics: it runs
   the enforcement gate script after every commit and fix round and reports the red or
-  green line, collects gate tails and worker-report tails verbatim, drafts plan-log
-  lines and veto-table rows, and executes the stall poll. It pastes raw command
+  green line, collects gate tails and worker-report tails verbatim, drafts scratch
+  notes and veto-table rows, and executes the stall poll. It pastes raw command
   output, never a summary of it, and decides nothing — a drafted line lands only when
   the orchestrator accepts it, or untouched where the run pre-authorized its template.
 - Fresh agent per unit per role. Briefs point at the plan's section or row, name the
@@ -140,8 +142,8 @@ The plan names its models; this skill's defaults are the fallback.
    plan doesn't name tests, red-first rides in the builder's brief.
 2. Builder builds compiler/test-driven on the named files, writes no bridge code,
    leaves protected tests untouched, runs the full gate once, commits (one line, no
-   co-author trailer), appends to or opens the PR, updates the plan's log for its
-   unit, and writes what it learned into the sections of later units that owe it. A
+   co-author trailer), appends to or opens the PR, writes its unit's notes to the
+   plan's scratch file, and writes what it learned into the sections of later units that owe it. A
    deviation stops the builder before its commit: it reports the finding and the
    options, and nothing lands until the orchestrator answers.
 3. Where the enforcement inventory names checkables, a `sonnet` writes a scratchpad
@@ -165,10 +167,11 @@ The plan names its models; this skill's defaults are the fallback.
    is wrong — the orchestrator reads the specific finding, not the diff.
 6. Route a reported deviation through Deviations. A pick inside the plan's named
    scope: pick it by CLAUDE.md and the plan's own law, write it into the owning
-   section, ripple-check later sections in the same edit, log it for the veto table,
+   section, ripple-check later sections in the same edit, note it for the veto table,
    continue the builder. Anything else stops the run and is posted to the owner.
 7. Close the unit — only on its stated close criteria (greps, tests, gate firings),
-   never on the builder's say-so; review stays a blind subagent. Dispatch the next.
+   never on the builder's say-so; review stays a blind subagent. Fold the unit's
+   notes into the plan per the rules, then dispatch the next.
    Strictly serial: one lane, one warm build, no worktrees inside a run, no parallel
    units.
 8. A unit whose deliverable is a document or a dataset — nothing compiles, no gate —
@@ -177,8 +180,8 @@ The plan names its models; this skill's defaults are the fallback.
    a sample), and such units run in parallel where the plan says they do. The builder
    records the command or URL its count came from; the reviewer re-runs it and never
    takes the builder's number. Parallel builders write only their files and never run
-   git or edit the plan; the orchestrator commits each unit and writes its log line once
-   its reviewer passes.
+   git or edit the plan; the orchestrator commits each unit and folds its notes into the plan
+   once its reviewer passes.
 
 ## Red lines
 
@@ -188,27 +191,27 @@ The plan names its models; this skill's defaults are the fallback.
 2. Frozen scoring sheets are scored exactly as the plan says and never tuned against;
    the working gate must stay green throughout.
 3. A probe that fails its bar is reported, not landed — "probed, no landing" with the
-   grid in the log is a completed unit.
+   grid in the plan is a completed unit.
 4. Never weaken a pin to pass it. A pin changes only because the behavior deliberately
    changed, and the commit says so.
 5. Shared external environments are never written. Dangerous exec edges prove
    themselves on fakes and test rigs only; a live deploy or adopt is the owner's call,
    never the run's.
 6. A blocked batch operation — a permission classifier refusing a multi-file move —
-   is split; still blocked, the blocker is logged and the other units continue. Never
+   is split; still blocked, the blocker is written into the plan and the other units continue. Never
    leave silent divergence behind.
 
 ## Close
 
 - Landing the thread's final unit closes the thread in the same sitting, per the
-  rules' closing paragraph, after the unit's own close has realigned the thread file.
-  Delete the thread's index line as part of that close; mint any successor the picks
+  rules' closing paragraph, after the unit's own close has folded its notes into the thread file.
+  Delete the thread's index entry as part of that close; mint any successor the picks
   created via `/todo:new` — its close-moment trigger.
 - Whole-run audit when the plan carries one: a `sonnet` writes and runs the script
   from the plan's audit list, no builds.
-- Tracking lines close only on green evidence.
+- Index entries close only on green evidence.
 - Final report: PR URLs; the evidence ladder the plan tracks (start → per-unit →
-  end); the decision table (question, pick, reason, where written); every reviewer
+  end); the veto table (question, pick, reason, where written); every reviewer
   finding not fixed and why; units closed "probed, no landing"; remaining reds;
   out-of-run follow-ups named with the component that owns them. A subset run reports
   its units plus what it owes the later ones.
