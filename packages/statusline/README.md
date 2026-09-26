@@ -9,8 +9,6 @@ User-facing docs: [root README § statusline](../../README.md#statusline).
 
 ## Quickstart
 
-The wizard is the way to configure — both surfaces, live previews, enter saves.
-
 Install once (the runtime the keys point at lives in the plugin cache):
 
 ```sh
@@ -18,14 +16,10 @@ claude plugin marketplace add v1nvn/agentic
 claude plugin install statusline@agentic
 ```
 
-In Claude Code — type `/lab`, run the wizard it hands you (`!`
-runs it in your session with a real terminal):
+In Claude Code — type `/lab`: the agent sketches the themes as plain renders,
+offers the picker in chat, and writes the pick.
 
-```
-! npx -y @v1nvn/statusline@0.27.3 configure
-```
-
-In a terminal — same command, bare:
+In a terminal outside Claude Code — the wizard, the terminal guide:
 
 ```sh
 npx -y @v1nvn/statusline@0.27.3 configure
@@ -36,21 +30,23 @@ width · enter saves · `q` cancels.
 
 ## Usage
 
-One CLI, both ways: `/lab` inside a session runs these same
-commands; `npx` runs them in a terminal. Every subcommand takes `--home <dir>`
-to operate on another home instead of `$HOME`.
+One CLI, both ways: `/lab` inside a session runs these same commands; `npx`
+runs them in a terminal. Every subcommand takes `--home <dir>` to operate on
+another home instead of `$HOME`.
 
 | Command | Does |
 |---|---|
-| `configure` | bare on a TTY: the wizard. With flags: strict — `--layout '{model effort} {cwd branch}'` names the items, every unflagged item needs `--fallback=default\|existing`; `--dry-run` renders without writing; a foreign key needs `--force` |
-| `catalog` | one line per item, `*` marks the live variant |
+| `configure` | write both settings keys. Bare on a TTY: the wizard. With flags: `--theme <name>` (quiet, lean, classic, rich, custom) is the base design, item flags override it, `--layout` overrides its layout; a layout item nothing picks is an error naming it; a foreign key needs `--force` |
+| `preview` | render the candidate bar and panel row through the same resolution `configure` uses, writing nothing; `--plain` strips the color escapes so glyphs survive chat |
+| `catalog` | the themes block (`*` marks the live theme) then one line per item, `*` marking the live variant; `--themes` cuts to the block |
 | `status` | one row per fact plus a verdict — exit 0 healthy, 1 needs action, every action row names its fix |
 | `restore` | both keys back to their pre-lab values from `backup.json`, then deletes the lab data — `--dry-run` prints the plan; `--force` splices over a key changed after the takeover |
 
 ```sh
-npx -y @v1nvn/statusline@0.27.3 catalog
-npx -y @v1nvn/statusline@0.27.3 configure --model block --bar gauge --fallback=default --dry-run   # preview, write nothing
-npx -y @v1nvn/statusline@0.27.3 configure --model block --bar gauge --fallback=default             # the write
+npx -y @v1nvn/statusline@0.27.3 preview --theme rich --plain          # chat-safe sketch, nothing written
+npx -y @v1nvn/statusline@0.27.3 configure --theme rich                 # the write — live on the next paint
+npx -y @v1nvn/statusline@0.27.3 configure --theme rich --bar percent   # one swap on top of the theme
+npx -y @v1nvn/statusline@0.27.3 catalog --themes
 npx -y @v1nvn/statusline@0.27.3 status
 npx -y @v1nvn/statusline@0.27.3 restore
 ```
@@ -69,14 +65,17 @@ Node ≥ 22. One workspace dep: `@v1nvn/agentic-core` (usage/exit helpers).
 
 | File | Role |
 |---|---|
-| `src/cli.ts` | commander wiring — four subcommands, help text |
+| `src/cli.ts` | commander wiring — five subcommands, help text |
 | `src/index.ts` | bin entry — verb dispatch, exit codes, wizard TTY deps |
-| `src/configure.ts` | the writer — key composition, ours-matcher, JSON splice engine, backup write, dry-run render |
+| `src/configure.ts` | the writer — theme + flag resolution, key composition, ours-matcher, JSON splice engine, backup write |
 | `src/resolve.ts` | runtime resolution + key parsing — the one resolution way |
 | `src/restore.ts` | revert decision tree + explicit-path cleanup |
-| `src/status.ts` | diagnostic rows + verdict |
-| `src/catalog.ts` | item listing, live variant starred |
-| `src/wizard.ts` · `src/wizard-tui.ts` | the terminal wizard — previews both surfaces, saves via `configure` |
+| `src/status.ts` | diagnostic rows + verdict, the live theme named |
+| `src/catalog.ts` | themes block + item listing, live picks starred |
+| `src/themes.ts` | the five theme bundles — layout, one variant per item, summary |
+| `src/live-theme.ts` | the shared matcher — the theme a key equals exactly |
+| `src/preview.ts` | the preview command — a candidate rendered, nothing written |
+| `src/wizard.ts` · `src/wizard-tui.ts` | the terminal wizard — theme pass, then refinement seeded from the pick |
 | `src/payloads.ts` · `src/demo-repo.ts` | preview plumbing — spawns the runtime with env + stdin; demo git repo for fixtures |
 | `assets/` | preview fixtures — `payloads/p1–p4.json` (main surface), `ticks/multi.json` (panel) |
 
@@ -86,6 +85,11 @@ Node ≥ 22. One workspace dep: `@v1nvn/agentic-core` (usage/exit helpers).
   else on disk except `backup.json` and `captures/`.
 - The key value is one inline shell command: resolver statement first, env
   assignments hugging `bash` last; statement order is pinned by golden tests.
+- A theme is configure-time only: a theme write and a flags write of the same
+  values produce identical settings text — the runtime never learns themes
+  exist.
+- The live theme is re-derived by matching the key against the bundles; no
+  theme name is stored in settings.
 - One resolution way: the newest-plugin-cache glob — `installed_plugins.json`
   is read nowhere.
 - One splice home: the settings.json span primitives live in `configure.ts`;

@@ -5,7 +5,10 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import { parseArgs, subcommandHelp } from '../src/cli.js';
 import { configure, type ConfigureOptions } from '../src/configure.js';
+import { liveTheme } from '../src/live-theme.js';
+import { readKeyConfig } from '../src/resolve.js';
 import { status } from '../src/status.js';
+import { THEMES } from '../src/themes.js';
 import {
   backupPath,
   createHomes,
@@ -288,5 +291,91 @@ describe('status: CLI surface (contract 5)', () => {
 
   it('names the status flags in its help', () => {
     expect(subcommandHelp('status')).toContain('--home');
+  });
+});
+
+function themeRows(rows: readonly string[]): readonly string[] {
+  return rows.filter(row => row.startsWith('theme:'));
+}
+
+function seedOursKeys(
+  home: string,
+  layout: string,
+  assignments: readonly string[],
+): void {
+  writeSettings(
+    home,
+    `{
+  "statusLine": ${JSON.stringify({ command: mainKeyValue(layout, assignments), type: 'command' })},
+  "subagentStatusLine": ${JSON.stringify({ command: subagentKeyValue, type: 'command' })}
+}
+`,
+  );
+}
+
+function themeAssignments(
+  variants: Readonly<Record<string, string>>,
+): readonly string[] {
+  return Object.entries(variants).map(
+    ([item, variant]) => `STATUSLINE_LAB_${item.toUpperCase()}=${variant}`,
+  );
+}
+
+describe('status: the live theme (contract 5)', () => {
+  it("names the theme the main key equals exactly — a 'theme: lean' row right after the config row", () => {
+    const home = newInstalledHome();
+    configure({ home, theme: 'lean' });
+
+    const result = status({ home });
+
+    expect(result.healthy).toBe(true);
+    expect(themeRows(result.rows)).toEqual(['theme: lean']);
+    expect(result.rows.indexOf('theme: lean')).toBe(
+      result.rows.indexOf('config: no drift') + 1,
+    );
+  });
+
+  it('a one-swap key (--theme lean --bar gauge) names no theme', () => {
+    const home = newInstalledHome();
+    configure({ home, theme: 'lean', variants: { bar: 'gauge' } });
+
+    const result = status({ home });
+
+    expect(result.healthy).toBe(true);
+    expect(themeRows(result.rows)).toEqual([]);
+  });
+
+  it('no key names no theme', () => {
+    const home = newInstalledHome();
+
+    expect(themeRows(status({ home }).rows)).toEqual([]);
+  });
+
+  it('rides the shared matcher — the row says exactly what liveTheme says on the same key, a dropped assignment included', () => {
+    const exact = newInstalledHome();
+    configure({ home: exact, theme: 'lean' });
+
+    const swapped = newInstalledHome();
+    configure({ home: swapped, theme: 'lean', variants: { bar: 'gauge' } });
+
+    const dropped = newInstalledHome();
+    seedOursKeys(
+      dropped,
+      THEMES.lean.layout,
+      themeAssignments(THEMES.lean.variants).filter(
+        assignment => !assignment.startsWith('STATUSLINE_LAB_STYLE='),
+      ),
+    );
+
+    expect(liveTheme(readKeyConfig(exact))).toBe('lean');
+    expect(liveTheme(readKeyConfig(swapped))).toBeUndefined();
+    expect(liveTheme(readKeyConfig(dropped))).toBeUndefined();
+
+    for (const home of [exact, swapped, dropped]) {
+      const live = liveTheme(readKeyConfig(home));
+      expect(themeRows(status({ home }).rows)).toEqual(
+        live === undefined ? [] : [`theme: ${live}`],
+      );
+    }
   });
 });

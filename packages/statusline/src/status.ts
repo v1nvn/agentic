@@ -11,6 +11,7 @@ import {
   type SettingsBackup,
   type SettingsKey,
 } from './configure.js';
+import { liveTheme } from './live-theme.js';
 import {
   capturePath,
   DATA_REL,
@@ -202,6 +203,7 @@ export function status(options: StatusOptions): StatusResult {
   const main = keyState('statusLine', members.statusLine);
   const subagent = keyState('subagentStatusLine', members.subagentStatusLine);
   const config = readKeyConfig(options.home);
+  const theme = liveTheme(config);
   const findings =
     runtime === null || main.kind !== 'ours'
       ? []
@@ -211,7 +213,12 @@ export function status(options: StatusOptions): StatusResult {
     runtimeRow(runtime),
     keyRow('statusLine', main, configDetail(config)),
     keyRow('subagentStatusLine', subagent),
-    ...(runtime !== null && main.kind === 'ours' ? [configRow(findings)] : []),
+    ...(runtime !== null && main.kind === 'ours'
+      ? [
+          configRow(findings),
+          ...(theme === undefined ? [] : [`theme: ${theme}`]),
+        ]
+      : []),
     backupRow(options.home),
     capturesRow(options.home),
   ];

@@ -12,7 +12,7 @@ its package through version-pinned `npx` — except todo: manifest + skills, no 
 | **md**          | Send the last reply to a Markdown-Viewer as a `#share=` URL — editable or read-only.                                                   | `/md:edit`, `/md:view`                                |
 | **zai**         | Query GLM Coding Plan quota and usage.                                                                                                 | `/zai:usage`                                          |
 | **tokens**      | Per-model token usage and cache hit rate from local transcripts.                                                                       | `/tokens:usage`                                       |
-| **statusline**  | Browse the design catalog and configure the status line + agent panel.                                                                | `/lab`                                 |
+| **statusline**  | Pick a theme for the status line + agent panel, or revert the setup.                                                                  | `/lab`                                 |
 | **todo**        | Work tracking — the rules plus six verbs over `TODO.md`, `progress/`, `references/`, `archive/`. Every repo carries data only.         | `/todo:run <plan>`, or a what's-next ask |
 
 `rm`, `md`, `zai`, and `tokens` run zero-token: a `UserPromptExpansion` hook intercepts the command before it reaches the model.
@@ -52,15 +52,18 @@ the browser.
 
 ## statusline
 
-Four commands drive both surfaces — the wizard is the default way in:
+Five commands drive both surfaces. In Claude Code, `/lab` sketches the themes
+as plain renders and offers the picker in chat — the agent writes the pick.
+In a terminal outside Claude Code, the wizard is the guide:
 
 ```sh
-npx -y @v1nvn/statusline@0.27.3 configure                                     # the wizard — bare, on a TTY
-npx -y @v1nvn/statusline@0.27.3 configure --model block --bar gauge --fallback=default --dry-run   # known picks — preview first
-npx -y @v1nvn/statusline@0.27.3 configure --model block --bar gauge --fallback=default             # then the write
-npx -y @v1nvn/statusline@0.27.3 catalog                                       # one line per item, * marks the live variant
-npx -y @v1nvn/statusline@0.27.3 restore                                       # both keys back to their pre-lab values
-npx -y @v1nvn/statusline@0.27.3 status                                        # rows + verdict — exit 0 healthy, 1 needs action
+npx -y @v1nvn/statusline@0.27.3 configure                          # the wizard — bare, on a TTY
+npx -y @v1nvn/statusline@0.27.3 configure --theme lean             # a theme write
+npx -y @v1nvn/statusline@0.27.3 configure --theme lean --bar gauge # a theme plus one swap
+npx -y @v1nvn/statusline@0.27.3 preview --theme rich --plain       # chat-safe sketch, nothing written
+npx -y @v1nvn/statusline@0.27.3 catalog                            # themes block, then one line per item
+npx -y @v1nvn/statusline@0.27.3 restore                            # both keys back to their pre-lab values
+npx -y @v1nvn/statusline@0.27.3 status                             # rows + verdict — exit 0 healthy, 1 needs action
 ```
 
 `configure` touches exactly the `statusLine` and `subagentStatusLine` keys of
@@ -76,16 +79,17 @@ d=$(printf '%s\n' ~/.claude/plugins/cache/agentic/statusline/*/ | sort -V | tail
 
 The layout — brace clusters of item ids — and one variant per item ride in
 that value: `--layout '{model effort} {cwd branch} {bar tokens cache}'`. With
-flags, `configure` is strict — every layout item needs a variant or a
-`--fallback=default|existing`; a flags run previews first (`--dry-run`
-renders both surfaces, writing nothing — the preview still refreshes
-`captures/`) and writes only on confirmation; a foreign settings key is
-refused unless `--force`. The first takeover saves the pre-lab key values to
-`backup.json`; `restore` splices them back byte-exact — keys absent before
+flags, `configure` is strict — `--theme <name>` (quiet, lean, classic, rich,
+custom) is the base design, item flags override it, and a layout item nothing
+picks is an error naming it; `classic` names the shipped defaults. `preview`
+renders a candidate through the same resolution without writing — `--plain`
+strips the color escapes so the sketch survives chat. A foreign settings key
+is refused unless `--force`. The first takeover saves the pre-lab key values
+to `backup.json`; `restore` splices them back byte-exact — keys absent before
 the lab are removed — then deletes the lab data. `status` checks the
-install: runtime, both keys, config drift against the resolved runtime,
-backup, captures — one row per fact plus a verdict, every action row naming
-its fix. `/lab` inside a session runs the same commands.
+install: runtime, both keys, config drift against the resolved runtime, the
+live theme, backup, captures — one row per fact plus a verdict, every action
+row naming its fix. `/lab` inside a session runs the same commands.
 
 Repo and machine:
 
@@ -108,9 +112,9 @@ machine, after `claude plugin install statusline@agentic`
 ```
 
 Install: `claude plugin marketplace add v1nvn/agentic`, then
-`claude plugin install statusline@agentic`, then
-`npx -y @v1nvn/statusline@0.27.3 configure` — the wizard previews both surfaces at
-80/120/200 columns and saves.
+`claude plugin install statusline@agentic`, then `/lab` in a session — or
+`npx -y @v1nvn/statusline@0.27.3 configure` in a terminal, where the wizard
+previews both surfaces at 80/120/200 columns and saves.
 
 Uninstall runs `npx -y @v1nvn/statusline@0.27.3 restore` first, then uninstalls
 the plugin: a plain uninstall deletes the data dir with `backup.json`, and
