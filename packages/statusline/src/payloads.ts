@@ -152,6 +152,7 @@ export interface PreviewRender {
   readonly runtime: ResolvedRuntime;
   readonly tick: string;
   readonly values: Readonly<Record<string, string>>;
+  readonly width?: number;
 }
 
 export interface PreviewSurfaces {
@@ -160,8 +161,9 @@ export interface PreviewSurfaces {
 }
 
 // Both renders read the same bag — subagent.sh takes STATUSLINE_LAB_STYLE for
-// its row — and NO_COLOR rides the render env because runtimeRenderer passes
-// no ambient environment through to the runtime.
+// its row and its width out of the tick's columns — and NO_COLOR rides the
+// render env because runtimeRenderer passes no ambient environment through to
+// the runtime.
 export function renderPreview(bag: PreviewRender): PreviewSurfaces {
   const variantEnv: Record<string, string> = Object.fromEntries(
     Object.entries(bag.values).map(([item, alt]) => [
@@ -178,7 +180,7 @@ export function renderPreview(bag: PreviewRender): PreviewSurfaces {
     bin: join(bag.runtime.dir, 'statusline.sh'),
     env: {
       ...env,
-      COLUMNS: '200',
+      COLUMNS: String(bag.width ?? 200),
       HOME: bag.home,
       NOW: bag.now,
       STATUSLINE_LAB_LAYOUT: bag.layout,

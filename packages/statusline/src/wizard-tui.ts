@@ -1,7 +1,7 @@
-import type { RenderSpec } from './payloads.js';
+import type { PreviewRender, PreviewSurfaces } from './payloads.js';
 import type { WizardDeps } from './wizard.js';
 
-import { runtimeRenderer } from './payloads.js';
+import { renderPreview } from './payloads.js';
 
 function nextKey(buffer: string): readonly [string, string] | undefined {
   if (buffer === '') {
@@ -89,8 +89,8 @@ export function terminalDeps(
     render(frame: string): void {
       output.write(`\x1b[2J\x1b[H${frame}\n`);
     },
-    preview(spec: RenderSpec): string {
-      return runtimeRenderer(spec);
+    preview(bag: PreviewRender): PreviewSurfaces {
+      return renderPreview(bag);
     },
   };
 }

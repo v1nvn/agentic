@@ -1,15 +1,14 @@
-import { join } from 'node:path';
-
-import type { RenderSpec } from './payloads.js';
+import type { PreviewRender, PreviewSurfaces } from './payloads.js';
 import type { RuntimeItem } from './resolve.js';
 
 import { VERSION } from './cli.js';
-import { configure, layoutItems } from './configure.js';
-import { firstPanelRow, previewSources } from './payloads.js';
-import { readKeyConfig, resolveRuntime } from './resolve.js';
+import { configure, type ConfigureOptions, layoutItems } from './configure.js';
+import { previewSources } from './payloads.js';
+import { resolveRuntime } from './resolve.js';
+import { type ThemeName, THEMES } from './themes.js';
 
 export interface WizardDeps {
-  preview(spec: RenderSpec): string;
+  preview(bag: PreviewRender): PreviewSurfaces;
   readKeys(): AsyncGenerator<string>;
   render(frame: string): void;
 }
@@ -22,66 +21,85 @@ export interface WizardOptions {
 }
 
 const WIDTHS: readonly number[] = [80, 120, 200];
-const KEYMAP =
-  'j/k move · h/l variant · s none · w width · enter save · q cancel';
+type Pass = 'refine' | 'themes';
+const THEME_KEYMAP = 'j/k focus · w width · enter pick · q cancel';
+const REFINE_KEYMAP =
+  'j/k move · h/l variant · s none · t themes · w width · enter save · q cancel';
+
+// index.ts routes its interactive branch through this predicate — the entry
+// executes the CLI on import, so the gate's one door is a wizard export.
+export function opensWizard(
+  args: Pick<ConfigureOptions, 'layout' | 'theme' | 'variants'>,
+  isTty: boolean,
+): boolean {
+  return (
+    isTty &&
+    args.layout === undefined &&
+    args.theme === undefined &&
+    args.variants === undefined
+  );
+}
 
 export async function createWizard(
   options: WizardOptions,
   deps: WizardDeps,
 ): Promise<WizardOutcome> {
   const runtime = resolveRuntime({ home: options.home });
-  const existing = readKeyConfig(options.home);
-  const layout = existing.layout ?? runtime.defaultLayout;
+  const names = Object.keys(THEMES) as ThemeName[];
   const byItem = new Map<string, RuntimeItem>(
     runtime.items.map(item => [item.item, item] as const),
   );
-  const names = layoutItems(
-    layout,
-    runtime.items.map(item => item.item),
-  );
-  const offered: {
+  const sources = previewSources(options.home, Number(options.now));
+  const tickBase = JSON.parse(sources.tick) as Record<string, unknown>;
+
+  let pass: Pass = 'themes';
+  let themeAt = 0;
+  let draftLayout = '';
+  let offered: {
     readonly alternatives: readonly string[];
     readonly item: string;
   }[] = [];
   const draft = new Map<string, string>();
-  for (const name of names) {
-    const entry = byItem.get(name);
-    if (entry === undefined) {
-      continue;
-    }
-    offered.push({ alternatives: entry.alternatives, item: name });
-    draft.set(
-      name,
-      name in existing.values &&
-        entry.alternatives.includes(existing.values[name])
-        ? existing.values[name]
-        : entry.default,
-    );
-  }
-  const sources = previewSources(options.home, Number(options.now));
-  const mainBin = join(runtime.dir, 'statusline.sh');
-  const panelBin = join(runtime.dir, 'subagent.sh');
-
   let focus = 0;
   let widthAt = 0;
 
-  function variantEnv(): Record<string, string> {
-    return Object.fromEntries(
-      [...draft].map(([item, alt]) => [
-        `STATUSLINE_LAB_${item.toUpperCase()}`,
-        alt,
-      ]),
-    );
+  function bag(
+    layout: string,
+    values: Readonly<Record<string, string>>,
+  ): PreviewRender {
+    return {
+      home: options.home,
+      layout,
+      main: sources.main,
+      now: options.now,
+      runtime,
+      tick: `${JSON.stringify(
+        { ...tickBase, columns: WIDTHS[widthAt] },
+        null,
+        2,
+      )}\n`,
+      values,
+      width: WIDTHS[widthAt],
+    };
   }
 
-  function env(): Record<string, string> {
-    return {
-      COLUMNS: String(WIDTHS[widthAt]),
-      HOME: options.home,
-      NOW: options.now,
-      STATUSLINE_LAB_LAYOUT: layout,
-      ...variantEnv(),
-    };
+  function enterRefine(name: ThemeName): void {
+    const theme = THEMES[name];
+    draftLayout = theme.layout;
+    offered = layoutItems(
+      theme.layout,
+      runtime.items.map(item => item.item),
+    ).flatMap(item => {
+      const entry = byItem.get(item);
+      return entry === undefined
+        ? []
+        : [{ alternatives: entry.alternatives, item }];
+    });
+    draft.clear();
+    for (const [item, alt] of Object.entries(theme.variants)) {
+      draft.set(item, alt);
+    }
+    focus = 0;
   }
 
   function cycle(delta: number): void {
@@ -94,10 +112,22 @@ export async function createWizard(
     draft.set(focused.item, alts[(at + delta + alts.length) % alts.length]);
   }
 
-  function step(key: string): void {
-    if (key === '\x1b[B' || key === 'j') {
+  function step(key: string): Pass {
+    const down = key === '\x1b[B' || key === 'j';
+    const up = key === '\x1b[A' || key === 'k';
+    if (key === 'w') {
+      widthAt = (widthAt + 1) % WIDTHS.length;
+    } else if (pass === 'themes') {
+      if (down) {
+        themeAt = (themeAt + 1) % names.length;
+      } else if (up) {
+        themeAt = (themeAt + names.length - 1) % names.length;
+      }
+    } else if (key === 't') {
+      return 'themes';
+    } else if (down) {
       focus = (focus + 1) % offered.length;
-    } else if (key === '\x1b[A' || key === 'k') {
+    } else if (up) {
       focus = (focus + offered.length - 1) % offered.length;
     } else if (key === '\x1b[C' || key === 'l') {
       cycle(1);
@@ -108,46 +138,50 @@ export async function createWizard(
       if (focused?.alternatives.includes('none')) {
         draft.set(focused.item, 'none');
       }
-    } else if (key === 'w') {
-      widthAt = (widthAt + 1) % WIDTHS.length;
     }
+    return pass;
   }
 
-  function draw(): void {
+  function drawThemes(): void {
+    const rows: string[] = [];
+    let panel = '';
+    for (let at = 0; at < names.length; at += 1) {
+      const name = names[at];
+      const theme = THEMES[name];
+      const surfaces = deps.preview(bag(theme.layout, theme.variants));
+      const focused = at === themeAt;
+      if (focused) {
+        panel = surfaces.panel;
+      }
+      rows.push(`${focused ? '>' : ' '} ${name}: ${theme.summary}`);
+      rows.push(`  ${surfaces.line}`);
+    }
+    deps.render(
+      [
+        `statusline configure · ${WIDTHS[widthAt]} columns (w cycles)`,
+        '',
+        ...rows,
+        '',
+        `panel ${panel}`,
+        '',
+        THEME_KEYMAP,
+      ].join('\n'),
+    );
+  }
+
+  function drawRefine(): void {
     const focused = offered.at(focus);
     if (focused === undefined) {
       return;
     }
-    const samples = focused.alternatives.map(alt =>
-      deps
-        .preview({
-          bin: mainBin,
-          env: {
-            ...env(),
-            STATUSLINE_LAB_LAYOUT: `{${focused.item}}`,
-            [`STATUSLINE_LAB_${focused.item.toUpperCase()}`]: alt,
-          },
-          stdin: sources.main,
-        })
-        .replace(/\n+$/, ''),
+    const values = Object.fromEntries(draft);
+    const samples = focused.alternatives.map(
+      alt =>
+        deps.preview(
+          bag(`{${focused.item}}`, { ...values, [focused.item]: alt }),
+        ).line,
     );
-    const line = deps
-      .preview({ bin: mainBin, env: env(), stdin: sources.main })
-      .replace(/\n+$/, '');
-    // subagent.sh reads the width out of the tick itself, not COLUMNS.
-    const tick = JSON.parse(sources.tick) as { columns?: number };
-    tick.columns = WIDTHS[widthAt];
-    const panel = deps
-      .preview({
-        bin: panelBin,
-        env: {
-          COLUMNS: String(WIDTHS[widthAt]),
-          HOME: options.home,
-          NOW: options.now,
-        },
-        stdin: `${JSON.stringify(tick, null, 2)}\n`,
-      })
-      .replace(/\n+$/, '');
+    const full = deps.preview(bag(draftLayout, values));
     const rows = offered.map(
       (entry, at) =>
         `${at === focus ? '>' : ' '} ${entry.item.padEnd(9)} ${draft.get(entry.item)}`,
@@ -156,8 +190,8 @@ export async function createWizard(
       [
         `statusline configure · ${WIDTHS[widthAt]} columns (w cycles)`,
         '',
-        `  ${line}`,
-        `  panel ${firstPanelRow(panel)}`,
+        `  ${full.line}`,
+        `  panel ${full.panel}`,
         '',
         `${focused.item}: ${focused.alternatives.join(' | ')}`,
         ...focused.alternatives.map(
@@ -167,16 +201,24 @@ export async function createWizard(
         '',
         ...rows,
         '',
-        KEYMAP,
+        REFINE_KEYMAP,
       ].join('\n'),
     );
+  }
+
+  function draw(): void {
+    if (pass === 'themes') {
+      drawThemes();
+    } else {
+      drawRefine();
+    }
   }
 
   function finish(): WizardOutcome {
     try {
       configure({
         home: options.home,
-        layout,
+        layout: draftLayout,
         variants: Object.fromEntries(draft),
       });
     } catch (e) {
@@ -194,12 +236,18 @@ export async function createWizard(
     draw();
     for await (const key of keys) {
       if (key === '\r') {
+        if (pass === 'themes') {
+          enterRefine(names[themeAt]);
+          pass = 'refine';
+          draw();
+          continue;
+        }
         return finish();
       }
       if (key === 'q' || key === '\x03') {
         break;
       }
-      step(key);
+      pass = step(key);
       draw();
     }
     deps.render('cancelled — nothing written\n');
