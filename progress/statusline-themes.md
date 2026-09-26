@@ -27,20 +27,19 @@ Code. Done when:
 
 ## Current state
 
-u2 landed (79068a3 + fix 88674a9): `--theme` resolves through one engine
-(flags > theme > gap error naming theme, item, flag), the fallback ladder,
-`printedConfig`, and configure's `--dry-run` are gone, `renderPreview` died
-with its caller (u4 restores it from history), and configure returns void.
-Theme layout beats a prior key's layout; out-of-layout assignments write
-(theme picks validate against the per-call registry, refusing on
-disagreement); the wizard gate is absence of theme/layout/variants. 206
-tests green; `check --after u2` passes; mixed suites re-baselined.
+u3 landed (c4249b0 + fix a2916c4): catalog leads with the themes block
+(THEMES order, `name: summary`, `*` glued to the exact live match), `--themes`
+cuts to it, and the matcher lives as `liveTheme` in `src/live-theme.ts`
+(bidirectional exact equality — u6's status reuses it). 217 tests green;
+catalog suite re-baselined twice (block pins rewritten from the new door,
+superset-key pin added).
 
 ## Next step
 
-Unit 3: test writer extends the catalog suite red (themes block first, `*`
-on the exact live match, `--themes` cut, the matcher as its own function),
-then the builder lands the block in `catalog.ts`.
+Unit 4: test writer cuts the preview suite red (both surfaces from one
+resolution, no settings writes, `--plain` and piped-plain defaults), then the
+builder restores `renderPreview` from history as the renderer and lands the
+command.
 
 ## Steps
 
@@ -49,7 +48,7 @@ then the builder lands the block in `catalog.ts`.
 | u0 | theme design pass (frontend-design) | | checklist | every theme's layout + per-item variant + plain-words summary is written into Design; every item and variant named there exists in the runtime registry, re-grepped by the verifier, not taken from the designer · aa700af |
 | u1 | themes table + registry pin | | | `src/themes.ts` holds the five themes; a test pins every theme's layout items and variants to the resolved runtime registry, and custom's seeding to each item's most-absent variant · 995a633 (resolve.ts +3: `resolveRuntimeDir` export — ruled wiring the existing reader, not a second one) |
 | u2 | `--theme` in configure/cli, `--fallback` out | | | `configure --theme lean` writes lean's assignments; `--theme lean --bar gauge` swaps one; a theme-gap (`--theme quiet --layout '{model effort} {cwd}'`) errors naming `effort`; `--fallback` and `--dry-run` are unknown options; bare non-TTY configure errors pointing at the two guides; the fallback branches, `printedConfig`, and their tests are deleted · 79068a3, fix 88674a9 (quiet exact-key pin, registry-refusal shape, void configure) |
-| u3 | catalog themes block | | | `catalog` prints the themes block first with summaries, `*` marks the live-matching theme, `--themes` cuts to the block; the live-theme matcher lands as its own function; a test pins the output |
+| u3 | catalog themes block | | | `catalog` prints the themes block first with summaries, `*` marks the live-matching theme, `--themes` cuts to the block; the live-theme matcher lands as its own function; a test pins the output · c4249b0, fix a2916c4 (superset matcher pin, current catalog description) |
 | u4 | `preview` command | | | `preview --theme lean` renders both surfaces without touching settings, accepting the same resolution inputs configure does; `--plain` (and `NO_COLOR` honored by the runtime) strips every ESC byte; the agent uses it to fill picker panes |
 | u5 | wizard theme pass | | | pass one stacks the five theme bars (`j/k` focus, `w` width, enter picks), pass two is seeded from the picked theme — `custom` bare — and `t` returns to pass one; a wizard test with fake deps drives a theme pick to a saved key |
 | u6 | skill + docs rewrite | | | `plugins/statusline/SKILL.md` asks the picker directly (sketches from `preview --plain`), zero `!` handoffs, four-shown-plus-Other note; `packages/statusline/README.md` and the root README keep the wizard as the terminal guide; `status` names the live theme and its fix strings say `--theme classic`; repo grep finds no `--fallback`, no configure `--dry-run`, no `! npx` in the skill |
