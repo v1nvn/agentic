@@ -15,6 +15,7 @@ import { resolveRuntime } from '../src/resolve.js';
 import { THEMES, type ThemeName } from '../src/themes.js';
 import {
   createWizard,
+  opensWizard,
   type WizardDeps,
   type WizardOutcome,
 } from '../src/wizard.js';
@@ -120,8 +121,6 @@ function seedCapture(
   writeFileSync(file, body);
 }
 
-// The pass-one label is the catalog line: `name: summary`, the focused theme's
-// prefixed with '>'.
 function labelLine(frame: string, name: ThemeName): string {
   return (
     frame
@@ -167,11 +166,7 @@ function rungs<T>(values: readonly T[]): T[] {
 }
 
 describe('wizard: the gate', () => {
-  // index.ts routes its interactive branch through this predicate — the entry
-  // executes the CLI on import, so the gate's one door is a wizard export.
-  it('opens for a bare configure on a TTY and nothing else', async () => {
-    const { opensWizard } = await import('../src/wizard.js');
-
+  it('opens for a bare configure on a TTY and nothing else', () => {
     expect(opensWizard({}, true)).toBe(true);
     expect(opensWizard({}, false)).toBe(false);
     expect(opensWizard({ theme: 'lean' }, true)).toBe(false);
