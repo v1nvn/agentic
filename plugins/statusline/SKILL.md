@@ -15,10 +15,10 @@ browser, no HTML page, no `open`.
 first. Sketch the four curated themes, then show the in-chat picker in the
 same reply. One plain render per theme, run by the agent:
 
-    npx -y @v1nvn/statusline@0.27.3 preview --theme quiet --plain
-    npx -y @v1nvn/statusline@0.27.3 preview --theme lean --plain
-    npx -y @v1nvn/statusline@0.27.3 preview --theme classic --plain
-    npx -y @v1nvn/statusline@0.27.3 preview --theme rich --plain
+    npx -y @v1nvn/statusline@0.28.0 preview --theme quiet --plain
+    npx -y @v1nvn/statusline@0.28.0 preview --theme lean --plain
+    npx -y @v1nvn/statusline@0.28.0 preview --theme classic --plain
+    npx -y @v1nvn/statusline@0.28.0 preview --theme rich --plain
 
 Each render prints a header line, the bar, and the panel row; paste the bar
 and panel row into that option's preview pane. Four options, single-select,
@@ -35,13 +35,13 @@ the bar bare, every item decided from scratch.
 On the pick, write — cheap, reversible, backed up (the first takeover saves
 the pre-lab key values; `restore` puts them back):
 
-    npx -y @v1nvn/statusline@0.27.3 configure --theme lean
+    npx -y @v1nvn/statusline@0.28.0 configure --theme lean
 
 The write prints `configured — live on the next paint`; the live bar is the
 look, so try-on replaces preview-before-write — another look is one write
 away. A named tweak rides the same write, item flags overriding the theme:
 
-    npx -y @v1nvn/statusline@0.27.3 configure --theme lean --bar gauge
+    npx -y @v1nvn/statusline@0.28.0 configure --theme lean --bar gauge
 
 A foreign `statusLine` or `subagentStatusLine` key in `~/.claude/settings.json`
 is refused, never silently overwritten; take it over only on the owner's word,
@@ -60,7 +60,7 @@ an error naming what is unresolved.
 one line per item — `item: alt | alt*`, `*` marking the live variant — zero
 color escapes, chat-safe:
 
-    npx -y @v1nvn/statusline@0.27.3 catalog
+    npx -y @v1nvn/statusline@0.28.0 catalog
 
 `catalog --themes` cuts to the themes block; boolean flags cut the listing:
 `catalog --model --bar`.
@@ -71,7 +71,7 @@ deletes the lab data (`captures/`, `backup.json`). Plain text,
 agent-runnable; a foreign key changed since the takeover is refused unless
 `--force` rides along:
 
-    npx -y @v1nvn/statusline@0.27.3 restore
+    npx -y @v1nvn/statusline@0.28.0 restore
 
 Before the owner uninstalls the plugin, run `restore` first: a plain
 uninstall deletes the data dir with the backup, and the keys keep globbing a
@@ -80,7 +80,7 @@ cache dir that dies only ~14 days later — a blank line, delayed.
 **Check.** `status` prints one row per fact, then a verdict — plain text,
 zero ANSI, agent-runnable:
 
-    npx -y @v1nvn/statusline@0.27.3 status
+    npx -y @v1nvn/statusline@0.28.0 status
 
 A healthy install prints:
 
