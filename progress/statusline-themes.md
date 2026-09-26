@@ -27,19 +27,20 @@ Code. Done when:
 
 ## Current state
 
-u1 landed (995a633 + fix 4403234): `src/themes.ts` holds the five themes,
-registry-pinned by `test/themes.test.ts` (custom's seeding pinned as sixteen
-literal pairs). Gate green through the landing (206 tests). `resolve.ts`
-gained `resolveRuntimeDir` (ruled wiring, not duplication). u0's verifier and
-u1's blind review passed; review's deferred seam note lives in the u2 unit
-note.
+u2 landed (79068a3 + fix 88674a9): `--theme` resolves through one engine
+(flags > theme > gap error naming theme, item, flag), the fallback ladder,
+`printedConfig`, and configure's `--dry-run` are gone, `renderPreview` died
+with its caller (u4 restores it from history), and configure returns void.
+Theme layout beats a prior key's layout; out-of-layout assignments write
+(theme picks validate against the per-call registry, refusing on
+disagreement); the wizard gate is absence of theme/layout/variants. 206
+tests green; `check --after u2` passes; mixed suites re-baselined.
 
 ## Next step
 
-Unit 2: test writer rewrites the fallback/dry-run tests and pins the theme
-resolution red, then the builder wires `--theme` into configure/cli, deletes
-the fallback ladder and `printedConfig`, and rewrites the `--fallback`
-strings in code and tests.
+Unit 3: test writer extends the catalog suite red (themes block first, `*`
+on the exact live match, `--themes` cut, the matcher as its own function),
+then the builder lands the block in `catalog.ts`.
 
 ## Steps
 
@@ -47,7 +48,7 @@ strings in code and tests.
 | --- | --- | --- | --- | --- |
 | u0 | theme design pass (frontend-design) | | checklist | every theme's layout + per-item variant + plain-words summary is written into Design; every item and variant named there exists in the runtime registry, re-grepped by the verifier, not taken from the designer · aa700af |
 | u1 | themes table + registry pin | | | `src/themes.ts` holds the five themes; a test pins every theme's layout items and variants to the resolved runtime registry, and custom's seeding to each item's most-absent variant · 995a633 (resolve.ts +3: `resolveRuntimeDir` export — ruled wiring the existing reader, not a second one) |
-| u2 | `--theme` in configure/cli, `--fallback` out | | | `configure --theme lean` writes lean's assignments; `--theme lean --bar gauge` swaps one; a theme-gap (`--theme quiet --layout '{model effort} {cwd}'`) errors naming `effort`; `--fallback` and `--dry-run` are unknown options; bare non-TTY configure errors pointing at the two guides; the fallback branches, `printedConfig`, and their tests are deleted |
+| u2 | `--theme` in configure/cli, `--fallback` out | | | `configure --theme lean` writes lean's assignments; `--theme lean --bar gauge` swaps one; a theme-gap (`--theme quiet --layout '{model effort} {cwd}'`) errors naming `effort`; `--fallback` and `--dry-run` are unknown options; bare non-TTY configure errors pointing at the two guides; the fallback branches, `printedConfig`, and their tests are deleted · 79068a3, fix 88674a9 (quiet exact-key pin, registry-refusal shape, void configure) |
 | u3 | catalog themes block | | | `catalog` prints the themes block first with summaries, `*` marks the live-matching theme, `--themes` cuts to the block; the live-theme matcher lands as its own function; a test pins the output |
 | u4 | `preview` command | | | `preview --theme lean` renders both surfaces without touching settings, accepting the same resolution inputs configure does; `--plain` (and `NO_COLOR` honored by the runtime) strips every ESC byte; the agent uses it to fill picker panes |
 | u5 | wizard theme pass | | | pass one stacks the five theme bars (`j/k` focus, `w` width, enter picks), pass two is seeded from the picked theme — `custom` bare — and `t` returns to pass one; a wizard test with fake deps drives a theme pick to a saved key |
@@ -120,6 +121,24 @@ Unit notes for the run:
 - u2 scope note: `status.ts` fix strings move from `--fallback=default` to
   `--theme classic` in u2 (the string names a dead option the moment u2
   lands); the live-theme matcher itself is u6.
+- u2 ruling (out-of-layout variants): a variant assignment for any registry
+  item writes — layout membership is not required, no `style` special case.
+  The byte-equality pin forces it: every theme carries `style`, no flags-only
+  write could express a theme otherwise. Also pinned by the red contract: a
+  theme's layout wins over a prior key's layout.
+- Run gate: per unit `yarn typecheck && yarn lint && yarn workspace
+  @v1nvn/statusline run test && yarn workspace @v1nvn/statusline run build`;
+  the whole-repo gate (`yarn test` across workspaces) fires at the group
+  boundary before the PR.
+- u2 rulings, landed in 79068a3: configure validates every theme pick against
+  its per-call `resolveRuntime` registry (the one the key executes) and
+  refuses on disagreement — `THEMES` stays the only themes export; the
+  wizard's interactive gate in index.ts is now the absence of
+  theme/layout/variants, so `--force` no longer suppresses it; `renderPreview`
+  died with `--dry-run` (u4 restores it from history as the preview
+  renderer); enforcement fallback/dry-run greps exempt
+  `packages/statusline/test` at both stages — rejection pins name the dead
+  option they reject, while src, plugins, READMEs and references stay covered.
 
 ## Design
 
