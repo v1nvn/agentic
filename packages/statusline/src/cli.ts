@@ -1,5 +1,5 @@
 import { parseQuietly } from '@v1nvn/agentic-core';
-import { Command, Option } from 'commander';
+import { Command } from 'commander';
 
 import pkg from '../package.json' with { type: 'json' };
 
@@ -31,12 +31,12 @@ export type Subcommand = 'catalog' | 'configure' | 'restore' | 'status';
 export interface ParsedArgs {
   readonly command?: Subcommand;
   readonly dryRun?: boolean;
-  readonly fallback?: 'default' | 'existing';
   readonly force?: boolean;
   readonly help?: Subcommand;
   readonly home?: string;
   readonly items?: readonly string[];
   readonly layout?: string;
+  readonly theme?: string;
   readonly variants?: Readonly<Record<string, string>>;
   readonly version: boolean;
 }
@@ -84,13 +84,10 @@ export function buildProgram(
       '--layout <spec>',
       "brace clusters of item ids, e.g. '{cwd branch} {model effort}'",
     )
-    .addOption(
-      new Option(
-        '--fallback <mode>',
-        'fill unflagged layout items from defaults or the existing config',
-      ).choices(['default', 'existing']),
+    .option(
+      '--theme <name>',
+      'base design the item flags override: quiet, lean, classic, rich, custom',
     )
-    .option('--dry-run', 'render both surfaces, write nothing')
     .option('--force', 'take over foreign settings keys');
   for (const item of ITEM_IDS) {
     configure.option(`--${item} <alt>`, `variant for the ${item} item`);
@@ -202,12 +199,9 @@ export function parseArgs(args: readonly string[]): ParsedArgs | undefined {
     version: false,
     command: 'configure',
     ...(Object.keys(variants).length > 0 ? { variants } : {}),
-    ...(typeof options.dryRun === 'boolean' ? { dryRun: options.dryRun } : {}),
-    ...(typeof options.fallback === 'string'
-      ? { fallback: options.fallback as 'default' | 'existing' }
-      : {}),
     ...(typeof options.force === 'boolean' ? { force: options.force } : {}),
     ...(typeof options.home === 'string' ? { home: options.home } : {}),
     ...(typeof options.layout === 'string' ? { layout: options.layout } : {}),
+    ...(typeof options.theme === 'string' ? { theme: options.theme } : {}),
   };
 }

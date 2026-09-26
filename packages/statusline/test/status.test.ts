@@ -83,7 +83,7 @@ describe('status: config drift (contract 5)', () => {
       'runtime: 0.19.0 — 16 items',
       "statusLine: ours — layout='{model flux}' model=neon flux=pulse",
       'subagentStatusLine: ours',
-      "config: drift — unknown variant 'neon' for 'model', unknown item 'flux' — fix: rerun configure --layout '{model effort state} {cwd branch status ahead pr} {bar tokens cache} {cost} {duration} {lines} {rate}' --fallback=default",
+      "config: drift — unknown variant 'neon' for 'model', unknown item 'flux' — fix: rerun configure --theme classic",
       'backup: absent',
       'captures: main absent, tick absent',
       'unhealthy',
@@ -110,7 +110,7 @@ describe('status: variants-only drift (contract 5)', () => {
       'runtime: 0.19.0 — 16 items',
       "statusLine: ours — layout='{model effort}' model=neon effort=dim",
       'subagentStatusLine: ours',
-      "config: drift — unknown variant 'neon' for 'model' — fix: rerun configure --fallback=default",
+      "config: drift — unknown variant 'neon' for 'model' — fix: rerun configure --theme classic",
       'backup: absent',
       'captures: main absent, tick absent',
       'unhealthy',
@@ -134,8 +134,8 @@ describe('status: foreign and absent keys (contract 5)', () => {
     expect(result.healthy).toBe(false);
     expect(result.rows).toEqual([
       'runtime: 0.19.0 — 16 items',
-      'statusLine: foreign (./old-main.sh) — fix: rerun configure --force --fallback=default',
-      'subagentStatusLine: absent — fix: rerun configure --fallback=default',
+      'statusLine: foreign (./old-main.sh) — fix: rerun configure --force --theme classic',
+      'subagentStatusLine: absent — fix: rerun configure --theme classic',
       'backup: absent',
       'captures: main absent, tick absent',
       'unhealthy',
@@ -253,21 +253,16 @@ describe('status: fix lines run (contract 5 seam)', () => {
 });
 
 function runFixCommand(fix: string, home: string): void {
-  const flags = fix.slice('rerun configure '.length);
-  const layout = /^--layout '([^']*)' /.exec(flags);
-  const rest = (layout === null ? flags : flags.slice(layout[0].length)).split(
-    ' ',
-  );
-  for (const flag of rest) {
-    if (flag !== '--force' && flag !== '--fallback=default') {
+  const flags = fix.slice('rerun configure '.length).split(' ');
+  for (const flag of flags) {
+    if (flag !== '--force' && flag !== '--theme' && flag !== 'classic') {
       throw new Error(`fix flag not mapped onto configure: ${flag}`);
     }
   }
   const options: ConfigureOptions = {
-    fallback: rest.includes('--fallback=default') ? 'default' : undefined,
-    force: rest.includes('--force') ? true : undefined,
+    force: flags.includes('--force') ? true : undefined,
     home,
-    layout: layout === null ? undefined : layout[1],
+    theme: flags.includes('--theme') ? 'classic' : undefined,
   };
   configure(options);
 }

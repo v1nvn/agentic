@@ -39,11 +39,9 @@ if (parsed.help !== undefined) {
 } else if (parsed.command === 'configure') {
   const home = homeOf(parsed.home);
   const interactive =
+    parsed.theme === undefined &&
     parsed.layout === undefined &&
-    parsed.variants === undefined &&
-    parsed.fallback === undefined &&
-    !parsed.dryRun &&
-    !parsed.force;
+    parsed.variants === undefined;
   if (interactive && process.stdin.isTTY) {
     const outcome = await createWizard(
       { home, now: String(Math.floor(Date.now() / 1000)) },
@@ -54,19 +52,14 @@ if (parsed.help !== undefined) {
     }
   } else {
     run(() => {
-      const result = configure({
-        dryRun: parsed.dryRun,
-        fallback: parsed.fallback,
+      configure({
         force: parsed.force,
         home,
         layout: parsed.layout,
+        theme: parsed.theme,
         variants: parsed.variants,
       });
-      console.log(
-        result.mode === 'written'
-          ? 'configured — live on the next paint'
-          : result.text,
-      );
+      console.log('configured — live on the next paint');
     });
   }
 } else if (parsed.command === 'restore') {

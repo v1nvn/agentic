@@ -52,9 +52,9 @@ function keyRow(key: SettingsKey, state: KeyState, detail = ''): string {
     return `${key}: ours${detail === '' ? '' : ` — ${detail}`}`;
   }
   if (state.kind === 'absent') {
-    return `${key}: absent — fix: rerun configure --fallback=default`;
+    return `${key}: absent — fix: rerun configure --theme classic`;
   }
-  return `${key}: foreign${state.command === null ? '' : ` (${state.command})`} — fix: rerun configure --force --fallback=default`;
+  return `${key}: foreign${state.command === null ? '' : ` (${state.command})`} — fix: rerun configure --force --theme classic`;
 }
 
 function layoutItemsOf(layout: string): readonly string[] {
@@ -124,17 +124,11 @@ function runtimeRow(runtime: null | ResolvedRuntime): string {
   return `runtime: ${version} — ${runtime.items.length} items`;
 }
 
-function configRow(
-  findings: readonly DriftFinding[],
-  runtime: ResolvedRuntime,
-): string {
+function configRow(findings: readonly DriftFinding[]): string {
   if (findings.length === 0) {
     return 'config: no drift';
   }
-  const fix = findings.some(finding => finding.kind === 'unknown-item')
-    ? `rerun configure --layout '${runtime.defaultLayout}' --fallback=default`
-    : 'rerun configure --fallback=default';
-  return `config: drift — ${findings.map(findingText).join(', ')} — fix: ${fix}`;
+  return `config: drift — ${findings.map(findingText).join(', ')} — fix: rerun configure --theme classic`;
 }
 
 function backupRow(home: string): string {
@@ -217,9 +211,7 @@ export function status(options: StatusOptions): StatusResult {
     runtimeRow(runtime),
     keyRow('statusLine', main, configDetail(config)),
     keyRow('subagentStatusLine', subagent),
-    ...(runtime !== null && main.kind === 'ours'
-      ? [configRow(findings, runtime)]
-      : []),
+    ...(runtime !== null && main.kind === 'ours' ? [configRow(findings)] : []),
     backupRow(options.home),
     capturesRow(options.home),
   ];

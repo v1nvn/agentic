@@ -80,9 +80,10 @@ describe('subcommandHelp', () => {
 
   it("names the configure's configuration flags", () => {
     const help = subcommandHelp('configure');
-    expect(help).toContain('--fallback');
+    expect(help).toContain('--theme');
     expect(help).toContain('--layout');
-    expect(help).toContain('--dry-run');
+    expect(help).not.toContain('--fallback');
+    expect(help).not.toContain('--dry-run');
     expect(help).not.toMatch(/script/);
   });
 
