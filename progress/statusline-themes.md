@@ -27,22 +27,26 @@ Code. Done when:
 
 ## Current state
 
-u0 landed: five themes defined in Design and registry-verified by independent
-re-grep. Enforcement gate live (scratch `gate.sh`: fifteen protected-suite
-hashes, scoped greps, rebaseline subcommand). No product code yet. Baseline
-gate green (typecheck, lint, 190 tests).
+u1 landed (995a633 + fix 4403234): `src/themes.ts` holds the five themes,
+registry-pinned by `test/themes.test.ts` (custom's seeding pinned as sixteen
+literal pairs). Gate green through the landing (206 tests). `resolve.ts`
+gained `resolveRuntimeDir` (ruled wiring, not duplication). u0's verifier and
+u1's blind review passed; review's deferred seam note lives in the u2 unit
+note.
 
 ## Next step
 
-Unit 1: test writer cuts the registry-pin test red from the Design
-definitions, then the builder lands `src/themes.ts`.
+Unit 2: test writer rewrites the fallback/dry-run tests and pins the theme
+resolution red, then the builder wires `--theme` into configure/cli, deletes
+the fallback ladder and `printedConfig`, and rewrites the `--fallback`
+strings in code and tests.
 
 ## Steps
 
 | id | unit | model | review | close criteria |
 | --- | --- | --- | --- | --- |
-| u0 | theme design pass (frontend-design) | | checklist | every theme's layout + per-item variant + plain-words summary is written into Design; every item and variant named there exists in the runtime registry, re-grepped by the verifier, not taken from the designer |
-| u1 | themes table + registry pin | | | `src/themes.ts` holds the five themes; a test pins every theme's layout items and variants to the resolved runtime registry, and custom's seeding to each item's most-absent variant |
+| u0 | theme design pass (frontend-design) | | checklist | every theme's layout + per-item variant + plain-words summary is written into Design; every item and variant named there exists in the runtime registry, re-grepped by the verifier, not taken from the designer · aa700af |
+| u1 | themes table + registry pin | | | `src/themes.ts` holds the five themes; a test pins every theme's layout items and variants to the resolved runtime registry, and custom's seeding to each item's most-absent variant · 995a633 (resolve.ts +3: `resolveRuntimeDir` export — ruled wiring the existing reader, not a second one) |
 | u2 | `--theme` in configure/cli, `--fallback` out | | | `configure --theme lean` writes lean's assignments; `--theme lean --bar gauge` swaps one; a theme-gap (`--theme quiet --layout '{model effort} {cwd}'`) errors naming `effort`; `--fallback` and `--dry-run` are unknown options; bare non-TTY configure errors pointing at the two guides; the fallback branches, `printedConfig`, and their tests are deleted |
 | u3 | catalog themes block | | | `catalog` prints the themes block first with summaries, `*` marks the live-matching theme, `--themes` cuts to the block; the live-theme matcher lands as its own function; a test pins the output |
 | u4 | `preview` command | | | `preview --theme lean` renders both surfaces without touching settings, accepting the same resolution inputs configure does; `--plain` (and `NO_COLOR` honored by the runtime) strips every ESC byte; the agent uses it to fill picker panes |
@@ -97,6 +101,25 @@ Pre-flight picks (posted before the first dispatch):
   verification is a sonnet checklist re-grep of the registry.
 
 PR grouping: one PR for the thread.
+
+Unit notes for the run:
+
+- u2: importing THEMES into configure makes themes' module-load registry
+  derivation throw on install-less machines even for `--help` — the error must
+  match the guidance shape every real command already raises (u1 builder
+  finding). Same finding's second edge: themes.ts resolves the working-tree
+  runtime first while the written key executes the home cache (resolve.ts
+  KEY_RESOLVER) — the two ends of that seam can disagree on a dev run; wire
+  the consumer through the same resolution the key executes, or go lazy
+  (u1 review).
+- Enforcement: `themes.test.ts` joined the protected hashes at u1 (sixteen
+  files). The u2-stage fallback grep scopes to `src` + `test`; the
+  repo-wide-minus-archive/progress grep is the u6 stage (docs keep naming
+  `--fallback` until u6). `cli`/`configure`/`status` test hashes go
+  expected-red during u2 and re-baseline only after its review passes.
+- u2 scope note: `status.ts` fix strings move from `--fallback=default` to
+  `--theme classic` in u2 (the string names a dead option the moment u2
+  lands); the live-theme matcher itself is u6.
 
 ## Design
 
