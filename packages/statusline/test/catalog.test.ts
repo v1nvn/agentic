@@ -147,7 +147,7 @@ describe('the verb surface (contracts 1 and 10)', () => {
       buildProgram()
         .commands.map(command => command.name())
         .sort(),
-    ).toEqual(['catalog', 'configure', 'restore', 'status']);
+    ).toEqual(['catalog', 'configure', 'preview', 'restore', 'status']);
   });
 
   it('a bare invocation is a usage error the entry answers with help and a non-zero exit', () => {

@@ -11,6 +11,7 @@ import {
   backupPath,
   isOurMainCommand,
   mainKeyValue,
+  type ResolvedRuntime,
   resolveRuntime,
   subagentKeyValue,
 } from './resolve.js';
@@ -452,21 +453,21 @@ function themeNamed(name: string): Theme {
   return theme;
 }
 
-export function configure(options: ConfigureOptions): void {
-  const runtime = resolveRuntime({ home: options.home });
+export interface Selection {
+  readonly layout: string;
+  readonly ordered: readonly string[];
+  readonly values: Readonly<Record<string, string>>;
+}
+
+// One engine under every guide: configure writes what this resolves, preview
+// renders it. Resolution is item flags > theme > error naming the gap.
+export function resolveSelection(
+  runtime: ResolvedRuntime,
+  options: Pick<ConfigureOptions, 'layout' | 'theme' | 'variants'>,
+): Selection {
   const variants = options.variants ?? {};
   const theme =
     options.theme === undefined ? undefined : themeNamed(options.theme);
-
-  if (
-    theme === undefined &&
-    options.layout === undefined &&
-    Object.keys(variants).length === 0
-  ) {
-    throw new Error(
-      "no theme and no item flags — on a terminal run 'statusline configure' for the wizard; in Claude Code use the /lab skill",
-    );
-  }
 
   const layout = options.layout ?? theme?.layout;
   if (layout === undefined) {
@@ -513,6 +514,22 @@ export function configure(options: ConfigureOptions): void {
       .map(entry => entry.item)
       .filter(item => !items.includes(item) && item in values),
   ];
+  return { layout, ordered, values };
+}
+
+export function configure(options: ConfigureOptions): void {
+  const runtime = resolveRuntime({ home: options.home });
+  if (
+    options.theme === undefined &&
+    options.layout === undefined &&
+    Object.keys(options.variants ?? {}).length === 0
+  ) {
+    throw new Error(
+      "no theme and no item flags — on a terminal run 'statusline configure' for the wizard; in Claude Code use the /lab skill",
+    );
+  }
+
+  const { layout, ordered, values } = resolveSelection(runtime, options);
   const assignments = ordered.map(
     item => `STATUSLINE_LAB_${item.toUpperCase()}=${values[item]}`,
   );

@@ -93,4 +93,16 @@ describe('subcommandHelp', () => {
     expect(help).toContain('--force');
     expect(help).toContain('--home');
   });
+
+  it("names the preview's render flags and no writer flags", () => {
+    const help = subcommandHelp('preview');
+    expect(help).toContain('--theme');
+    expect(help).toContain('--layout');
+    expect(help).toContain('--plain');
+    expect(help).toContain('--home');
+    expect(help).toContain('--model');
+    expect(help).not.toContain('--dry-run');
+    expect(help).not.toContain('--force');
+    expect(help).not.toContain('--fallback');
+  });
 });

@@ -3,6 +3,7 @@ import { printUsageAndExit } from '@v1nvn/agentic-core';
 import { catalog } from './catalog.js';
 import { buildProgram, parseArgs, subcommandHelp, VERSION } from './cli.js';
 import { configure } from './configure.js';
+import { preview } from './preview.js';
 import { restore } from './restore.js';
 import { status } from './status.js';
 import { terminalDeps } from './wizard-tui.js';
@@ -68,6 +69,19 @@ if (parsed.help !== undefined) {
       console.log('configured — live on the next paint');
     });
   }
+} else if (parsed.command === 'preview') {
+  run(() => {
+    console.log(
+      preview({
+        home: homeOf(parsed.home),
+        layout: parsed.layout,
+        now: String(Math.floor(Date.now() / 1000)),
+        plain: parsed.plain,
+        theme: parsed.theme,
+        variants: parsed.variants,
+      }),
+    );
+  });
 } else if (parsed.command === 'restore') {
   run(() => {
     const result = restore({

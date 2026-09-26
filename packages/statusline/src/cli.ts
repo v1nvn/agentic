@@ -26,7 +26,8 @@ const ITEM_IDS = [
   'style',
 ] as const satisfies readonly string[];
 
-export type Subcommand = 'catalog' | 'configure' | 'restore' | 'status';
+export type Subcommand =
+  'catalog' | 'configure' | 'preview' | 'restore' | 'status';
 
 export interface ParsedArgs {
   readonly command?: Subcommand;
@@ -36,6 +37,7 @@ export interface ParsedArgs {
   readonly home?: string;
   readonly items?: readonly string[];
   readonly layout?: string;
+  readonly plain?: boolean;
   readonly theme?: string;
   readonly themes?: boolean;
   readonly variants?: Readonly<Record<string, string>>;
@@ -81,23 +83,35 @@ export function buildProgram(
     onSubcommand?.('catalog', options),
   );
 
+  const LAYOUT_HELP =
+    "brace clusters of item ids, e.g. '{cwd branch} {model effort}'";
+  const THEME_HELP =
+    'base design the item flags override: quiet, lean, classic, rich, custom';
+
   const configure = quiet('configure', new Command('configure'))
     .description('write both settings keys with the inline lab commands')
     .option('--home <dir>', 'operate on this home instead of $HOME')
-    .option(
-      '--layout <spec>',
-      "brace clusters of item ids, e.g. '{cwd branch} {model effort}'",
-    )
-    .option(
-      '--theme <name>',
-      'base design the item flags override: quiet, lean, classic, rich, custom',
-    )
+    .option('--layout <spec>', LAYOUT_HELP)
+    .option('--theme <name>', THEME_HELP)
     .option('--force', 'take over foreign settings keys');
   for (const item of ITEM_IDS) {
     configure.option(`--${item} <alt>`, `variant for the ${item} item`);
   }
   configure.action((options: SubcommandOptions) =>
     onSubcommand?.('configure', options),
+  );
+
+  const preview = quiet('preview', new Command('preview'))
+    .description('render a candidate line and panel row; nothing is written')
+    .option('--home <dir>', 'operate on this home instead of $HOME')
+    .option('--layout <spec>', LAYOUT_HELP)
+    .option('--theme <name>', THEME_HELP)
+    .option('--plain', 'strip the color escapes so glyphs survive chat');
+  for (const item of ITEM_IDS) {
+    preview.option(`--${item} <alt>`, `variant for the ${item} item`);
+  }
+  preview.action((options: SubcommandOptions) =>
+    onSubcommand?.('preview', options),
   );
 
   const restore = quiet('restore', new Command('restore'))
@@ -130,6 +144,7 @@ export function buildProgram(
     .action(() => undefined)
     .addCommand(catalog)
     .addCommand(configure)
+    .addCommand(preview)
     .addCommand(restore)
     .addCommand(status);
 }
@@ -202,13 +217,21 @@ export function parseArgs(args: readonly string[]): ParsedArgs | undefined {
       variants[item] = options[item];
     }
   }
-  return {
-    version: false,
-    command: 'configure',
+  const common = {
+    version: false as const,
+    command: chosen.command,
     ...(Object.keys(variants).length > 0 ? { variants } : {}),
-    ...(typeof options.force === 'boolean' ? { force: options.force } : {}),
     ...(typeof options.home === 'string' ? { home: options.home } : {}),
     ...(typeof options.layout === 'string' ? { layout: options.layout } : {}),
     ...(typeof options.theme === 'string' ? { theme: options.theme } : {}),
   };
+  return chosen.command === 'configure'
+    ? {
+        ...common,
+        ...(typeof options.force === 'boolean' ? { force: options.force } : {}),
+      }
+    : {
+        ...common,
+        ...(typeof options.plain === 'boolean' ? { plain: options.plain } : {}),
+      };
 }
