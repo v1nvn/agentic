@@ -9,6 +9,9 @@ export interface CatalogOptions {
 }
 
 export function catalog(options: CatalogOptions): string {
+  if (options.themes === true && options.items !== undefined) {
+    throw new Error('--themes cannot combine with item flags');
+  }
   const runtime = resolveRuntime({ home: options.home });
   const key = readKeyConfig(options.home);
   const live = liveTheme(key, runtime);

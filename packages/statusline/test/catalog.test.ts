@@ -393,4 +393,12 @@ describe('catalog: the themes block', () => {
     expect(out.split('\n')).toEqual(expectedThemeLines(undefined));
     expect(out).not.toContain('*');
   });
+
+  it('--themes beside item flags is an error, not a silent cut', () => {
+    const home = homes.newHome();
+
+    expect(() =>
+      catalog({ home, items: ['model'], themes: true }),
+    ).toThrowError(/--themes cannot combine with item flags/);
+  });
 });
