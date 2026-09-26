@@ -7,7 +7,7 @@ with the edit pane enabled, then report the result.
 
 Run this exactly:
 
-    npx -y @v1nvn/md@0.27.2
+    npx -y @v1nvn/md@0.27.3
 
 Report the single status line it prints (e.g. "Opened in Markdown-Viewer (link copied).") —
 the page is opened in the browser and the link is copied to the clipboard. (A
