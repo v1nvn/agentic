@@ -35,13 +35,12 @@ describe('configure: golden key values (ruling 1)', () => {
   it('writes the canonical main and subagent key bytes, and the fixtures composer reproduces them', () => {
     const home = newInstalledHome();
 
-    const result = configure({
+    configure({
       home,
       layout: '{model effort}',
       variants: { effort: 'dim', model: 'block' },
     });
 
-    expect(result).toMatchObject({ mode: 'written' });
     const settings = JSON.parse(readFileSync(settingsPath(home), 'utf8'));
     expect(settings.statusLine).toEqual({
       type: 'command',

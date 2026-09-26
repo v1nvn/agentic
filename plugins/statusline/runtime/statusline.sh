@@ -161,7 +161,7 @@ compose() {
 
 vlen() {
     local plain n
-    plain=$(printf '%s' "$1" | sed $'s/\x1b\\[[0-9;]*m//g')
+    plain=$(strip_sgr "$1")
     n=$(printf '%s' "$plain" | wc -c | tr -d ' ')
     n=$((n - $(printf '%s' "$plain" | LC_ALL=C tr -d '\0-\177\300-\377' | wc -c | tr -d ' ')))
     case "$plain" in
@@ -230,8 +230,16 @@ fit() {
     return 1
 }
 
+emit() {
+    if [ -n "$NO_COLOR" ]; then
+        printf '%s\n' "$(strip_sgr "$1")"
+    else
+        printf '%s\n' "$1"
+    fi
+}
+
 if fit full "${FULL_STEPS[@]}"; then
-    printf '%s\n' "$FIT_OUT"
+    emit "$FIT_OUT"
     exit 0
 fi
 
@@ -239,4 +247,5 @@ reset_rungs
 fit l1 "${L1_STEPS[@]}"
 L1=$FIT_OUT
 fit l2 "${L2_STEPS[@]}"
-printf '%s\n%s\n' "$L1" "$FIT_OUT"
+emit "$L1"
+emit "$FIT_OUT"

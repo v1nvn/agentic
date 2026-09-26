@@ -4,75 +4,66 @@ description: Show, preview, and set the Claude Code status line and agent panel 
 when_to_use: Use when the user wants to browse, change, check, or revert their status line or agent panel — e.g. "statusline", "agent panel", "make the status line show the git branch", or a bare /lab
 ---
 
-Four jobs, one skill: show, set, revert, check. The agent runs the CLI and
-writes plain text; the terminal is the only preview surface. Never open
-anything — no browser, no HTML page, no `open`.
-Never render previews into the chat: Bash-tool ANSI collapses to a ~3-line
-preview, and the bar designs emit 24-bit color that can arrive as literal
-text.
+Four jobs, one skill: set, show, revert, check. The agent runs every command
+itself — the owner never types one. Plain renders (`--plain`, zero color
+escapes, glyphs intact) go into the chat; colored renders never do — Bash-tool
+ANSI collapses, and the designs emit 24-bit color that can arrive as literal
+text. The live bar is the color-true preview. Never open anything — no
+browser, no HTML page, no `open`.
 
-**Show.** `catalog` prints one line per item — `item: alt | alt*`, `*` marks
-the live variant, zero ANSI — so its output can go into the chat as-is. Run
-it and show the owner the catalog as a plain table:
+**Set — offer the picker directly.** Do not ask the owner to name a theme
+first. Sketch the four curated themes, then show the in-chat picker in the
+same reply. One plain render per theme, run by the agent:
 
-    npx -y @v1nvn/statusline@0.27.3 catalog
+    npx -y @v1nvn/statusline@0.27.3 preview --theme quiet --plain
+    npx -y @v1nvn/statusline@0.27.3 preview --theme lean --plain
+    npx -y @v1nvn/statusline@0.27.3 preview --theme classic --plain
+    npx -y @v1nvn/statusline@0.27.3 preview --theme rich --plain
 
-Boolean flags cut the listing: `catalog --model --bar`.
+Each render prints a header line, the bar, and the panel row; paste the bar
+and panel row into that option's preview pane. Four options, single-select,
+each description carrying its summary:
 
-**Set — the wizard, the default.** Seeing designs rendered is the wizard's
-job — both surfaces, live previews at 80/120/200 columns (`j/k` move, `h/l`
-variant, `s` sets the focused item to none, `w` width, enter saves, `q`
-cancels). It is the owner's to run, not
-the agent's; hand it off exactly once with this line:
+- `quiet` — model and directory, nothing else
+- `lean` — text only, no graphics
+- `classic` — the shipped defaults, named
+- `rich` — every gauge and counter
 
-    ! npx -y @v1nvn/statusline@0.27.3 configure
+Say in the reply that naming `custom` in the picker's Other free text starts
+the bar bare, every item decided from scratch.
 
-Previews prefer the captures the runtime itself files
-(`captures/main.json`, `captures/tick.json` — real session data), fixtures
-otherwise; no payload choosing anywhere. The wizard offers exactly the
-layout's items — on a fresh install that is every item but `style`, which
-sits outside the default layout and needs the flags path.
+On the pick, write — cheap, reversible, backed up (the first takeover saves
+the pre-lab key values; `restore` puts them back):
 
-**Set — flags, when the owner names the picks.** Walk the catalog's items in
-words — the alternatives from the table, what each one shows in plain words,
-one variant per item; describe, never render. Then configure with one
-variant flag per item — never hand-write the settings keys; `configure`
-composes them whole, config included — and always preview before the write.
-First the flags line with `--dry-run`, handed off so the true render lands
-in the owner's terminal, nothing written:
+    npx -y @v1nvn/statusline@0.27.3 configure --theme lean
 
-    ! npx -y @v1nvn/statusline@0.27.3 configure --model block --bar gauge --fallback=default --dry-run
+The write prints `configured — live on the next paint`; the live bar is the
+look, so try-on replaces preview-before-write — another look is one write
+away. A named tweak rides the same write, item flags overriding the theme:
 
-On the owner's yes, the agent runs the same line without `--dry-run` — the
-write prints `configured — live on the next paint`, plain text:
-
-    npx -y @v1nvn/statusline@0.27.3 configure --model block --bar gauge --fallback=default
-
-`configure` is strict: every item in the layout needs a variant flag, and a
-missing one fails naming what is unresolved. `--fallback=default` fills the
-unflagged layout items with the defaults; `--fallback=existing` keeps what
-the current key already holds. Flags always win over the fallback.
-
-The layout — brace clusters of item ids, one cluster per rendered group — is
-the only way to put an item on the surface; `style` sits outside the default
-layout, so it takes a `--layout` that names it, and a variant for an item the
-layout does not name is an error:
-
-    npx -y @v1nvn/statusline@0.27.3 configure --layout '{model effort} {cwd branch} {bar tokens cache} {style}' --style dots --fallback=default
+    npx -y @v1nvn/statusline@0.27.3 configure --theme lean --bar gauge
 
 A foreign `statusLine` or `subagentStatusLine` key in `~/.claude/settings.json`
 is refused, never silently overwritten; take it over only on the owner's word,
-with `--force` added to the configuration flags:
+with `--force` added.
 
-    npx -y @v1nvn/statusline@0.27.3 configure --model block --bar gauge --fallback=default --force
+**Set — custom, from bare.** Walk the items in words — one variant per item,
+what each shows, describe, never render — then one write naming the picks:
+`configure --theme custom --model zen --cwd tail …`. `catalog` output is
+plain text and may go into the chat as reference; selection never routes
+through a catalog table. The layout — brace clusters of item ids, one cluster
+per rendered group — is the only way to put an item on the surface;
+`--layout` overrides the theme's, and a layout item no flag or theme picks is
+an error naming what is unresolved.
 
-On success both surfaces are live on the next paint: `configure` writes
-exactly the two settings keys, config riding in the main key's value as env
-assignments, and on the first takeover saves the pre-lab key values to
-`backup.json` under `~/.claude/plugins/data/statusline-agentic/`.
-Without a TTY and without flags, `configure` prints the effective config and
-writes nothing. The agent never runs a preview itself — the wizard and the
-`--dry-run` render both belong to the owner's terminal.
+**Show.** `catalog` prints the themes block (`*` marks the live theme) then
+one line per item — `item: alt | alt*`, `*` marking the live variant — zero
+color escapes, chat-safe:
+
+    npx -y @v1nvn/statusline@0.27.3 catalog
+
+`catalog --themes` cuts to the themes block; boolean flags cut the listing:
+`catalog --model --bar`.
 
 **Revert.** `restore` puts both keys back to their pre-lab values — saved
 text spliced back byte-exact, keys absent before the lab removed — then
@@ -93,7 +84,7 @@ zero ANSI, agent-runnable:
 
 A healthy install prints:
 
-    runtime: 0.21.0 — 16 items
+    runtime: 0.27.3 — 16 items
     statusLine: ours — layout='{model effort}' model=block effort=dim
     subagentStatusLine: ours
     config: no drift
@@ -101,11 +92,12 @@ A healthy install prints:
     captures: main 2h ago, tick absent
     healthy
 
-Exit 0 on `healthy`, 1 on `unhealthy` — branch on it: 0 ends the check; 1
-means read the rows, each naming a fix that runs exactly as printed: a
-foreign key takes `rerun configure --force --fallback=default`; an absent
-key or a drifted variant takes `rerun configure --fallback=default`; a drift
-naming an unknown item adds `--layout '<default layout>'` to that; a missing
-runtime takes `claude plugin install statusline@agentic`. Run it right
-after configuring, and after a version bump — the config row names any item
-or variant the resolved runtime no longer offers.
+When the live key equals a theme exactly, a `theme: <name>` row sits right
+after the config row; one swapped item drops it. Exit 0 on `healthy`, 1 on
+`unhealthy` — branch on it: 0 ends the check; 1 means read the rows, each
+naming a fix that runs exactly as printed: a foreign key takes
+`rerun configure --force --theme classic`; an absent key or a drifted variant
+takes `rerun configure --theme classic`; a missing runtime takes
+`claude plugin install statusline@agentic`. Run it right after configuring,
+and after a version bump — the config row names any item or variant the
+resolved runtime no longer offers.

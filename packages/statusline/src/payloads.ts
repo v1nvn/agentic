@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 
 import { isObject } from './configure.js';
 import { materializeDemoRepo } from './demo-repo.js';
-import { capturePath } from './resolve.js';
+import { capturePath, type ResolvedRuntime } from './resolve.js';
 
 const PAYLOADS_DIR = fileURLToPath(
   new URL('../assets/payloads', import.meta.url),
@@ -141,4 +141,58 @@ export function runtimeRenderer(spec: RenderSpec): string {
   const stdout = run.stdout.toString('utf8');
   const warn = run.stderr.toString('utf8').trim();
   return warn === '' ? stdout : `${stdout}${warn}\n`;
+}
+
+export interface PreviewRender {
+  readonly home: string;
+  readonly layout: string;
+  readonly main: string;
+  readonly now: string;
+  readonly plain?: boolean;
+  readonly runtime: ResolvedRuntime;
+  readonly tick: string;
+  readonly values: Readonly<Record<string, string>>;
+  readonly width?: number;
+}
+
+export interface PreviewSurfaces {
+  readonly line: string;
+  readonly panel: string;
+}
+
+// Both renders read the same bag — subagent.sh takes STATUSLINE_LAB_STYLE for
+// its row and its width out of the tick's columns — and NO_COLOR rides the
+// render env because runtimeRenderer passes no ambient environment through to
+// the runtime.
+export function renderPreview(bag: PreviewRender): PreviewSurfaces {
+  const variantEnv: Record<string, string> = Object.fromEntries(
+    Object.entries(bag.values).map(([item, alt]) => [
+      `STATUSLINE_LAB_${item.toUpperCase()}`,
+      alt,
+    ]),
+  );
+  const plain = bag.plain === true || (process.env.NO_COLOR ?? '') !== '';
+  const env: Record<string, string> = {
+    ...variantEnv,
+    ...(plain ? { NO_COLOR: '1' } : {}),
+  };
+  const line = runtimeRenderer({
+    bin: join(bag.runtime.dir, 'statusline.sh'),
+    env: {
+      ...env,
+      COLUMNS: String(bag.width ?? 200),
+      HOME: bag.home,
+      NOW: bag.now,
+      STATUSLINE_LAB_LAYOUT: bag.layout,
+    },
+    stdin: bag.main,
+  }).replace(/\n+$/, '');
+  const panel = firstPanelRow(
+    runtimeRenderer({
+      bin: join(bag.runtime.dir, 'subagent.sh'),
+      env: { ...env, HOME: bag.home, NOW: bag.now },
+      stdin: bag.tick,
+    }).replace(/\n+$/, ''),
+  );
+  return { line, panel };
 }

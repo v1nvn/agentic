@@ -1,68 +1,69 @@
-import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 
 import { afterEach, describe, expect, it } from 'vitest';
 
 import multiTick from '../assets/ticks/multi.json' with { type: 'json' };
-import { catalog } from '../src/catalog.js';
-import { runtimeRenderer, type RenderSpec } from '../src/payloads.js';
+import { configure, layoutItems } from '../src/configure.js';
+import {
+  previewSources,
+  renderPreview,
+  type PreviewRender,
+  type PreviewSurfaces,
+} from '../src/payloads.js';
+import { resolveRuntime } from '../src/resolve.js';
+import { type ThemeName } from '../src/themes.js';
 import {
   createWizard,
+  opensWizard,
   type WizardDeps,
   type WizardOutcome,
+  type WizardOptions,
 } from '../src/wizard.js';
 import {
   DATA_REL,
-  backupPath,
+  THEMES,
   createHomes,
   installRuntime,
-  mainKeyValue,
   settingsCommand,
   settingsPath,
-  snapshotTree,
   subagentKeyValue,
   writeSettings,
 } from './fixtures.js';
 import { DEFAULT_NOW } from './runtime.js';
 
-const RUNTIME_DIR = fileURLToPath(
-  new URL('../../../plugins/statusline/runtime', import.meta.url),
-);
-const DEFAULT_LAYOUT = /^export DEFAULT_LAYOUT='(.*)'$/m.exec(
-  readFileSync(join(RUNTIME_DIR, 'lib.sh'), 'utf8'),
-)?.[1];
-if (DEFAULT_LAYOUT === undefined) {
-  throw new Error('lib.sh declares no DEFAULT_LAYOUT');
-}
-const DEFAULT_LAYOUT_ITEMS = DEFAULT_LAYOUT.replaceAll('}', '')
-  .replaceAll('{', '')
-  .split(' ')
-  .filter(word => word !== '');
+const THEME_NAMES = Object.keys(THEMES) as ThemeName[];
 const MULTI_TICK = multiTick as unknown as {
-  tasks: ReadonlyArray<{ id?: string }>;
+  tasks: ReadonlyArray<{ id?: string; startTime?: number }>;
 };
-
-const LIB_DEFAULTS = new Map<string, string>(
-  [
-    ...readFileSync(join(RUNTIME_DIR, 'lib.sh'), 'utf8').matchAll(
-      /([a-z]+)\) echo ([a-z]+) ;;/g,
-    ),
-  ].map(([, item, alt]) => [item, alt] as const),
-);
 
 interface Recorded {
   readonly frames: string[];
-  readonly specs: RenderSpec[];
+  readonly bags: PreviewRender[];
 }
 
+function sameValues(
+  values: unknown,
+  theme: Readonly<Record<string, string>>,
+): boolean {
+  if (typeof values !== 'object' || values === null) {
+    return false;
+  }
+  const held = values as Record<string, string>;
+  return (
+    Object.keys(held).length === Object.keys(theme).length &&
+    Object.entries(theme).every(([item, alt]) => held[item] === alt)
+  );
+}
+
+// One canned surface per theme bag, so frame pins name the theme a bar came
+// from; every other bag renders as its layout.
 function fakeDeps(keys: readonly string[]): {
   readonly deps: WizardDeps;
   readonly recorded: Recorded;
 } {
   const frames: string[] = [];
-  const specs: RenderSpec[] = [];
+  const bags: PreviewRender[] = [];
   async function* readKeys(): AsyncGenerator<string> {
     for (const key of keys) {
       yield key;
@@ -74,21 +75,46 @@ function fakeDeps(keys: readonly string[]): {
       render: (frame: string) => {
         frames.push(frame);
       },
-      preview: (spec: RenderSpec) => {
-        specs.push(spec);
-        return '';
+      preview: (bag: PreviewRender): PreviewSurfaces => {
+        bags.push(bag);
+        const theme = THEME_NAMES.find(
+          name =>
+            bag.layout === THEMES[name].layout &&
+            sameValues(bag.values, THEMES[name].variants),
+        );
+        if (theme !== undefined) {
+          return { line: `bar:${theme}`, panel: `panel:${theme}` };
+        }
+        return { line: `line:${bag.layout}`, panel: 'panel:draft' };
       },
     },
-    recorded: { frames, specs },
+    recorded: { frames, bags },
   };
 }
 
 const homes = createHomes();
 
+afterEach(() => {
+  homes.dispose();
+});
+
 function newInstalledHome(): string {
   const home = homes.newHome();
   installRuntime(home);
   return home;
+}
+
+async function runWizard(
+  keys: readonly string[],
+  home = newInstalledHome(),
+  options: Partial<WizardOptions> = {},
+): Promise<{ home: string; outcome: WizardOutcome; recorded: Recorded }> {
+  const { deps, recorded } = fakeDeps(keys);
+  const outcome = await createWizard(
+    { home, now: DEFAULT_NOW, ...options },
+    deps,
+  );
+  return { home, outcome, recorded };
 }
 
 function seedCapture(
@@ -101,145 +127,334 @@ function seedCapture(
   writeFileSync(file, body);
 }
 
-function seedOursKey(
-  home: string,
-  layout: string,
-  assignments: readonly string[],
-): void {
-  writeSettings(
-    home,
-    `${JSON.stringify(
-      {
-        statusLine: {
-          command: mainKeyValue(layout, assignments),
-          type: 'command',
-        },
-      },
-      null,
-      2,
-    )}\n`,
+function labelLine(frame: string, name: ThemeName): string {
+  return (
+    frame
+      .split('\n')
+      .find(part => part.includes(`${name}: ${THEMES[name].summary}`)) ?? ''
   );
 }
 
-afterEach(() => {
-  homes.dispose();
-});
-
-async function runWizard(
-  keys: readonly string[],
-  home = newInstalledHome(),
-): Promise<{ home: string; outcome: WizardOutcome; recorded: Recorded }> {
-  const { deps, recorded } = fakeDeps(keys);
-  const outcome = await createWizard({ home, now: DEFAULT_NOW }, deps);
-  return { home, outcome, recorded };
+function focusedThemes(frame: string): ThemeName[] {
+  return THEME_NAMES.filter(name => labelLine(frame, name).startsWith('>'));
 }
 
-// The wizard spawns one full-line preview per draw (layout = the wizard's
-// layout) plus one sample per alternative of the focused item (layout = that
-// item alone) and one panel preview.
-function lineSpecs(
-  specs: readonly RenderSpec[],
-  layout: string,
-): RenderSpec[] {
-  return specs.filter(spec => spec.env.STATUSLINE_LAB_LAYOUT === layout);
+function themeBags(recorded: Recorded, name: ThemeName): PreviewRender[] {
+  return recorded.bags.filter(
+    bag =>
+      bag.layout === THEMES[name].layout &&
+      sameValues(bag.values, THEMES[name].variants),
+  );
 }
 
-function panelSpecs(specs: readonly RenderSpec[]): RenderSpec[] {
-  return specs.filter(spec => spec.bin.endsWith('/subagent.sh'));
-}
-
-function lastLine(specs: readonly RenderSpec[], layout: string): RenderSpec {
-  const lines = lineSpecs(specs, layout);
-  if (lines.length === 0) {
-    throw new Error('no line preview was spawned');
+function lastBag(recorded: Recorded, layout: string): PreviewRender {
+  const bag = [...recorded.bags]
+    .reverse()
+    .find(candidate => candidate.layout === layout);
+  if (bag === undefined) {
+    throw new Error(`no preview bag rendered at layout ${layout}`);
   }
-  return lines[lines.length - 1];
+  return bag;
 }
 
-function focusedItems(specs: readonly RenderSpec[]): string[] {
+function focusedItems(recorded: Recorded): string[] {
   const seen: string[] = [];
-  for (const spec of specs) {
-    const layout = spec.env.STATUSLINE_LAB_LAYOUT;
-    if (layout !== undefined && /^{\w+}$/.test(layout)) {
-      seen.push(layout.slice(1, -1));
+  for (const bag of recorded.bags) {
+    if (/^{\w+}$/.test(bag.layout)) {
+      seen.push(bag.layout.slice(1, -1));
     }
   }
   return seen;
 }
 
-describe('wizard: offered items', () => {
-  it('offers the items of the default layout in order — style is not one of them', async () => {
-    const walk = await runWizard([...Array(15).fill('j')]);
+function rungs<T>(values: readonly T[]): T[] {
+  return values.filter((value, at) => value !== values[at - 1]);
+}
 
-    expect([...new Set(focusedItems(walk.recorded.specs))]).toEqual(
-      DEFAULT_LAYOUT_ITEMS,
-    );
-  });
-
-  it('offers exactly the items of the layout in the existing key', async () => {
-    const home = newInstalledHome();
-    seedOursKey(home, '{model effort}', ['STATUSLINE_LAB_MODEL=block']);
-
-    const { recorded } = await runWizard(['j'], home);
-
-    expect([...new Set(focusedItems(recorded.specs))]).toEqual([
-      'model',
-      'effort',
-    ]);
-    expect(lineSpecs(recorded.specs, '{model effort}')).toHaveLength(2);
+describe('wizard: the gate', () => {
+  it('opens for a bare configure on a TTY and nothing else', () => {
+    expect(opensWizard({}, true)).toBe(true);
+    expect(opensWizard({}, false)).toBe(false);
+    expect(opensWizard({ theme: 'lean' }, true)).toBe(false);
+    expect(opensWizard({ layout: '{model}' }, true)).toBe(false);
+    expect(opensWizard({ variants: { model: 'block' } }, true)).toBe(false);
   });
 });
 
-describe('wizard: the initial preview', () => {
-  it('spawns the installed runtime with the draft as STATUSLINE_LAB_* env', async () => {
-    const home = newInstalledHome();
-    const { recorded } = await runWizard(['\x1b[B'], home);
+describe('wizard: pass one — the theme pass', () => {
+  it('stacks the five theme bars in THEMES order, each a live render of its own theme; focus starts on the first', async () => {
+    const { recorded } = await runWizard([]);
 
-    const line = lastLine(recorded.specs, DEFAULT_LAYOUT);
-    expect(line.bin).toBe(
-      join(
-        home,
-        '.claude',
-        'plugins',
-        'cache',
-        'agentic',
-        'statusline',
-        '0.19.0',
-        'runtime',
-        'statusline.sh',
-      ),
+    expect(recorded.bags).toHaveLength(5);
+    const frame = recorded.frames[0] ?? '';
+    for (const name of THEME_NAMES) {
+      expect(themeBags(recorded, name), name).toHaveLength(1);
+      expect(frame, name).toContain(`${name}: ${THEMES[name].summary}`);
+    }
+    const bars = THEME_NAMES.map(name => frame.indexOf(`bar:${name}`));
+    expect(bars.every(at => at >= 0)).toBe(true);
+    expect([...bars].sort((a, b) => a - b)).toEqual(bars);
+    expect(focusedThemes(frame)).toEqual([THEME_NAMES[0]]);
+    expect(frame).toContain(`panel:${THEME_NAMES[0]}`);
+  });
+
+  it('j/k and the arrows move focus with wrap', async () => {
+    const down = await runWizard(['j']);
+    expect(focusedThemes(down.recorded.frames[1] ?? '')).toEqual(['classic']);
+    expect(down.recorded.frames[1] ?? '').toContain('panel:classic');
+
+    const up = await runWizard(['k']);
+    expect(focusedThemes(up.recorded.frames[1] ?? '')).toEqual(['custom']);
+
+    const wrapped = await runWizard([...Array(5).fill('j')]);
+    expect(focusedThemes(wrapped.recorded.frames[5] ?? '')).toEqual(['quiet']);
+
+    const arrowDown = await runWizard(['\x1b[B']);
+    expect(focusedThemes(arrowDown.recorded.frames[1] ?? '')).toEqual([
+      'classic',
+    ]);
+
+    const arrowUp = await runWizard(['\x1b[A']);
+    expect(focusedThemes(arrowUp.recorded.frames[1] ?? '')).toEqual(['custom']);
+  });
+
+  it('w cycles the width the bars render at — line bag and tick columns, 80 to 120 to 200 and wrap', async () => {
+    const { recorded } = await runWizard(['w', 'w', 'w']);
+
+    const quiet = themeBags(recorded, 'quiet');
+    expect(quiet).toHaveLength(4);
+    const widths = quiet.map(bag => bag.width ?? 200);
+    expect(rungs(widths)).toEqual([80, 120, 200, 80]);
+    const columns = quiet.map(
+      bag => (JSON.parse(bag.tick) as { columns?: number }).columns,
     );
-    expect(line.env.COLUMNS).toBe('80');
-    expect(line.env.HOME).toBe(home);
-    expect(line.env.NOW).toBe(DEFAULT_NOW);
-    expect(line.env.STATUSLINE_LAB_LAYOUT).toBe(DEFAULT_LAYOUT);
-    expect(line.env.STATUSLINE_LAB_MODEL).toBe('plain');
-    expect(line.env.STATUSLINE_LAB_BAR).toBe('flat');
-    // A fixture preview is anchored and pointed at a materialized demo repo,
-    // never the raw file: the git segments need a live repo to render.
-    const preview = JSON.parse(line.stdin) as {
+    expect(rungs(columns)).toEqual([80, 120, 200, 80]);
+  });
+});
+
+describe('wizard: pass two — refinement seeded from the pick', () => {
+  it('enter on a theme picks it — the draft is the theme itself, q cancels with nothing written', async () => {
+    const home = newInstalledHome();
+    const { outcome, recorded } = await runWizard(['\r', 'q'], home);
+
+    expect(outcome).toBe('cancelled');
+    expect(existsSync(settingsPath(home))).toBe(false);
+    expect(focusedItems(recorded).length).toBeGreaterThan(0);
+    expect(lastBag(recorded, THEMES.quiet.layout).values).toEqual(
+      THEMES.quiet.variants,
+    );
+    const frame = recorded.frames[1] ?? '';
+    expect(focusedThemes(frame)).toEqual([]);
+    expect(frame).toContain('line:{model}');
+  });
+
+  it("picking custom seeds bare — the draft is custom's most-absent set", async () => {
+    const { recorded } = await runWizard(['j', 'j', 'j', 'j', '\r', 'q']);
+
+    expect(focusedItems(recorded).length).toBeGreaterThan(0);
+    expect(lastBag(recorded, THEMES.custom.layout).values).toEqual(
+      THEMES.custom.variants,
+    );
+  });
+
+  it('t returns to pass one with the previous pick still focused', async () => {
+    const { recorded } = await runWizard(['j', 'j', '\r', 't', 'q']);
+
+    const frame = recorded.frames.at(-2) ?? '';
+    for (const name of THEME_NAMES) {
+      expect(frame, name).toContain(`bar:${name}`);
+    }
+    expect(focusedThemes(frame)).toEqual(['lean']);
+  });
+
+  it('j/k and the arrows move item focus over the picked theme layout items', async () => {
+    const home = newInstalledHome();
+    const ids = resolveRuntime({ home }).items.map(item => item.item);
+    const { recorded } = await runWizard(['\r', 'j', '\x1b[B', 'k', 'q'], home);
+
+    expect([...new Set(focusedItems(recorded))]).toEqual(
+      layoutItems(THEMES.quiet.layout, ids),
+    );
+    expect(focusedItems(recorded).slice(-1)).toEqual(['cwd']);
+  });
+
+  it('h/l cycle the focused variant; s none only where none is offered', async () => {
+    const home = newInstalledHome();
+    const model = resolveRuntime({ home }).items.find(
+      item => item.item === 'model',
+    );
+    if (model === undefined) {
+      throw new Error('registry declares no model item');
+    }
+    const seeded = THEMES.quiet.variants.model;
+    const cycled =
+      model.alternatives[
+        (model.alternatives.indexOf(seeded) + 1) % model.alternatives.length
+      ];
+
+    const forward = await runWizard(['\r', 'l', 'q'], home);
+    expect(lastBag(forward.recorded, THEMES.quiet.layout).values.model).toBe(
+      cycled,
+    );
+
+    const back = await runWizard(['\r', 'l', 'h', 'q'], home);
+    expect(lastBag(back.recorded, THEMES.quiet.layout).values.model).toBe(
+      seeded,
+    );
+
+    const leanHome = newInstalledHome();
+    const items = layoutItems(
+      THEMES.lean.layout,
+      resolveRuntime({ home: leanHome }).items.map(item => item.item),
+    );
+    const hidden = await runWizard(
+      ['j', 'j', '\r', ...Array(items.indexOf('cost')).fill('j'), 's', 'q'],
+      leanHome,
+    );
+    expect(lastBag(hidden.recorded, THEMES.lean.layout).values.cost).toBe(
+      'none',
+    );
+
+    const inert = await runWizard(['\r', 's', 'q'], home);
+    expect(lastBag(inert.recorded, THEMES.quiet.layout).values.model).toBe(
+      seeded,
+    );
+  });
+
+  it('w keeps cycling the width in pass two', async () => {
+    const { recorded } = await runWizard(['\r', 'w', 'q']);
+
+    expect(lastBag(recorded, THEMES.quiet.layout).width ?? 200).toBe(120);
+  });
+});
+
+describe('wizard: a theme pick saved', () => {
+  it('enter on lean, then save — the settings text is byte-equal to what configure --theme lean writes', async () => {
+    const wizardHome = newInstalledHome();
+    const themedHome = newInstalledHome();
+    configure({ home: themedHome, theme: 'lean' });
+
+    const { outcome } = await runWizard(['j', 'j', '\r', '\r'], wizardHome);
+
+    expect(outcome).toBe('saved');
+    expect(readFileSync(settingsPath(wizardHome), 'utf8')).toBe(
+      readFileSync(settingsPath(themedHome), 'utf8'),
+    );
+    expect(settingsCommand(wizardHome, 'subagentStatusLine')).toBe(
+      subagentKeyValue,
+    );
+  });
+
+  it('a quiet pick seeds the layout too — byte-equal to configure --theme quiet', async () => {
+    const wizardHome = newInstalledHome();
+    const themedHome = newInstalledHome();
+    configure({ home: themedHome, theme: 'quiet' });
+
+    const { outcome } = await runWizard(['\r', '\r'], wizardHome);
+
+    expect(outcome).toBe('saved');
+    expect(readFileSync(settingsPath(wizardHome), 'utf8')).toBe(
+      readFileSync(settingsPath(themedHome), 'utf8'),
+    );
+  });
+
+  it('a foreign settings key fails the save — a failure outcome, nothing written', async () => {
+    const home = newInstalledHome();
+    const seed = `${JSON.stringify(
+      { statusLine: { command: './old-main.sh', type: 'command' } },
+      null,
+      2,
+    )}\n`;
+    writeSettings(home, seed);
+
+    const { outcome, recorded } = await runWizard(['\r', '\r'], home);
+
+    expect(outcome).toBe('save-failed');
+    const last = recorded.frames[recorded.frames.length - 1] ?? '';
+    expect(last).toContain('statusLine');
+    expect(last).toContain('--force');
+    expect(readFileSync(settingsPath(home), 'utf8')).toBe(seed);
+  });
+
+  it('force takes the foreign key over — byte-equal to configure --theme quiet --force', async () => {
+    const seed = `${JSON.stringify(
+      { statusLine: { command: './old-main.sh', type: 'command' } },
+      null,
+      2,
+    )}\n`;
+    const wizardHome = newInstalledHome();
+    const flagged = newInstalledHome();
+    writeSettings(wizardHome, seed);
+    writeSettings(flagged, seed);
+    configure({ home: flagged, force: true, theme: 'quiet' });
+
+    const { outcome } = await runWizard(['\r', '\r'], wizardHome, {
+      force: true,
+    });
+
+    expect(outcome).toBe('saved');
+    expect(readFileSync(settingsPath(wizardHome), 'utf8')).toBe(
+      readFileSync(settingsPath(flagged), 'utf8'),
+    );
+  });
+});
+
+describe('wizard: cancel', () => {
+  it('q and Ctrl-C cancel from pass one — nothing written', async () => {
+    for (const keys of [['q'], ['\x03']]) {
+      const home = newInstalledHome();
+      const { outcome } = await runWizard(keys, home);
+      expect(outcome).toBe('cancelled');
+      expect(existsSync(settingsPath(home))).toBe(false);
+      expect(existsSync(join(home, DATA_REL))).toBe(false);
+    }
+  });
+
+  it('a closed key stream cancels — the adapter owning the TTY died', async () => {
+    const home = newInstalledHome();
+    const { outcome } = await runWizard([], home);
+
+    expect(outcome).toBe('cancelled');
+    expect(existsSync(settingsPath(home))).toBe(false);
+  });
+
+  it('a picked-and-edited draft never touches disk when cancelled', async () => {
+    const home = newInstalledHome();
+    const { outcome } = await runWizard(['j', 'j', '\r', 'l', 'q'], home);
+
+    expect(outcome).toBe('cancelled');
+    expect(existsSync(settingsPath(home))).toBe(false);
+    expect(existsSync(join(home, DATA_REL))).toBe(false);
+  });
+});
+
+describe('wizard: sources', () => {
+  it('anchors the fixture to the render moment and a materialized demo repo', async () => {
+    const { recorded } = await runWizard(['j']);
+
+    const bag = recorded.bags[0];
+    if (bag === undefined) {
+      throw new Error('no preview bag rendered');
+    }
+    const payload = JSON.parse(bag.main) as {
       prompt_cache: { expires_at: number };
       workspace: { current_dir: string };
     };
-    expect(preview.workspace.current_dir).toMatch(/\/demo\/atlas-web$/);
-    expect(preview.prompt_cache.expires_at).toBe(Number(DEFAULT_NOW) + 1920);
-    expect(recorded.frames.length).toBeGreaterThan(0);
+    expect(payload.workspace.current_dir).toMatch(/\/demo\/atlas-web$/);
+    expect(payload.prompt_cache.expires_at).toBe(Number(DEFAULT_NOW) + 1920);
+    const tick = JSON.parse(bag.tick) as {
+      columns?: number;
+      tasks: ReadonlyArray<{ id?: string; startTime?: number }>;
+    };
+    expect(tick.tasks.map(task => task.id)).toEqual(
+      MULTI_TICK.tasks.map(task => task.id),
+    );
+    const now = Number(DEFAULT_NOW);
+    expect(tick.tasks[0]?.startTime).toBeLessThan(now);
+    expect(tick.tasks[0]?.startTime).toBeGreaterThan(now - 3600);
   });
 
-  it('seeds the draft from the assignments of the existing key', async () => {
-    const home = newInstalledHome();
-    seedOursKey(home, '{model effort}', ['STATUSLINE_LAB_MODEL=block']);
-
-    const { recorded } = await runWizard(['\x1b[B'], home);
-
-    const line = lastLine(recorded.specs, '{model effort}');
-    expect(line.env.STATUSLINE_LAB_MODEL).toBe('block');
-    expect(line.env.STATUSLINE_LAB_EFFORT).toBe('plain');
-  });
-});
-
-describe('wizard: capture preference (contract 7)', () => {
-  it('renders the captures verbatim when they exist', async () => {
+  it('renders seeded captures verbatim, the wizard width over the captured tick columns', async () => {
     const home = newInstalledHome();
     const main = `${JSON.stringify(
       { model: { display_name: 'Seeded' } },
@@ -253,263 +468,50 @@ describe('wizard: capture preference (contract 7)', () => {
       `${JSON.stringify({ columns: 120, tasks: [] }, null, 2)}\n`,
     );
 
-    const { recorded } = await runWizard(['\x1b[B'], home);
+    const { recorded } = await runWizard(['j'], home);
 
-    expect(lastLine(recorded.specs, DEFAULT_LAYOUT).stdin).toBe(main);
-    // The panel rides the captured tasks (empty — the fixture carries three
-    // rows) with the wizard width injected over the captured 120.
-    expect(JSON.parse(panelSpecs(recorded.specs)[0]?.stdin ?? '')).toEqual({
-      columns: 80,
-      tasks: [],
-    });
-  });
-});
-
-describe('wizard: agent-panel preview', () => {
-  it('spawns the installed subagent.sh once per draw on the anchored multi tick', async () => {
-    const home = newInstalledHome();
-    const { recorded } = await runWizard(['\x1b[B'], home);
-
-    const panels = panelSpecs(recorded.specs);
-    const draws = lineSpecs(recorded.specs, DEFAULT_LAYOUT).length;
-    expect(draws).toBeGreaterThan(1);
-    expect(panels).toHaveLength(draws);
-
-    const panel = panels[0];
-    expect(panel?.env).toEqual({
-      COLUMNS: '80',
-      HOME: home,
-      NOW: DEFAULT_NOW,
-    });
-
-    const tick = JSON.parse(panel?.stdin ?? '') as {
-      columns: number;
-      tasks: ReadonlyArray<{ id?: string; startTime?: number }>;
-    };
-    expect(tick.columns).toBe(80);
-    expect(tick.tasks.map(task => task.id)).toEqual(
-      MULTI_TICK.tasks.map(task => task.id),
-    );
-    const now = Number(DEFAULT_NOW);
-    expect(tick.tasks[0]?.startTime).toBeLessThan(now);
-    expect(tick.tasks[0]?.startTime).toBeGreaterThan(now - 3600);
-  });
-});
-
-describe('wizard: movement keys', () => {
-  it('down and j step through items; up and k step back', async () => {
-    const down = await runWizard([...Array(5).fill('\x1b[B')]);
-    expect(focusedItems(down.recorded.specs).slice(-1)).toEqual(['status']);
-
-    const j = await runWizard([...Array(5).fill('j')]);
-    expect(focusedItems(j.recorded.specs).slice(-1)).toEqual(['status']);
-
-    const up = await runWizard(['\x1b[B', '\x1b[B', '\x1b[A']);
-    expect(focusedItems(up.recorded.specs).slice(-1)).toEqual(['effort']);
-
-    const k = await runWizard(['\x1b[B', 'k']);
-    expect(focusedItems(k.recorded.specs).slice(-1)).toEqual(['model']);
-  });
-
-  it('wraps in both directions', async () => {
-    const off = await runWizard(['\x1b[A']);
-    expect(focusedItems(off.recorded.specs).slice(-1)).toEqual(['rate']);
-
-    const on = await runWizard([...Array(15).fill('j')]);
-    expect(focusedItems(on.recorded.specs).slice(-1)).toEqual(['model']);
-  });
-});
-
-describe('wizard: variant cycling', () => {
-  it('right and l advance; left and h go back', async () => {
-    const right = await runWizard(['\x1b[C']);
-    expect(
-      lastLine(right.recorded.specs, DEFAULT_LAYOUT).env.STATUSLINE_LAB_MODEL,
-    ).toBe('block');
-
-    const l = await runWizard(['l']);
-    expect(
-      lastLine(l.recorded.specs, DEFAULT_LAYOUT).env.STATUSLINE_LAB_MODEL,
-    ).toBe('block');
-
-    const left = await runWizard(['\x1b[C', '\x1b[D']);
-    expect(
-      lastLine(left.recorded.specs, DEFAULT_LAYOUT).env.STATUSLINE_LAB_MODEL,
-    ).toBe('plain');
-
-    const h = await runWizard(['h']);
-    expect(
-      lastLine(h.recorded.specs, DEFAULT_LAYOUT).env.STATUSLINE_LAB_MODEL,
-    ).toBe('zen');
-  });
-
-  it('s hides an item that offers none', async () => {
-    const hidden = await runWizard([...Array(11).fill('j'), 's']);
-    expect(
-      lastLine(hidden.recorded.specs, DEFAULT_LAYOUT).env.STATUSLINE_LAB_COST,
-    ).toBe('none');
-  });
-
-  it('s is inert on an item with no none alternative', async () => {
-    const inert = await runWizard(['s']);
-    expect(
-      lastLine(inert.recorded.specs, DEFAULT_LAYOUT).env.STATUSLINE_LAB_MODEL,
-    ).toBe('plain');
-  });
-});
-
-describe('wizard: width preview', () => {
-  it('starts previews at 80 columns', async () => {
-    const { recorded } = await runWizard(['\x1b[B']);
-    expect(lastLine(recorded.specs, DEFAULT_LAYOUT).env.COLUMNS).toBe('80');
-  });
-
-  it('w steps 80 to 120 to 200 and wraps back to 80', async () => {
-    const three = await runWizard(['w', 'w', 'w']);
-    const widths = lineSpecs(three.recorded.specs, DEFAULT_LAYOUT).map(
-      spec => spec.env.COLUMNS,
-    );
-    const rungs = widths.filter((width, at) => width !== widths[at - 1]);
-    expect(rungs).toEqual(['80', '120', '200', '80']);
-  });
-});
-
-describe('wizard: save (the TTY mode of contract 3)', () => {
-  it('writes both settings keys through the configure writer and nothing else; catalog stars follow', async () => {
-    const home = newInstalledHome();
-
-    const { outcome } = await runWizard(['l', '\r'], home);
-
-    expect(outcome).toBe('saved');
-    expect(settingsCommand(home, 'statusLine')).toBe(
-      mainKeyValue(
-        DEFAULT_LAYOUT,
-        DEFAULT_LAYOUT_ITEMS.map(
-          item =>
-            `STATUSLINE_LAB_${item.toUpperCase()}=${
-              item === 'model' ? 'block' : LIB_DEFAULTS.get(item)
-            }`,
-        ),
-      ),
-    );
-    expect(settingsCommand(home, 'subagentStatusLine')).toBe(
-      subagentKeyValue,
-    );
-    for (const path of Object.keys(snapshotTree(join(home, '.claude')))) {
-      expect(
-        path === 'settings.json' ||
-          path.startsWith('plugins/cache/') ||
-          path === 'plugins/data/statusline-agentic/backup.json',
-        `wizard save wrote outside the two-key footprint: ${path}`,
-      ).toBe(true);
+    const bag = recorded.bags[0];
+    if (bag === undefined) {
+      throw new Error('no preview bag rendered');
     }
-
-    expect(catalog({ home }).split('\n')).toContain(
-      'model: plain | block* | pill | zen',
-    );
-  });
-
-  it('the save path writes the backup too — a file-creating save records createdFile (contract 4)', async () => {
-    const home = newInstalledHome();
-
-    const { outcome } = await runWizard(['\r'], home);
-
-    expect(outcome).toBe('saved');
-    expect(JSON.parse(readFileSync(backupPath(home), 'utf8'))).toEqual({
-      createdFile: true,
-      keys: {},
-    });
-  });
-
-  // Fix round 1 flipped this pin on purpose: a refused save used to return
-  // 'saved'; it now reports failure so the outcome and exit code tell the truth.
-  it('a foreign settings key fails the save — a failure outcome, nothing written', async () => {
-    const home = newInstalledHome();
-    const seed = `${JSON.stringify(
-      { statusLine: { command: './old-main.sh', type: 'command' } },
-      null,
-      2,
-    )}\n`;
-    writeSettings(home, seed);
-
-    const { outcome, recorded } = await runWizard(['\r'], home);
-
-    expect(outcome).toBe('save-failed');
-    const last = recorded.frames[recorded.frames.length - 1] ?? '';
-    expect(last).toContain('statusLine');
-    expect(last).toContain('--force');
-    expect(readFileSync(settingsPath(home), 'utf8')).toBe(seed);
+    expect(bag.main).toBe(main);
+    expect(JSON.parse(bag.tick)).toEqual({ columns: 80, tasks: [] });
   });
 });
 
-describe('wizard: cancel', () => {
-  it('q mid-walk writes nothing', async () => {
-    const home = newInstalledHome();
-    const { outcome } = await runWizard(['l', 'q'], home);
+describe('wizard: render honesty', () => {
+  it('a theme bar bag renders verbatim through the real renderer', async () => {
+    const { recorded } = await runWizard(['j']);
 
-    expect(outcome).toBe('cancelled');
-    expect(existsSync(settingsPath(home))).toBe(false);
-    expect(existsSync(join(home, DATA_REL))).toBe(false);
+    const bag = themeBags(recorded, 'lean')[0];
+    if (bag === undefined) {
+      throw new Error('no lean theme bag rendered');
+    }
+    expect(renderPreview(bag).line).toContain('Opus');
   });
 
-  it('Ctrl-C (\\x03) behaves like q', async () => {
+  it('the width the bags carry is the width the renderer renders at', async () => {
     const home = newInstalledHome();
-    const { outcome } = await runWizard(['\x03'], home);
+    const sources = previewSources(home, Number(DEFAULT_NOW));
+    try {
+      const bag: PreviewRender = {
+        home,
+        layout: THEMES.lean.layout,
+        main: sources.main,
+        now: DEFAULT_NOW,
+        runtime: resolveRuntime({ home }),
+        tick: sources.tick,
+        values: THEMES.lean.variants,
+      };
 
-    expect(outcome).toBe('cancelled');
-    expect(existsSync(settingsPath(home))).toBe(false);
-  });
+      const at80 = renderPreview({ ...bag, plain: true, width: 80 }).line;
+      const at200 = renderPreview({ ...bag, plain: true, width: 200 }).line;
+      const unspecified = renderPreview({ ...bag, plain: true }).line;
 
-  it('a closed key stream cancels — the adapter owning the TTY died', async () => {
-    const home = newInstalledHome();
-    const { outcome } = await runWizard([], home);
-
-    expect(outcome).toBe('cancelled');
-    expect(existsSync(settingsPath(home))).toBe(false);
-  });
-
-  it('leaves a pre-existing ours key byte-untouched after draft edits', async () => {
-    const home = newInstalledHome();
-    seedOursKey(home, '{model}', ['STATUSLINE_LAB_MODEL=block']);
-
-    const { outcome } = await runWizard(['h', 'q'], home);
-
-    expect(outcome).toBe('cancelled');
-    expect(readFileSync(settingsPath(home), 'utf8')).toBe(
-      `${JSON.stringify(
-        {
-          statusLine: {
-            command: mainKeyValue('{model}', ['STATUSLINE_LAB_MODEL=block']),
-            type: 'command',
-          },
-        },
-        null,
-        2,
-      )}\n`,
-    );
-  });
-});
-
-describe('wizard: preview honesty', () => {
-  it('the initial preview equals a bare spawn of the installed runtime under the same env', async () => {
-    const home = newInstalledHome();
-    const { recorded } = await runWizard(['\x1b[B'], home);
-
-    const spec = lastLine(recorded.specs, DEFAULT_LAYOUT);
-    const rendered = runtimeRenderer(spec);
-    expect(rendered).toContain('Opus');
-
-    const manual = spawnSync('bash', [spec.bin], {
-      input: spec.stdin,
-      env: {
-        PATH: process.env.PATH ?? '',
-        ...spec.env,
-        LC_ALL: 'C',
-        TZ: 'UTC',
-      },
-      timeout: 30_000,
-    });
-    expect(manual.status).toBe(0);
-    expect(rendered).toBe(manual.stdout.toString('utf8'));
+      expect(at80).not.toBe(at200);
+      expect(unspecified).toBe(at200);
+    } finally {
+      sources.cleanup();
+    }
   });
 });

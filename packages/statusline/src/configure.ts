@@ -7,30 +7,28 @@ import {
 } from 'node:fs';
 import { dirname, join } from 'node:path';
 
-import { firstPanelRow, previewSources, runtimeRenderer } from './payloads.js';
 import {
   backupPath,
   isOurMainCommand,
   mainKeyValue,
-  readKeyConfig,
   type ResolvedRuntime,
   resolveRuntime,
   subagentKeyValue,
 } from './resolve.js';
+import {
+  type Theme,
+  THEME_NAMES,
+  type ThemeName,
+  themesFor,
+} from './themes.js';
 
 export interface ConfigureOptions {
-  readonly dryRun?: boolean;
-  readonly fallback?: 'default' | 'existing';
   readonly force?: boolean;
   readonly home: string;
   readonly layout?: string;
+  readonly theme?: string;
   readonly variants?: Readonly<Record<string, string>>;
 }
-
-export type ConfigureResult =
-  | { mode: 'dry-run'; text: string }
-  | { mode: 'printed'; text: string }
-  | { mode: 'written' };
 
 export type SettingsKey = 'statusLine' | 'subagentStatusLine';
 
@@ -446,145 +444,100 @@ function commitSettings(plan: SettingsPlan): void {
   writeFileSync(plan.file, splicedSettings(plan.raw, plan));
 }
 
-function renderPreview(
+function themeNamed(
+  name: string,
+  themes: Readonly<Record<ThemeName, Theme>>,
+): Theme {
+  const theme: Theme | undefined = (
+    themes as Readonly<Record<string, Theme | undefined>>
+  )[name];
+  if (theme === undefined) {
+    throw new Error(
+      `unknown theme '${name}' — valid themes: ${THEME_NAMES.join(' ')}`,
+    );
+  }
+  return theme;
+}
+
+export interface Selection {
+  readonly layout: string;
+  readonly ordered: readonly string[];
+  readonly values: Readonly<Record<string, string>>;
+}
+
+// One engine under every guide: configure writes what this resolves, preview
+// renders it. Resolution is item flags > theme > error naming the gap.
+export function resolveSelection(
   runtime: ResolvedRuntime,
-  home: string,
-  values: Readonly<Record<string, string>>,
-  layout: string,
-  now: string,
-): string {
-  const sources = previewSources(home, Number(now));
-  try {
-    const variantEnv = Object.fromEntries(
-      Object.entries(values).map(([item, alt]) => [
-        `STATUSLINE_LAB_${item.toUpperCase()}`,
-        alt,
-      ]),
-    );
-    const line = runtimeRenderer({
-      bin: join(runtime.dir, 'statusline.sh'),
-      env: {
-        COLUMNS: '200',
-        HOME: home,
-        NOW: now,
-        STATUSLINE_LAB_LAYOUT: layout,
-        ...variantEnv,
-      },
-      stdin: sources.main,
-    }).replace(/\n+$/, '');
-    const panel = firstPanelRow(
-      runtimeRenderer({
-        bin: join(runtime.dir, 'subagent.sh'),
-        env: { COLUMNS: '200', HOME: home, NOW: now },
-        stdin: sources.tick,
-      }).replace(/\n+$/, ''),
-    );
-    return `dry-run at 200 columns — nothing written\n${line}\npanel ${panel}\n`;
-  } finally {
-    sources.cleanup();
-  }
-}
-
-function printedConfig(runtime: ResolvedRuntime, home: string): string {
-  const existing = readKeyConfig(home);
-  const lines = [
-    `layout='${existing.layout ?? runtime.defaultLayout}'`,
-    ...runtime.items.map(
-      item =>
-        `${item.item}=${existingValue(existing.values, item.item) ?? item.default}`,
-    ),
-  ];
-  return [
-    ...lines,
-    'nothing written — pass variants (`statusline configure --model block`) or run bare on a TTY for the wizard',
-  ].join('\n');
-}
-
-function existingValue(
-  values: Readonly<Record<string, string>>,
-  item: string,
-): string | undefined {
-  return item in values ? values[item] : undefined;
-}
-
-export function configure(options: ConfigureOptions): ConfigureResult {
-  const runtime = resolveRuntime({ home: options.home });
-  const existing = readKeyConfig(options.home);
+  options: Pick<ConfigureOptions, 'layout' | 'theme' | 'variants'>,
+): Selection {
   const variants = options.variants ?? {};
-  const explicit =
-    options.layout !== undefined || Object.keys(variants).length > 0;
+  const themes = themesFor(runtime);
+  const theme =
+    options.theme === undefined ? undefined : themeNamed(options.theme, themes);
 
-  if (!explicit && options.fallback === undefined && !options.dryRun) {
-    return { mode: 'printed', text: printedConfig(runtime, options.home) };
+  const layout = options.layout ?? theme?.layout;
+  if (layout === undefined) {
+    throw new Error('no layout — pass --layout <spec> or --theme <name>');
   }
-
-  const layout =
-    options.layout === undefined || options.layout === ''
-      ? (existing.layout ?? runtime.defaultLayout)
-      : options.layout;
   const byItem = new Map(runtime.items.map(item => [item.item, item]));
   const items = layoutItems(
     layout,
     runtime.items.map(item => item.item),
   );
 
-  for (const item of Object.keys(variants)) {
-    if (!byItem.has(item)) {
+  const values: Record<string, string> = {
+    ...(theme?.variants ?? {}),
+    ...variants,
+  };
+  const missing = items.filter(item => !(item in values));
+  if (missing.length > 0) {
+    const hints = missing.map(item => `--${item} <alt>`).join(' ');
+    const names = missing.map(item => `'${item}'`).join(' ');
+    const plural = missing.length > 1 ? 's' : '';
+    throw new Error(
+      theme === undefined
+        ? `no variant for layout item${plural} ${names} — pass ${hints}, or name a theme: --theme ${THEME_NAMES.join('|')}`
+        : `theme '${options.theme}' has no pick for layout item${plural} ${names} — pass ${hints}, or drop ${missing.length > 1 ? 'them' : 'it'} from the layout`,
+    );
+  }
+  for (const [item, alt] of Object.entries(values)) {
+    const entry = byItem.get(item);
+    if (entry === undefined) {
       throw new Error(
         `unknown item '${item}' — valid items: ${[...byItem.keys()].join(' ')}`,
       );
     }
-    if (!items.includes(item)) {
+    if (!entry.alternatives.includes(alt)) {
       throw new Error(
-        `variant for '${item}' is not in the layout (layout items: ${items.join(' ')})`,
+        `unknown variant '${alt}' for item '${item}' — valid: ${entry.alternatives.join(' | ')}`,
       );
     }
   }
 
-  const values: Record<string, string> = {};
-  for (const item of items) {
-    let base: string | undefined;
-    if (options.fallback === 'default') {
-      base = byItem.get(item)?.default;
-    } else if (options.fallback === 'existing') {
-      base = existingValue(existing.values, item);
-    } else if (!explicit) {
-      base = existingValue(existing.values, item) ?? byItem.get(item)?.default;
-    }
-    if (base !== undefined) {
-      values[item] = base;
-    }
-  }
-  const missing = items.filter(
-    item => !(item in values) && !(item in variants),
-  );
-  if (missing.length > 0) {
+  const ordered = [
+    ...items,
+    ...runtime.items
+      .map(entry => entry.item)
+      .filter(item => !items.includes(item) && item in values),
+  ];
+  return { layout, ordered, values };
+}
+
+export function configure(options: ConfigureOptions): void {
+  const runtime = resolveRuntime({ home: options.home });
+  if (
+    options.theme === undefined &&
+    options.layout === undefined &&
+    Object.keys(options.variants ?? {}).length === 0
+  ) {
     throw new Error(
-      `no variant for layout item${missing.length > 1 ? 's' : ''} ${missing.join(' ')} — pass --<item> <alt> for each or use --fallback=default|existing`,
+      "no theme and no item flags — on a terminal run 'statusline configure' for the wizard; in Claude Code use the /lab skill",
     );
   }
-  for (const [item, alt] of Object.entries(variants)) {
-    values[item] = alt;
-  }
-  for (const item of items) {
-    const alt = values[item];
-    const offered = byItem.get(item)?.alternatives ?? [];
-    if (!offered.includes(alt)) {
-      throw new Error(
-        `unknown variant '${alt}' for item '${item}' — valid: ${offered.join(' | ')}`,
-      );
-    }
-  }
 
-  if (options.dryRun) {
-    const now = String(Math.floor(Date.now() / 1000));
-    return {
-      mode: 'dry-run',
-      text: renderPreview(runtime, options.home, values, layout, now),
-    };
-  }
-
-  const assignments = items.map(
+  const { layout, ordered, values } = resolveSelection(runtime, options);
+  const assignments = ordered.map(
     item => `STATUSLINE_LAB_${item.toUpperCase()}=${values[item]}`,
   );
   const plan = planSettings(
@@ -596,5 +549,4 @@ export function configure(options: ConfigureOptions): ConfigureResult {
     writeBackupIfAbsent(options.home, plan);
   }
   commitSettings(plan);
-  return { mode: 'written' };
 }

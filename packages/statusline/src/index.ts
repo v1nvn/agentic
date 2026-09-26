@@ -3,10 +3,11 @@ import { printUsageAndExit } from '@v1nvn/agentic-core';
 import { catalog } from './catalog.js';
 import { buildProgram, parseArgs, subcommandHelp, VERSION } from './cli.js';
 import { configure } from './configure.js';
+import { preview } from './preview.js';
 import { restore } from './restore.js';
 import { status } from './status.js';
 import { terminalDeps } from './wizard-tui.js';
-import { createWizard } from './wizard.js';
+import { createWizard, opensWizard } from './wizard.js';
 
 const parsed =
   parseArgs(process.argv.slice(2)) ?? printUsageAndExit(buildProgram());
@@ -34,19 +35,23 @@ if (parsed.help !== undefined) {
   console.log(VERSION);
 } else if (parsed.command === 'catalog') {
   run(() => {
-    console.log(catalog({ home: homeOf(parsed.home), items: parsed.items }));
+    console.log(
+      catalog({
+        home: homeOf(parsed.home),
+        items: parsed.items,
+        themes: parsed.themes,
+      }),
+    );
   });
 } else if (parsed.command === 'configure') {
   const home = homeOf(parsed.home);
-  const interactive =
-    parsed.layout === undefined &&
-    parsed.variants === undefined &&
-    parsed.fallback === undefined &&
-    !parsed.dryRun &&
-    !parsed.force;
-  if (interactive && process.stdin.isTTY) {
+  if (opensWizard(parsed, process.stdin.isTTY)) {
     const outcome = await createWizard(
-      { home, now: String(Math.floor(Date.now() / 1000)) },
+      {
+        force: parsed.force,
+        home,
+        now: String(Math.floor(Date.now() / 1000)),
+      },
       terminalDeps(),
     );
     if (outcome === 'save-failed') {
@@ -54,21 +59,29 @@ if (parsed.help !== undefined) {
     }
   } else {
     run(() => {
-      const result = configure({
-        dryRun: parsed.dryRun,
-        fallback: parsed.fallback,
+      configure({
         force: parsed.force,
         home,
         layout: parsed.layout,
+        theme: parsed.theme,
         variants: parsed.variants,
       });
-      console.log(
-        result.mode === 'written'
-          ? 'configured — live on the next paint'
-          : result.text,
-      );
+      console.log('configured — live on the next paint');
     });
   }
+} else if (parsed.command === 'preview') {
+  run(() => {
+    console.log(
+      preview({
+        home: homeOf(parsed.home),
+        layout: parsed.layout,
+        now: String(Math.floor(Date.now() / 1000)),
+        plain: parsed.plain,
+        theme: parsed.theme,
+        variants: parsed.variants,
+      }),
+    );
+  });
 } else if (parsed.command === 'restore') {
   run(() => {
     const result = restore({

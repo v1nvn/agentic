@@ -6,7 +6,10 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import { catalog } from '../src/catalog.js';
 import { buildProgram, parseArgs } from '../src/cli.js';
+import { liveTheme } from '../src/live-theme.js';
 import {
+  RUNTIME,
+  THEMES,
   createHomes,
   installRuntime,
   mainKeyValue,
@@ -117,6 +120,22 @@ function seedOursKey(
   );
 }
 
+// Derived from THEMES on purpose: the block quotes THEMES verbatim, in
+// THEMES's own order — the shape (name, star, colon, summary) is the pin.
+function expectedThemeLines(live: string | undefined): string[] {
+  return Object.entries(THEMES).map(
+    ([name, theme]) => `${name}${live === name ? '*' : ''}: ${theme.summary}`,
+  );
+}
+
+function themeKeyAssignments(
+  variants: Readonly<Record<string, string>>,
+): string[] {
+  return Object.entries(variants).map(
+    ([item, variant]) => `STATUSLINE_LAB_${item.toUpperCase()}=${variant}`,
+  );
+}
+
 const homes = createHomes();
 
 afterEach(() => {
@@ -129,7 +148,7 @@ describe('the verb surface (contracts 1 and 10)', () => {
       buildProgram()
         .commands.map(command => command.name())
         .sort(),
-    ).toEqual(['catalog', 'configure', 'restore', 'status']);
+    ).toEqual(['catalog', 'configure', 'preview', 'restore', 'status']);
   });
 
   it('a bare invocation is a usage error the entry answers with help and a non-zero exit', () => {
@@ -182,14 +201,18 @@ describe('catalog: the runtime install seam (contract 2)', () => {
 });
 
 describe('catalog: output (contract 2)', () => {
-  it('lists one line per item with the lib default starred and zero ANSI', () => {
+  it('leads with the themes block, a blank line, then the item lines with the lib default starred and zero ANSI', () => {
     const home = homes.newHome();
     installRuntime(home);
 
     const out = catalog({ home });
 
     expect(out).not.toMatch(/\u001b\[/);
-    expect(out.split('\n')).toEqual(expectedLines({}));
+    expect(out.split('\n')).toEqual([
+      ...expectedThemeLines(undefined),
+      '',
+      ...expectedLines({}),
+    ]);
   });
 
   it('stars follow the main key assignments in settings.json', () => {
@@ -202,17 +225,180 @@ describe('catalog: output (contract 2)', () => {
 
     const out = catalog({ home });
 
-    expect(out.split('\n')).toEqual(
-      expectedLines({ cache: 'none', model: 'block' }),
-    );
+    expect(out.split('\n')).toEqual([
+      ...expectedThemeLines(undefined),
+      '',
+      ...expectedLines({ cache: 'none', model: 'block' }),
+    ]);
   });
 
-  it('boolean flags cut the listing to those items', () => {
+  it('boolean flags cut the item lines to those items; the block still leads', () => {
     const home = homes.newHome();
     installRuntime(home);
 
     const out = catalog({ home, items: ['model', 'bar'] });
 
-    expect(out.split('\n')).toEqual(expectedLines({}, ['model', 'bar']));
+    expect(out.split('\n')).toEqual([
+      ...expectedThemeLines(undefined),
+      '',
+      ...expectedLines({}, ['model', 'bar']),
+    ]);
+  });
+});
+
+describe('the live-theme matcher', () => {
+  it('names the theme whose layout and assignments the key equals exactly', () => {
+    expect(
+      liveTheme(
+        {
+          layout: THEMES.quiet.layout,
+          values: { ...THEMES.quiet.variants },
+        },
+        RUNTIME,
+      ),
+    ).toBe('quiet');
+    expect(
+      liveTheme(
+        {
+          layout: THEMES.lean.layout,
+          values: { ...THEMES.lean.variants },
+        },
+        RUNTIME,
+      ),
+    ).toBe('lean');
+  });
+
+  it('a one-swap key (--theme lean --bar gauge) matches nothing', () => {
+    expect(
+      liveTheme(
+        {
+          layout: THEMES.lean.layout,
+          values: { ...THEMES.lean.variants, bar: 'gauge' },
+        },
+        RUNTIME,
+      ),
+    ).toBeUndefined();
+  });
+
+  it('the layout must equal too — lean assignments on quiet layout match nothing', () => {
+    expect(
+      liveTheme(
+        {
+          layout: THEMES.quiet.layout,
+          values: { ...THEMES.lean.variants },
+        },
+        RUNTIME,
+      ),
+    ).toBeUndefined();
+  });
+
+  it('equality runs both directions — a dropped assignment matches nothing', () => {
+    const values = { ...THEMES.lean.variants };
+    delete values.rate;
+
+    expect(
+      liveTheme({ layout: THEMES.lean.layout, values }, RUNTIME),
+    ).toBeUndefined();
+  });
+
+  it('the key side of both directions — an assignment beyond the theme set matches nothing', () => {
+    expect(
+      liveTheme(
+        {
+          layout: THEMES.quiet.layout,
+          values: { ...THEMES.quiet.variants, branch: 'initials' },
+        },
+        RUNTIME,
+      ),
+    ).toBeUndefined();
+  });
+
+  it('no key (null layout, no values) matches nothing', () => {
+    expect(liveTheme({ layout: null, values: {} }, RUNTIME)).toBeUndefined();
+  });
+});
+
+describe('catalog: the themes block', () => {
+  it('parses --themes as a boolean flag beside --home and the item flags', () => {
+    expect(parseArgs(['catalog', '--themes'])).toMatchObject({
+      command: 'catalog',
+      themes: true,
+    });
+    expect(
+      parseArgs(['catalog', '--themes', '--home', '/tmp/lab-home']),
+    ).toMatchObject({
+      command: 'catalog',
+      home: '/tmp/lab-home',
+      themes: true,
+    });
+    expect(parseArgs(['catalog'])).not.toMatchObject({ themes: true });
+  });
+
+  it('stars the theme the live key equals exactly', () => {
+    const home = homes.newHome();
+    installRuntime(home);
+    seedOursKey(
+      home,
+      THEMES.lean.layout,
+      themeKeyAssignments(THEMES.lean.variants),
+    );
+
+    const out = catalog({ home });
+
+    expect(out.split('\n')).toEqual([
+      ...expectedThemeLines('lean'),
+      '',
+      ...expectedLines({ ...THEMES.lean.variants }),
+    ]);
+  });
+
+  it('a one-swap key (--theme lean --bar gauge) stars nothing', () => {
+    const home = homes.newHome();
+    installRuntime(home);
+    seedOursKey(
+      home,
+      THEMES.lean.layout,
+      themeKeyAssignments({ ...THEMES.lean.variants, bar: 'gauge' }),
+    );
+
+    const out = catalog({ home });
+
+    expect(out.split('\n')).toEqual([
+      ...expectedThemeLines(undefined),
+      '',
+      ...expectedLines({ ...THEMES.lean.variants, bar: 'gauge' }),
+    ]);
+  });
+
+  it('--themes cuts the output to the block alone', () => {
+    const home = homes.newHome();
+    installRuntime(home);
+    seedOursKey(
+      home,
+      THEMES.lean.layout,
+      themeKeyAssignments(THEMES.lean.variants),
+    );
+
+    const out = catalog({ home, themes: true });
+
+    expect(out.split('\n')).toEqual(expectedThemeLines('lean'));
+  });
+
+  it('no key present: no star, five clean lines', () => {
+    const home = homes.newHome();
+    installRuntime(home);
+
+    const out = catalog({ home, themes: true });
+
+    expect(out.split('\n')).toEqual(expectedThemeLines(undefined));
+    expect(out).not.toContain('*');
+  });
+
+  it('--themes beside item flags is an error, not a silent cut', () => {
+    const home = homes.newHome();
+
+    expect(() =>
+      catalog({ home, items: ['model'], themes: true }),
+    ).toThrowError(/--themes cannot combine with item flags/);
   });
 });

@@ -39,3 +39,7 @@ capture() {
     printf '%s' "$2" > "${dest}.tmp"
     mv "${dest}.tmp" "$dest"
 }
+
+strip_sgr() {
+    printf '%s' "$1" | sed $'s/\x1b\\[[0-9;]*m//g'
+}

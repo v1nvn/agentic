@@ -5,8 +5,12 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import { parseArgs, subcommandHelp } from '../src/cli.js';
 import { configure, type ConfigureOptions } from '../src/configure.js';
+import { liveTheme } from '../src/live-theme.js';
+import { readKeyConfig } from '../src/resolve.js';
 import { status } from '../src/status.js';
 import {
+  RUNTIME,
+  THEMES,
   backupPath,
   createHomes,
   installRuntime,
@@ -83,7 +87,7 @@ describe('status: config drift (contract 5)', () => {
       'runtime: 0.19.0 — 16 items',
       "statusLine: ours — layout='{model flux}' model=neon flux=pulse",
       'subagentStatusLine: ours',
-      "config: drift — unknown variant 'neon' for 'model', unknown item 'flux' — fix: rerun configure --layout '{model effort state} {cwd branch status ahead pr} {bar tokens cache} {cost} {duration} {lines} {rate}' --fallback=default",
+      "config: drift — unknown variant 'neon' for 'model', unknown item 'flux' — fix: rerun configure --theme classic",
       'backup: absent',
       'captures: main absent, tick absent',
       'unhealthy',
@@ -110,7 +114,7 @@ describe('status: variants-only drift (contract 5)', () => {
       'runtime: 0.19.0 — 16 items',
       "statusLine: ours — layout='{model effort}' model=neon effort=dim",
       'subagentStatusLine: ours',
-      "config: drift — unknown variant 'neon' for 'model' — fix: rerun configure --fallback=default",
+      "config: drift — unknown variant 'neon' for 'model' — fix: rerun configure --theme classic",
       'backup: absent',
       'captures: main absent, tick absent',
       'unhealthy',
@@ -134,8 +138,8 @@ describe('status: foreign and absent keys (contract 5)', () => {
     expect(result.healthy).toBe(false);
     expect(result.rows).toEqual([
       'runtime: 0.19.0 — 16 items',
-      'statusLine: foreign (./old-main.sh) — fix: rerun configure --force --fallback=default',
-      'subagentStatusLine: absent — fix: rerun configure --fallback=default',
+      'statusLine: foreign (./old-main.sh) — fix: rerun configure --force --theme classic',
+      'subagentStatusLine: absent — fix: rerun configure --theme classic',
       'backup: absent',
       'captures: main absent, tick absent',
       'unhealthy',
@@ -253,21 +257,16 @@ describe('status: fix lines run (contract 5 seam)', () => {
 });
 
 function runFixCommand(fix: string, home: string): void {
-  const flags = fix.slice('rerun configure '.length);
-  const layout = /^--layout '([^']*)' /.exec(flags);
-  const rest = (layout === null ? flags : flags.slice(layout[0].length)).split(
-    ' ',
-  );
-  for (const flag of rest) {
-    if (flag !== '--force' && flag !== '--fallback=default') {
+  const flags = fix.slice('rerun configure '.length).split(' ');
+  for (const flag of flags) {
+    if (flag !== '--force' && flag !== '--theme' && flag !== 'classic') {
       throw new Error(`fix flag not mapped onto configure: ${flag}`);
     }
   }
   const options: ConfigureOptions = {
-    fallback: rest.includes('--fallback=default') ? 'default' : undefined,
-    force: rest.includes('--force') ? true : undefined,
+    force: flags.includes('--force') ? true : undefined,
     home,
-    layout: layout === null ? undefined : layout[1],
+    theme: flags.includes('--theme') ? 'classic' : undefined,
   };
   configure(options);
 }
@@ -293,5 +292,91 @@ describe('status: CLI surface (contract 5)', () => {
 
   it('names the status flags in its help', () => {
     expect(subcommandHelp('status')).toContain('--home');
+  });
+});
+
+function themeRows(rows: readonly string[]): readonly string[] {
+  return rows.filter(row => row.startsWith('theme:'));
+}
+
+function seedOursKeys(
+  home: string,
+  layout: string,
+  assignments: readonly string[],
+): void {
+  writeSettings(
+    home,
+    `{
+  "statusLine": ${JSON.stringify({ command: mainKeyValue(layout, assignments), type: 'command' })},
+  "subagentStatusLine": ${JSON.stringify({ command: subagentKeyValue, type: 'command' })}
+}
+`,
+  );
+}
+
+function themeAssignments(
+  variants: Readonly<Record<string, string>>,
+): readonly string[] {
+  return Object.entries(variants).map(
+    ([item, variant]) => `STATUSLINE_LAB_${item.toUpperCase()}=${variant}`,
+  );
+}
+
+describe('status: the live theme (contract 5)', () => {
+  it("names the theme the main key equals exactly — a 'theme: lean' row right after the config row", () => {
+    const home = newInstalledHome();
+    configure({ home, theme: 'lean' });
+
+    const result = status({ home });
+
+    expect(result.healthy).toBe(true);
+    expect(themeRows(result.rows)).toEqual(['theme: lean']);
+    expect(result.rows.indexOf('theme: lean')).toBe(
+      result.rows.indexOf('config: no drift') + 1,
+    );
+  });
+
+  it('a one-swap key (--theme lean --bar gauge) names no theme', () => {
+    const home = newInstalledHome();
+    configure({ home, theme: 'lean', variants: { bar: 'gauge' } });
+
+    const result = status({ home });
+
+    expect(result.healthy).toBe(true);
+    expect(themeRows(result.rows)).toEqual([]);
+  });
+
+  it('no key names no theme', () => {
+    const home = newInstalledHome();
+
+    expect(themeRows(status({ home }).rows)).toEqual([]);
+  });
+
+  it('rides the shared matcher — the row says exactly what liveTheme says on the same key, a dropped assignment included', () => {
+    const exact = newInstalledHome();
+    configure({ home: exact, theme: 'lean' });
+
+    const swapped = newInstalledHome();
+    configure({ home: swapped, theme: 'lean', variants: { bar: 'gauge' } });
+
+    const dropped = newInstalledHome();
+    seedOursKeys(
+      dropped,
+      THEMES.lean.layout,
+      themeAssignments(THEMES.lean.variants).filter(
+        assignment => !assignment.startsWith('STATUSLINE_LAB_STYLE='),
+      ),
+    );
+
+    expect(liveTheme(readKeyConfig(exact), RUNTIME)).toBe('lean');
+    expect(liveTheme(readKeyConfig(swapped), RUNTIME)).toBeUndefined();
+    expect(liveTheme(readKeyConfig(dropped), RUNTIME)).toBeUndefined();
+
+    for (const home of [exact, swapped, dropped]) {
+      const live = liveTheme(readKeyConfig(home), RUNTIME);
+      expect(themeRows(status({ home }).rows)).toEqual(
+        live === undefined ? [] : [`theme: ${live}`],
+      );
+    }
   });
 });

@@ -199,6 +199,14 @@ function readDefaultLayout(dir: string): string {
   return match[1];
 }
 
+export function resolveRuntimeDir(dir: string): ResolvedRuntime {
+  return {
+    defaultLayout: readDefaultLayout(dir),
+    dir,
+    items: readItems(dir),
+  };
+}
+
 export function resolveRuntime({ home }: { home: string }): ResolvedRuntime {
   const pluginDir = newestCacheDir(
     join(home, '.claude', 'plugins', 'cache', 'agentic', 'statusline'),
@@ -209,9 +217,5 @@ export function resolveRuntime({ home }: { home: string }): ResolvedRuntime {
       `no statusline runtime under ${home} — install the plugin first: claude plugin install statusline@agentic`,
     );
   }
-  return {
-    defaultLayout: readDefaultLayout(dir),
-    dir,
-    items: readItems(dir),
-  };
+  return resolveRuntimeDir(dir);
 }

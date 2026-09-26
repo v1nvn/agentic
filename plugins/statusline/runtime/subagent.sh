@@ -94,6 +94,7 @@ while IFS=$'\x1f' read -r ID LABEL NAME DESC MODEL EFFORT CTX_SIZE TOKENS START;
     if [ "$CTX_SIZE" -ge 1000000 ] 2>/dev/null; then CTX_FMT=$(awk "BEGIN {printf \"%.0fM\", $CTX_SIZE/1000000}")
     elif [ "$CTX_SIZE" -ge 1000 ] 2>/dev/null; then CTX_FMT=$(fmt_k "$CTX_SIZE" 0); fi
     fit_row
+    [ -n "$NO_COLOR" ] && ROW_OUT=$(strip_sgr "$ROW_OUT")
     jq -cn --arg id "$ID" --arg content "$ROW_OUT" '{id: $id, content: $content}'
 done <<EOF
 $(printf '%s' "$input" | jq -r '

@@ -6,9 +6,10 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import { catalog } from '../src/catalog.js';
 import { parseArgs } from '../src/cli.js';
-import { configure, type ConfigureResult } from '../src/configure.js';
+import { configure } from '../src/configure.js';
 import {
   DATA_REL,
+  THEMES,
   createHomes,
   installRuntime,
   mainKeyValue,
@@ -17,7 +18,6 @@ import {
   subagentKeyValue,
   writeSettings,
 } from './fixtures.js';
-import { tmpFilesUnder } from './plugin-runtime.js';
 
 const RUNTIME_MAIN = fileURLToPath(
   new URL('../../../plugins/statusline/runtime/statusline.sh', import.meta.url),
@@ -36,13 +36,6 @@ function assertNothingWritten(home: string): void {
   expect(existsSync(join(home, DATA_REL)), 'data dir').toBe(false);
 }
 
-function textOf(result: ConfigureResult): string {
-  if (result.mode === 'written') {
-    throw new Error('expected a text-carrying result');
-  }
-  return result.text;
-}
-
 const homes = createHomes();
 
 afterEach(() => {
@@ -56,7 +49,7 @@ function newInstalledHome(): string {
 }
 
 describe('configure: parsing', () => {
-  it('parses the full flag set; rejects bad fallbacks, unknown flags, and stray arguments', () => {
+  it('parses the full flag set; rejects --fallback, --dry-run, unknown flags, and stray arguments', () => {
     expect(
       parseArgs([
         'configure',
@@ -64,31 +57,33 @@ describe('configure: parsing', () => {
         'block',
         '--layout',
         '{model effort}',
-        '--fallback=default',
-        '--dry-run',
+        '--theme',
+        'lean',
         '--force',
         '--home',
         '/tmp/lab-home',
       ]),
     ).toMatchObject({
       command: 'configure',
-      dryRun: true,
-      fallback: 'default',
       force: true,
       home: '/tmp/lab-home',
       layout: '{model effort}',
+      theme: 'lean',
       variants: { model: 'block' },
     });
-    expect(parseArgs(['configure', '--fallback=bogus'])).toBeUndefined();
+    expect(parseArgs(['configure', '--fallback=default'])).toBeUndefined();
+    expect(parseArgs(['configure', '--fallback=existing'])).toBeUndefined();
+    expect(parseArgs(['configure', '--fallback', 'default'])).toBeUndefined();
+    expect(parseArgs(['configure', '--dry-run'])).toBeUndefined();
     expect(parseArgs(['configure', '--bogus'])).toBeUndefined();
     expect(parseArgs(['configure', 'stray'])).toBeUndefined();
     expect(parseArgs(['configure', '--nonsense', 'zzz'])).toBeUndefined();
   });
 
-  it('parses --fallback=existing and a bare configure', () => {
-    expect(parseArgs(['configure', '--fallback=existing'])).toMatchObject({
+  it('parses --theme alone and a bare configure', () => {
+    expect(parseArgs(['configure', '--theme', 'quiet'])).toMatchObject({
       command: 'configure',
-      fallback: 'existing',
+      theme: 'quiet',
     });
     expect(parseArgs(['configure'])).toMatchObject({ command: 'configure' });
   });
@@ -123,7 +118,7 @@ describe('configure: strict mode (contract 3)', () => {
     const home = newInstalledHome();
     const layout = '{cwd branch} {model effort} {bar tokens cache}';
 
-    const result = configure({
+    configure({
       home,
       layout,
       variants: {
@@ -137,7 +132,6 @@ describe('configure: strict mode (contract 3)', () => {
       },
     });
 
-    expect(result).toMatchObject({ mode: 'written' });
     expect(settingsCommand(home, 'statusLine')).toBe(
       mainKeyValue(layout, [
         'STATUSLINE_LAB_CWD=full',
@@ -162,13 +156,12 @@ describe('configure: strict mode (contract 3)', () => {
     writeSettings(home, `{"model":"opus-4"}\n`);
     configure({ home, layout: '{model}', variants: { model: 'block' } });
 
-    const result = configure({
+    configure({
       home,
       layout: '{model}',
       variants: { model: 'pill' },
     });
 
-    expect(result).toMatchObject({ mode: 'written' });
     expect(settingsCommand(home, 'statusLine')).toBe(
       mainKeyValue('{model}', ['STATUSLINE_LAB_MODEL=pill']),
     );
@@ -198,151 +191,48 @@ describe('configure: strict mode (contract 3)', () => {
   });
 });
 
-describe('configure: --fallback=default (contract 3)', () => {
-  it('resolves unflagged layout items to concrete defaults; flags override', () => {
-    const home = newInstalledHome();
+describe('configure: --theme', () => {
+  it('writes lean; the settings text is byte-equal to a flags-only write of the same layout and variants', () => {
+    const themed = newInstalledHome();
+    const flagged = newInstalledHome();
 
-    const result = configure({
-      fallback: 'default',
-      home,
-      layout: '{model effort} {bar tokens}',
-      variants: { model: 'block' },
+    configure({ home: themed, theme: 'lean' });
+    configure({
+      home: flagged,
+      layout: THEMES.lean.layout,
+      variants: THEMES.lean.variants,
     });
 
-    expect(result).toMatchObject({ mode: 'written' });
-    expect(settingsCommand(home, 'statusLine')).toBe(
-      mainKeyValue('{model effort} {bar tokens}', [
-        'STATUSLINE_LAB_MODEL=block',
-        'STATUSLINE_LAB_EFFORT=plain',
-        'STATUSLINE_LAB_BAR=flat',
-        'STATUSLINE_LAB_TOKENS=full',
-      ]),
+    expect(readFileSync(settingsPath(themed), 'utf8')).toBe(
+      readFileSync(settingsPath(flagged), 'utf8'),
     );
   });
-});
 
-describe('configure: --fallback=existing (contracts 3 and 5)', () => {
-  function seedOursKey(
-    home: string,
-    layout: string,
-    assignments: readonly string[],
-  ): void {
+  it('an item flag swaps exactly that one pick over the theme', () => {
+    const themed = newInstalledHome();
+    const swapped = newInstalledHome();
+
+    configure({ home: themed, theme: 'lean' });
+    configure({ home: swapped, theme: 'lean', variants: { bar: 'gauge' } });
+
+    const lean = settingsCommand(themed, 'statusLine');
+    expect(lean).toContain('STATUSLINE_LAB_BAR=percent');
+    expect(settingsCommand(swapped, 'statusLine')).toBe(
+      lean.replace('STATUSLINE_LAB_BAR=percent', 'STATUSLINE_LAB_BAR=gauge'),
+    );
+  });
+
+  it('a theme write replaces a seeded ours key with exactly the theme values', () => {
+    const home = newInstalledHome();
     writeSettings(
       home,
-      `${JSON.stringify(
-        { statusLine: { command: mainKeyValue(layout, assignments), type: 'command' } },
-        null,
-        2,
-      )}\n`,
-    );
-  }
-
-  it('sources values from the main key; flags override one', () => {
-    const home = newInstalledHome();
-    seedOursKey(home, '{model bar}', [
-      'STATUSLINE_LAB_MODEL=block',
-      'STATUSLINE_LAB_BAR=gauge',
-    ]);
-
-    const result = configure({
-      fallback: 'existing',
-      home,
-      layout: '{model bar}',
-      variants: { model: 'pill' },
-    });
-
-    expect(result).toMatchObject({ mode: 'written' });
-    expect(settingsCommand(home, 'statusLine')).toBe(
-      mainKeyValue('{model bar}', [
-        'STATUSLINE_LAB_MODEL=pill',
-        'STATUSLINE_LAB_BAR=gauge',
-      ]),
-    );
-  });
-
-  it('drops assignments for items the new layout drops', () => {
-    const home = newInstalledHome();
-    seedOursKey(home, '{model bar} {style}', [
-      'STATUSLINE_LAB_MODEL=block',
-      'STATUSLINE_LAB_BAR=gauge',
-      'STATUSLINE_LAB_STYLE=dots',
-    ]);
-
-    const result = configure({
-      fallback: 'existing',
-      home,
-      layout: '{model bar}',
-      variants: { model: 'pill' },
-    });
-
-    expect(result).toMatchObject({ mode: 'written' });
-    const key = settingsCommand(home, 'statusLine');
-    expect(key).toBe(
-      mainKeyValue('{model bar}', [
-        'STATUSLINE_LAB_MODEL=pill',
-        'STATUSLINE_LAB_BAR=gauge',
-      ]),
-    );
-    expect(key).not.toContain('STATUSLINE_LAB_STYLE');
-  });
-
-  it('a layout item unresolved by base and flags fails loudly — no silent defaults', () => {
-    const home = newInstalledHome();
-    seedOursKey(home, '{bar}', ['STATUSLINE_LAB_BAR=gauge']);
-    const seeded = readFileSync(settingsPath(home), 'utf8');
-
-    const attempt = () =>
-      configure({ home, fallback: 'existing', layout: '{bar tokens}' });
-
-    expect(attempt).toThrowError(/tokens/);
-    expect(readFileSync(settingsPath(home), 'utf8')).toBe(seeded);
-    expect(tmpFilesUnder(home)).toEqual([]);
-  });
-});
-
-describe('configure: --dry-run (contract 3)', () => {
-  it('renders both surfaces and persists nothing', () => {
-    const home = newInstalledHome();
-
-    const result = configure({
-      dryRun: true,
-      home,
-      layout: '{model effort}',
-      variants: { effort: 'dim', model: 'block' },
-    });
-
-    expect(result).toMatchObject({ mode: 'dry-run' });
-    expect(existsSync(settingsPath(home))).toBe(false);
-    // The render proof is the runtime's own tee (contract 7): spawning the
-    // installed runtime under this home leaves both captures behind.
-    expect(existsSync(join(home, DATA_REL, 'captures', 'main.json'))).toBe(
-      true,
-    );
-    expect(existsSync(join(home, DATA_REL, 'captures', 'tick.json'))).toBe(
-      true,
-    );
-  });
-});
-
-describe('configure: no params, no TTY (contract 3)', () => {
-  it('prints the effective config with a hint and writes nothing', () => {
-    const bare = newInstalledHome();
-
-    const printed = configure({ home: bare });
-
-    expect(printed).toMatchObject({ mode: 'printed' });
-    const text = textOf(printed);
-    expect(text.length).toBeGreaterThan(0);
-    expect(text).toMatch(/configure/i);
-    assertNothingWritten(bare);
-
-    const seeded = newInstalledHome();
-    writeSettings(
-      seeded,
       `${JSON.stringify(
         {
           statusLine: {
-            command: mainKeyValue('{model bar}', ['STATUSLINE_LAB_MODEL=block']),
+            command: mainKeyValue('{model bar}', [
+              'STATUSLINE_LAB_MODEL=block',
+              'STATUSLINE_LAB_BAR=gauge',
+            ]),
             type: 'command',
           },
         },
@@ -350,7 +240,53 @@ describe('configure: no params, no TTY (contract 3)', () => {
         2,
       )}\n`,
     );
-    expect(textOf(configure({ home: seeded }))).toContain('block');
+
+    configure({ home, theme: 'quiet' });
+
+    expect(settingsCommand(home, 'statusLine')).toBe(
+      mainKeyValue('{model cwd}', [
+        'STATUSLINE_LAB_MODEL=zen',
+        'STATUSLINE_LAB_CWD=tail',
+        'STATUSLINE_LAB_STYLE=bare',
+      ]),
+    );
+  });
+
+  it('a theme gap errors naming the item and its flag — no registry-default fill, nothing written', () => {
+    const home = newInstalledHome();
+    const attempt = () =>
+      configure({ home, theme: 'quiet', layout: '{model effort} {cwd}' });
+
+    expect(attempt).toThrowError(/quiet/);
+    expect(attempt).toThrowError(/effort/);
+    expect(attempt).toThrowError(/--effort/);
+    assertNothingWritten(home);
+  });
+
+  it('an unknown theme errors naming the valid themes', () => {
+    const home = newInstalledHome();
+    const attempt = () => configure({ home, theme: 'nope' });
+
+    expect(attempt).toThrowError(/nope/);
+    expect(attempt).toThrowError(/valid themes/);
+    for (const name of ['classic', 'custom', 'lean', 'quiet', 'rich']) {
+      expect(attempt, name).toThrowError(new RegExp(name));
+    }
+    assertNothingWritten(home);
+  });
+});
+
+describe('configure: no params, no TTY (contract 3)', () => {
+  it('errors naming the two guides — the wizard on a terminal, the lab skill in Claude Code — and writes nothing', () => {
+    const home = newInstalledHome();
+
+    const attempt = () => configure({ home });
+
+    expect(attempt).toThrowError(/wizard/);
+    expect(attempt).toThrowError(/terminal/);
+    expect(attempt).toThrowError(/\/lab/);
+    expect(attempt).toThrowError(/Claude Code/);
+    assertNothingWritten(home);
   });
 });
 
@@ -408,14 +344,13 @@ describe('configure: settings refusal (E4 port)', () => {
       )}\n`,
     );
 
-    const result = configure({
+    configure({
       force: true,
       home,
       layout: '{model}',
       variants: { model: 'block' },
     });
 
-    expect(result).toMatchObject({ mode: 'written' });
     expect(settingsCommand(home, 'statusLine')).toBe(
       mainKeyValue('{model}', ['STATUSLINE_LAB_MODEL=block']),
     );
