@@ -12,7 +12,7 @@ import {
   type PreviewSurfaces,
 } from '../src/payloads.js';
 import { resolveRuntime } from '../src/resolve.js';
-import { THEMES, type ThemeName } from '../src/themes.js';
+import { type ThemeName } from '../src/themes.js';
 import {
   createWizard,
   opensWizard,
@@ -21,6 +21,7 @@ import {
 } from '../src/wizard.js';
 import {
   DATA_REL,
+  THEMES,
   createHomes,
   installRuntime,
   settingsCommand,

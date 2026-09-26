@@ -12,9 +12,14 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { resolveRuntimeDir } from '../src/resolve.js';
+import { themesFor } from '../src/themes.js';
+
 export const RUNTIME_SOURCE = fileURLToPath(
   new URL('../../../plugins/statusline/runtime', import.meta.url),
 );
+export const RUNTIME = resolveRuntimeDir(RUNTIME_SOURCE);
+export const THEMES = themesFor(RUNTIME);
 
 export const DATA_REL = join(
   '.claude',

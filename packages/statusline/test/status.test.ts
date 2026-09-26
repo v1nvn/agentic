@@ -8,8 +8,9 @@ import { configure, type ConfigureOptions } from '../src/configure.js';
 import { liveTheme } from '../src/live-theme.js';
 import { readKeyConfig } from '../src/resolve.js';
 import { status } from '../src/status.js';
-import { THEMES } from '../src/themes.js';
 import {
+  RUNTIME,
+  THEMES,
   backupPath,
   createHomes,
   installRuntime,
@@ -367,12 +368,12 @@ describe('status: the live theme (contract 5)', () => {
       ),
     );
 
-    expect(liveTheme(readKeyConfig(exact))).toBe('lean');
-    expect(liveTheme(readKeyConfig(swapped))).toBeUndefined();
-    expect(liveTheme(readKeyConfig(dropped))).toBeUndefined();
+    expect(liveTheme(readKeyConfig(exact), RUNTIME)).toBe('lean');
+    expect(liveTheme(readKeyConfig(swapped), RUNTIME)).toBeUndefined();
+    expect(liveTheme(readKeyConfig(dropped), RUNTIME)).toBeUndefined();
 
     for (const home of [exact, swapped, dropped]) {
-      const live = liveTheme(readKeyConfig(home));
+      const live = liveTheme(readKeyConfig(home), RUNTIME);
       expect(themeRows(status({ home }).rows)).toEqual(
         live === undefined ? [] : [`theme: ${live}`],
       );

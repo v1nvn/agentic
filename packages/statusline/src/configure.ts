@@ -15,7 +15,12 @@ import {
   resolveRuntime,
   subagentKeyValue,
 } from './resolve.js';
-import { type Theme, THEMES } from './themes.js';
+import {
+  type Theme,
+  THEME_NAMES,
+  type ThemeName,
+  themesFor,
+} from './themes.js';
 
 export interface ConfigureOptions {
   readonly force?: boolean;
@@ -439,11 +444,12 @@ function commitSettings(plan: SettingsPlan): void {
   writeFileSync(plan.file, splicedSettings(plan.raw, plan));
 }
 
-const THEME_NAMES = Object.keys(THEMES).sort();
-
-function themeNamed(name: string): Theme {
+function themeNamed(
+  name: string,
+  themes: Readonly<Record<ThemeName, Theme>>,
+): Theme {
   const theme: Theme | undefined = (
-    THEMES as Readonly<Record<string, Theme | undefined>>
+    themes as Readonly<Record<string, Theme | undefined>>
   )[name];
   if (theme === undefined) {
     throw new Error(
@@ -466,8 +472,9 @@ export function resolveSelection(
   options: Pick<ConfigureOptions, 'layout' | 'theme' | 'variants'>,
 ): Selection {
   const variants = options.variants ?? {};
+  const themes = themesFor(runtime);
   const theme =
-    options.theme === undefined ? undefined : themeNamed(options.theme);
+    options.theme === undefined ? undefined : themeNamed(options.theme, themes);
 
   const layout = options.layout ?? theme?.layout;
   if (layout === undefined) {

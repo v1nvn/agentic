@@ -1,5 +1,5 @@
-import { type ScriptConfig } from './resolve.js';
-import { type ThemeName, THEMES } from './themes.js';
+import { type ResolvedRuntime, type ScriptConfig } from './resolve.js';
+import { type ThemeName, themesFor } from './themes.js';
 
 function sameAssignments(
   key: Readonly<Record<string, string>>,
@@ -11,9 +11,13 @@ function sameAssignments(
   );
 }
 
-export function liveTheme(key: ScriptConfig): ThemeName | undefined {
-  for (const name of Object.keys(THEMES) as ThemeName[]) {
-    const { layout, variants } = THEMES[name];
+export function liveTheme(
+  key: ScriptConfig,
+  runtime: ResolvedRuntime,
+): ThemeName | undefined {
+  const themes = themesFor(runtime);
+  for (const name of Object.keys(themes) as ThemeName[]) {
+    const { layout, variants } = themes[name];
     if (key.layout === layout && sameAssignments(key.values, variants)) {
       return name;
     }

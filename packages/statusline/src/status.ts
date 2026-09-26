@@ -203,7 +203,7 @@ export function status(options: StatusOptions): StatusResult {
   const main = keyState('statusLine', members.statusLine);
   const subagent = keyState('subagentStatusLine', members.subagentStatusLine);
   const config = readKeyConfig(options.home);
-  const theme = liveTheme(config);
+  const theme = runtime === null ? undefined : liveTheme(config, runtime);
   const findings =
     runtime === null || main.kind !== 'ours'
       ? []

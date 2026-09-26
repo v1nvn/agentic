@@ -7,8 +7,9 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { catalog } from '../src/catalog.js';
 import { buildProgram, parseArgs } from '../src/cli.js';
 import { liveTheme } from '../src/live-theme.js';
-import { THEMES } from '../src/themes.js';
 import {
+  RUNTIME,
+  THEMES,
   createHomes,
   installRuntime,
   mainKeyValue,
@@ -248,34 +249,46 @@ describe('catalog: output (contract 2)', () => {
 describe('the live-theme matcher', () => {
   it('names the theme whose layout and assignments the key equals exactly', () => {
     expect(
-      liveTheme({
-        layout: THEMES.quiet.layout,
-        values: { ...THEMES.quiet.variants },
-      }),
+      liveTheme(
+        {
+          layout: THEMES.quiet.layout,
+          values: { ...THEMES.quiet.variants },
+        },
+        RUNTIME,
+      ),
     ).toBe('quiet');
     expect(
-      liveTheme({
-        layout: THEMES.lean.layout,
-        values: { ...THEMES.lean.variants },
-      }),
+      liveTheme(
+        {
+          layout: THEMES.lean.layout,
+          values: { ...THEMES.lean.variants },
+        },
+        RUNTIME,
+      ),
     ).toBe('lean');
   });
 
   it('a one-swap key (--theme lean --bar gauge) matches nothing', () => {
     expect(
-      liveTheme({
-        layout: THEMES.lean.layout,
-        values: { ...THEMES.lean.variants, bar: 'gauge' },
-      }),
+      liveTheme(
+        {
+          layout: THEMES.lean.layout,
+          values: { ...THEMES.lean.variants, bar: 'gauge' },
+        },
+        RUNTIME,
+      ),
     ).toBeUndefined();
   });
 
   it('the layout must equal too — lean assignments on quiet layout match nothing', () => {
     expect(
-      liveTheme({
-        layout: THEMES.quiet.layout,
-        values: { ...THEMES.lean.variants },
-      }),
+      liveTheme(
+        {
+          layout: THEMES.quiet.layout,
+          values: { ...THEMES.lean.variants },
+        },
+        RUNTIME,
+      ),
     ).toBeUndefined();
   });
 
@@ -283,20 +296,25 @@ describe('the live-theme matcher', () => {
     const values = { ...THEMES.lean.variants };
     delete values.rate;
 
-    expect(liveTheme({ layout: THEMES.lean.layout, values })).toBeUndefined();
+    expect(
+      liveTheme({ layout: THEMES.lean.layout, values }, RUNTIME),
+    ).toBeUndefined();
   });
 
   it('the key side of both directions — an assignment beyond the theme set matches nothing', () => {
     expect(
-      liveTheme({
-        layout: THEMES.quiet.layout,
-        values: { ...THEMES.quiet.variants, branch: 'initials' },
-      }),
+      liveTheme(
+        {
+          layout: THEMES.quiet.layout,
+          values: { ...THEMES.quiet.variants, branch: 'initials' },
+        },
+        RUNTIME,
+      ),
     ).toBeUndefined();
   });
 
   it('no key (null layout, no values) matches nothing', () => {
-    expect(liveTheme({ layout: null, values: {} })).toBeUndefined();
+    expect(liveTheme({ layout: null, values: {} }, RUNTIME)).toBeUndefined();
   });
 });
 

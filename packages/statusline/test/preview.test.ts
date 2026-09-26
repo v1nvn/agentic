@@ -8,8 +8,8 @@ import { materializeDemoRepo } from '../src/demo-repo.js';
 import { renderPreview, type PreviewRender } from '../src/payloads.js';
 import { preview, type PreviewOptions } from '../src/preview.js';
 import { resolveRuntime } from '../src/resolve.js';
-import { THEMES } from '../src/themes.js';
 import {
+  THEMES,
   backupPath,
   createHomes,
   installRuntime,

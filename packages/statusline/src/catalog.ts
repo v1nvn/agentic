@@ -1,6 +1,6 @@
 import { liveTheme } from './live-theme.js';
 import { readKeyConfig, resolveRuntime } from './resolve.js';
-import { THEMES } from './themes.js';
+import { themesFor } from './themes.js';
 
 export interface CatalogOptions {
   readonly home: string;
@@ -11,8 +11,8 @@ export interface CatalogOptions {
 export function catalog(options: CatalogOptions): string {
   const runtime = resolveRuntime({ home: options.home });
   const key = readKeyConfig(options.home);
-  const live = liveTheme(key);
-  const block = Object.entries(THEMES).map(
+  const live = liveTheme(key, runtime);
+  const block = Object.entries(themesFor(runtime)).map(
     ([name, theme]) => `${name}${live === name ? '*' : ''}: ${theme.summary}`,
   );
   if (options.themes === true) {

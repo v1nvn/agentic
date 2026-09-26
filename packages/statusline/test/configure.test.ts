@@ -7,9 +7,9 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { catalog } from '../src/catalog.js';
 import { parseArgs } from '../src/cli.js';
 import { configure } from '../src/configure.js';
-import { THEMES } from '../src/themes.js';
 import {
   DATA_REL,
+  THEMES,
   createHomes,
   installRuntime,
   mainKeyValue,
