@@ -118,7 +118,7 @@ describe('configure: strict mode (contract 3)', () => {
     const home = newInstalledHome();
     const layout = '{cwd branch} {model effort} {bar tokens cache}';
 
-    const result = configure({
+    configure({
       home,
       layout,
       variants: {
@@ -132,7 +132,6 @@ describe('configure: strict mode (contract 3)', () => {
       },
     });
 
-    expect(result).toMatchObject({ mode: 'written' });
     expect(settingsCommand(home, 'statusLine')).toBe(
       mainKeyValue(layout, [
         'STATUSLINE_LAB_CWD=full',
@@ -157,13 +156,12 @@ describe('configure: strict mode (contract 3)', () => {
     writeSettings(home, `{"model":"opus-4"}\n`);
     configure({ home, layout: '{model}', variants: { model: 'block' } });
 
-    const result = configure({
+    configure({
       home,
       layout: '{model}',
       variants: { model: 'pill' },
     });
 
-    expect(result).toMatchObject({ mode: 'written' });
     expect(settingsCommand(home, 'statusLine')).toBe(
       mainKeyValue('{model}', ['STATUSLINE_LAB_MODEL=pill']),
     );
@@ -198,15 +196,13 @@ describe('configure: --theme', () => {
     const themed = newInstalledHome();
     const flagged = newInstalledHome();
 
-    const byTheme = configure({ home: themed, theme: 'lean' });
-    const byFlags = configure({
+    configure({ home: themed, theme: 'lean' });
+    configure({
       home: flagged,
       layout: THEMES.lean.layout,
       variants: THEMES.lean.variants,
     });
 
-    expect(byTheme).toMatchObject({ mode: 'written' });
-    expect(byFlags).toMatchObject({ mode: 'written' });
     expect(readFileSync(settingsPath(themed), 'utf8')).toBe(
       readFileSync(settingsPath(flagged), 'utf8'),
     );
@@ -223,6 +219,36 @@ describe('configure: --theme', () => {
     expect(lean).toContain('STATUSLINE_LAB_BAR=percent');
     expect(settingsCommand(swapped, 'statusLine')).toBe(
       lean.replace('STATUSLINE_LAB_BAR=percent', 'STATUSLINE_LAB_BAR=gauge'),
+    );
+  });
+
+  it('a theme write replaces a seeded ours key with exactly the theme values', () => {
+    const home = newInstalledHome();
+    writeSettings(
+      home,
+      `${JSON.stringify(
+        {
+          statusLine: {
+            command: mainKeyValue('{model bar}', [
+              'STATUSLINE_LAB_MODEL=block',
+              'STATUSLINE_LAB_BAR=gauge',
+            ]),
+            type: 'command',
+          },
+        },
+        null,
+        2,
+      )}\n`,
+    );
+
+    configure({ home, theme: 'quiet' });
+
+    expect(settingsCommand(home, 'statusLine')).toBe(
+      mainKeyValue('{model cwd}', [
+        'STATUSLINE_LAB_MODEL=zen',
+        'STATUSLINE_LAB_CWD=tail',
+        'STATUSLINE_LAB_STYLE=bare',
+      ]),
     );
   });
 
@@ -318,14 +344,13 @@ describe('configure: settings refusal (E4 port)', () => {
       )}\n`,
     );
 
-    const result = configure({
+    configure({
       force: true,
       home,
       layout: '{model}',
       variants: { model: 'block' },
     });
 
-    expect(result).toMatchObject({ mode: 'written' });
     expect(settingsCommand(home, 'statusLine')).toBe(
       mainKeyValue('{model}', ['STATUSLINE_LAB_MODEL=block']),
     );

@@ -24,10 +24,6 @@ export interface ConfigureOptions {
   readonly variants?: Readonly<Record<string, string>>;
 }
 
-export interface ConfigureResult {
-  mode: 'written';
-}
-
 export type SettingsKey = 'statusLine' | 'subagentStatusLine';
 
 export const SETTINGS_KEYS = ['statusLine', 'subagentStatusLine'] as const;
@@ -456,7 +452,7 @@ function themeNamed(name: string): Theme {
   return theme;
 }
 
-export function configure(options: ConfigureOptions): ConfigureResult {
+export function configure(options: ConfigureOptions): void {
   const runtime = resolveRuntime({ home: options.home });
   const variants = options.variants ?? {};
   const theme =
@@ -482,14 +478,6 @@ export function configure(options: ConfigureOptions): ConfigureResult {
     runtime.items.map(item => item.item),
   );
 
-  for (const item of Object.keys(variants)) {
-    if (!byItem.has(item)) {
-      throw new Error(
-        `unknown item '${item}' — valid items: ${[...byItem.keys()].join(' ')}`,
-      );
-    }
-  }
-
   const values: Record<string, string> = {
     ...(theme?.variants ?? {}),
     ...variants,
@@ -506,10 +494,15 @@ export function configure(options: ConfigureOptions): ConfigureResult {
     );
   }
   for (const [item, alt] of Object.entries(values)) {
-    const offered = byItem.get(item)?.alternatives ?? [];
-    if (!offered.includes(alt)) {
+    const entry = byItem.get(item);
+    if (entry === undefined) {
       throw new Error(
-        `unknown variant '${alt}' for item '${item}' — valid: ${offered.join(' | ')}`,
+        `unknown item '${item}' — valid items: ${[...byItem.keys()].join(' ')}`,
+      );
+    }
+    if (!entry.alternatives.includes(alt)) {
+      throw new Error(
+        `unknown variant '${alt}' for item '${item}' — valid: ${entry.alternatives.join(' | ')}`,
       );
     }
   }
@@ -532,5 +525,4 @@ export function configure(options: ConfigureOptions): ConfigureResult {
     writeBackupIfAbsent(options.home, plan);
   }
   commitSettings(plan);
-  return { mode: 'written' };
 }
