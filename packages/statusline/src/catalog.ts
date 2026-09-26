@@ -1,27 +1,36 @@
+import { liveTheme } from './live-theme.js';
 import { readKeyConfig, resolveRuntime } from './resolve.js';
+import { THEMES } from './themes.js';
 
 export interface CatalogOptions {
   readonly home: string;
   readonly items?: readonly string[];
+  readonly themes?: boolean;
 }
 
 export function catalog(options: CatalogOptions): string {
   const runtime = resolveRuntime({ home: options.home });
-  const live = readKeyConfig(options.home).values;
+  const key = readKeyConfig(options.home);
+  const live = liveTheme(key);
+  const block = Object.entries(THEMES).map(
+    ([name, theme]) => `${name}${live === name ? '*' : ''}: ${theme.summary}`,
+  );
+  if (options.themes === true) {
+    return block.join('\n');
+  }
   const byItem = new Map(runtime.items.map(item => [item.item, item]));
   const wanted = options.items ?? runtime.items.map(item => item.item);
-  return wanted
-    .map(item => {
-      const entry = byItem.get(item);
-      if (entry === undefined) {
-        throw new Error(
-          `unknown item '${item}' — valid items: ${[...byItem.keys()].join(' ')}`,
-        );
-      }
-      const current = live[item] ?? entry.default;
-      return `${item}: ${entry.alternatives
-        .map(alt => (alt === current ? `${alt}*` : alt))
-        .join(' | ')}`;
-    })
-    .join('\n');
+  const itemLines = wanted.map(item => {
+    const entry = byItem.get(item);
+    if (entry === undefined) {
+      throw new Error(
+        `unknown item '${item}' — valid items: ${[...byItem.keys()].join(' ')}`,
+      );
+    }
+    const current = key.values[item] ?? entry.default;
+    return `${item}: ${entry.alternatives
+      .map(alt => (alt === current ? `${alt}*` : alt))
+      .join(' | ')}`;
+  });
+  return [...block, '', ...itemLines].join('\n');
 }

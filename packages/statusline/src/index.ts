@@ -34,7 +34,13 @@ if (parsed.help !== undefined) {
   console.log(VERSION);
 } else if (parsed.command === 'catalog') {
   run(() => {
-    console.log(catalog({ home: homeOf(parsed.home), items: parsed.items }));
+    console.log(
+      catalog({
+        home: homeOf(parsed.home),
+        items: parsed.items,
+        themes: parsed.themes,
+      }),
+    );
   });
 } else if (parsed.command === 'configure') {
   const home = homeOf(parsed.home);

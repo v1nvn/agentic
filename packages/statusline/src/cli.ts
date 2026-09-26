@@ -37,6 +37,7 @@ export interface ParsedArgs {
   readonly items?: readonly string[];
   readonly layout?: string;
   readonly theme?: string;
+  readonly themes?: boolean;
   readonly variants?: Readonly<Record<string, string>>;
   readonly version: boolean;
 }
@@ -69,7 +70,8 @@ export function buildProgram(
 ): Command {
   const catalog = quiet('catalog', new Command('catalog'))
     .description('print one line per item — * marks the live variant')
-    .option('--home <dir>', 'operate on this home instead of $HOME');
+    .option('--home <dir>', 'operate on this home instead of $HOME')
+    .option('--themes', 'cut the listing to the themes block');
   for (const item of ITEM_IDS) {
     catalog.option(`--${item}`, `cut the listing to the ${item} item`);
   }
@@ -168,6 +170,9 @@ export function parseArgs(args: readonly string[]): ParsedArgs | undefined {
       version: false,
       command: 'catalog',
       ...(items.length > 0 ? { items } : {}),
+      ...(typeof options.themes === 'boolean'
+        ? { themes: options.themes }
+        : {}),
       ...(typeof options.home === 'string' ? { home: options.home } : {}),
     };
   }
