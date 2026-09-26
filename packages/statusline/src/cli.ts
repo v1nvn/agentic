@@ -69,7 +69,9 @@ export function buildProgram(
   onSubcommand?: (command: Subcommand, options: SubcommandOptions) => void,
 ): Command {
   const catalog = quiet('catalog', new Command('catalog'))
-    .description('print one line per item — * marks the live variant')
+    .description(
+      'print the themes block (* marks the live theme) then one line per item — * marks the live variant',
+    )
     .option('--home <dir>', 'operate on this home instead of $HOME')
     .option('--themes', 'cut the listing to the themes block');
   for (const item of ITEM_IDS) {

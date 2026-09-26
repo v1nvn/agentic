@@ -286,6 +286,15 @@ describe('the live-theme matcher', () => {
     expect(liveTheme({ layout: THEMES.lean.layout, values })).toBeUndefined();
   });
 
+  it('the key side of both directions — an assignment beyond the theme set matches nothing', () => {
+    expect(
+      liveTheme({
+        layout: THEMES.quiet.layout,
+        values: { ...THEMES.quiet.variants, branch: 'initials' },
+      }),
+    ).toBeUndefined();
+  });
+
   it('no key (null layout, no values) matches nothing', () => {
     expect(liveTheme({ layout: null, values: {} })).toBeUndefined();
   });
