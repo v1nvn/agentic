@@ -44,10 +44,16 @@ The plan names its models; this skill's defaults are the fallback.
   one; without it, the launching session orchestrates. A session on a different model
   than the line names says so before its first dispatch and continues — it cannot switch
   itself; the owner launched it.
-- A `model` column on the Steps table names that unit's builder. The reviewer takes the
-  stronger of the unit's model and the default (`fable` > `opus` > `sonnet`); the test
-  writer takes the default. A blank cell is the default. A `review` column tiers the
-  reviewer: `blind` (the default, the model rule above), `checklist` (`sonnet`, the
+- A `model` column on the Steps table names that unit's builder. The reviewer and test
+  writer take the default whatever the cell says — a review reads a diff against the
+  plan, it does not re-do the build. fable never builds: it is the orchestrator's
+  model, and the cell names `opus`, `sonnet`, blank, or `owner` — a cell naming fable
+  is out of shape and hardening rewrites it to blank, posting the rewrite, because a
+  builder's bill is cache fees on its own context and fable's cache rates price the
+  same build at multiples of opus's. fable reaches a unit one way: the rescue — once
+  a unit's fix rounds are burned on the default, the orchestrator may re-dispatch it
+  to fable once, posting the pick. A blank cell is the default. A `review` column
+  tiers the reviewer: `blind` (the default), `checklist` (`sonnet`, the
   unit's close criteria and the loop's checklist core), or `none` — which the plan
   must justify in the pre-flight picks and the final veto table. `owner` marks a unit
   the run does not do: it is skipped, its dependents stop at it, and the final report
@@ -106,7 +112,8 @@ The plan names its models; this skill's defaults are the fallback.
 - One `sonnet` clerk per run, continued by message, owns the run's mechanics: it runs
   the enforcement gate script after every commit and fix round and reports the red or
   green line, collects gate tails and worker-report tails verbatim, drafts scratch
-  notes and veto-table rows, and executes the stall poll. It pastes raw command
+  notes and veto-table rows, collects the sitting's per-model token totals from the
+  session's usage records, and executes the stall poll. It pastes raw command
   output, never a summary of it, and decides nothing — a drafted line lands only when
   the orchestrator accepts it, or untouched where the run pre-authorized its template.
 - Fresh agent per unit per role. Briefs point at the plan's section or row, name the
@@ -116,10 +123,12 @@ The plan names its models; this skill's defaults are the fallback.
   explores a tool's options by trial runs. Where the plan does not yet pin one, the
   orchestrator derives it once, writes it into the plan, and every brief thereafter
   uses that line.
-- Workers read only their reading list and keep their context small. On units that can
-  exhaust a window, the builder keeps a scratchpad state file current — naming the
-  step it has entered and when it next expects to be heard from — so a successor
-  resumes cold.
+- Workers read only their reading list and keep their context small. A builder past
+  the context ceiling (a third of its window) escalates at the next poll and a
+  successor continues from its state file: a subagent's cache expires after five idle minutes, so one long gate
+  re-writes the whole context at the write rate, and compaction would pay the same
+  bill invisibly. The builder keeps that state file current — the step it has entered
+  and when it next expects to be heard from — so a successor resumes cold.
 - Workers report in a fixed format under ~20 lines: commit hash(es), gate tail,
   per-criterion proof, A/B verdict where the unit calls for one, deviations, surprises.
 - The orchestrator never opens a source file to understand it. It reads reports, gate
@@ -127,9 +136,10 @@ The plan names its models; this skill's defaults are the fallback.
   carriers (migrations, wire bodies, signatures) — and may re-run anything to
   reproduce a finding.
 - Every dispatch of a builder or reviewer schedules a stall poll — one cheap look
-  each ~10 minutes at the worker's transcript tail and state file, cancelled by its
-  completion notice; the clerk can run it. No progress past the time the state file
-  named, or the same command three times running, escalates: a nudge by message
+  each ~10 minutes at the worker's transcript tail (its usage entries carry the
+  context size) and state file, cancelled by its completion notice; the clerk can
+  run it. No progress past the time the state file named, the same command three
+  times running, or a context past the ceiling escalates: a nudge by message
   first, a successor from the state file once a nudge goes unanswered. A healthy
   quiet gate never trips it — the trigger is the state file's own stated expectation.
 - A stalled or rate-limited worker is continued by message, never replaced. A
@@ -164,7 +174,8 @@ The plan names its models; this skill's defaults are the fallback.
    changes no code the full gate exercises — free comments, plan text, formatting,
    docs the gate does not test — runs the repo's fast checks and the enforcement
    script only; the full gate does not re-fire for it. A third means the unit
-   is wrong — the orchestrator reads the specific finding, not the diff.
+   is wrong — the orchestrator reads the specific finding, not the diff, and may
+   take §Models' fable rescue from there.
 6. Route a reported deviation through Deviations. A pick inside the plan's named
    scope: pick it by CLAUDE.md and the plan's own law, write it into the owning
    section, ripple-check later sections in the same edit, note it for the veto table,
@@ -210,8 +221,9 @@ The plan names its models; this skill's defaults are the fallback.
 - Whole-run audit when the plan carries one: a `sonnet` writes and runs the script
   from the plan's audit list, no builds.
 - Index entries close only on green evidence.
-- Final report: PR URLs; the evidence ladder the plan tracks (start → per-unit →
-  end); the veto table (question, pick, reason, where written); every reviewer
-  finding not fixed and why; units closed "probed, no landing"; remaining reds;
-  out-of-run follow-ups named with the component that owns them. A subset run reports
-  its units plus what it owes the later ones.
+- Final report: PR URLs; the sitting's per-model token totals — input, cache write,
+  cache read, output; the evidence ladder the plan tracks (start → per-unit →
+  end); the veto table (question, pick, reason,
+  where written); every reviewer finding not fixed and why; units closed "probed, no
+  landing"; remaining reds; out-of-run follow-ups named with the component that owns
+  them. A subset run reports its units plus what it owes the later ones.
