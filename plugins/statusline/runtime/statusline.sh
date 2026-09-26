@@ -159,10 +159,6 @@ compose() {
     COMPOSE_OUT=$line
 }
 
-strip_sgr() {
-    printf '%s' "$1" | sed $'s/\x1b\\[[0-9;]*m//g'
-}
-
 vlen() {
     local plain n
     plain=$(strip_sgr "$1")

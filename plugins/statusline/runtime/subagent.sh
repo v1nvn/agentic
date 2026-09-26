@@ -18,10 +18,6 @@ read_config style
 check_config style
 "seg_style_$PICK_style"
 
-strip_sgr() {
-    printf '%s' "$1" | sed $'s/\x1b\\[[0-9;]*m//g'
-}
-
 vlen() {
     printf '%s' "$1" | jq -Rr 'gsub("\u001b\\[[0-9;]*m"; "") | length'
 }

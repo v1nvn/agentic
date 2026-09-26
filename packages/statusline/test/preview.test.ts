@@ -220,6 +220,12 @@ describe('preview: parsing', () => {
       });
     }
   });
+
+  it("a bare preview rides the engine's no-layout refusal", () => {
+    const home = installedHome();
+    const message = messageOf(() => preview({ home, now: DEFAULT_NOW }));
+    expect(message).toBe('no layout — pass --layout <spec> or --theme <name>');
+  });
 });
 
 describe('renderPreview: both surfaces from one resolution', () => {
