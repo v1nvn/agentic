@@ -27,15 +27,15 @@ Code. Done when:
 
 ## Current state
 
-Design settled in the launching sitting; pre-flight picks posted and folded
-into Plan. No code written. Anchors re-read against 0.27.2; 0.27.3 moved only
-version bumps and README/SKILL wording in statusline — no source drift.
+u0 landed: five themes defined in Design and registry-verified by independent
+re-grep. Enforcement gate live (scratch `gate.sh`: fifteen protected-suite
+hashes, scoped greps, rebaseline subcommand). No product code yet. Baseline
+gate green (typecheck, lint, 190 tests).
 
 ## Next step
 
-Unit 0: the theme design pass — refine the five themes' definitions through
-the frontend-design guidance over a registry extraction, fold into Design,
-sonnet-verify every named item/variant against the registry.
+Unit 1: test writer cuts the registry-pin test red from the Design
+definitions, then the builder lands `src/themes.ts`.
 
 ## Steps
 
@@ -75,9 +75,15 @@ Enforcement inventory:
   new doors, not adapted.
 - A theme write and a flags write of the same values produce identical
   settings text — pinned by test, so a theme is never a second config format.
-- After u6: no `--fallback` string anywhere in the repo; no `--dry-run` on
-  configure; no `! npx` handoff in the skill; the wizard is documented as the
-  terminal flow only.
+- After u6: no `--fallback` string in the repo outside `archive/` and
+  `progress/` (records kept verbatim; the live plan names what it deletes); no
+  `dry-run` in `configure.ts` (restore's `--dry-run` is another surface and
+  stays); no `! npx` handoff in the skill; the wizard is documented as the
+  terminal flow only. The scratch gate script (`progress/.scratch/gate.sh`)
+  enforces the greps plus sha256 pins on fifteen protected suites;
+  `cli`/`configure`/`status` tests are mixed (fallback/dry-run blocks inside
+  protected pins) and re-baseline only on orchestrator instruction at the unit
+  whose commit names the surface change.
 
 Pre-flight picks (posted before the first dispatch):
 
@@ -137,6 +143,39 @@ Rulings from the launching sitting:
   assignments; a live theme is re-derived by matching, which `catalog` and
   `status` both do). Precedent: Claude Code's own status line setup is an
   agent editing `settings.json`, not a TUI.
+
+Theme definitions (u0 frontend-design pass — the spec u1 builds; every pair
+verified against the registry by an independent re-grep):
+
+- `quiet` — layout `{model cwd}`, style=`bare`, model=`zen`, cwd=`tail`. One
+  cluster, no separator glyphs, dim lowercased model, short path. The move is
+  near-silence.
+- `classic` — DEFAULT_LAYOUT verbatim, every item at its `default_pick`,
+  style=`plain`. No choices; it names the shipped bar.
+- `lean` — DEFAULT_LAYOUT, style=`dots`. One rule: no bars, blocks, pills, or
+  nerd glyphs — single symbols (↑ ⚡ ✓) count as text. model=`plain`,
+  effort=`dim`, state=`none`, cwd=`init`, branch=`initials`, status=`counts`,
+  ahead=`arrows`, pr=`badge`, bar=`percent`, tokens=`full`, cache=`hit`,
+  cost=`plain`, duration=`clock`, lines=`diffstat`, rate=`none`. Reads as one
+  dot-joined sentence of plain words and numbers.
+- `rich` — DEFAULT_LAYOUT, style=`plain`. Every gauge and counter at its most
+  instrumented: model=`pill`, effort=`plain`, state=`pills`, cwd=`icon`,
+  branch=`icon`, status=`icons`, ahead=`arrows`, pr=`badge`, bar=`gauge`,
+  tokens=`full`, cache=`fuse`, cost=`burn`, duration=`clock`,
+  lines=`diffstat`, rate=`strip`. Boldness spent once, on the truecolor
+  gauge; the rest is coherent density.
+- `custom` — DEFAULT_LAYOUT, every item at its most-absent variant: `none`
+  for the twelve items that offer it, model=`zen`, cwd=`base`, branch=`last`,
+  style=`bare`. The bar starts near-empty; decisions add things.
+
+Design notes: `style` rides in every theme bundle though it is not a layout
+item — it is a COMPS item on the same flag surface. Catalog summaries are the
+five plan phrases above (one job each). State and rate have no text-only
+variant, so lean goes without them; cache's least-graphic variant is `hit`.
+`branch` has a runtime-only `none` (env-selectable) that the TS alternatives
+header omits — off the flag surface, so custom seeds `last`. Pill and block
+caps are nerd-font rounded (U+F0B6/U+F0B4). An independent re-grep confirmed
+every theme's pairs against the registry (u0 verifier).
 
 Anchors (re-read in the launching sitting, expect drift): `configure.ts`
 bare-printed gate, layout resolution, fallback ladder, flags overwrite,
