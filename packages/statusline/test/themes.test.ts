@@ -1,14 +1,12 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import type { RuntimeItem } from '../src/resolve.js';
 import { resolveRuntime } from '../src/resolve.js';
 import * as themes from '../src/themes.js';
 import { createHomes, installRuntime } from './fixtures.js';
 
 // The Design block's literal theme definitions — the pin the builder
-// implements to. What the registry derives (classic's default picks, custom's
-// absence seeds, every membership check) is computed off resolveRuntime below,
-// never restated here.
+// implements to. Only classic's default picks and the layout/membership
+// cross-checks derive from resolveRuntime below.
 const QUIET_LAYOUT = '{model cwd}';
 
 const QUIET_VARIANTS: Readonly<Record<string, string>> = {
@@ -55,13 +53,26 @@ const RICH_VARIANTS: Readonly<Record<string, string>> = {
   tokens: 'full',
 };
 
-// Custom seeds bare: an item's absence word — `none`, or effort's `hidden` —
-// where the registry offers one, else the Design block's named pick.
-const CUSTOM_OVERRIDES: Readonly<Record<string, string>> = {
+// Custom seeds bare — the Design block's sixteen pairs: `none` for the
+// eleven items that offer it, effort's absence word `hidden`, and the four
+// named picks for the items with no absence word.
+const CUSTOM_VARIANTS: Readonly<Record<string, string>> = {
+  ahead: 'none',
+  bar: 'none',
   branch: 'last',
+  cache: 'none',
+  cost: 'none',
   cwd: 'base',
+  duration: 'none',
+  effort: 'hidden',
+  lines: 'none',
   model: 'zen',
+  pr: 'none',
+  rate: 'none',
+  state: 'none',
+  status: 'none',
   style: 'bare',
+  tokens: 'none',
 };
 
 const SUMMARIES: Readonly<Record<string, string>> = {
@@ -97,24 +108,6 @@ function registry() {
   const home = homes.newHome();
   installRuntime(home);
   return resolveRuntime({ home });
-}
-
-function offers(item: RuntimeItem, variant: string): boolean {
-  return item.default === variant || item.alternatives.includes(variant);
-}
-
-function absenceSeed(item: RuntimeItem): string {
-  if (offers(item, 'none')) {
-    return 'none';
-  }
-  if (offers(item, 'hidden')) {
-    return 'hidden';
-  }
-  const named = CUSTOM_OVERRIDES[item.item];
-  if (named === undefined) {
-    throw new Error(`no absence variant for '${item.item}' — name its seed`);
-  }
-  return named;
 }
 
 describe('themes: surface', () => {
@@ -161,14 +154,8 @@ describe('themes: variant picks', () => {
     );
   });
 
-  it('custom seeds every registry item at its most-absent variant', () => {
-    const runtime = registry();
-
-    expect(themes.THEMES.custom.variants).toEqual(
-      Object.fromEntries(
-        runtime.items.map(item => [item.item, absenceSeed(item)]),
-      ),
-    );
+  it('custom seeds bare — the sixteen literal most-absent pairs', () => {
+    expect(themes.THEMES.custom.variants).toEqual(CUSTOM_VARIANTS);
   });
 });
 
@@ -184,7 +171,8 @@ describe('themes: registry pin', () => {
         const entry = byItem.get(item);
         expect(entry, `${name} picks unknown item '${item}'`).toBeDefined();
         expect(
-          entry !== undefined && offers(entry, variant),
+          entry !== undefined &&
+            (entry.default === variant || entry.alternatives.includes(variant)),
           `${name}: '${item}' offers no '${variant}'`,
         ).toBe(true);
       }
