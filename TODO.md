@@ -1,9 +1,5 @@
 # TODO — open-work index
 
-## Next
-
-1. **Statusline — themes** · HIGH · [packages plugins] → progress/statusline-themes.md
-
 ## readability
 
 - **Site-matched extraction presets + real-world corpus** · HIGH · [packages/readability-mcp] → progress/presets-corpus.md
