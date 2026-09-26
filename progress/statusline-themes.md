@@ -27,20 +27,22 @@ Code. Done when:
 
 ## Current state
 
-u4 landed (1162f4e + fix b1a7675): `preview` renders both surfaces from the
-SAME engine configure resolves with (`resolveSelection` exported from
-configure.ts; refusal messages byte-equal by construction), writes nothing,
-and defaults plain when piped (`--plain` forces; ambient NO_COLOR forces; the
-runtime strips SGR through one `strip_sgr` in lib.sh — it never honored
-NO_COLOR before). `renderPreview` restored in payloads.ts from its
-79068a3-era corpse (it died in configure.ts, not payloads.ts — anchor
-drift). 239 tests green; preview suite protected.
+u5 landed (0b32ef1 + cleanup 4fd72f0): the wizard's pass one stacks the five
+theme bars (live renders via `renderPreview`, `name: summary` labels, j/k
+wrap, w width cycle stamped into bag and tick, enter picks without saving);
+pass two seeds from the picked theme — custom bare through the same door, no
+special case — with `t` back and every old key keeping its job; the save is
+byte-equal to `configure --theme <name>` by construction (finish() rides the
+same engine). `PreviewRender.width` defaults 200; `opensWizard` is the
+index-routed gate. 238 tests green; the rewritten wizard suite joined the
+protected set (eighteen).
 
 ## Next step
 
-Unit 5: test writer rewrites the wizard suite from the new doors (theme pass
-stacking the five rendered bars, refinement seeded from the pick, `custom`
-bare, `t` back), then the builder lands the pass in wizard/wizard-tui.
+Unit 6 (final): test writer pins status's live-theme naming red, then the
+builder wires `liveTheme` into status.ts and rewrites the skill + docs to
+the chat-native flow — picker first, `preview --plain` sketches, zero `!`
+handoffs, wizard documented as the terminal guide only.
 
 ## Steps
 
@@ -51,7 +53,7 @@ bare, `t` back), then the builder lands the pass in wizard/wizard-tui.
 | u2 | `--theme` in configure/cli, `--fallback` out | | | `configure --theme lean` writes lean's assignments; `--theme lean --bar gauge` swaps one; a theme-gap (`--theme quiet --layout '{model effort} {cwd}'`) errors naming `effort`; `--fallback` and `--dry-run` are unknown options; bare non-TTY configure errors pointing at the two guides; the fallback branches, `printedConfig`, and their tests are deleted · 79068a3, fix 88674a9 (quiet exact-key pin, registry-refusal shape, void configure) |
 | u3 | catalog themes block | | | `catalog` prints the themes block first with summaries, `*` marks the live-matching theme, `--themes` cuts to the block; the live-theme matcher lands as its own function; a test pins the output · c4249b0, fix a2916c4 (superset matcher pin, current catalog description) |
 | u4 | `preview` command | | | `preview --theme lean` renders both surfaces without touching settings, accepting the same resolution inputs configure does; `--plain` (and `NO_COLOR` honored by the runtime) strips every ESC byte; the agent uses it to fill picker panes · 1162f4e, fix b1a7675 (one strip_sgr in lib.sh, bare preview pin) |
-| u5 | wizard theme pass | | | pass one stacks the five theme bars (`j/k` focus, `w` width, enter picks), pass two is seeded from the picked theme — `custom` bare — and `t` returns to pass one; a wizard test with fake deps drives a theme pick to a saved key |
+| u5 | wizard theme pass | | | pass one stacks the five theme bars (`j/k` focus, `w` width, enter picks), pass two is seeded from the picked theme — `custom` bare — and `t` returns to pass one; a wizard test with fake deps drives a theme pick to a saved key · 0b32ef1, cleanup 4fd72f0 (static gate import, leaner comments) |
 | u6 | skill + docs rewrite | | | `plugins/statusline/SKILL.md` asks the picker directly (sketches from `preview --plain`), zero `!` handoffs, four-shown-plus-Other note; `packages/statusline/README.md` and the root README keep the wizard as the terminal guide; `status` names the live theme and its fix strings say `--theme classic`; repo grep finds no `--fallback`, no configure `--dry-run`, no `! npx` in the skill |
 
 ## Plan
