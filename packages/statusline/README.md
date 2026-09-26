@@ -25,8 +25,9 @@ In a terminal outside Claude Code — the wizard, the terminal guide:
 npx -y @v1nvn/statusline@0.27.3 configure
 ```
 
-`j/k` move · `h/l` switch design · `s` sets the focused item to none · `w`
-width · enter saves · `q` cancels.
+Pass one stacks the five theme bars: `j/k` focus · `w` width · enter picks.
+Pass two refines the pick: `j/k` move · `h/l` variant · `s` none · `t` back
+to the themes · `w` width · enter saves · `q` cancels.
 
 ## Usage
 
