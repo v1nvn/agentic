@@ -16,6 +16,7 @@ export interface WizardDeps {
 export type WizardOutcome = 'cancelled' | 'save-failed' | 'saved';
 
 export interface WizardOptions {
+  readonly force?: boolean;
   readonly home: string;
   readonly now: string;
 }
@@ -218,6 +219,7 @@ export async function createWizard(
   function finish(): WizardOutcome {
     try {
       configure({
+        force: options.force,
         home: options.home,
         layout: draftLayout,
         variants: Object.fromEntries(draft),

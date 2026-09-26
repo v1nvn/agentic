@@ -47,7 +47,11 @@ if (parsed.help !== undefined) {
   const home = homeOf(parsed.home);
   if (opensWizard(parsed, process.stdin.isTTY)) {
     const outcome = await createWizard(
-      { home, now: String(Math.floor(Date.now() / 1000)) },
+      {
+        force: parsed.force,
+        home,
+        now: String(Math.floor(Date.now() / 1000)),
+      },
       terminalDeps(),
     );
     if (outcome === 'save-failed') {

@@ -18,6 +18,7 @@ import {
   opensWizard,
   type WizardDeps,
   type WizardOutcome,
+  type WizardOptions,
 } from '../src/wizard.js';
 import {
   DATA_REL,
@@ -106,9 +107,13 @@ function newInstalledHome(): string {
 async function runWizard(
   keys: readonly string[],
   home = newInstalledHome(),
+  options: Partial<WizardOptions> = {},
 ): Promise<{ home: string; outcome: WizardOutcome; recorded: Recorded }> {
   const { deps, recorded } = fakeDeps(keys);
-  const outcome = await createWizard({ home, now: DEFAULT_NOW }, deps);
+  const outcome = await createWizard(
+    { home, now: DEFAULT_NOW, ...options },
+    deps,
+  );
   return { home, outcome, recorded };
 }
 
@@ -369,6 +374,28 @@ describe('wizard: a theme pick saved', () => {
     expect(last).toContain('statusLine');
     expect(last).toContain('--force');
     expect(readFileSync(settingsPath(home), 'utf8')).toBe(seed);
+  });
+
+  it('force takes the foreign key over — byte-equal to configure --theme quiet --force', async () => {
+    const seed = `${JSON.stringify(
+      { statusLine: { command: './old-main.sh', type: 'command' } },
+      null,
+      2,
+    )}\n`;
+    const wizardHome = newInstalledHome();
+    const flagged = newInstalledHome();
+    writeSettings(wizardHome, seed);
+    writeSettings(flagged, seed);
+    configure({ home: flagged, force: true, theme: 'quiet' });
+
+    const { outcome } = await runWizard(['\r', '\r'], wizardHome, {
+      force: true,
+    });
+
+    expect(outcome).toBe('saved');
+    expect(readFileSync(settingsPath(wizardHome), 'utf8')).toBe(
+      readFileSync(settingsPath(flagged), 'utf8'),
+    );
   });
 });
 
