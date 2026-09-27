@@ -4,9 +4,9 @@ import { renderStatusline } from './engine.js';
 import { renderPanel } from './panel.js';
 import { resolvePaint } from './theme.js';
 
-// The render.mjs entry the settings keys spawn (bundled in r3): decisions ride
-// argv, ambient state rides env — NO_COLOR, COLUMNS, TZ, HOME stay
-// environment because the host shell owns them.
+// The render.mjs entry the settings keys spawn: decisions ride argv, ambient
+// state rides env — NO_COLOR, COLUMNS, TZ, HOME stay environment because the
+// host shell owns them.
 
 function readStdin(): Promise<string> {
   return new Promise((resolve, reject) => {

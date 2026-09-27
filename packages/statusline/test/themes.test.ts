@@ -2,7 +2,7 @@ import { spawnSync } from 'node:child_process';
 import { readFileSync, rmSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { BUNDLED_RENDERER, resolveSelection } from '../src/configure.js';
 import { renderStatusline } from '../src/render/engine.js';
@@ -275,6 +275,27 @@ describe('resolvePaint: the five themes equal today\'s compiled path', () => {
       );
     },
   );
+
+  it("custom's absence seeds contribute no bytes to the rendered line", () => {
+    if (demo === undefined) {
+      throw new Error('demo home not materialized');
+    }
+    const resolved = resolvePaint({ theme: 'custom' });
+    const full = lineBytes(resolved.layout, resolved.picks);
+    const repoBase = demo.repoDir.slice(demo.repoDir.lastIndexOf('/') + 1);
+
+    expect(full).toContain('opus');
+    expect(full).toContain(repoBase);
+    expect(full).not.toContain('login-flow');
+    expect(full).not.toContain('⚡');
+    expect(full).not.toContain('%');
+    expect(full).not.toContain('$');
+    expect(full).not.toContain('█');
+    expect(full).not.toContain('░');
+    // The twelve `none` picks and effort's `hidden` render nothing, so the
+    // full default layout collapses to exactly the two surviving items.
+    expect(full).toBe(lineBytes('{model} {cwd}', resolved.picks));
+  });
 });
 
 describe('resolvePaint: precedence', () => {
@@ -313,10 +334,24 @@ describe('resolvePaint: precedence', () => {
   });
 
   it('an unknown theme warns and paints the defaults', () => {
-    expect(resolvePaint({ theme: 'wat' })).toEqual({
-      layout: DEFAULT_LAYOUT,
-      picks: {},
-    });
+    const writes: string[] = [];
+    const stderr = vi
+      .spyOn(process.stderr, 'write')
+      .mockImplementation(chunk => {
+        writes.push(String(chunk));
+        return true;
+      });
+    try {
+      expect(resolvePaint({ theme: 'wat' })).toEqual({
+        layout: DEFAULT_LAYOUT,
+        picks: {},
+      });
+    } finally {
+      stderr.mockRestore();
+    }
+    const warned = writes.join('');
+    expect(warned).toContain('wat');
+    expect(warned).toMatch(/theme/i);
   });
 });
 
@@ -324,7 +359,7 @@ describe('the entry resolves --theme at paint', () => {
   function runRenderer(
     args: readonly string[],
     stdin: string,
-  ): { readonly status: number; readonly stdout: string } {
+  ): { readonly status: number; readonly stderr: string; readonly stdout: string } {
     const run = spawnSync('node', [BUNDLED_RENDERER, ...args], {
       input: stdin,
       env: {
@@ -337,6 +372,7 @@ describe('the entry resolves --theme at paint', () => {
     });
     return {
       status: run.status ?? -1,
+      stderr: (run.stderr ?? Buffer.alloc(0)).toString('utf8'),
       stdout: (run.stdout ?? Buffer.alloc(0)).toString('utf8'),
     };
   }
@@ -373,5 +409,7 @@ describe('the entry resolves --theme at paint', () => {
 
     expect(painted.status).toBe(0);
     expect(painted.stdout).toBe(lineBytes(DEFAULT_LAYOUT, {}));
+    expect(painted.stderr).toContain('wat');
+    expect(painted.stderr).toMatch(/theme/i);
   });
 });
