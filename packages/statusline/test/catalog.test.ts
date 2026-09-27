@@ -48,7 +48,7 @@ function seedOursKey(
     `${JSON.stringify(
       {
         statusLine: {
-          command: mainKeyValue(layout, flags),
+          command: mainKeyValue(null, layout, flags),
           type: 'command',
         },
       },

@@ -38,7 +38,7 @@ describe('readKeyConfig (contract 2)', () => {
       `${JSON.stringify(
         {
           statusLine: {
-            command: mainKeyValue('{model effort}', [
+            command: mainKeyValue(null, '{model effort}', [
               '--model=block',
               '--effort=dim',
             ]),
@@ -56,14 +56,14 @@ describe('readKeyConfig (contract 2)', () => {
     });
   });
 
-  it('an ours key without --layout reads as the default layout, its flags parsed', () => {
+  it('an ours key without --layout reads as no explicit layout, its flags parsed', () => {
     const home = homes.newHome();
     writeSettings(
       home,
       `${JSON.stringify(
         {
           statusLine: {
-            command: mainKeyValue(null, ['--bar=gauge']),
+            command: mainKeyValue(null, null, ['--bar=gauge']),
             type: 'command',
           },
         },
@@ -72,10 +72,33 @@ describe('readKeyConfig (contract 2)', () => {
       )}\n`,
     );
 
-    expect(readKeyConfig(home).values).toEqual({ bar: 'gauge' });
-    expect(readKeyConfig(home).layout).toBe(
-      '{model effort state} {cwd branch status ahead pr} {bar tokens cache} {cost} {duration} {lines} {rate}',
+    expect(readKeyConfig(home)).toEqual({
+      layout: null,
+      values: { bar: 'gauge' },
+    });
+  });
+
+  it('a theme flag parses as the theme, never as a value; a custom layout beside it parses too', () => {
+    const home = homes.newHome();
+    writeSettings(
+      home,
+      `${JSON.stringify(
+        {
+          statusLine: {
+            command: mainKeyValue('quiet', '{model}', ['--cwd=tail']),
+            type: 'command',
+          },
+        },
+        null,
+        2,
+      )}\n`,
     );
+
+    expect(readKeyConfig(home)).toEqual({
+      layout: '{model}',
+      theme: 'quiet',
+      values: { cwd: 'tail' },
+    });
   });
 
   it('unknown item names survive the parse to surface as drift', () => {
@@ -85,7 +108,10 @@ describe('readKeyConfig (contract 2)', () => {
       `${JSON.stringify(
         {
           statusLine: {
-            command: mainKeyValue('{model}', ['--model=neon', '--flux=pulse']),
+            command: mainKeyValue(null, '{model}', [
+              '--model=neon',
+              '--flux=pulse',
+            ]),
             type: 'command',
           },
         },
@@ -104,28 +130,32 @@ describe('readKeyConfig (contract 2)', () => {
 describe('the ours predicate (contract 1)', () => {
   it('matches the program prefix plus the ||-true suffix with any flag middle', () => {
     expect(
-      isOurMainCommand(mainKeyValue('{model}', ['--model=block'])),
+      isOurMainCommand(mainKeyValue(null, '{model}', ['--model=block'])),
     ).toBe(true);
     expect(
       isOurMainCommand(
-        mainKeyValue('{cwd branch}', ['--cwd=full', '--branch=last']),
+        mainKeyValue(null, '{cwd branch}', ['--cwd=full', '--branch=last']),
       ),
     ).toBe(true);
-    expect(isOurMainCommand(mainKeyValue(null, []))).toBe(true);
+    expect(isOurMainCommand(mainKeyValue(null, null, []))).toBe(true);
+    expect(isOurMainCommand(mainKeyValue('lean', null, []))).toBe(true);
   });
 
   it('rejects foreign commands, the panel key, and anything but flags after the program', () => {
-    expect(isOurMainCommand(panelKeyValue([]))).toBe(false);
+    expect(isOurMainCommand(panelKeyValue(null, []))).toBe(false);
     expect(isOurMainCommand('./old-main.sh')).toBe(false);
     expect(
-      isOurMainCommand(`FOO=1 ${mainKeyValue('{model}', ['--model=block'])}`),
+      isOurMainCommand(
+        `FOO=1 ${mainKeyValue(null, '{model}', ['--model=block'])}`,
+      ),
     ).toBe(false);
   });
 
   it('the panel matcher claims only the panel key', () => {
-    expect(isOurPanelCommand(panelKeyValue([]))).toBe(true);
-    expect(isOurPanelCommand(panelKeyValue(['--style=bare']))).toBe(true);
-    expect(isOurPanelCommand(mainKeyValue(null, []))).toBe(false);
+    expect(isOurPanelCommand(panelKeyValue(null, []))).toBe(true);
+    expect(isOurPanelCommand(panelKeyValue(null, ['--style=bare']))).toBe(true);
+    expect(isOurPanelCommand(panelKeyValue('lean', []))).toBe(true);
+    expect(isOurPanelCommand(mainKeyValue(null, null, []))).toBe(false);
     expect(isOurPanelCommand('node "$HOME/.claude/plugins/data/statusline-agentic/render.mjs" panel')).toBe(
       false,
     );

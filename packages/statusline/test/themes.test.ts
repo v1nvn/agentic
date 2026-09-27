@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
-import { BUNDLED_RENDERER, resolveSelection } from '../src/configure.js';
+import { BUNDLED_RENDERER } from '../src/configure.js';
 import { renderStatusline } from '../src/render/engine.js';
 import { DEFAULT_LAYOUT, ITEMS } from '../src/render/index.js';
 import { renderPanel } from '../src/render/panel.js';
@@ -183,9 +183,8 @@ describe('themes: summaries', () => {
 });
 
 // The equivalence core: for every theme, the paint resolver's output must be
-// exactly what today's compiled path (resolveSelection — what preview and
-// catalog feed the engines) produces, and both doors must render the same
-// bytes from it.
+// exactly the theme table's own layout and picks (the data the key's --theme
+// names), and both doors must render the same bytes from it.
 
 let demo: DemoHome | undefined;
 let mainPayload = '';
@@ -240,14 +239,13 @@ function panelBytes(picks: Readonly<Record<string, string>>): string {
   });
 }
 
-describe('resolvePaint: the five themes equal today\'s compiled path', () => {
+describe('resolvePaint: the five themes carry their own table rows', () => {
   it.each([...THEME_NAMES])(
-    '%s resolves to the compiled layout and picks',
+    '%s resolves to its layout and picks',
     name => {
-      const compiled = resolveSelection({ theme: name });
       expect(resolvePaint({ theme: name })).toEqual({
-        layout: compiled.layout,
-        picks: compiled.values,
+        layout: THEMES[name].layout,
+        picks: THEMES[name].variants,
       });
     },
   );
@@ -255,13 +253,12 @@ describe('resolvePaint: the five themes equal today\'s compiled path', () => {
   it.each([...THEME_NAMES])(
     '%s renders byte-identical on the line, wide and narrow',
     name => {
-      const compiled = resolveSelection({ theme: name });
       const resolved = resolvePaint({ theme: name });
       for (const columns of [200, 60]) {
         expect(
           lineBytes(resolved.layout, resolved.picks, columns),
           `${name} at ${columns}`,
-        ).toBe(lineBytes(compiled.layout, compiled.values, columns));
+        ).toBe(lineBytes(THEMES[name].layout, THEMES[name].variants, columns));
       }
     },
   );
@@ -269,9 +266,8 @@ describe('resolvePaint: the five themes equal today\'s compiled path', () => {
   it.each([...THEME_NAMES])(
     '%s renders byte-identical on the panel (the theme style)',
     name => {
-      const compiled = resolveSelection({ theme: name });
       expect(panelBytes(resolvePaint({ theme: name }).picks)).toBe(
-        panelBytes(compiled.values),
+        panelBytes(THEMES[name].variants),
       );
     },
   );
@@ -306,16 +302,13 @@ describe('resolvePaint: precedence', () => {
     });
   });
 
-  it('a flag-over-theme render equals the compiled flag-over-theme render', () => {
-    const compiled = resolveSelection({
-      theme: 'rich',
-      variants: { bar: 'percent' },
-    });
+  it('a flag-over-theme render equals the table picks with the flag applied', () => {
     const resolved = resolvePaint({ theme: 'rich', picks: { bar: 'percent' } });
+    const table = { ...THEMES.rich.variants, bar: 'percent' };
     expect(lineBytes(resolved.layout, resolved.picks)).toBe(
-      lineBytes(compiled.layout, compiled.values),
+      lineBytes(THEMES.rich.layout, table),
     );
-    expect(panelBytes(resolved.picks)).toBe(panelBytes(compiled.values));
+    expect(panelBytes(resolved.picks)).toBe(panelBytes(table));
   });
 
   it('--layout beats the theme layout; the theme picks still hold', () => {
@@ -377,28 +370,26 @@ describe('the entry resolves --theme at paint', () => {
     };
   }
 
-  it('a hand-written key spelling --theme=lean paints the compiled lean line', () => {
+  it('a hand-written key spelling --theme=lean paints the lean line', () => {
     const painted = runRenderer(
       ['--theme=lean', `--now=${DEFAULT_NOW}`],
       mainPayload,
     );
-    const compiled = resolveSelection({ theme: 'lean' });
 
     expect(painted.status).toBe(0);
     expect(painted.stdout).toBe(
-      lineBytes(compiled.layout, compiled.values),
+      lineBytes(THEMES.lean.layout, THEMES.lean.variants),
     );
   });
 
-  it('the panel key spelling --theme=lean paints the compiled lean panel', () => {
+  it('the panel key spelling --theme=lean paints the lean panel', () => {
     const painted = runRenderer(
       ['panel', '--theme=lean', `--now=${DEFAULT_NOW}`],
       tickPayload,
     );
-    const compiled = resolveSelection({ theme: 'lean' });
 
     expect(painted.status).toBe(0);
-    expect(painted.stdout).toBe(panelBytes(compiled.values));
+    expect(painted.stdout).toBe(panelBytes(THEMES.lean.variants));
   });
 
   it('an unknown theme on the key paints the default line', () => {

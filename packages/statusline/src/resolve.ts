@@ -2,7 +2,6 @@ import { readFileSync } from 'node:fs';
 import { join, sep } from 'node:path';
 
 import { DATA_DIR } from './render/capture.js';
-import { DEFAULT_LAYOUT } from './render/index.js';
 
 export function capturePath(home: string, surface: 'main' | 'tick'): string {
   return join(home, DATA_DIR, 'captures', `${surface}.json`);
@@ -18,6 +17,7 @@ export function renderMjsPath(home: string): string {
 
 export interface ScriptConfig {
   readonly layout: null | string;
+  readonly theme?: string;
   readonly values: Readonly<Record<string, string>>;
 }
 
@@ -29,19 +29,29 @@ const PANEL_PROGRAM = `${RENDER_PROGRAM} panel`;
 const KEY_SUFFIX = ' || true';
 
 export function mainKeyValue(
+  theme: null | string,
   layout: null | string,
   flags: readonly string[],
 ): string {
   return [
     RENDER_PROGRAM,
+    ...(theme === null ? [] : [`--theme=${theme}`]),
     ...(layout === null ? [] : [`--layout='${layout}'`]),
     ...flags,
     '|| true',
   ].join(' ');
 }
 
-export function panelKeyValue(flags: readonly string[]): string {
-  return [PANEL_PROGRAM, ...flags, '|| true'].join(' ');
+export function panelKeyValue(
+  theme: null | string,
+  flags: readonly string[],
+): string {
+  return [
+    PANEL_PROGRAM,
+    ...(theme === null ? [] : [`--theme=${theme}`]),
+    ...flags,
+    '|| true',
+  ].join(' ');
 }
 
 function isOurCommand(program: string, command: string): boolean {
@@ -94,9 +104,10 @@ function settingsCommand(home: string): null | string {
   return typeof command === 'string' ? command : null;
 }
 
-// The main key's flags parsed back into a selection: a null layout means no
-// ours key at all; an ours key without --layout reads as the default layout
-// it implies. Unknown item names survive to surface as status drift.
+// The main key's flags parsed back into the decisions it records. A null
+// layout means no explicit --layout — a theme key leaves the layout to the
+// theme; a missing settings member or a foreign key reads the same way, with
+// no theme and no values. Unknown item names survive to surface as drift.
 export function readKeyConfig(home: string): ScriptConfig {
   const command = settingsCommand(home);
   const flags = command === null ? null : mainKeyFlags(command);
@@ -104,13 +115,20 @@ export function readKeyConfig(home: string): ScriptConfig {
     return { layout: null, values: {} };
   }
   const values: Record<string, string> = {};
+  let theme: string | undefined;
   for (const [, name, alt] of flags.matchAll(
     /(?:^| )--([a-z][a-z0-9]*)=([a-z0-9]+)/g,
   )) {
-    if (name !== 'theme' && name !== 'now') {
+    if (name === 'theme') {
+      theme = alt;
+    } else if (name !== 'now' && name !== 'layout') {
       values[name] = alt;
     }
   }
   const layout = /--layout='([^']*)'/.exec(flags);
-  return { layout: layout === null ? DEFAULT_LAYOUT : layout[1], values };
+  return {
+    layout: layout === null ? null : layout[1],
+    values,
+    ...(theme === undefined ? {} : { theme }),
+  };
 }

@@ -61,10 +61,10 @@ describe('configure on a scratch home (rulings 1 and 4)', () => {
     });
 
     expect(settingsCommand(home, 'statusLine')).toBe(
-      mainKeyValue('{model bar}', ['--model=block', '--bar=gauge']),
+      mainKeyValue(null, '{model bar}', ['--model=block', '--bar=gauge']),
     );
     expect(settingsCommand(home, 'subagentStatusLine')).toBe(
-      panelKeyValue([]),
+      panelKeyValue(null, []),
     );
 
     const written = Object.keys(snapshotTree(join(home, '.claude'))).sort();
@@ -79,12 +79,31 @@ describe('configure on a scratch home (rulings 1 and 4)', () => {
     expect(lines).toContain('bar: flat | gauge* | percent | none | flat6 | flat4');
   });
 
-  it('a non-default style pick rides the panel key too', () => {
+  it('a theme write carries the panel key too', () => {
     const home = homes.newHome();
     configure({ home, theme: 'quiet' });
 
     expect(settingsCommand(home, 'subagentStatusLine')).toBe(
-      panelKeyValue(['--style=bare']),
+      panelKeyValue('quiet', []),
+    );
+  });
+});
+
+describe('a theme write through the real node renderer', () => {
+  it('the --theme=lean main key paints the lean line — dots separators, a percent bar, no gauges', () => {
+    const home = homes.newHome();
+    configure({ home, theme: 'lean' });
+    const stdin = readFileSync(P1, 'utf8');
+
+    const painted = runKey(settingsCommand(home, 'statusLine'), home, stdin);
+
+    expect(painted.status).toBe(0);
+    expect(painted.stdout).toContain(' · ');
+    expect(painted.stdout).toContain('%');
+    expect(painted.stdout).not.toContain('█');
+    expect(painted.stdout).not.toContain('│');
+    expect(readFileSync(capturePath(home, 'main'))).toEqual(
+      Buffer.from(stdin),
     );
   });
 });

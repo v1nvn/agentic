@@ -320,32 +320,40 @@ describe('wizard: pass two — refinement seeded from the pick', () => {
 });
 
 describe('wizard: a theme pick saved', () => {
-  it('enter on lean, then save — the settings text is byte-equal to what configure --theme lean writes', async () => {
+  it('enter on lean, then save — the settings text is byte-equal to a flags-only write of the same picks', async () => {
     const wizardHome = homes.newHome();
-    const themedHome = homes.newHome();
-    configure({ home: themedHome, theme: 'lean' });
+    const flaggedHome = homes.newHome();
+    configure({
+      home: flaggedHome,
+      layout: THEMES.lean.layout,
+      variants: THEMES.lean.variants,
+    });
 
     const { outcome } = await runWizard(['j', 'j', '\r', '\r'], wizardHome);
 
     expect(outcome).toBe('saved');
     expect(readFileSync(settingsPath(wizardHome), 'utf8')).toBe(
-      readFileSync(settingsPath(themedHome), 'utf8'),
+      readFileSync(settingsPath(flaggedHome), 'utf8'),
     );
     expect(settingsCommand(wizardHome, 'subagentStatusLine')).toBe(
-      panelKeyValue(['--style=dots']),
+      panelKeyValue(null, ['--style=dots']),
     );
   });
 
-  it('a quiet pick seeds the layout too — byte-equal to configure --theme quiet', async () => {
+  it('a quiet pick seeds the layout too — byte-equal to a flags-only write of the quiet picks', async () => {
     const wizardHome = homes.newHome();
-    const themedHome = homes.newHome();
-    configure({ home: themedHome, theme: 'quiet' });
+    const flaggedHome = homes.newHome();
+    configure({
+      home: flaggedHome,
+      layout: THEMES.quiet.layout,
+      variants: THEMES.quiet.variants,
+    });
 
     const { outcome } = await runWizard(['\r', '\r'], wizardHome);
 
     expect(outcome).toBe('saved');
     expect(readFileSync(settingsPath(wizardHome), 'utf8')).toBe(
-      readFileSync(settingsPath(themedHome), 'utf8'),
+      readFileSync(settingsPath(flaggedHome), 'utf8'),
     );
   });
 
@@ -367,7 +375,7 @@ describe('wizard: a theme pick saved', () => {
     expect(readFileSync(settingsPath(home), 'utf8')).toBe(seed);
   });
 
-  it('force takes the foreign key over — byte-equal to configure --theme quiet --force', async () => {
+  it('force takes the foreign key over — byte-equal to a forced flags-only quiet write', async () => {
     const seed = `${JSON.stringify(
       { statusLine: { command: './old-main.sh', type: 'command' } },
       null,
@@ -377,7 +385,12 @@ describe('wizard: a theme pick saved', () => {
     const flagged = homes.newHome();
     writeSettings(wizardHome, seed);
     writeSettings(flagged, seed);
-    configure({ home: flagged, force: true, theme: 'quiet' });
+    configure({
+      force: true,
+      home: flagged,
+      layout: THEMES.quiet.layout,
+      variants: THEMES.quiet.variants,
+    });
 
     const { outcome } = await runWizard(['\r', '\r'], wizardHome, {
       force: true,

@@ -52,7 +52,7 @@ describe('restore: flagship roundtrip (contract 4)', () => {
 
     takeover(home);
     expect(settingsCommand(home, 'statusLine')).toBe(
-      mainKeyValue('{model}', ['--model=block']),
+      mainKeyValue(null, '{model}', ['--model=block']),
     );
 
     expect(restore({ home })).toMatchObject({ mode: 'restored' });
@@ -103,8 +103,8 @@ describe('restore: createdFile endgame (contract 4)', () => {
       home,
       `{
   "model": "opus-4",
-  "statusLine": ${JSON.stringify({ command: mainKeyValue('{model}', ['--model=block']), type: 'command' })},
-  "subagentStatusLine": ${JSON.stringify({ command: panelKeyValue([]), type: 'command' })}
+  "statusLine": ${JSON.stringify({ command: mainKeyValue(null, '{model}', ['--model=block']), type: 'command' })},
+  "subagentStatusLine": ${JSON.stringify({ command: panelKeyValue(null, []), type: 'command' })}
 }
 `,
     );
@@ -124,7 +124,7 @@ describe('restore: refusal on a foreign current value (contract 4)', () => {
     const edited = `{
   "model": "opus-4",
   "statusLine": { "type": "command", "command": "./newer.sh" },
-  "subagentStatusLine": ${JSON.stringify({ command: panelKeyValue([]), type: 'command' })}
+  "subagentStatusLine": ${JSON.stringify({ command: panelKeyValue(null, []), type: 'command' })}
 }
 `;
     writeSettings(home, edited);

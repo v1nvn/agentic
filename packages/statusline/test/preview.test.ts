@@ -395,12 +395,20 @@ describe('preview: the same resolution inputs configure takes', () => {
     assertNothingWritten(home);
   });
 
+  it('a partial pick set previews — unpicked items paint the registry defaults', () => {
+    const home = homes.newHome();
+    const text = preview({
+      home,
+      layout: '{model effort}',
+      variants: { model: 'block' },
+      now: DEFAULT_NOW,
+    });
+
+    expect(text.split('\n')[1]).toContain('Opus');
+    assertNothingWritten(home);
+  });
+
   const refusals: readonly (readonly [string, Resolution])[] = [
-    ['a theme gap', { layout: '{model effort} {cwd}', theme: 'quiet' }],
-    [
-      'a flag gap with no theme',
-      { layout: '{model effort}', variants: { model: 'block' } },
-    ],
     ['an unknown theme', { theme: 'nope' }],
     ['an unknown variant', { theme: 'lean', variants: { model: 'nonsense' } }],
   ];

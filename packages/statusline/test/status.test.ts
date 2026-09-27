@@ -9,6 +9,7 @@ import {
   type ConfigureOptions,
 } from '../src/configure.js';
 import { liveTheme } from '../src/live-theme.js';
+import { ITEMS } from '../src/render/index.js';
 import {
   mainKeyValue,
   panelKeyValue,
@@ -17,9 +18,9 @@ import {
 } from '../src/resolve.js';
 import { nodeOnPath, rendererHash, status } from '../src/status.js';
 import {
+  THEMES,
   backupPath,
   createHomes,
-  settingsCommand,
   writeCapture,
   writeSettings,
 } from './fixtures.js';
@@ -80,8 +81,8 @@ describe('status: config drift (contract 5)', () => {
     writeSettings(
       home,
       `{
-  "statusLine": ${JSON.stringify({ command: mainKeyValue('{model flux}', ['--model=neon', '--flux=pulse']), type: 'command' })},
-  "subagentStatusLine": ${JSON.stringify({ command: panelKeyValue([]), type: 'command' })}
+  "statusLine": ${JSON.stringify({ command: mainKeyValue(null, '{model flux}', ['--model=neon', '--flux=pulse']), type: 'command' })},
+  "subagentStatusLine": ${JSON.stringify({ command: panelKeyValue(null, []), type: 'command' })}
 }
 `,
     );
@@ -108,8 +109,8 @@ describe('status: variants-only drift (contract 5)', () => {
     writeSettings(
       home,
       `{
-  "statusLine": ${JSON.stringify({ command: mainKeyValue('{model effort}', ['--model=neon', '--effort=dim']), type: 'command' })},
-  "subagentStatusLine": ${JSON.stringify({ command: panelKeyValue([]), type: 'command' })}
+  "statusLine": ${JSON.stringify({ command: mainKeyValue(null, '{model effort}', ['--model=neon', '--effort=dim']), type: 'command' })},
+  "subagentStatusLine": ${JSON.stringify({ command: panelKeyValue(null, []), type: 'command' })}
 }
 `,
     );
@@ -242,7 +243,7 @@ describe('status: fix lines run (contract 5 seam)', () => {
     writeSettings(
       absentHome,
       `{
-  "subagentStatusLine": ${JSON.stringify({ command: panelKeyValue([]), type: 'command' })}
+  "subagentStatusLine": ${JSON.stringify({ command: panelKeyValue(null, []), type: 'command' })}
 }
 `,
     );
@@ -252,7 +253,7 @@ describe('status: fix lines run (contract 5 seam)', () => {
       foreignHome,
       `{
   "statusLine": { "type": "command", "command": "./old-main.sh" },
-  "subagentStatusLine": ${JSON.stringify({ command: panelKeyValue([]), type: 'command' })}
+  "subagentStatusLine": ${JSON.stringify({ command: panelKeyValue(null, []), type: 'command' })}
 }
 `,
     );
@@ -261,8 +262,8 @@ describe('status: fix lines run (contract 5 seam)', () => {
     writeSettings(
       variantDriftHome,
       `{
-  "statusLine": ${JSON.stringify({ command: mainKeyValue('{model effort}', ['--model=neon', '--effort=dim']), type: 'command' })},
-  "subagentStatusLine": ${JSON.stringify({ command: panelKeyValue([]), type: 'command' })}
+  "statusLine": ${JSON.stringify({ command: mainKeyValue(null, '{model effort}', ['--model=neon', '--effort=dim']), type: 'command' })},
+  "subagentStatusLine": ${JSON.stringify({ command: panelKeyValue(null, []), type: 'command' })}
 }
 `,
     );
@@ -271,8 +272,8 @@ describe('status: fix lines run (contract 5 seam)', () => {
     writeSettings(
       itemDriftHome,
       `{
-  "statusLine": ${JSON.stringify({ command: mainKeyValue('{model flux}', ['--model=neon', '--flux=pulse']), type: 'command' })},
-  "subagentStatusLine": ${JSON.stringify({ command: panelKeyValue([]), type: 'command' })}
+  "statusLine": ${JSON.stringify({ command: mainKeyValue(null, '{model flux}', ['--model=neon', '--flux=pulse']), type: 'command' })},
+  "subagentStatusLine": ${JSON.stringify({ command: panelKeyValue(null, []), type: 'command' })}
 }
 `,
     );
@@ -337,28 +338,54 @@ function themeRows(rows: readonly string[]): readonly string[] {
   return rows.filter(row => row.startsWith('theme:'));
 }
 
+// A compiled key — every non-default lean pick spelled as flags, the pre-t2
+// shape a hand-edited key may still hold. A t2+ configure write records
+// decisions (--theme plus overrides) instead, so liveTheme names no theme for
+// it until t4 reads the name straight from the key.
+function leanKeyFlags(): string[] {
+  return ITEMS.filter(
+    ({ default: def, item }) => THEMES.lean.variants[item] !== def,
+  ).map(({ item }) => `--${item}=${THEMES.lean.variants[item]}`);
+}
+
+function seedMainKey(home: string, flags: readonly string[]): void {
+  writeSettings(
+    home,
+    `${JSON.stringify(
+      {
+        statusLine: {
+          command: mainKeyValue(null, THEMES.lean.layout, flags),
+          type: 'command',
+        },
+      },
+      null,
+      2,
+    )}\n`,
+  );
+}
+
 describe('status: the live theme (contract 5)', () => {
-  it("names the theme the main key equals exactly — a 'theme: lean' row right after the config row", () => {
+  it("names the theme a compiled key equals exactly — a 'theme: lean' row right after the config row", () => {
     const home = homes.newHome();
-    configure({ home, theme: 'lean' });
+    seedMainKey(home, leanKeyFlags());
 
     const result = status({ home });
 
-    expect(result.healthy).toBe(true);
     expect(themeRows(result.rows)).toEqual(['theme: lean']);
     expect(result.rows.indexOf('theme: lean')).toBe(
       result.rows.indexOf('config: no drift') + 1,
     );
   });
 
-  it('a one-swap key (--theme lean --bar gauge) names no theme', () => {
-    const home = homes.newHome();
-    configure({ home, theme: 'lean', variants: { bar: 'gauge' } });
+  it('a configure theme write and a one-swap key (--theme lean --bar gauge) name no theme yet — t4 reads the name from the key', () => {
+    const themed = homes.newHome();
+    configure({ home: themed, theme: 'lean' });
 
-    const result = status({ home });
+    const swapped = homes.newHome();
+    configure({ home: swapped, theme: 'lean', variants: { bar: 'gauge' } });
 
-    expect(result.healthy).toBe(true);
-    expect(themeRows(result.rows)).toEqual([]);
+    expect(themeRows(status({ home: themed }).rows)).toEqual([]);
+    expect(themeRows(status({ home: swapped }).rows)).toEqual([]);
   });
 
   it('no key names no theme', () => {
@@ -369,28 +396,22 @@ describe('status: the live theme (contract 5)', () => {
 
   it('rides the shared matcher — the row says exactly what liveTheme says on the same key, a dropped decision included', () => {
     const exact = homes.newHome();
-    configure({ home: exact, theme: 'lean' });
+    seedMainKey(exact, leanKeyFlags());
 
     const swapped = homes.newHome();
-    configure({ home: swapped, theme: 'lean', variants: { bar: 'gauge' } });
+    seedMainKey(
+      swapped,
+      leanKeyFlags().map(flag =>
+        flag === '--bar=percent' ? '--bar=gauge' : flag,
+      ),
+    );
 
     // a hand-edited key missing one non-default decision falls back to the
     // registry default for it, so it no longer equals the theme
     const dropped = homes.newHome();
-    configure({ home: dropped, theme: 'lean' });
-    const key = settingsCommand(dropped, 'statusLine');
-    writeSettings(
+    seedMainKey(
       dropped,
-      `${JSON.stringify(
-        {
-          statusLine: {
-            command: key.replace(' --style=dots', ''),
-            type: 'command',
-          },
-        },
-        null,
-        2,
-      )}\n`,
+      leanKeyFlags().filter(flag => flag !== '--style=dots'),
     );
 
     expect(liveTheme(readKeyConfig(exact))).toBe('lean');

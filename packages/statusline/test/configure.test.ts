@@ -78,20 +78,19 @@ describe('configure: parsing', () => {
   });
 });
 
-describe('configure: strict mode (contract 3)', () => {
-  it('fails naming every unflagged layout item and writes nothing', () => {
+describe('configure: writes (contract 3)', () => {
+  it('a partial pick set writes — unpicked items resolve to the registry defaults at paint', () => {
     const home = homes.newHome();
-    const attempt = () =>
-      configure({
-        home,
-        layout: '{cwd branch} {model effort}',
-        variants: { model: 'block' },
-      });
 
-    expect(attempt).toThrowError();
-    expect(attempt).toThrowError(/cwd/);
-    expect(attempt).toThrowError(/branch/);
-    assertNothingWritten(home);
+    configure({
+      home,
+      layout: '{cwd branch} {model effort}',
+      variants: { model: 'block' },
+    });
+
+    expect(settingsCommand(home, 'statusLine')).toBe(
+      mainKeyValue(null, '{cwd branch} {model effort}', ['--model=block']),
+    );
   });
 
   it('writes exactly the two settings keys, nothing else on disk', () => {
@@ -113,7 +112,7 @@ describe('configure: strict mode (contract 3)', () => {
     });
 
     expect(settingsCommand(home, 'statusLine')).toBe(
-      mainKeyValue(layout, [
+      mainKeyValue(null, layout, [
         '--model=block',
         '--effort=dim',
         '--cwd=full',
@@ -124,7 +123,7 @@ describe('configure: strict mode (contract 3)', () => {
       ]),
     );
     expect(settingsCommand(home, 'subagentStatusLine')).toBe(
-      panelKeyValue([]),
+      panelKeyValue(null, []),
     );
     expect(readdirSync(join(home, DATA_DIR)).sort(), 'data dir').toEqual([
       'backup.json',
@@ -144,7 +143,7 @@ describe('configure: strict mode (contract 3)', () => {
     });
 
     expect(settingsCommand(home, 'statusLine')).toBe(
-      mainKeyValue('{model}', ['--model=pill']),
+      mainKeyValue(null, '{model}', ['--model=pill']),
     );
     const after = readFileSync(settingsPath(home), 'utf8');
     expect(after).toContain('"model":"opus-4"');
@@ -160,7 +159,7 @@ describe('configure: strict mode (contract 3)', () => {
     });
 
     expect(settingsCommand(home, 'statusLine')).toBe(
-      mainKeyValue('{model bar}', ['--model=block']),
+      mainKeyValue(null, '{model bar}', ['--model=block']),
     );
   });
 
@@ -186,44 +185,88 @@ describe('configure: strict mode (contract 3)', () => {
 });
 
 describe('configure: --theme', () => {
-  it('writes lean; the settings text is byte-equal to a flags-only write of the same layout and variants', () => {
-    const themed = homes.newHome();
+  it('writes the theme flag alone — no item flags, no layout; the panel key carries it too', () => {
+    const home = homes.newHome();
+
+    configure({ home, theme: 'lean' });
+
+    expect(settingsCommand(home, 'statusLine')).toBe(
+      'node "$HOME/.claude/plugins/data/statusline-agentic/render.mjs" --theme=lean || true',
+    );
+    expect(settingsCommand(home, 'subagentStatusLine')).toBe(
+      'node "$HOME/.claude/plugins/data/statusline-agentic/render.mjs" panel --theme=lean || true',
+    );
+  });
+
+  it('an item flag adds only its own flag over the theme', () => {
+    const home = homes.newHome();
+
+    configure({ home, theme: 'lean', variants: { bar: 'gauge' } });
+
+    expect(settingsCommand(home, 'statusLine')).toBe(
+      mainKeyValue('lean', null, ['--bar=gauge']),
+    );
+  });
+
+  it('an override equal to the theme pick rides no flag — the theme carries it', () => {
+    const home = homes.newHome();
+
+    configure({ home, theme: 'lean', variants: { bar: 'percent' } });
+
+    expect(settingsCommand(home, 'statusLine')).toBe(
+      mainKeyValue('lean', null, []),
+    );
+  });
+
+  it('a custom layout rides beside the theme; the theme own layout does not', () => {
+    const custom = homes.newHome();
+    const own = homes.newHome();
+
+    configure({ home: custom, theme: 'quiet', layout: '{model}' });
+    configure({ home: own, theme: 'quiet', layout: THEMES.quiet.layout });
+
+    expect(settingsCommand(custom, 'statusLine')).toBe(
+      mainKeyValue('quiet', '{model}', []),
+    );
+    expect(settingsCommand(own, 'statusLine')).toBe(mainKeyValue('quiet', null, []));
+  });
+
+  it('a style override rides both keys over the theme style', () => {
+    const home = homes.newHome();
+
+    configure({ home, theme: 'lean', variants: { style: 'bare' } });
+
+    expect(settingsCommand(home, 'statusLine')).toBe(
+      mainKeyValue('lean', null, ['--style=bare']),
+    );
+    expect(settingsCommand(home, 'subagentStatusLine')).toBe(
+      panelKeyValue('lean', ['--style=bare']),
+    );
+  });
+
+  it('a flags-only style write rides the panel key; the theme own style rides nothing', () => {
     const flagged = homes.newHome();
-
-    configure({ home: themed, theme: 'lean' });
-    configure({
-      home: flagged,
-      layout: THEMES.lean.layout,
-      variants: THEMES.lean.variants,
-    });
-
-    expect(readFileSync(settingsPath(themed), 'utf8')).toBe(
-      readFileSync(settingsPath(flagged), 'utf8'),
-    );
-  });
-
-  it('an item flag swaps exactly that one pick over the theme', () => {
     const themed = homes.newHome();
-    const swapped = homes.newHome();
 
-    configure({ home: themed, theme: 'lean' });
-    configure({ home: swapped, theme: 'lean', variants: { bar: 'gauge' } });
+    configure({ home: flagged, layout: '{model}', variants: { style: 'bare' } });
+    configure({ home: themed, theme: 'quiet' });
 
-    const lean = settingsCommand(themed, 'statusLine');
-    expect(lean).toContain('--bar=percent');
-    expect(settingsCommand(swapped, 'statusLine')).toBe(
-      lean.replace('--bar=percent', '--bar=gauge'),
+    expect(settingsCommand(flagged, 'subagentStatusLine')).toBe(
+      panelKeyValue(null, ['--style=bare']),
+    );
+    expect(settingsCommand(themed, 'subagentStatusLine')).toBe(
+      panelKeyValue('quiet', []),
     );
   });
 
-  it('a theme write replaces a seeded ours key with exactly the theme values', () => {
+  it('a theme write replaces a seeded ours key with the theme decision alone', () => {
     const home = homes.newHome();
     writeSettings(
       home,
       `${JSON.stringify(
         {
           statusLine: {
-            command: mainKeyValue('{model bar}', [
+            command: mainKeyValue(null, '{model bar}', [
               '--model=block',
               '--bar=gauge',
             ]),
@@ -238,26 +281,11 @@ describe('configure: --theme', () => {
     configure({ home, theme: 'quiet' });
 
     expect(settingsCommand(home, 'statusLine')).toBe(
-      mainKeyValue('{model cwd}', [
-        '--model=zen',
-        '--cwd=tail',
-        '--style=bare',
-      ]),
+      mainKeyValue('quiet', null, []),
     );
     expect(settingsCommand(home, 'subagentStatusLine')).toBe(
-      panelKeyValue(['--style=bare']),
+      panelKeyValue('quiet', []),
     );
-  });
-
-  it('a theme gap errors naming the item and its flag — no registry-default fill, nothing written', () => {
-    const home = homes.newHome();
-    const attempt = () =>
-      configure({ home, theme: 'quiet', layout: '{model effort} {cwd}' });
-
-    expect(attempt).toThrowError(/quiet/);
-    expect(attempt).toThrowError(/effort/);
-    expect(attempt).toThrowError(/--effort/);
-    assertNothingWritten(home);
   });
 
   it('an unknown theme errors naming the valid themes', () => {
@@ -349,10 +377,10 @@ describe('configure: settings refusal (E4 port)', () => {
     });
 
     expect(settingsCommand(home, 'statusLine')).toBe(
-      mainKeyValue('{model}', ['--model=block']),
+      mainKeyValue(null, '{model}', ['--model=block']),
     );
     expect(settingsCommand(home, 'subagentStatusLine')).toBe(
-      panelKeyValue([]),
+      panelKeyValue(null, []),
     );
     const settings = JSON.parse(readFileSync(settingsPath(home), 'utf8'));
     expect(settings.model).toBe('opus-4');

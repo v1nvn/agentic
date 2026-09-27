@@ -472,17 +472,14 @@ function themeNamed(
   return theme;
 }
 
-export interface Selection {
-  readonly layout: string;
-  readonly values: Readonly<Record<string, string>>;
-}
-
-// One engine under every guide: configure writes what this resolves, preview
-// renders it. Resolution is item flags > theme > error naming the gap.
-export function resolveSelection(
+// Validation only: the theme name is in the table, the overrides are picks
+// the registry offers, the layout's items are known — and some layout source
+// exists. The renderer resolves theme plus overrides at paint
+// (src/render/theme.ts); the writer below records the decisions, never
+// resolved output.
+export function validateSelection(
   options: Pick<ConfigureOptions, 'layout' | 'theme' | 'variants'>,
-): Selection {
-  const variants = options.variants ?? {};
+): void {
   const theme =
     options.theme === undefined ? undefined : themeNamed(options.theme, THEMES);
 
@@ -490,28 +487,12 @@ export function resolveSelection(
   if (layout === undefined) {
     throw new Error('no layout — pass --layout <spec> or --theme <name>');
   }
-  const byItem = new Map(ITEMS.map(item => [item.item, item]));
-  const items = layoutItems(
+  layoutItems(
     layout,
     ITEMS.map(item => item.item),
   );
-
-  const values: Record<string, string> = {
-    ...(theme?.variants ?? {}),
-    ...variants,
-  };
-  const missing = items.filter(item => !(item in values));
-  if (missing.length > 0) {
-    const hints = missing.map(item => `--${item} <alt>`).join(' ');
-    const names = missing.map(item => `'${item}'`).join(' ');
-    const plural = missing.length > 1 ? 's' : '';
-    throw new Error(
-      theme === undefined
-        ? `no variant for layout item${plural} ${names} — pass ${hints}, or name a theme: --theme ${THEME_NAMES.join('|')}`
-        : `theme '${options.theme}' has no pick for layout item${plural} ${names} — pass ${hints}, or drop ${missing.length > 1 ? 'them' : 'it'} from the layout`,
-    );
-  }
-  for (const [item, alt] of Object.entries(values)) {
+  const byItem = new Map(ITEMS.map(item => [item.item, item]));
+  for (const [item, alt] of Object.entries(options.variants ?? {})) {
     const entry = byItem.get(item);
     if (entry === undefined) {
       throw new Error(
@@ -524,18 +505,29 @@ export function resolveSelection(
       );
     }
   }
-
-  return { layout, values };
 }
 
-// The key records only the decisions that differ from the registry defaults —
-// the renderer resolves absent picks to them at paint.
-function itemFlags(values: Readonly<Record<string, string>>): string[] {
-  return ITEMS.flatMap(({ default: def, item }) => {
-    const pick = values[item] ?? def;
-    return pick === def ? [] : [`--${item}=${pick}`];
+const REGISTRY_BASE: Readonly<Record<string, string>> = Object.fromEntries(
+  ITEMS.map(({ default: def, item }) => [item, def]),
+);
+
+// A key records only the decisions that differ from the picks its base
+// already carries — the theme's picks under a theme, the registry defaults
+// without one; the renderer resolves absent picks at paint.
+function decisionFlags(
+  base: Readonly<Record<string, string>>,
+  decisions: Readonly<Partial<Record<string, string>>>,
+  items: readonly { readonly item: string }[] = ITEMS,
+): string[] {
+  return items.flatMap(({ item }) => {
+    const pick = decisions[item];
+    return pick === undefined || pick === base[item]
+      ? []
+      : [`--${item}=${pick}`];
   });
 }
+
+const STYLE_ITEM = ITEMS.filter(({ item }) => item === 'style');
 
 export function configure(options: ConfigureOptions): void {
   if (
@@ -548,18 +540,29 @@ export function configure(options: ConfigureOptions): void {
     );
   }
 
-  const { layout, values } = resolveSelection(options);
-  // The panel consumes one decision — style; an absent pick falls to the
-  // default inside itemFlags.
-  const panelFlags = itemFlags({ style: values.style });
+  validateSelection(options);
+  const theme =
+    options.theme === undefined ? undefined : themeNamed(options.theme, THEMES);
+  const base = theme?.variants ?? REGISTRY_BASE;
+  const decisions = options.variants ?? {};
+  const baseLayout = theme?.layout ?? DEFAULT_LAYOUT;
+  const layout =
+    options.layout === undefined || options.layout === baseLayout
+      ? null
+      : options.layout;
   const plan = planSettings(
     options.home,
     {
       statusLine: mainKeyValue(
-        layout === DEFAULT_LAYOUT ? null : layout,
-        itemFlags(values),
+        options.theme ?? null,
+        layout,
+        decisionFlags(base, decisions),
       ),
-      subagentStatusLine: panelKeyValue(panelFlags),
+      // The panel consumes one decision — style.
+      subagentStatusLine: panelKeyValue(
+        options.theme ?? null,
+        decisionFlags(base, decisions, STYLE_ITEM),
+      ),
     },
     options.force ?? false,
   );
