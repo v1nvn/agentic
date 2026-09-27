@@ -12,7 +12,6 @@ export interface GitFacts {
 
 export interface GitEnv {
   readonly home: string;
-  readonly timeZone: string;
 }
 
 const BRANCH_HEAD = '# branch.head ';
@@ -22,7 +21,6 @@ function gitEnv(env: GitEnv): Readonly<Record<string, string>> {
     HOME: env.home,
     LC_ALL: 'C',
     PATH: process.env.PATH ?? '',
-    TZ: env.timeZone,
   };
 }
 

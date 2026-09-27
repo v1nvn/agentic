@@ -6,7 +6,6 @@ import {
   BUNDLED_RENDERER,
   isOurMember,
   memberCommand,
-  parseClusters,
   parseSettings,
   readOrNull,
   SETTINGS_KEYS,
@@ -15,6 +14,7 @@ import {
 } from './configure.js';
 import { DATA_DIR } from './render/capture.js';
 import { specFor } from './render/index.js';
+import { layoutItemsOf } from './render/layout.js';
 import {
   capturePath,
   parsePanelCommand,
@@ -57,18 +57,6 @@ function keyRow(key: SettingsKey, state: KeyState, detail = ''): string {
     return `${key}: absent — fix: rerun configure --theme classic`;
   }
   return `${key}: foreign${state.command === null ? '' : ` (${state.command})`} — fix: rerun configure --force --theme classic`;
-}
-
-function layoutItemsOf(layout: string): readonly string[] {
-  const items: string[] = [];
-  for (const cluster of parseClusters(layout)) {
-    for (const item of cluster) {
-      if (!items.includes(item)) {
-        items.push(item);
-      }
-    }
-  }
-  return items;
 }
 
 // A layout-less key (the theme or the default carries its layout) still has

@@ -155,7 +155,6 @@ export function renderPreview(bag: PreviewRender): PreviewSurfaces {
     now: Number(bag.now),
     payload: bag.main,
     picks: paint.picks,
-    timeZone: 'UTC',
     ...(bag.width === undefined ? {} : { columns: bag.width }),
   }).replace(/\n+$/, '');
   const panel = firstPanelRow(

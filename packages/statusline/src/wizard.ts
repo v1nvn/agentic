@@ -1,9 +1,10 @@
 import type { PreviewRender, PreviewSurfaces } from './payloads.js';
 
 import { VERSION } from './cli.js';
-import { configure, type ConfigureOptions, layoutItems } from './configure.js';
+import { configure, type ConfigureOptions } from './configure.js';
 import { previewSources } from './payloads.js';
 import { DEFAULT_PICKS, ITEM_IDS, specFor } from './render/items.js';
+import { layoutItems } from './render/layout.js';
 import { type ThemeName, THEMES } from './themes.js';
 
 export interface WizardDeps {

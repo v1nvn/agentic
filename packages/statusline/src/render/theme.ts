@@ -1,4 +1,5 @@
 import { type Theme, THEMES } from '../themes.js';
+import { warn } from './engine.js';
 import { DEFAULT_LAYOUT } from './items.js';
 
 // One resolver, two doors: the render entry resolves here at paint, and the
@@ -15,10 +16,6 @@ export interface PaintInput {
 export interface PaintSelection {
   readonly layout: string;
   readonly picks: Readonly<Record<string, string>>;
-}
-
-function warn(message: string): void {
-  process.stderr.write(`${message}\n`);
 }
 
 export function resolvePaint(input: PaintInput): PaintSelection {

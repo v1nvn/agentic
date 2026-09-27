@@ -222,7 +222,6 @@ function lineBytes(
     now: Number(DEFAULT_NOW),
     payload: mainPayload,
     picks,
-    timeZone: 'UTC',
     ...(columns === undefined ? {} : { columns }),
   });
 }

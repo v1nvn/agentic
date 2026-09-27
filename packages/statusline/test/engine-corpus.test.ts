@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 // The door implemented in src/render/:
-//   renderStatusline({ payload, home, now, timeZone, columns?, layout?,
+//   renderStatusline({ payload, home, now, columns?, layout?,
 //                      picks?, noColor? }): string
 //   ITEMS: readonly { item, default, alternatives }[] — the COMPS registry
 //   DEFAULT_LAYOUT: string
@@ -329,7 +329,6 @@ function renderCase(c: CorpusCase): string {
     payload: JSON.stringify(payload, null, 2),
     home: demo.home,
     now: Number(c.now ?? DEFAULT_NOW),
-    timeZone: 'UTC',
     ...(c.columns === undefined ? {} : { columns: c.columns }),
     ...(c.layout === undefined ? {} : { layout: c.layout }),
     ...(c.picks === undefined ? {} : { picks: c.picks }),

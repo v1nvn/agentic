@@ -1,5 +1,5 @@
-import { fmtK, fmtM } from './awk.js';
-import { stripSgr } from './engine.js';
+import { fmtK, fmtM, pad2 } from './awk.js';
+import { stripModelSuffix, stripSgr, warn } from './engine.js';
 import { specFor } from './items.js';
 import { isRecord, jqText, orElse, tsvEscape } from './jq.js';
 import { styleSeparators } from './segments.js';
@@ -61,10 +61,6 @@ const STEPS: readonly (readonly [keyof FitState, number])[] = [
   ['modeld', 2],
   ['statd', 2],
 ];
-
-function warn(message: string): void {
-  process.stderr.write(`${message}\n`);
-}
 
 function field(
   source: Record<string, unknown>,
@@ -142,10 +138,6 @@ function makeBar(pct: number, width: number): string {
   return bar;
 }
 
-function pad2(n: number): string {
-  return String(n).padStart(2, '0');
-}
-
 // The startTime heuristic: milliseconds above the threshold become seconds
 // (truncated), and only a start at or before now yields a duration.
 function duration(startText: string, now: number): string {
@@ -191,13 +183,7 @@ function renderRow(
   if (fields.model !== '') {
     let name = fields.model;
     if (state.modeld >= 1) {
-      const at = name.lastIndexOf('[');
-      if (at !== -1) {
-        name = name.slice(0, at);
-      }
-      if (name.endsWith(' ')) {
-        name = name.slice(0, -1);
-      }
+      name = stripModelSuffix(name);
     }
     const effort = state.modeld >= 2 ? '' : fields.effort;
     if (effort !== '') {

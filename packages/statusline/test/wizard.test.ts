@@ -4,7 +4,8 @@ import { dirname, join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import multiTick from '../assets/ticks/multi.json' with { type: 'json' };
-import { configure, layoutItems } from '../src/configure.js';
+import { configure } from '../src/configure.js';
+import { layoutItems } from '../src/render/layout.js';
 import {
   previewSources,
   renderPreview,

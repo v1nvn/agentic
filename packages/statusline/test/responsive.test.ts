@@ -71,7 +71,6 @@ function render(
     home: demo.home,
     now: Number(DEFAULT_NOW),
     payload: `${JSON.stringify(parsed, null, 2)}\n`,
-    timeZone: 'UTC',
     ...(columns === undefined ? {} : { columns }),
   });
 }
@@ -135,7 +134,6 @@ describe('rate=strip negative reset deltas', () => {
       now,
       payload: `${JSON.stringify(payload, null, 2)}\n`,
       picks: { rate: 'strip' },
-      timeZone: 'UTC',
     });
     expect(line).toContain('resets -1m55s');
     expect(line).toContain('resets -61m59s');

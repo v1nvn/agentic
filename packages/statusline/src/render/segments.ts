@@ -1,7 +1,7 @@
 import type { GitFacts } from './git.js';
 import type { Row } from './payload.js';
 
-import { fmtFixed, fmtK, fmtM } from './awk.js';
+import { fmtFixed, fmtK, fmtM, pad2 } from './awk.js';
 
 export interface SegmentInput {
   readonly git: GitFacts;
@@ -58,10 +58,6 @@ const HEAT = [
 
 function trunc(n: number): number {
   return Math.trunc(n);
-}
-
-function pad2(n: number): string {
-  return String(n).padStart(2, '0');
 }
 
 function modelPlain({ model }: SegmentInput): string {

@@ -5,7 +5,7 @@ import { renderPanel } from './panel.js';
 import { resolvePaint } from './theme.js';
 
 // The render.mjs entry the settings keys spawn: decisions ride argv, ambient
-// state rides env — NO_COLOR, COLUMNS, TZ, HOME stay environment because the
+// state rides env — NO_COLOR, COLUMNS, HOME stay environment because the
 // host shell owns them.
 
 function readStdin(): Promise<string> {
@@ -57,7 +57,6 @@ async function main(): Promise<void> {
       now,
       payload,
       picks: paint.picks,
-      timeZone: env.TZ ?? 'UTC',
       noColor,
       layout: paint.layout,
       ...(columns === undefined ? {} : { columns }),

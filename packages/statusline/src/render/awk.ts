@@ -46,6 +46,10 @@ export function fmtFixed(x: number, d: number): string {
   return `${sign}${intPart}.${fracPart}`;
 }
 
+export function pad2(n: number): string {
+  return String(n).padStart(2, '0');
+}
+
 export function fmtK(n: number, d: number): string {
   return `${fmtFixed(n / 1000, d)}k`;
 }
