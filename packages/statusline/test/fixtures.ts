@@ -12,9 +12,8 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 
 import { DATA_DIR } from '../src/render/capture.js';
-import { themesFor } from '../src/themes.js';
 
-export const THEMES = themesFor();
+export { THEMES } from '../src/themes.js';
 
 export function settingsPath(home: string): string {
   return join(home, '.claude', 'settings.json');

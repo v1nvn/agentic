@@ -4,7 +4,7 @@ import { VERSION } from './cli.js';
 import { configure, type ConfigureOptions, layoutItems } from './configure.js';
 import { previewSources } from './payloads.js';
 import { ITEMS, type ItemSpec } from './render/items.js';
-import { type ThemeName, themesFor } from './themes.js';
+import { type ThemeName, THEMES } from './themes.js';
 
 export interface WizardDeps {
   preview(bag: PreviewRender): PreviewSurfaces;
@@ -44,8 +44,7 @@ export async function createWizard(
   options: WizardOptions,
   deps: WizardDeps,
 ): Promise<WizardOutcome> {
-  const themes = themesFor();
-  const names = Object.keys(themes) as ThemeName[];
+  const names = Object.keys(THEMES) as ThemeName[];
   const byItem = new Map<string, ItemSpec>(
     ITEMS.map(item => [item.item, item] as const),
   );
@@ -83,7 +82,7 @@ export async function createWizard(
   }
 
   function enterRefine(name: ThemeName): void {
-    const theme = themes[name];
+    const theme = THEMES[name];
     draftLayout = theme.layout;
     offered = layoutItems(
       theme.layout,
@@ -146,7 +145,7 @@ export async function createWizard(
     let panel = '';
     for (let at = 0; at < names.length; at += 1) {
       const name = names[at];
-      const theme = themes[name];
+      const theme = THEMES[name];
       const surfaces = deps.preview(bag(theme.layout, theme.variants));
       const focused = at === themeAt;
       if (focused) {

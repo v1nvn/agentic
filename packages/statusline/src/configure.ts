@@ -17,12 +17,7 @@ import {
   panelKeyValue,
   renderMjsPath,
 } from './resolve.js';
-import {
-  type Theme,
-  THEME_NAMES,
-  type ThemeName,
-  themesFor,
-} from './themes.js';
+import { type Theme, THEME_NAMES, type ThemeName, THEMES } from './themes.js';
 
 export interface ConfigureOptions {
   readonly force?: boolean;
@@ -488,9 +483,8 @@ export function resolveSelection(
   options: Pick<ConfigureOptions, 'layout' | 'theme' | 'variants'>,
 ): Selection {
   const variants = options.variants ?? {};
-  const themes = themesFor();
   const theme =
-    options.theme === undefined ? undefined : themeNamed(options.theme, themes);
+    options.theme === undefined ? undefined : themeNamed(options.theme, THEMES);
 
   const layout = options.layout ?? theme?.layout;
   if (layout === undefined) {

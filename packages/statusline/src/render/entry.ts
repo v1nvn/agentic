@@ -2,6 +2,7 @@ import { parseArgv } from './argv.js';
 import { capturePayload } from './capture.js';
 import { renderStatusline } from './engine.js';
 import { renderPanel } from './panel.js';
+import { resolvePaint } from './theme.js';
 
 // The render.mjs entry the settings keys spawn (bundled in r3): decisions ride
 // argv, ambient state rides env — NO_COLOR, COLUMNS, TZ, HOME stay
@@ -40,9 +41,10 @@ async function main(): Promise<void> {
   const home = env.HOME ?? '';
   const noColor = (env.NO_COLOR ?? '') !== '';
   const now = argv.now ?? Math.floor(Date.now() / 1000);
+  const paint = resolvePaint(argv);
   if (argv.mode === 'panel') {
     process.stdout.write(
-      renderPanel({ home, now, payload, picks: argv.picks, noColor }),
+      renderPanel({ home, now, payload, picks: paint.picks, noColor }),
     );
     return;
   }
@@ -53,10 +55,10 @@ async function main(): Promise<void> {
       home,
       now,
       payload,
-      picks: argv.picks,
+      picks: paint.picks,
       timeZone: env.TZ ?? 'UTC',
       noColor,
-      ...(argv.layout === undefined ? {} : { layout: argv.layout }),
+      layout: paint.layout,
       ...(columns === undefined ? {} : { columns }),
     }),
   );

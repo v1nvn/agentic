@@ -1,6 +1,6 @@
 import { DEFAULT_LAYOUT, ITEMS } from './render/items.js';
 import { type ScriptConfig } from './resolve.js';
-import { type ThemeName, themesFor } from './themes.js';
+import { type ThemeName, THEMES } from './themes.js';
 
 // A key records only picks that differ from the registry defaults, so both
 // sides fill absent items with the default before comparing: a theme matches
@@ -24,9 +24,8 @@ export function liveTheme(key: ScriptConfig): ThemeName | undefined {
   }
   const layout = effectiveLayout(key.layout);
   const values = effectivePicks(key.values);
-  const themes = themesFor();
-  for (const name of Object.keys(themes) as ThemeName[]) {
-    const theme = themes[name];
+  for (const name of Object.keys(THEMES) as ThemeName[]) {
+    const theme = THEMES[name];
     const picks = effectivePicks(theme.variants);
     if (
       layout === effectiveLayout(theme.layout) &&
