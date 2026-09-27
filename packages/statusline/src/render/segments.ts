@@ -1,7 +1,7 @@
 import type { GitFacts } from './git.js';
 import type { Row } from './payload.js';
 
-import { fmtK, fmtM } from './awk.js';
+import { fmtFixed, fmtK, fmtM } from './awk.js';
 
 export interface SegmentInput {
   readonly git: GitFacts;
@@ -416,14 +416,14 @@ function cacheFuse({ now, row }: SegmentInput): string {
 }
 
 function costPlain({ row }: SegmentInput): string {
-  return row.cost >= 0.005 ? `${YELLOW}$${row.cost.toFixed(2)}${RESET}` : '';
+  return row.cost >= 0.005 ? `${YELLOW}$${fmtFixed(row.cost, 2)}${RESET}` : '';
 }
 
 function costBurn(input: SegmentInput): string {
   const hr = input.row.durationMs / 3600000;
   // awk's else branch prints "0", never "0.00", so a sub-threshold burn rate
   // still appends "$0/hr" — ported as-is.
-  const burn = hr > 0.02 ? (input.row.cost / hr).toFixed(2) : '0';
+  const burn = hr > 0.02 ? fmtFixed(input.row.cost / hr, 2) : '0';
   let out = costPlain(input);
   if (burn !== '0.00') {
     out += ` ${DIM}· $${burn}/hr${RESET}`;

@@ -288,6 +288,17 @@ const CORPUS: readonly CorpusCase[] = [
       ctx.context_window_size = 2500;
     },
   },
+  // cost tie: awk printf "$%.2f" rounds 0.125 to even "$0.12"; toFixed says
+  // "$0.13".
+  {
+    name: 'seg-p1-cost-tie',
+    payload: 'p1',
+    oracle: true,
+    layout: '{cost}',
+    mutate: payload => {
+      (payload.cost as Loose).total_cost_usd = 0.125;
+    },
+  },
   { name: 'seg-p4-state-pills', payload: 'p4', oracle: true, layout: '{state}', picks: { state: 'pills' } },
   { name: 'seg-p4-pr-badge', payload: 'p4', oracle: true, layout: '{pr}', picks: { pr: 'badge' } },
   { name: 'seg-p2-state-pills', payload: 'p2', oracle: true, layout: '{state}', picks: { state: 'pills' } },

@@ -1,7 +1,8 @@
-// The bash renderers format token counts with awk printf ("%.1fk", n/1000),
-// which rounds the quotient's exact IEEE value to even at a decimal tie.
-// toFixed rounds ties away from zero — 1250 prints "1.2k" here, "1.3k" there
-// — so the rounding is done on the double's exact bits, never in floating
+// The bash renderers format numbers with awk printf ("%.1fk", n/1000,
+// "$%.2f", c), which rounds the value's exact IEEE bits to even at a decimal
+// tie. toFixed rounds ties away from zero — 1250 prints "1.2k" here, "1.3k"
+// there — so fmtFixed is the one door for printf-style decimal formatting,
+// and the rounding is done on the double's exact bits, never in floating
 // arithmetic.
 
 const TEN = 10n;
@@ -33,7 +34,7 @@ function roundScaled(ax: number, d: number): bigint {
   return q;
 }
 
-function printfFixed(x: number, d: number): string {
+export function fmtFixed(x: number, d: number): string {
   const q = roundScaled(Math.abs(x), d);
   const sign = x < 0 && q !== 0n ? '-' : '';
   const digits = q.toString();
@@ -46,9 +47,9 @@ function printfFixed(x: number, d: number): string {
 }
 
 export function fmtK(n: number, d: number): string {
-  return `${printfFixed(n / 1000, d)}k`;
+  return `${fmtFixed(n / 1000, d)}k`;
 }
 
 export function fmtM(n: number): string {
-  return `${printfFixed(n / 1_000_000, 0)}M`;
+  return `${fmtFixed(n / 1_000_000, 0)}M`;
 }
