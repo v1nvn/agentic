@@ -1,6 +1,7 @@
 import { fmtK, fmtM } from './awk.js';
 import { stripSgr } from './engine.js';
 import { specFor } from './items.js';
+import { isRecord, jqText, orElse, tsvEscape } from './jq.js';
 import { styleSeparators } from './segments.js';
 
 // The agent panel, ported exact from the bash subagent renderer it replaced —
@@ -61,49 +62,20 @@ const STEPS: readonly (readonly [keyof FitState, number])[] = [
   ['statd', 2],
 ];
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
 function warn(message: string): void {
   process.stderr.write(`${message}\n`);
 }
 
-// jq's `//`: only null, false, and a missing member fall through.
 function field(
   source: Record<string, unknown>,
   key: string,
   fallback: unknown,
 ): unknown {
-  const value = source[key];
-  return value === undefined || value === null || value === false
-    ? fallback
-    : value;
-}
-
-// jq's `tostring` on the row fields: scalars as text, containers as JSON.
-function jqText(value: unknown): string {
-  if (typeof value === 'string') {
-    return value;
-  }
-  if (typeof value === 'number' || typeof value === 'boolean') {
-    return String(value);
-  }
-  return JSON.stringify(value);
-}
-
-// Every field crosses jq's @tsv before the bash field split: backslash, tab,
-// newline, and carriage return survive as their two-character escapes.
-function tsvText(text: string): string {
-  return text
-    .replace(/\\/g, '\\\\')
-    .replace(/\t/g, '\\t')
-    .replace(/\n/g, '\\n')
-    .replace(/\r/g, '\\r');
+  return orElse(source[key], fallback);
 }
 
 function cell(value: unknown): string {
-  return tsvText(jqText(value));
+  return tsvEscape(jqText(value));
 }
 
 // jq's truncation: a description longer than 24 codepoints keeps its first 23
