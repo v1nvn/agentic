@@ -409,10 +409,10 @@ function themeNamed(
 // the registry offers, the layout's items are known — and some layout source
 // exists. The renderer resolves theme plus overrides at paint
 // (src/render/theme.ts); the writer below records the decisions, never
-// resolved output.
+// resolved output. Returns the named theme so its caller resolves it once.
 export function validateSelection(
   options: Pick<ConfigureOptions, 'layout' | 'theme' | 'variants'>,
-): void {
+): Theme | undefined {
   const theme =
     options.theme === undefined ? undefined : themeNamed(options.theme, THEMES);
 
@@ -434,6 +434,7 @@ export function validateSelection(
       );
     }
   }
+  return theme;
 }
 
 // A key records only the decisions that differ from the picks its base
@@ -462,9 +463,7 @@ export function configure(options: ConfigureOptions): void {
     );
   }
 
-  validateSelection(options);
-  const theme =
-    options.theme === undefined ? undefined : themeNamed(options.theme, THEMES);
+  const theme = validateSelection(options);
   const base = { ...DEFAULT_PICKS, ...theme?.variants };
   const decisions = options.variants ?? {};
   const baseLayout = theme?.layout ?? DEFAULT_LAYOUT;
