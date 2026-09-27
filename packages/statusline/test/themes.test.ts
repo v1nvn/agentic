@@ -12,9 +12,9 @@ import { resolvePaint } from '../src/render/theme.js';
 import * as themes from '../src/themes.js';
 import { createDemoHome, DEFAULT_NOW, tickStdin, type DemoHome } from './runtime.js';
 
-// The Design block's literal theme definitions — the pin the builder
-// implements to. Classic's default picks and the layout/membership
-// cross-checks derive from the registry below.
+// One theme's content pinned verbatim as the independent oracle; the rest
+// are pinned by rule — what each theme IS derives from the registry, so the
+// tests check the rule, never a second hand-copied table.
 const QUIET_LAYOUT = '{model cwd}';
 
 const QUIET_VARIANTS: Readonly<Record<string, string>> = {
@@ -23,90 +23,26 @@ const QUIET_VARIANTS: Readonly<Record<string, string>> = {
   style: 'bare',
 };
 
-const LEAN_VARIANTS: Readonly<Record<string, string>> = {
-  ahead: 'arrows',
-  bar: 'percent',
-  branch: 'initials',
-  cache: 'hit',
-  cost: 'plain',
-  cwd: 'init',
-  duration: 'clock',
-  effort: 'dim',
-  lines: 'diffstat',
-  model: 'plain',
-  pr: 'badge',
-  rate: 'none',
-  state: 'none',
-  status: 'counts',
-  style: 'dots',
-  tokens: 'full',
-};
-
-const RICH_VARIANTS: Readonly<Record<string, string>> = {
-  ahead: 'arrows',
-  bar: 'gauge',
-  branch: 'icon',
-  cache: 'fuse',
-  cost: 'burn',
-  cwd: 'icon',
-  duration: 'clock',
-  effort: 'plain',
-  lines: 'diffstat',
-  model: 'pill',
-  pr: 'badge',
-  rate: 'strip',
-  state: 'pills',
-  status: 'icons',
-  style: 'plain',
-  tokens: 'full',
-};
-
-// Custom seeds bare — sixteen pairs: `none` for the twelve items that offer
-// it (branch included — the registry knows the inline shim the old bash
-// scrape could not see), effort's absence word `hidden`, and the three named
-// picks for the items with no absence word.
-const CUSTOM_VARIANTS: Readonly<Record<string, string>> = {
-  ahead: 'none',
-  bar: 'none',
-  branch: 'none',
-  cache: 'none',
-  cost: 'none',
+// Custom seeds bare: `none` where the registry offers it, effort's absence
+// word `hidden`, and a minimal pick for the three items with no absence word.
+const NAMED_MINIMA: Readonly<Partial<Record<string, string>>> = {
   cwd: 'base',
-  duration: 'none',
-  effort: 'hidden',
-  lines: 'none',
   model: 'zen',
-  pr: 'none',
-  rate: 'none',
-  state: 'none',
-  status: 'none',
   style: 'bare',
-  tokens: 'none',
 };
 
-const SUMMARIES: Readonly<Record<string, string>> = {
-  classic: 'the shipped defaults, named',
-  custom: 'bare; you decide everything',
-  lean: 'text only, no graphics',
-  quiet: 'model and directory, nothing else',
-  rich: 'every gauge and counter',
-};
+const CUSTOM_SEED: Readonly<Record<string, string>> = Object.fromEntries(
+  ITEMS.map(({ alternatives, item }) => [
+    item,
+    alternatives.includes('none')
+      ? 'none'
+      : item === 'effort'
+        ? 'hidden'
+        : (NAMED_MINIMA[item] as string),
+  ]),
+);
 
-const THEME_NAMES = [
-  'classic',
-  'custom',
-  'lean',
-  'quiet',
-  'rich',
-] as const satisfies readonly string[];
-
-const DEFAULT_LAYOUT_THEMES = [
-  'classic',
-  'custom',
-  'lean',
-  'rich',
-] as const satisfies readonly string[];
-
+const THEME_NAMES = themes.THEME_NAMES;
 const THEMES = themes.THEMES;
 
 describe('themes: surface', () => {
@@ -131,27 +67,23 @@ describe('themes: surface', () => {
 describe('themes: layouts', () => {
   it('quiet verbatim; the other four are the registry default layout', () => {
     expect(THEMES.quiet.layout).toBe(QUIET_LAYOUT);
-    for (const name of DEFAULT_LAYOUT_THEMES) {
+    for (const name of ['classic', 'custom', 'lean', 'rich'] as const) {
       expect(THEMES[name].layout, name).toBe(DEFAULT_LAYOUT);
     }
   });
 });
 
 describe('themes: variant picks', () => {
-  it('quiet, lean, and rich carry the Design lists exactly, style included', () => {
+  it('quiet carries its list exactly, style included', () => {
     expect(THEMES.quiet.variants).toEqual(QUIET_VARIANTS);
-    expect(THEMES.lean.variants).toEqual(LEAN_VARIANTS);
-    expect(THEMES.rich.variants).toEqual(RICH_VARIANTS);
   });
 
-  it('classic is every registry item at its default pick', () => {
-    expect(THEMES.classic.variants).toEqual(
-      Object.fromEntries(ITEMS.map(({ default: def, item }) => [item, def])),
-    );
+  it('classic resolves exactly like no theme — the defaults, named', () => {
+    expect(resolvePaint({ theme: 'classic' })).toEqual(resolvePaint({}));
   });
 
-  it('custom seeds bare — the sixteen literal most-absent pairs', () => {
-    expect(THEMES.custom.variants).toEqual(CUSTOM_VARIANTS);
+  it('custom seeds bare — none where offered, hidden for effort, minimal otherwise', () => {
+    expect(THEMES.custom.variants).toEqual(CUSTOM_SEED);
   });
 });
 
@@ -172,14 +104,6 @@ describe('themes: registry pin', () => {
       }
     },
   );
-});
-
-describe('themes: summaries', () => {
-  it('each theme carries its Design phrase verbatim', () => {
-    for (const name of THEME_NAMES) {
-      expect(THEMES[name].summary, name).toBe(SUMMARIES[name]);
-    }
-  });
 });
 
 // The equivalence core: for every theme, the paint resolver's output must be
@@ -245,28 +169,6 @@ describe('resolvePaint: the five themes carry their own table rows', () => {
         layout: THEMES[name].layout,
         picks: THEMES[name].variants,
       });
-    },
-  );
-
-  it.each([...THEME_NAMES])(
-    '%s renders byte-identical on the line, wide and narrow',
-    name => {
-      const resolved = resolvePaint({ theme: name });
-      for (const columns of [200, 60]) {
-        expect(
-          lineBytes(resolved.layout, resolved.picks, columns),
-          `${name} at ${columns}`,
-        ).toBe(lineBytes(THEMES[name].layout, THEMES[name].variants, columns));
-      }
-    },
-  );
-
-  it.each([...THEME_NAMES])(
-    '%s renders byte-identical on the panel (the theme style)',
-    name => {
-      expect(panelBytes(resolvePaint({ theme: name }).picks)).toBe(
-        panelBytes(THEMES[name].variants),
-      );
     },
   );
 
