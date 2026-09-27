@@ -1,3 +1,4 @@
+import { fmtK, fmtM } from './awk.js';
 import { capturePayload } from './capture.js';
 import { stripSgr } from './engine.js';
 import { ITEMS } from './items.js';
@@ -159,10 +160,6 @@ function extractFields(task: Record<string, unknown>): TaskFields {
   };
 }
 
-function fmtK(n: number, d: number): string {
-  return `${(n / 1000).toFixed(d)}k`;
-}
-
 function makeBar(pct: number, width: number): string {
   let f = Math.trunc((pct * width) / 100);
   if (f > width) {
@@ -199,7 +196,7 @@ function rowFormats(fields: TaskFields, now: number): RowFormats {
   const ctx = intValue(fields.ctx) ?? 0;
   let ctxText = fields.ctx;
   if (ctx >= 1_000_000) {
-    ctxText = `${(ctx / 1_000_000).toFixed(0)}M`;
+    ctxText = fmtM(ctx);
   } else if (ctx >= 1000) {
     ctxText = fmtK(ctx, 0);
   }
@@ -295,8 +292,8 @@ function emitLine(id: string, content: string): string {
 }
 
 export function renderPanel(input: PanelInput): string {
-  const tick: unknown = JSON.parse(input.payload);
   capturePayload(input.home, 'tick', input.payload);
+  const tick: unknown = JSON.parse(input.payload);
   const avail = availColumns(tick);
   const sep = styleSeparators(stylePick(input.picks)).sep;
   const tasks = isRecord(tick) && Array.isArray(tick.tasks) ? tick.tasks : [];

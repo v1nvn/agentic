@@ -1,6 +1,8 @@
 import type { GitFacts } from './git.js';
 import type { Row } from './payload.js';
 
+import { fmtK, fmtM } from './awk.js';
+
 export interface SegmentInput {
   readonly git: GitFacts;
   readonly home: string;
@@ -340,28 +342,24 @@ function barGauge({ row }: SegmentInput): string {
   return `${moon} ${lead}${bar}${RESET} ${MARK}${pct}%${RESET}`;
 }
 
-function tokensK(t: number, d: number): string {
-  return `${(t / 1000).toFixed(d)}k`;
-}
-
 function tokensFull({ row }: SegmentInput): string {
-  const t = row.tokens >= 1000 ? tokensK(row.tokens, 1) : String(row.tokens);
+  const t = row.tokens >= 1000 ? fmtK(row.tokens, 1) : String(row.tokens);
   let c = String(row.ctxSize);
   if (row.ctxSize >= 1000000) {
-    c = `${(row.ctxSize / 1000000).toFixed(0)}M`;
+    c = fmtM(row.ctxSize);
   } else if (row.ctxSize >= 1000) {
-    c = tokensK(row.ctxSize, 0);
+    c = fmtK(row.ctxSize, 0);
   }
   return `${t}/${c}`;
 }
 
 function tokensCompact({ row }: SegmentInput): string {
-  return row.tokens >= 1000 ? tokensK(row.tokens, 0) : String(row.tokens);
+  return row.tokens >= 1000 ? fmtK(row.tokens, 0) : String(row.tokens);
 }
 
 function tokensFree({ row }: SegmentInput): string {
   const free = row.ctxSize - row.tokens;
-  return `${DIM}${free >= 1000 ? tokensK(free, 0) : String(free)} free${RESET}`;
+  return `${DIM}${free >= 1000 ? fmtK(free, 0) : String(free)} free${RESET}`;
 }
 
 function cacheHitPct(row: Row): null | number {

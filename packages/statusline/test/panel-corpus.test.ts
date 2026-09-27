@@ -87,6 +87,13 @@ const PANEL_CORPUS: readonly PanelCase[] = [
     },
   },
   {
+    // token tie: fmt_k(1250, 1) rounds 1.25 to even "1.2k", not "1.3k"
+    name: 'multi-tokens-1250',
+    mutate: tick => {
+      row(tick, 'row-tests').tokenCount = 1250;
+    },
+  },
+  {
     // row is 16 codepoints / 17 UTF-16 units / 19 bytes at AVAIL 16 — only
     // codepoint vlen keeps the description
     name: 'multi-emoji',

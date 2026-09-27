@@ -274,6 +274,20 @@ const CORPUS: readonly CorpusCase[] = [
     picks: { bar: 'gauge' },
     mutate: payload => setPct(payload, 150),
   },
+  // token ties: awk printf rounds 1.25/2.5 to even ("1.2k"/"2k"), toFixed
+  // rounds away from zero ("1.3k"/"3k").
+  {
+    name: 'seg-p1-tokens-tie',
+    payload: 'p1',
+    oracle: true,
+    layout: '{tokens}',
+    picks: { tokens: 'full' },
+    mutate: payload => {
+      const ctx = payload.context_window as Loose;
+      ctx.total_input_tokens = 1250;
+      ctx.context_window_size = 2500;
+    },
+  },
   { name: 'seg-p4-state-pills', payload: 'p4', oracle: true, layout: '{state}', picks: { state: 'pills' } },
   { name: 'seg-p4-pr-badge', payload: 'p4', oracle: true, layout: '{pr}', picks: { pr: 'badge' } },
   { name: 'seg-p2-state-pills', payload: 'p2', oracle: true, layout: '{state}', picks: { state: 'pills' } },
