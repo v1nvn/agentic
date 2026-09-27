@@ -12,8 +12,8 @@ its package through version-pinned `npx` — except todo: manifest + skills, no 
 | **md**          | Send the last reply to a Markdown-Viewer as a `#share=` URL — editable or read-only.                                                   | `/md:edit`, `/md:view`                                |
 | **zai**         | Query GLM Coding Plan quota and usage.                                                                                                 | `/zai:usage`                                          |
 | **tokens**      | Per-model token usage and cache hit rate from local transcripts.                                                                       | `/tokens:usage`                                       |
-| **statusline**  | Pick a theme for the status line + agent panel, or revert the setup.                                                                  | `/lab`                                 |
-| **todo**        | Work tracking — the rules plus six verbs over `TODO.md`, `progress/`, `references/`, `archive/`. Every repo carries data only.         | `/todo:run <plan>`, or a what's-next ask |
+| **statusline**  | Pick a theme for the status line + agent panel, or revert the setup.                                                                   | `/lab`                                                |
+| **todo**        | Work tracking — the rules plus six verbs over `TODO.md`, `progress/`, `references/`, `archive/`. Every repo carries data only.         | `/todo:run <plan>`, or a what's-next ask              |
 
 `rm`, `md`, `zai`, and `tokens` run zero-token: a `UserPromptExpansion` hook intercepts the command before it reaches the model.
 
@@ -66,48 +66,51 @@ npx -y @v1nvn/statusline@0.28.0 restore                            # both keys b
 npx -y @v1nvn/statusline@0.28.0 status                             # rows + verdict — exit 0 healthy, 1 needs action
 ```
 
-`configure` touches exactly the `statusLine` and `subagentStatusLine` keys of
-`~/.claude/settings.json` — the whole write footprint. Each value is one
-inline shell command: a resolver that picks the newest cached runtime, then
-the config as env assignments hugging `bash` (the subagent key carries none —
-the panel has no variants). Raw:
+`configure` is the sole writer: one run touches exactly the `statusLine` and
+`subagentStatusLine` keys of `~/.claude/settings.json` and syncs the bundled
+renderer (`render.mjs`) into the plugin data dir — the whole write footprint.
+Each value is one inline shell command: `node` on that data-dir renderer, the
+decisions as flags — `--theme` first, then one `--<item>=<alt>` per pick that
+differs from the theme's own, `--layout` only when passed; the panel key adds
+the `panel` positional. Raw:
 
 ```sh
-d=$(printf '%s\n' ~/.claude/plugins/cache/agentic/statusline/*/ | sort -V | tail -1); STATUSLINE_LAB_LAYOUT='{model effort}' STATUSLINE_LAB_MODEL=block STATUSLINE_LAB_EFFORT=dim bash "${d}runtime/statusline.sh" 2>/dev/null || true
-d=$(printf '%s\n' ~/.claude/plugins/cache/agentic/statusline/*/ | sort -V | tail -1); bash "${d}runtime/subagent.sh" 2>/dev/null || true
+node "$HOME/.claude/plugins/data/statusline-agentic/render.mjs" --theme=lean --bar=gauge || true
+node "$HOME/.claude/plugins/data/statusline-agentic/render.mjs" panel --theme=lean || true
 ```
 
-The layout — brace clusters of item ids — and one variant per item ride in
-that value: `--layout '{model effort} {cwd branch} {bar tokens cache}'`. With
-flags, `configure` is strict — `--theme <name>` (quiet, lean, classic, rich,
-custom) is the base design, item flags override it, and a layout item nothing
-picks is an error naming it; `classic` names the shipped defaults. `preview`
-renders a candidate through the same resolution without writing — `--plain`
-strips the color escapes so the sketch survives chat. A foreign settings key
-is refused unless `--force`. The first takeover saves the pre-lab key values
-to `backup.json`; `restore` splices them back byte-exact — keys absent before
-the lab are removed — then deletes the lab data. `status` checks the
-install: runtime, both keys, config drift against the resolved runtime, the
-live theme, backup, captures — one row per fact plus a verdict, every action
-row naming its fix. `/lab` inside a session runs the same commands.
+The layout — brace clusters of item ids — rides as `--layout` only when
+passed; the theme's layout holds otherwise. With flags, `configure` is
+strict — `--theme <name>` (quiet, lean, classic, rich, custom) is the base
+design, item flags override it, and a layout item nothing picks is an error
+naming it; `classic` names the shipped defaults. The theme resolves at paint,
+and `preview` renders a candidate through the same resolution without
+writing — `--plain` strips the color escapes so the sketch survives chat. A
+foreign settings key is refused unless `--force`. The first takeover saves
+the pre-lab key values to `backup.json`; `restore` splices them back
+byte-exact — keys absent before the lab are removed — then deletes the lab
+data. The theme name rides the key — `status` and `catalog` read it from
+there, and swaps keep the name. `status` checks the install: node, the
+data-dir renderer, both keys, config drift, the theme, backup, captures —
+one row per fact plus a verdict, every action row naming its fix. `/lab`
+inside a session runs the same commands.
 
 Repo and machine:
 
 ```
 repo
-  packages/statusline/                the CLI — pure TS, zero bash
-    src/  test/  dist/
+  packages/statusline/                the CLI and the renderer — pure TS, zero bash
+    src/  test/  dist/                dist/ holds index.js and render.mjs
     assets/payloads/  p1–p4.json          preview fixtures, main surface
     assets/ticks/     multi.json          preview fixtures, agent panel
   plugins/statusline/
     SKILL.md                              the /lab skill — model-taught entry point
-    runtime/                              the bash runtime — statusline.sh, subagent.sh, lib.sh, components/*.sh
 
 machine, after `claude plugin install statusline@agentic`
-  ~/.claude/plugins/cache/agentic/statusline/<version>/runtime/   the installed runtime
   ~/.claude/plugins/data/statusline-agentic/
+    render.mjs                            the renderer — synced in by configure, spawned by both keys
     backup.json                           pre-lab key values — first takeover wins
-    captures/main.json  captures/tick.json  every paint's stdin, teed by the runtime; feeds previews
+    captures/main.json  captures/tick.json  every paint's stdin, teed by the renderer; feeds previews
   ~/.claude/settings.json                 statusLine + subagentStatusLine → the inline commands
 ```
 
@@ -117,9 +120,9 @@ Install: `claude plugin marketplace add v1nvn/agentic`, then
 previews both surfaces at 80/120/200 columns and saves.
 
 Uninstall runs `npx -y @v1nvn/statusline@0.28.0 restore` first, then uninstalls
-the plugin: a plain uninstall deletes the data dir with `backup.json`, and
-keys left behind keep globbing a cache dir that dies only ~14 days later — a
-blank line, delayed.
+the plugin: a plain uninstall deletes the data dir — `backup.json` and
+`render.mjs` go with it — and the keys left behind point `node` at a renderer
+that is gone: a blank line at the next paint.
 
 ## Layout
 
@@ -129,11 +132,11 @@ packages/                           the eight npm packages — one yarn workspac
   readability-mcp/  omlx-mcp/       the two MCP servers (@v1nvn/readability-mcp, @v1nvn/omlx-mcp)
   core/                             @v1nvn/agentic-core — last-reply + text formatting, shared by the tools
   zai/  tokens/  rm/  md/           the tool CLIs (zai-usage, tokens-report, rm-send, md-send)
-  statusline/                    the catalog + configure CLI — pure TS (@v1nvn/statusline)
-plugins/                            the eight plugins — manifests, skills, config wrappers; code only in statusline's runtime payload
+  statusline/                    the configure CLI + renderer — pure TS (@v1nvn/statusline)
+plugins/                            the eight plugins — manifests, skills, config wrappers; no code
   readability/  omlx/               .mcp.json (pinned npx) + plugin.json
   zai/  tokens/  rm/  md/           hooks.json (pinned npx) + plugin.json + commands/
-  statusline/                   root SKILL.md + the bash runtime (see statusline above)
+  statusline/                   root SKILL.md (see statusline above)
   todo/                         plugin.json + skills/ — the rules and six verbs, no package
 ```
 
