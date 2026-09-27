@@ -19,6 +19,7 @@ import {
   settingsCommand,
   snapshotTree,
 } from './fixtures.js';
+import { DEFAULT_NOW } from './runtime.js';
 
 const P1 = fileURLToPath(new URL('../assets/payloads/p1.json', import.meta.url));
 const TICK = fileURLToPath(new URL('../assets/ticks/multi.json', import.meta.url));
@@ -33,8 +34,9 @@ function runKey(
   key: string,
   home: string,
   stdin: string,
+  extra: readonly string[] = [],
 ): { readonly status: number; readonly stdout: string } {
-  const run = spawnSync('node', [...keyArgv(key, home)], {
+  const run = spawnSync('node', [...keyArgv(key, home), ...extra], {
     input: stdin,
     env: {
       HOME: home,
@@ -90,21 +92,41 @@ describe('configure on a scratch home (rulings 1 and 4)', () => {
 });
 
 describe('a theme write through the real node renderer', () => {
-  it('the --theme=lean main key paints the lean line — dots separators, a percent bar, no gauges', () => {
+  it('both --theme=lean keys paint lean — the line dots-separated with a percent bar, the panel row dots-separated with its context percent', () => {
     const home = homes.newHome();
     configure({ home, theme: 'lean' });
-    const stdin = readFileSync(P1, 'utf8');
+    const payload = readFileSync(P1, 'utf8');
 
-    const painted = runKey(settingsCommand(home, 'statusLine'), home, stdin);
+    const mainKey = settingsCommand(home, 'statusLine');
+    const panelKey = settingsCommand(home, 'subagentStatusLine');
+    expect(mainKey).toBe(mainKeyValue('lean', null, []));
+    expect(panelKey).toBe(panelKeyValue('lean', []));
 
-    expect(painted.status).toBe(0);
-    expect(painted.stdout).toContain(' · ');
-    expect(painted.stdout).toContain('%');
-    expect(painted.stdout).not.toContain('█');
-    expect(painted.stdout).not.toContain('│');
+    const line = runKey(mainKey, home, payload, [`--now=${DEFAULT_NOW}`]);
+
+    expect(line.status).toBe(0);
+    expect(line.stdout).toContain(' · ');
+    expect(line.stdout).toContain('58%');
+    expect(line.stdout).not.toContain('█');
+    expect(line.stdout).not.toContain('│');
     expect(readFileSync(capturePath(home, 'main'))).toEqual(
-      Buffer.from(stdin),
+      Buffer.from(payload),
     );
+
+    const panel = runKey(panelKey, home, readFileSync(TICK, 'utf8'), [
+      `--now=${DEFAULT_NOW}`,
+    ]);
+
+    expect(panel.status).toBe(0);
+    const contents = panel.stdout
+      .split('\n')
+      .filter(row => row !== '')
+      .map(row => (JSON.parse(row) as { content: string }).content);
+    expect(
+      contents.filter(
+        content => content.includes(' · ') && content.includes('71%'),
+      ),
+    ).not.toEqual([]);
   });
 });
 
