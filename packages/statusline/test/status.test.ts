@@ -131,6 +131,27 @@ describe('status: variants-only drift (contract 5)', () => {
   });
 });
 
+describe('status: layout-less drift (t2)', () => {
+  it('a layout-less ours key still flags unknown variants and shows its decisions', () => {
+    const home = homes.newHome();
+    writeSettings(
+      home,
+      `{
+  "statusLine": ${JSON.stringify({ command: mainKeyValue(null, null, ['--model=zzz']), type: 'command' })}
+}
+`,
+    );
+
+    const result = status({ home });
+
+    expect(result.rows).toContain('statusLine: ours — model=zzz');
+    expect(result.rows).toContain(
+      "config: drift — unknown variant 'zzz' for 'model' — fix: rerun configure --theme classic",
+    );
+    expect(result.healthy).toBe(false);
+  });
+});
+
 describe('status: foreign and absent keys (contract 5)', () => {
   it('classifies the foreign key with its command and the absent key, each row naming its fix, and signals unhealthy', () => {
     const home = homes.newHome();
@@ -357,6 +378,10 @@ function seedMainKey(home: string, flags: readonly string[]): void {
           command: mainKeyValue(null, THEMES.lean.layout, flags),
           type: 'command',
         },
+        subagentStatusLine: {
+          command: panelKeyValue(null, []),
+          type: 'command',
+        },
       },
       null,
       2,
@@ -367,10 +392,12 @@ function seedMainKey(home: string, flags: readonly string[]): void {
 describe('status: the live theme (contract 5)', () => {
   it("names the theme a compiled key equals exactly — a 'theme: lean' row right after the config row", () => {
     const home = homes.newHome();
+    configure({ home, theme: 'lean' });
     seedMainKey(home, leanKeyFlags());
 
     const result = status({ home });
 
+    expect(result.healthy).toBe(true);
     expect(themeRows(result.rows)).toEqual(['theme: lean']);
     expect(result.rows.indexOf('theme: lean')).toBe(
       result.rows.indexOf('config: no drift') + 1,

@@ -71,14 +71,21 @@ function layoutItemsOf(layout: string): readonly string[] {
   return items;
 }
 
+// A layout-less key (the theme or the default carries its layout) still has
+// its flagged decisions to show and check.
+function keyItems(config: ScriptConfig): readonly string[] {
+  const layout = config.layout === null ? [] : layoutItemsOf(config.layout);
+  return [...new Set([...layout, ...Object.keys(config.values)])];
+}
+
 function configDetail(config: ScriptConfig): string {
-  if (config.layout === null) {
-    return '';
-  }
-  const assignments = layoutItemsOf(config.layout)
+  const assignments = keyItems(config)
     .filter(item => Object.hasOwn(config.values, item))
     .map(item => `${item}=${config.values[item]}`);
-  return [`layout='${config.layout}'`, ...assignments].join(' ');
+  return [
+    ...(config.layout === null ? [] : [`layout='${config.layout}'`]),
+    ...assignments,
+  ].join(' ');
 }
 
 type DriftFinding =
@@ -96,12 +103,9 @@ function findingText(finding: DriftFinding): string {
 }
 
 function driftFindings(config: ScriptConfig): readonly DriftFinding[] {
-  if (config.layout === null) {
-    return [];
-  }
   const byItem = new Map(ITEMS.map(entry => [entry.item, entry]));
   const findings: DriftFinding[] = [];
-  for (const item of layoutItemsOf(config.layout)) {
+  for (const item of keyItems(config)) {
     const entry = byItem.get(item);
     if (entry === undefined) {
       findings.push({ item, kind: 'unknown-item' });
