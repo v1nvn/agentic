@@ -68,7 +68,8 @@ describe('configure on a scratch home (rulings 1 and 4)', () => {
       expect(
         path === 'settings.json' ||
           path.startsWith('plugins/cache/') ||
-          path === 'plugins/data/statusline-agentic/backup.json',
+          path === 'plugins/data/statusline-agentic/backup.json' ||
+          path === 'plugins/data/statusline-agentic/render.mjs',
         `configure wrote outside the two-key footprint: ${path}`,
       ).toBe(true);
     }

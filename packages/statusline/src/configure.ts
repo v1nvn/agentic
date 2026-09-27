@@ -6,9 +6,11 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import {
   backupPath,
+  DATA_REL,
   isOurMainCommand,
   mainKeyValue,
   type ResolvedRuntime,
@@ -28,6 +30,29 @@ export interface ConfigureOptions {
   readonly layout?: string;
   readonly theme?: string;
   readonly variants?: Readonly<Record<string, string>>;
+}
+
+// The renderer the settings keys spawn, as vite emits it beside the CLI bundle.
+// ../dist resolves to the package's dist/ from both src/ (tests) and the
+// bundled dist/index.js — both sit one level below dist/.
+export const BUNDLED_RENDERER = fileURLToPath(
+  new URL('../dist/render.mjs', import.meta.url),
+);
+
+export function renderMjsPath(home: string): string {
+  return join(home, DATA_REL, 'render.mjs');
+}
+
+export function syncRenderer(home: string): void {
+  const source = readFileSync(BUNDLED_RENDERER);
+  const dest = renderMjsPath(home);
+  if (existsSync(dest) && readFileSync(dest).equals(source)) {
+    return;
+  }
+  mkdirSync(dirname(dest), { recursive: true });
+  const tmp = `${dest}.tmp`;
+  writeFileSync(tmp, source);
+  renameSync(tmp, dest);
 }
 
 export type SettingsKey = 'statusLine' | 'subagentStatusLine';
@@ -549,4 +574,5 @@ export function configure(options: ConfigureOptions): void {
     writeBackupIfAbsent(options.home, plan);
   }
   commitSettings(plan);
+  syncRenderer(options.home);
 }

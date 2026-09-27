@@ -10,12 +10,20 @@ export default defineConfig({
     // SSR/Node build: Vite externalizes node built-ins AND package.json
     // `dependencies` (@v1nvn/agentic-core stays a real dep), so only our
     // source is bundled. ESM out matches "type":"module".
-    ssr: 'src/index.ts',
+    ssr: true,
     rollupOptions: {
+      input: {
+        index: 'src/index.ts',
+        render: 'src/render/entry.ts',
+      },
       // `bin` (dist/index.js) is exec'd by the kernel; without a shebang the OS
-      // runs it under /bin/sh and `npx statusline` dies parsing `import`.
+      // runs it under /bin/sh and `npx statusline` dies parsing `import`. The
+      // render entry only ever runs as `node render.mjs`, where the banner is
+      // inert — one banner rule covers both.
       output: {
         banner: chunk => (chunk.isEntry ? '#!/usr/bin/env node' : ''),
+        entryFileNames: chunk =>
+          chunk.name === 'render' ? 'render.mjs' : '[name].js',
       },
     },
   },

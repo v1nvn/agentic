@@ -12,6 +12,7 @@ import {
   isOurMember,
   readOrNull,
   removeMembers,
+  renderMjsPath,
   repointRootMembers,
   rootMemberValueSpan,
   SETTINGS_KEYS,
@@ -159,14 +160,16 @@ export function restore(options: RestoreOptions): RestoreResult {
   const dataDir = join(options.home, DATA_REL);
   const capturesDir = join(dataDir, 'captures');
   const backupFile = backupPath(options.home);
+  const rendererFile = renderMjsPath(options.home);
   if (
     actions.length === 0 &&
     !existsSync(backupFile) &&
-    !existsSync(capturesDir)
+    !existsSync(capturesDir) &&
+    !existsSync(rendererFile)
   ) {
     return {
       mode: 'nothing',
-      text: 'nothing to restore — no lab keys in settings.json, no backup, no captures',
+      text: 'nothing to restore — no lab keys in settings.json, no backup, no captures, no renderer',
     };
   }
 
@@ -187,6 +190,9 @@ export function restore(options: RestoreOptions): RestoreResult {
     if (existsSync(capturesDir)) {
       lines.push('  delete captures/');
     }
+    if (existsSync(rendererFile)) {
+      lines.push('  delete render.mjs');
+    }
     if (existsSync(backupFile)) {
       lines.push('  delete backup.json');
     }
@@ -200,6 +206,7 @@ export function restore(options: RestoreOptions): RestoreResult {
     writeFileSync(settings, next);
   }
   clearCaptures(capturesDir);
+  rmSync(rendererFile, { force: true });
   rmSync(backupFile, { force: true });
   rmdirIfEmpty(dataDir);
   let line: string;

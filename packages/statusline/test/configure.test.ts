@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -6,7 +6,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import { catalog } from '../src/catalog.js';
 import { parseArgs } from '../src/cli.js';
-import { configure } from '../src/configure.js';
+import { BUNDLED_RENDERER, configure, renderMjsPath } from '../src/configure.js';
 import {
   DATA_REL,
   THEMES,
@@ -146,8 +146,9 @@ describe('configure: strict mode (contract 3)', () => {
     expect(settingsCommand(home, 'subagentStatusLine')).toBe(
       subagentKeyValue,
     );
-    expect(readdirSync(join(home, DATA_REL)), 'data dir').toEqual([
+    expect(readdirSync(join(home, DATA_REL)).sort(), 'data dir').toEqual([
       'backup.json',
+      'render.mjs',
     ]);
   });
 
@@ -357,9 +358,49 @@ describe('configure: settings refusal (E4 port)', () => {
     expect(settingsCommand(home, 'subagentStatusLine')).toBe(subagentKeyValue);
     const settings = JSON.parse(readFileSync(settingsPath(home), 'utf8'));
     expect(settings.model).toBe('opus-4');
-    expect(readdirSync(join(home, DATA_REL)), 'data dir').toEqual([
+    expect(readdirSync(join(home, DATA_REL)).sort(), 'data dir').toEqual([
       'backup.json',
+      'render.mjs',
     ]);
+  });
+});
+
+describe('configure: renderer sync', () => {
+  it('every run syncs the bundled renderer into the data dir, byte-equal', () => {
+    const home = newInstalledHome();
+
+    configure({ home, theme: 'lean' });
+
+    expect(readFileSync(renderMjsPath(home), 'utf8')).toBe(
+      readFileSync(BUNDLED_RENDERER, 'utf8'),
+    );
+  });
+
+  it('an identical copy is not rewritten — mtime untouched on a rerun', () => {
+    const home = newInstalledHome();
+    configure({ home, theme: 'lean' });
+    const synced = renderMjsPath(home);
+    const before = statSync(synced).mtimeMs;
+
+    configure({ home, theme: 'lean' });
+
+    expect(statSync(synced).mtimeMs).toBe(before);
+    expect(readFileSync(synced, 'utf8')).toBe(
+      readFileSync(BUNDLED_RENDERER, 'utf8'),
+    );
+  });
+
+  it('a diverged copy is refreshed on the next run — even a settings no-op', () => {
+    const home = newInstalledHome();
+    configure({ home, theme: 'lean' });
+    const synced = renderMjsPath(home);
+    writeFileSync(synced, '// diverged\n');
+
+    configure({ home, theme: 'lean' });
+
+    expect(readFileSync(synced, 'utf8')).toBe(
+      readFileSync(BUNDLED_RENDERER, 'utf8'),
+    );
   });
 });
 

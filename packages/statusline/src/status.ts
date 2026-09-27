@@ -1,12 +1,15 @@
-import { statSync } from 'node:fs';
-import { basename, dirname, join } from 'node:path';
+import { createHash } from 'node:crypto';
+import { existsSync, readFileSync, statSync } from 'node:fs';
+import { delimiter, join } from 'node:path';
 
 import {
+  BUNDLED_RENDERER,
   isOurMember,
   memberCommand,
   parseClusters,
   parseSettings,
   readOrNull,
+  renderMjsPath,
   SETTINGS_KEYS,
   type SettingsBackup,
   type SettingsKey,
@@ -24,6 +27,7 @@ import { readBackup } from './restore.js';
 
 export interface StatusOptions {
   readonly home: string;
+  readonly path?: string;
 }
 
 export interface StatusResult {
@@ -117,12 +121,55 @@ function driftFindings(
   return findings;
 }
 
-function runtimeRow(runtime: null | ResolvedRuntime): string {
-  if (runtime === null) {
-    return `runtime: missing — fix: ${INSTALL_FIX}`;
+// The settings keys spawn plain `node`, not this CLI's runtime — PATH is the
+// one thing the paint needs that the CLI cannot vouch for.
+export function nodeOnPath(pathVar: string): null | string {
+  const found = pathVar
+    .split(delimiter)
+    .filter(dir => dir !== '')
+    .map(dir => join(dir, 'node'))
+    .find(existsSync);
+  return found ?? null;
+}
+
+export function rendererHash(bytes: Buffer): string {
+  return createHash('sha256').update(bytes).digest('hex').slice(0, 12);
+}
+
+type RendererState =
+  | { readonly cli: string; readonly data: string; readonly kind: 'stale' }
+  | { readonly hash: string; readonly kind: 'current' }
+  | { readonly kind: 'missing' }
+  | { readonly kind: 'no-bundle' };
+
+function rendererState(home: string): RendererState {
+  if (!existsSync(BUNDLED_RENDERER)) {
+    return { kind: 'no-bundle' };
   }
-  const version = basename(dirname(runtime.dir));
-  return `runtime: ${version} — ${runtime.items.length} items`;
+  const cli = readFileSync(BUNDLED_RENDERER);
+  const dataFile = renderMjsPath(home);
+  if (!existsSync(dataFile)) {
+    return { kind: 'missing' };
+  }
+  const data = readFileSync(dataFile);
+  const hash = rendererHash(data);
+  return hash === rendererHash(cli)
+    ? { hash, kind: 'current' }
+    : { cli: rendererHash(cli), data: hash, kind: 'stale' };
+}
+
+function rendererRow(state: RendererState): string {
+  if (state.kind === 'current') {
+    return `renderer: current — ${state.hash}`;
+  }
+  // --force so the fix also completes on a home holding foreign keys.
+  if (state.kind === 'stale') {
+    return `renderer: stale — data ${state.data}, this CLI ${state.cli} — fix: rerun configure --force --theme classic`;
+  }
+  if (state.kind === 'no-bundle') {
+    return 'renderer: this CLI ships no render.mjs — fix: rerun /lab to refresh the CLI';
+  }
+  return 'renderer: missing — fix: rerun configure --force --theme classic';
 }
 
 function configRow(findings: readonly DriftFinding[]): string {
@@ -208,9 +255,17 @@ export function status(options: StatusOptions): StatusResult {
     runtime === null || main.kind !== 'ours'
       ? []
       : driftFindings(config, runtime);
+  const node = nodeOnPath(options.path ?? process.env.PATH ?? '');
+  const renderer = rendererState(options.home);
 
   const rows = [
-    runtimeRow(runtime),
+    // The bash runtime dies at r4; until then a missing cache is a broken
+    // paint and keeps its row — only its version display is gone.
+    ...(runtime === null ? [`runtime: missing — fix: ${INSTALL_FIX}`] : []),
+    node === null
+      ? 'node: missing — fix: install node ≥ 18 from nodejs.org, then restart Claude Code'
+      : `node: on PATH (${node})`,
+    rendererRow(renderer),
     keyRow('statusLine', main, configDetail(config)),
     keyRow('subagentStatusLine', subagent),
     ...(runtime !== null && main.kind === 'ours'
@@ -224,6 +279,8 @@ export function status(options: StatusOptions): StatusResult {
   ];
   const healthy =
     runtime !== null &&
+    node !== null &&
+    renderer.kind === 'current' &&
     main.kind === 'ours' &&
     subagent.kind === 'ours' &&
     findings.length === 0;

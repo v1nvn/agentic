@@ -3,7 +3,7 @@ import { join } from 'node:path';
 
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { configure } from '../src/configure.js';
+import { configure, renderMjsPath } from '../src/configure.js';
 import { restore } from '../src/restore.js';
 import {
   DATA_REL,
@@ -235,5 +235,47 @@ describe('restore: cleanup endgame (contract 4)', () => {
 
     expect(restore({ home })).toMatchObject({ mode: 'restored' });
     expect(readFileSync(settingsPath(home), 'utf8')).toBe(seed);
+  });
+});
+
+describe('restore: renderer cleanup (contract 4)', () => {
+  it('deletes the synced render.mjs by explicit path — a host file beside it survives', () => {
+    const home = newInstalledHome();
+    writeSettings(home, TAKEOVER_SEED);
+    takeover(home);
+    const synced = renderMjsPath(home);
+    expect(existsSync(synced), 'configure synced render.mjs').toBe(true);
+    writeFileSync(join(home, DATA_REL, 'host.txt'), 'host data\n');
+
+    expect(restore({ home })).toMatchObject({ mode: 'restored' });
+
+    expect(existsSync(synced)).toBe(false);
+    expect(readFileSync(join(home, DATA_REL, 'host.txt'), 'utf8')).toBe(
+      'host data\n',
+    );
+  });
+
+  it('a lone render.mjs is lab data — cleaned even with no keys, backup, or captures', () => {
+    const home = newInstalledHome();
+    mkdirSync(join(home, DATA_REL), { recursive: true });
+    writeFileSync(renderMjsPath(home), '// renderer\n');
+
+    expect(restore({ home })).toEqual({
+      mode: 'restored',
+      text: 'lab data cleaned — no lab keys in settings.json',
+    });
+    expect(existsSync(join(home, DATA_REL))).toBe(false);
+  });
+
+  it('the dry-run plan names render.mjs and leaves it in place', () => {
+    const home = newInstalledHome();
+    writeSettings(home, TAKEOVER_SEED);
+    takeover(home);
+
+    const result = restore({ dryRun: true, home });
+
+    expect(result.mode).toBe('dry-run');
+    expect(result.text ?? '').toContain('delete render.mjs');
+    expect(existsSync(renderMjsPath(home))).toBe(true);
   });
 });

@@ -1,13 +1,18 @@
-import { rmSync, writeFileSync } from 'node:fs';
+import { readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { parseArgs, subcommandHelp } from '../src/cli.js';
-import { configure, type ConfigureOptions } from '../src/configure.js';
+import {
+  BUNDLED_RENDERER,
+  configure,
+  type ConfigureOptions,
+  renderMjsPath,
+} from '../src/configure.js';
 import { liveTheme } from '../src/live-theme.js';
 import { readKeyConfig } from '../src/resolve.js';
-import { status } from '../src/status.js';
+import { nodeOnPath, rendererHash, status } from '../src/status.js';
 import {
   RUNTIME,
   THEMES,
@@ -28,6 +33,15 @@ const BOTH_FOREIGN_SEED = `{
 `;
 
 const homes = createHomes();
+
+const NODE_ROW = `node: on PATH (${nodeOnPath(process.env.PATH ?? '')})`;
+
+function rendererCurrent(): string {
+  return `renderer: current — ${rendererHash(readFileSync(BUNDLED_RENDERER))}`;
+}
+
+const RENDERER_MISSING =
+  'renderer: missing — fix: rerun configure --force --theme classic';
 
 afterEach(() => {
   homes.dispose();
@@ -57,7 +71,8 @@ describe('status: healthy home (contract 5)', () => {
 
     expect(result.healthy).toBe(true);
     expect(result.rows).toEqual([
-      'runtime: 0.19.0 — 16 items',
+      NODE_ROW,
+      rendererCurrent(),
       "statusLine: ours — layout='{model effort}' model=block effort=dim",
       'subagentStatusLine: ours',
       'config: no drift',
@@ -84,7 +99,8 @@ describe('status: config drift (contract 5)', () => {
 
     expect(result.healthy).toBe(false);
     expect(result.rows).toEqual([
-      'runtime: 0.19.0 — 16 items',
+      NODE_ROW,
+      RENDERER_MISSING,
       "statusLine: ours — layout='{model flux}' model=neon flux=pulse",
       'subagentStatusLine: ours',
       "config: drift — unknown variant 'neon' for 'model', unknown item 'flux' — fix: rerun configure --theme classic",
@@ -111,7 +127,8 @@ describe('status: variants-only drift (contract 5)', () => {
 
     expect(result.healthy).toBe(false);
     expect(result.rows).toEqual([
-      'runtime: 0.19.0 — 16 items',
+      NODE_ROW,
+      RENDERER_MISSING,
       "statusLine: ours — layout='{model effort}' model=neon effort=dim",
       'subagentStatusLine: ours',
       "config: drift — unknown variant 'neon' for 'model' — fix: rerun configure --theme classic",
@@ -137,7 +154,8 @@ describe('status: foreign and absent keys (contract 5)', () => {
 
     expect(result.healthy).toBe(false);
     expect(result.rows).toEqual([
-      'runtime: 0.19.0 — 16 items',
+      NODE_ROW,
+      RENDERER_MISSING,
       'statusLine: foreign (./old-main.sh) — fix: rerun configure --force --theme classic',
       'subagentStatusLine: absent — fix: rerun configure --theme classic',
       'backup: absent',
@@ -162,6 +180,8 @@ describe('status: no runtime (contract 5)', () => {
     expect(result.healthy).toBe(false);
     expect(result.rows).toEqual([
       'runtime: missing — fix: claude plugin install statusline@agentic',
+      NODE_ROW,
+      rendererCurrent(),
       "statusLine: ours — layout='{model}' model=block",
       'subagentStatusLine: ours',
       'backup: present — created settings.json, saved nothing',
@@ -186,7 +206,8 @@ describe('status: unreadable backup (contract 5)', () => {
 
     expect(result.healthy).toBe(true);
     expect(result.rows).toEqual([
-      'runtime: 0.19.0 — 16 items',
+      NODE_ROW,
+      rendererCurrent(),
       "statusLine: ours — layout='{model effort}' model=block effort=dim",
       'subagentStatusLine: ours',
       'config: no drift',
@@ -194,6 +215,65 @@ describe('status: unreadable backup (contract 5)', () => {
       'captures: main absent, tick absent',
       'healthy',
     ]);
+  });
+});
+
+describe('status: node and renderer rows (contract 5)', () => {
+  it('replaces the cache-version runtime row — node and renderer rows lead, no runtime row when the cache resolves', () => {
+    const home = homes.newHome();
+    installRuntime(home, '0.18.0');
+    installRuntime(home);
+    configure({ home, theme: 'lean' });
+
+    const result = status({ home });
+
+    expect(result.rows[0]).toBe(NODE_ROW);
+    expect(result.rows[1]).toBe(rendererCurrent());
+    expect(
+      result.rows.filter(row => row.startsWith('runtime:')),
+      'no runtime row on a resolving cache',
+    ).toEqual([]);
+    expect(result.healthy).toBe(true);
+  });
+
+  it('node off PATH names the install fix and signals unhealthy', () => {
+    const home = newInstalledHome();
+    configure({ home, theme: 'lean' });
+
+    const result = status({ home, path: join(home, 'empty-bin') });
+
+    expect(result.rows).toContain(
+      'node: missing — fix: install node ≥ 18 from nodejs.org, then restart Claude Code',
+    );
+    expect(result.healthy).toBe(false);
+  });
+
+  it('a stale synced renderer names both hashes; the configure fix restores healthy', () => {
+    const home = newInstalledHome();
+    configure({ home, theme: 'lean' });
+    const stale = Buffer.from('// stale renderer\n');
+    writeFileSync(renderMjsPath(home), stale);
+
+    const result = status({ home });
+
+    expect(result.rows).toContain(
+      `renderer: stale — data ${rendererHash(stale)}, this CLI ${rendererHash(readFileSync(BUNDLED_RENDERER))} — fix: rerun configure --force --theme classic`,
+    );
+    expect(result.healthy).toBe(false);
+
+    runFixCommand('rerun configure --force --theme classic', home);
+    expect(status({ home }).healthy).toBe(true);
+  });
+
+  it('a missing synced renderer names the configure fix', () => {
+    const home = newInstalledHome();
+    configure({ home, theme: 'lean' });
+    rmSync(renderMjsPath(home));
+
+    const result = status({ home });
+
+    expect(result.rows).toContain(RENDERER_MISSING);
+    expect(result.healthy).toBe(false);
   });
 });
 
