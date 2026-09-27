@@ -94,9 +94,9 @@ Node ≥ 22. One workspace dep: `@v1nvn/agentic-core` (usage/exit helpers).
 ## Contracts
 
 - `configure` is the sole writer: one run writes both keys and syncs the
-  bundled `render.mjs` into the data dir. Everything else it touches on disk
-  is `backup.json` and `captures/`; `preview`, `catalog`, and `status` write
-  nothing.
+  bundled `render.mjs` into the data dir — its only other write is
+  `backup.json`. `preview`, `catalog`, and `status` write nothing;
+  `captures/` is the renderer's paint-time tee, not a CLI write.
 - The key value is one direct data-dir command:
   `node "$HOME/.claude/plugins/data/statusline-agentic/render.mjs" --theme=lean --bar=gauge || true`
   — no glob resolver, no plugin-cache coupling; the panel key adds the `panel`
@@ -105,8 +105,9 @@ Node ≥ 22. One workspace dep: `@v1nvn/agentic-core` (usage/exit helpers).
   that differs from the theme's own, `--layout` only when passed. Ambient
   state stays env — `NO_COLOR`, `COLUMNS`, `TZ`, `HOME`.
 - The renderer resolves the theme at paint: item flags beat it, `--layout`
-  beats its layout. `catalog`, `status`, and the wizard import the same
-  resolver for display — one resolution path.
+  beats its layout — one resolver, no second path. `catalog` stars through
+  it, `preview` and the wizard render through it in-process, and `status`
+  reads the theme name straight from the key.
 - The theme name rides the key: `status` and `catalog` read it straight from
   the key, swaps appended — `theme: lean +bar=gauge` — so a swap keeps the
   name.
