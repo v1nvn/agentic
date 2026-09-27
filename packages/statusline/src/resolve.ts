@@ -104,16 +104,11 @@ function settingsCommand(home: string): null | string {
   return typeof command === 'string' ? command : null;
 }
 
-// The main key's flags parsed back into the decisions it records. A null
-// layout means no explicit --layout — a theme key leaves the layout to the
-// theme; a missing settings member or a foreign key reads the same way, with
-// no theme and no values. Unknown item names survive to surface as drift.
-export function readKeyConfig(home: string): ScriptConfig {
-  const command = settingsCommand(home);
-  const flags = command === null ? null : mainKeyFlags(command);
-  if (flags === null) {
-    return { layout: null, values: {} };
-  }
+// The flags a settings key carries parsed back into the decisions it
+// records: --theme as the name, --<item>=<alt> as values, a quoted --layout.
+// A null layout means no explicit --layout — a theme key leaves the layout
+// to the theme. Unknown item names survive to surface as drift.
+function parseKeyFlags(flags: string): ScriptConfig {
   const values: Record<string, string> = {};
   let theme: string | undefined;
   for (const [, name, alt] of flags.matchAll(
@@ -131,4 +126,29 @@ export function readKeyConfig(home: string): ScriptConfig {
     values,
     ...(theme === undefined ? {} : { theme }),
   };
+}
+
+// The main key's decisions. A missing settings member or a foreign key reads
+// the same way, with no theme and no values.
+export function readKeyConfig(home: string): ScriptConfig {
+  const command = settingsCommand(home);
+  const flags = command === null ? null : mainKeyFlags(command);
+  return flags === null ? { layout: null, values: {} } : parseKeyFlags(flags);
+}
+
+function panelKeyFlags(command: string): null | string {
+  if (!isOurPanelCommand(command)) {
+    return null;
+  }
+  return command.slice(
+    PANEL_PROGRAM.length,
+    command.length - KEY_SUFFIX.length,
+  );
+}
+
+// The panel key's decisions — the theme it carries, a style pick when one
+// rides. An absent or foreign member reads as no decisions.
+export function parsePanelCommand(command: null | string): ScriptConfig {
+  const flags = command === null ? null : panelKeyFlags(command);
+  return flags === null ? { layout: null, values: {} } : parseKeyFlags(flags);
 }

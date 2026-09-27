@@ -2,9 +2,9 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import { catalog } from '../src/catalog.js';
 import { buildProgram, parseArgs } from '../src/cli.js';
+import { configure } from '../src/configure.js';
 import { ITEMS } from '../src/render/index.js';
 import { mainKeyValue } from '../src/resolve.js';
-import { liveTheme } from '../src/live-theme.js';
 import { THEMES, createHomes, writeSettings } from './fixtures.js';
 
 // Each dead verb is invoked the way a user would really type it — with the
@@ -23,7 +23,7 @@ const DEAD_VERBS: ReadonlyArray<{
 ];
 
 function expectedLines(
-  live: Record<string, string>,
+  picks: Record<string, string>,
   items?: readonly string[],
 ): string[] {
   return (items ?? ITEMS.map(({ item }) => item)).map(item => {
@@ -31,7 +31,7 @@ function expectedLines(
     if (entry === undefined) {
       throw new Error(`unknown item '${item}'`);
     }
-    const current = live[item] ?? entry.default;
+    const current = picks[item] ?? entry.default;
     return `${item}: ${entry.alternatives
       .map(alt => (alt === current ? `${alt}*` : alt))
       .join(' | ')}`;
@@ -40,6 +40,7 @@ function expectedLines(
 
 function seedOursKey(
   home: string,
+  theme: null | string,
   layout: null | string,
   flags: readonly string[],
 ): void {
@@ -48,7 +49,7 @@ function seedOursKey(
     `${JSON.stringify(
       {
         statusLine: {
-          command: mainKeyValue(null, layout, flags),
+          command: mainKeyValue(theme, layout, flags),
           type: 'command',
         },
       },
@@ -60,17 +61,10 @@ function seedOursKey(
 
 // Derived from THEMES on purpose: the block quotes THEMES verbatim, in
 // THEMES's own order — the shape (name, star, colon, summary) is the pin.
-function expectedThemeLines(live: string | undefined): string[] {
+function expectedThemeLines(theme: string | undefined): string[] {
   return Object.entries(THEMES).map(
-    ([name, theme]) => `${name}${live === name ? '*' : ''}: ${theme.summary}`,
+    ([name, spec]) => `${name}${theme === name ? '*' : ''}: ${spec.summary}`,
   );
-}
-
-// The flags a theme's picks write onto a key: only the non-default decisions.
-function themeFlags(variants: Readonly<Record<string, string>>): string[] {
-  return ITEMS.filter(
-    ({ default: def, item }) => variants[item] !== undefined && variants[item] !== def,
-  ).map(({ item }) => `--${item}=${variants[item]}`);
 }
 
 const homes = createHomes();
@@ -143,7 +137,10 @@ describe('catalog: output (contract 2)', () => {
 
   it('stars follow the main key flags in settings.json', () => {
     const home = homes.newHome();
-    seedOursKey(home, '{model cache}', ['--model=block', '--cache=none']);
+    seedOursKey(home, null, '{model cache}', [
+      '--model=block',
+      '--cache=none',
+    ]);
 
     const out = catalog({ home });
 
@@ -167,70 +164,6 @@ describe('catalog: output (contract 2)', () => {
   });
 });
 
-describe('the live-theme matcher', () => {
-  it('names the theme whose effective picks and layout the key equals', () => {
-    expect(
-      liveTheme({
-        layout: THEMES.quiet.layout,
-        values: { ...THEMES.quiet.variants },
-      }),
-    ).toBe('quiet');
-    expect(
-      liveTheme({
-        layout: THEMES.lean.layout,
-        values: { ...THEMES.lean.variants },
-      }),
-    ).toBe('lean');
-  });
-
-  it('a one-swap key (--theme lean --bar gauge) matches nothing', () => {
-    expect(
-      liveTheme({
-        layout: THEMES.lean.layout,
-        values: { ...THEMES.lean.variants, bar: 'gauge' },
-      }),
-    ).toBeUndefined();
-  });
-
-  it('the layout must equal too — lean assignments on quiet layout match nothing', () => {
-    expect(
-      liveTheme({
-        layout: THEMES.quiet.layout,
-        values: { ...THEMES.lean.variants },
-      }),
-    ).toBeUndefined();
-  });
-
-  it('a dropped non-default decision falls back to the default and matches nothing', () => {
-    const values = { ...THEMES.lean.variants };
-    delete values.style;
-
-    expect(liveTheme({ layout: THEMES.lean.layout, values })).toBeUndefined();
-  });
-
-  it('an extra decision beyond the theme set matches nothing', () => {
-    expect(
-      liveTheme({
-        layout: THEMES.quiet.layout,
-        values: { ...THEMES.quiet.variants, branch: 'last' },
-      }),
-    ).toBeUndefined();
-  });
-
-  it('a pick equal to the default is indistinguishable from an absent one', () => {
-    expect(
-      liveTheme({
-        layout: THEMES.quiet.layout,
-        values: { ...THEMES.quiet.variants, branch: 'initials' },
-      }),
-    ).toBe('quiet');
-  });
-
-  it('no key (null layout, no values) matches nothing', () => {
-    expect(liveTheme({ layout: null, values: {} })).toBeUndefined();
-  });
-});
-
 describe('catalog: the themes block', () => {
   it('parses --themes as a boolean flag beside --home and the item flags', () => {
     expect(parseArgs(['catalog', '--themes'])).toMatchObject({
@@ -247,9 +180,9 @@ describe('catalog: the themes block', () => {
     expect(parseArgs(['catalog'])).not.toMatchObject({ themes: true });
   });
 
-  it('stars the theme the live key equals effectively', () => {
+  it('stars the theme the key names, and stars its resolved picks per item', () => {
     const home = homes.newHome();
-    seedOursKey(home, THEMES.lean.layout, themeFlags(THEMES.lean.variants));
+    configure({ home, theme: 'lean' });
 
     const out = catalog({ home });
 
@@ -260,26 +193,61 @@ describe('catalog: the themes block', () => {
     ]);
   });
 
-  it('a one-swap key (--theme lean --bar gauge) stars nothing', () => {
+  it('a one-swap key (--theme lean --bar gauge) still stars lean by name; the swap stars per item', () => {
     const home = homes.newHome();
-    seedOursKey(
-      home,
-      THEMES.lean.layout,
-      themeFlags({ ...THEMES.lean.variants, bar: 'gauge' }),
-    );
+    configure({ home, theme: 'lean', variants: { bar: 'gauge' } });
+
+    const out = catalog({ home });
+
+    expect(out.split('\n')).toEqual([
+      ...expectedThemeLines('lean'),
+      '',
+      ...expectedLines({ ...THEMES.lean.variants, bar: 'gauge' }),
+    ]);
+  });
+
+  it('a sparse theme stars its picks and leaves the rest at the registry defaults', () => {
+    const home = homes.newHome();
+    configure({ home, theme: 'quiet' });
+
+    const out = catalog({ home });
+
+    expect(out.split('\n')).toEqual([
+      ...expectedThemeLines('quiet'),
+      '',
+      ...expectedLines({ ...THEMES.quiet.variants }),
+    ]);
+  });
+
+  it('a hand-seeded themed key stars by the name it carries', () => {
+    const home = homes.newHome();
+    seedOursKey(home, 'rich', null, []);
+
+    const out = catalog({ home });
+
+    expect(out.split('\n')).toEqual([
+      ...expectedThemeLines('rich'),
+      '',
+      ...expectedLines({ ...THEMES.rich.variants }),
+    ]);
+  });
+
+  it('an unknown theme on the key stars nothing and leaves every item at its default', () => {
+    const home = homes.newHome();
+    seedOursKey(home, 'wat', null, []);
 
     const out = catalog({ home });
 
     expect(out.split('\n')).toEqual([
       ...expectedThemeLines(undefined),
       '',
-      ...expectedLines({ ...THEMES.lean.variants, bar: 'gauge' }),
+      ...expectedLines({}),
     ]);
   });
 
   it('--themes cuts the output to the block alone', () => {
     const home = homes.newHome();
-    seedOursKey(home, THEMES.lean.layout, themeFlags(THEMES.lean.variants));
+    configure({ home, theme: 'lean' });
 
     const out = catalog({ home, themes: true });
 
