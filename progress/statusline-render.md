@@ -38,19 +38,19 @@ ships only `.claude-plugin/plugin.json` and `SKILL.md`; a paint is
 
 ## Current state
 
-r1–r4 landed (PR 1 open, #7); t1–t5 landed: themes as data with one paint
-resolver; the key carries the theme (diff-from-base writer everywhere —
-configure's base now defaults-merged-with-variants, like the wizard); the
-e2e door runs both written keys through the real renderer; status/catalog
-read the name from the key; the wizard previews by name, refines an empty
-override draft with `style` offered, and saves `--theme` plus only the
-differing flags. 333/333 green; goldens 103 protected; gate families green
-through t5.
+All ten units landed. The renderer is TypeScript end to end; the settings
+keys spell the direct data-dir command carrying `--theme` plus differing
+flags; configure is the sole writer (keys + renderer sync); resolution
+happens at paint through one resolver; status/catalog/wizard read the name
+from the key; the bash runtime, env wall, cache-glob, live-theme, and six
+bash-spawning suites are gone; docs state the current contracts. 333/333
+package tests, whole-repo gate green at both PR boundaries, goldens 103
+byte-protected throughout.
 
 ## Next step
 
-t6 — contracts + docs: README contracts, module table, SKILL.md status
-example, manifest description, root README; the phrase greps go green.
+Close the thread: PR 2 open (t1–t6, base statusline-render), archive this
+file, delete the index entry.
 
 ## Steps
 
@@ -65,7 +65,7 @@ example, manifest description, root README; the phrase greps go green.
 | t3 | e2e door | | | a scratch-home test configures `--theme lean`, asserts the key text, then runs both written keys through the real node renderer at the data-dir path with the fixture payload and tick (`--now` pinned), asserting lean's markers on the line and the panel row (`·` separators, percent bar) — landed `b71bff1`: door passed first run against the tree (no wiring defect), flags parsed from the written key, `--now` pinned to the corpora epoch, scratch-home isolated, markers empirically discriminative (lean `·`/58%/71% vs classic │/█); absorbed the old lean render test one-way |
 | t4 | status + catalog read the name | | | `status` prints `theme: lean` from the key with swaps appended, and the panel row carries its theme; `catalog` stars the theme by name and stars resolved picks per item through the shared resolver; `live-theme.ts` and its tests deleted; fix strings still name a runnable fix — landed `ed19ffd`: theme row verbatim from `config.theme` (name is truth — contradicting flags verified), panel row `ours — theme=lean style=bare`, catalog stars by name + per-item via `resolvePaint`, live-theme dead (grep clean), `resolve.ts` extracted `parseKeyFlags`/`parsePanelCommand` (readKeyConfig byte-identical), 327/327 |
 | t5 | wizard rides names | | | the themes pass previews by `--theme`; refine edits overrides and offers `style`; the save writes `--theme` plus **only the picks that differ from the theme** — the full draft must not ride, that rebuilds the assignment wall; the fake-deps test asserts the saved key text, not just the outcome — landed `89b2239` + t2-territory fix `2054530` (configure's diff base = defaults merged with theme variants, matching the wizard): previews by name through the one resolver door, refine seeds an empty override draft with `style` offered, unrefined save = bare `--theme=<name>` on both keys, refined adds exactly the differing flags, fake-deps asserts written key text, 333/333 |
-| t6 | contracts + docs | | | README contracts rewritten (renderer in the package, data-dir key, configure sole writer, flags carry decisions, theme resolution at paint, name rides the key, swaps keep the name); module table current; SKILL.md status example current; the plugin manifest description drops "bash render runtime"; root README checked; repo grep finds no "runtime never learns themes", no "no theme name is stored", and no `STATUSLINE_LAB_` in `src/` outside `archive/` and `progress/` |
+| t6 | contracts + docs | | | README contracts rewritten (renderer in the package, data-dir key, configure sole writer, flags carry decisions, theme resolution at paint, name rides the key, swaps keep the name); module table current; SKILL.md status example current; the plugin manifest description drops "bash render runtime"; root README checked; repo grep finds no "runtime never learns themes", no "no theme name is stored", and no `STATUSLINE_LAB_` in `src/` outside `archive/` and `progress/` — landed `ac608cb` + fix `ea38ab4` (resolver importers + configure footprint corrected): status example byte-exact from a live run, key spellings byte-identical to the key-config pins, module table 14 src + 12 render rows all present, 13 gate families green |
 
 ## Plan
 
