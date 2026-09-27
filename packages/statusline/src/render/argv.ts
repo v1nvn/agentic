@@ -1,6 +1,6 @@
 import { parseArgs } from 'node:util';
 
-import { ITEMS } from './items.js';
+import { specFor } from './items.js';
 
 // The render.mjs argv grammar — node:util parseArgs, never commander and
 // never @v1nvn/agentic-core; the CLI and the renderer share only the registry
@@ -70,7 +70,7 @@ export function parseArgv(argv: readonly string[]): ArgvResult {
       }
       continue;
     }
-    const spec = ITEMS.find(candidate => candidate.item === name);
+    const spec = specFor(name);
     if (spec === undefined) {
       warn(warnings, `statusline: --${name} is not a known flag, ignored`);
       continue;

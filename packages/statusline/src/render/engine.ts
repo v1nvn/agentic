@@ -8,6 +8,7 @@ import {
   L2_STEPS,
   RUNG_ORDERS,
 } from './items.js';
+import { parseClusters } from './layout.js';
 import { parseRow } from './payload.js';
 import {
   renderSegment,
@@ -23,7 +24,6 @@ export interface RenderInput {
   readonly now: number;
   readonly payload: string;
   readonly picks?: Readonly<Record<string, string>>;
-  readonly timeZone: string;
 }
 
 type Mode = 'full' | 'l1' | 'l2';
@@ -48,8 +48,16 @@ export function vlen(text: string): number {
   return n;
 }
 
-function warn(message: string): void {
+export function warn(message: string): void {
   process.stderr.write(`${message}\n`);
+}
+
+// The `[...]` suffix a fit step strips from the model name — shared by both
+// engines so the two ports keep the same cut.
+export function stripModelSuffix(name: string): string {
+  const at = name.lastIndexOf('[');
+  const cut = at === -1 ? name : name.slice(0, at);
+  return cut.endsWith(' ') ? cut.slice(0, -1) : cut;
 }
 
 function resolvePicks(
@@ -70,52 +78,38 @@ function resolvePicks(
   return resolved;
 }
 
-function beforeCloseBrace(text: string): string {
-  const at = text.indexOf('}');
-  return at === -1 ? text : text.slice(0, at);
-}
-
-function afterOpenBrace(text: string): string {
-  const at = text.indexOf('{');
-  return at === -1 ? text : text.slice(at + 1);
-}
-
-function afterCloseBrace(text: string): string {
-  const at = text.indexOf('}');
-  return at === -1 ? text : text.slice(at + 1);
-}
-
+// The writer's grammar parser, degraded for paint: malformed grammar renders
+// nothing (configure never writes one), unknown item names warn and skip.
 function parseLayout(
   layout: string,
   known: ReadonlySet<string>,
 ): readonly (readonly string[])[] {
+  let parsed: readonly string[][];
+  try {
+    parsed = parseClusters(layout);
+  } catch (e) {
+    warn(`statusline: ${(e as Error).message}`);
+    return [];
+  }
   const clusters: (readonly string[])[] = [];
-  let rest = layout;
-  for (;;) {
-    const cluster = afterOpenBrace(beforeCloseBrace(rest));
-    const words = cluster
-      .trim()
-      .split(/\s+/)
-      .filter(word => word !== '');
-    const kept = words.filter(word => known.has(word));
-    for (const word of words) {
-      if (!known.has(word)) {
-        warn(`statusline: layout item '${word}' is not available, skipped`);
+  for (const words of parsed) {
+    const kept = words.filter(word => {
+      if (known.has(word)) {
+        return true;
       }
-    }
+      warn(`statusline: layout item '${word}' is not available, skipped`);
+      return false;
+    });
     if (kept.length > 0) {
       clusters.push(kept);
     }
-    if (!rest.includes('}')) {
-      return clusters;
-    }
-    rest = afterCloseBrace(rest);
   }
+  return clusters;
 }
 
 export function renderStatusline(input: RenderInput): string {
   const row = parseRow(input.payload);
-  const git = readGit(row.dir, { home: input.home, timeZone: input.timeZone });
+  const git = readGit(row.dir, { home: input.home });
   const picks = resolvePicks(input.picks);
   const { join, sep } = styleSeparators(picks.style);
   const clusters = parseLayout(
@@ -200,13 +194,7 @@ export function renderStatusline(input: RenderInput): string {
 
   function applyStep(step: FitStep): void {
     if (step[0] === 'model' && step[1] === 'strip') {
-      const at = model.lastIndexOf('[');
-      if (at !== -1) {
-        model = model.slice(0, at);
-      }
-      if (model.endsWith(' ')) {
-        model = model.slice(0, -1);
-      }
+      model = stripModelSuffix(model);
     } else {
       demote(step[0], step[1]);
     }

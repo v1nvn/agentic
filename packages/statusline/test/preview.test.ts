@@ -1,4 +1,5 @@
 import { existsSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 import { afterEach, describe, expect, it } from 'vitest';
 
@@ -8,7 +9,8 @@ import { materializeDemoRepo } from '../src/demo-repo.js';
 import { ITEMS } from '../src/render/index.js';
 import { renderPreview, type PreviewRender } from '../src/payloads.js';
 import { preview, type PreviewOptions } from '../src/preview.js';
-import { THEMES, backupPath, createHomes, settingsPath, writeSettings } from './fixtures.js';
+import { THEMES, createHomes, settingsPath, writeSettings } from './fixtures.js';
+import { backupPath } from '../src/resolve.js';
 import { DEFAULT_NOW } from './runtime.js';
 
 const ESC = '\x1b';
@@ -114,6 +116,7 @@ afterEach(() => {
 function assertNothingWritten(home: string): void {
   expect(existsSync(settingsPath(home)), 'settings.json').toBe(false);
   expect(existsSync(backupPath(home)), 'backup').toBe(false);
+  expect(existsSync(join(home, '.claude')), 'data under .claude').toBe(false);
 }
 
 function messageOf(job: () => void): string {
@@ -395,12 +398,20 @@ describe('preview: the same resolution inputs configure takes', () => {
     assertNothingWritten(home);
   });
 
+  it('a partial pick set previews — unpicked items paint the registry defaults', () => {
+    const home = homes.newHome();
+    const text = preview({
+      home,
+      layout: '{model effort}',
+      variants: { model: 'block' },
+      now: DEFAULT_NOW,
+    });
+
+    expect(text.split('\n')[1]).toContain('Opus');
+    assertNothingWritten(home);
+  });
+
   const refusals: readonly (readonly [string, Resolution])[] = [
-    ['a theme gap', { layout: '{model effort} {cwd}', theme: 'quiet' }],
-    [
-      'a flag gap with no theme',
-      { layout: '{model effort}', variants: { model: 'block' } },
-    ],
     ['an unknown theme', { theme: 'nope' }],
     ['an unknown variant', { theme: 'lean', variants: { model: 'nonsense' } }],
   ];

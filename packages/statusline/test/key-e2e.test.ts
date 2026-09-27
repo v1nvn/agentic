@@ -1,4 +1,3 @@
-import { spawnSync } from 'node:child_process';
 import { existsSync, readFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -19,6 +18,7 @@ import {
   settingsCommand,
   snapshotTree,
 } from './fixtures.js';
+import { DEFAULT_NOW, runRenderer } from './runtime.js';
 
 const P1 = fileURLToPath(new URL('../assets/payloads/p1.json', import.meta.url));
 const TICK = fileURLToPath(new URL('../assets/ticks/multi.json', import.meta.url));
@@ -33,21 +33,10 @@ function runKey(
   key: string,
   home: string,
   stdin: string,
+  extra: readonly string[] = [],
 ): { readonly status: number; readonly stdout: string } {
-  const run = spawnSync('node', [...keyArgv(key, home)], {
-    input: stdin,
-    env: {
-      HOME: home,
-      LC_ALL: 'C',
-      PATH: process.env.PATH ?? '',
-      TZ: 'UTC',
-    },
-    timeout: 30_000,
-  });
-  return {
-    status: run.status ?? -1,
-    stdout: (run.stdout ?? Buffer.alloc(0)).toString('utf8'),
-  };
+  const run = runRenderer([...keyArgv(key, home), ...extra], home, stdin);
+  return { status: run.status, stdout: run.stdout };
 }
 
 describe('configure on a scratch home (rulings 1 and 4)', () => {
@@ -61,10 +50,10 @@ describe('configure on a scratch home (rulings 1 and 4)', () => {
     });
 
     expect(settingsCommand(home, 'statusLine')).toBe(
-      mainKeyValue('{model bar}', ['--model=block', '--bar=gauge']),
+      mainKeyValue(null, '{model bar}', ['--model=block', '--bar=gauge']),
     );
     expect(settingsCommand(home, 'subagentStatusLine')).toBe(
-      panelKeyValue([]),
+      panelKeyValue(null, []),
     );
 
     const written = Object.keys(snapshotTree(join(home, '.claude'))).sort();
@@ -79,13 +68,52 @@ describe('configure on a scratch home (rulings 1 and 4)', () => {
     expect(lines).toContain('bar: flat | gauge* | percent | none | flat6 | flat4');
   });
 
-  it('a non-default style pick rides the panel key too', () => {
+  it('a theme write carries the panel key too', () => {
     const home = homes.newHome();
     configure({ home, theme: 'quiet' });
 
     expect(settingsCommand(home, 'subagentStatusLine')).toBe(
-      panelKeyValue(['--style=bare']),
+      panelKeyValue('quiet', []),
     );
+  });
+});
+
+describe('a theme write through the real node renderer', () => {
+  it('both --theme=lean keys paint lean — the line dots-separated with a percent bar, the panel row dots-separated with its context percent', () => {
+    const home = homes.newHome();
+    configure({ home, theme: 'lean' });
+    const payload = readFileSync(P1, 'utf8');
+
+    const mainKey = settingsCommand(home, 'statusLine');
+    const panelKey = settingsCommand(home, 'subagentStatusLine');
+    expect(mainKey).toBe(mainKeyValue('lean', null, []));
+    expect(panelKey).toBe(panelKeyValue('lean', []));
+
+    const line = runKey(mainKey, home, payload, [`--now=${DEFAULT_NOW}`]);
+
+    expect(line.status).toBe(0);
+    expect(line.stdout).toContain(' · ');
+    expect(line.stdout).toContain('58%');
+    expect(line.stdout).not.toContain('█');
+    expect(line.stdout).not.toContain('│');
+    expect(readFileSync(capturePath(home, 'main'))).toEqual(
+      Buffer.from(payload),
+    );
+
+    const panel = runKey(panelKey, home, readFileSync(TICK, 'utf8'), [
+      `--now=${DEFAULT_NOW}`,
+    ]);
+
+    expect(panel.status).toBe(0);
+    const contents = panel.stdout
+      .split('\n')
+      .filter(row => row !== '')
+      .map(row => (JSON.parse(row) as { content: string }).content);
+    expect(
+      contents.filter(
+        content => content.includes(' · ') && content.includes('71%'),
+      ),
+    ).not.toEqual([]);
   });
 });
 

@@ -56,9 +56,9 @@ per rendered group — is the only way to put an item on the surface;
 `--layout` overrides the theme's, and a layout item no flag or theme picks is
 an error naming what is unresolved.
 
-**Show.** `catalog` prints the themes block (`*` marks the live theme) then
-one line per item — `item: alt | alt*`, `*` marking the live variant — zero
-color escapes, chat-safe:
+**Show.** `catalog` prints the themes block (`*` marks the theme the key
+names) then one line per item — `item: alt | alt*`, `*` marking the variant
+the key resolves to — zero color escapes, chat-safe:
 
     npx -y @v1nvn/statusline@0.28.0 catalog
 
@@ -67,15 +67,15 @@ color escapes, chat-safe:
 
 **Revert.** `restore` puts both keys back to their pre-lab values — saved
 text spliced back byte-exact, keys absent before the lab removed — then
-deletes the lab data (`captures/`, `backup.json`). Plain text,
+deletes the lab data (`captures/`, `backup.json`, `render.mjs`). Plain text,
 agent-runnable; a foreign key changed since the takeover is refused unless
 `--force` rides along:
 
     npx -y @v1nvn/statusline@0.28.0 restore
 
 Before the owner uninstalls the plugin, run `restore` first: a plain
-uninstall deletes the data dir with the backup, and the keys keep globbing a
-cache dir that dies only ~14 days later — a blank line, delayed.
+uninstall deletes the data dir — the backup and the renderer go with it, and
+the keys left behind render a blank line at the next paint.
 
 **Check.** `status` prints one row per fact, then a verdict — plain text,
 zero ANSI, agent-runnable:
@@ -84,20 +84,23 @@ zero ANSI, agent-runnable:
 
 A healthy install prints:
 
-    runtime: 0.27.3 — 16 items
-    statusLine: ours — layout='{model effort}' model=block effort=dim
-    subagentStatusLine: ours
+    node: on PATH (/Users/vineet/.local/share/mise/installs/node/26/bin/node)
+    renderer: current — 49c1950e148a
+    statusLine: ours
+    subagentStatusLine: ours — theme=lean
     config: no drift
+    theme: lean
     backup: present — saved statusLine, subagentStatusLine
     captures: main 2h ago, tick absent
     healthy
 
-When the live key equals a theme exactly, a `theme: <name>` row sits right
-after the config row; one swapped item drops it. Exit 0 on `healthy`, 1 on
-`unhealthy` — branch on it: 0 ends the check; 1 means read the rows, each
-naming a fix that runs exactly as printed: a foreign key takes
-`rerun configure --force --theme classic`; an absent key or a drifted variant
-takes `rerun configure --theme classic`; a missing runtime takes
-`claude plugin install statusline@agentic`. Run it right after configuring,
-and after a version bump — the config row names any item or variant the
-resolved runtime no longer offers.
+When the key carries `--theme`, a `theme: <name>` row sits right after the
+config row, swaps appended — `theme: lean +bar=gauge`; a swap keeps the name.
+Exit 0 on `healthy`, 1 on `unhealthy` — branch on it: 0 ends the check; 1
+means read the rows, each naming a fix that runs exactly as printed: a
+foreign key or a stale/missing renderer takes
+`rerun configure --force --theme classic`; an absent key or a drifted
+variant takes `rerun configure --theme classic`. Run it right after
+configuring, and after a version bump — the renderer row reads `stale` until
+the next `configure` rerun syncs the new bundle, and the config row names any
+item or variant the registry no longer offers.

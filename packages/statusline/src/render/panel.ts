@@ -1,7 +1,7 @@
-import { fmtK, fmtM } from './awk.js';
-import { capturePayload } from './capture.js';
-import { stripSgr } from './engine.js';
-import { ITEMS } from './items.js';
+import { fmtK, fmtM, pad2 } from './awk.js';
+import { stripModelSuffix, stripSgr, warn } from './engine.js';
+import { specFor } from './items.js';
+import { isRecord, jqText, orElse, tsvEscape } from './jq.js';
 import { styleSeparators } from './segments.js';
 
 // The agent panel, ported exact from the bash subagent renderer it replaced —
@@ -17,7 +17,6 @@ const YELLOW = '\x1b[33m';
 const MS_THRESHOLD = 200_000_000_000;
 
 export interface PanelInput {
-  readonly home: string;
   readonly noColor?: boolean;
   readonly now: number;
   readonly payload: string;
@@ -63,49 +62,16 @@ const STEPS: readonly (readonly [keyof FitState, number])[] = [
   ['statd', 2],
 ];
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
-function warn(message: string): void {
-  process.stderr.write(`${message}\n`);
-}
-
-// jq's `//`: only null, false, and a missing member fall through.
 function field(
   source: Record<string, unknown>,
   key: string,
   fallback: unknown,
 ): unknown {
-  const value = source[key];
-  return value === undefined || value === null || value === false
-    ? fallback
-    : value;
-}
-
-// jq's `tostring` on the row fields: scalars as text, containers as JSON.
-function jqText(value: unknown): string {
-  if (typeof value === 'string') {
-    return value;
-  }
-  if (typeof value === 'number' || typeof value === 'boolean') {
-    return String(value);
-  }
-  return JSON.stringify(value);
-}
-
-// Every field crosses jq's @tsv before the bash field split: backslash, tab,
-// newline, and carriage return survive as their two-character escapes.
-function tsvText(text: string): string {
-  return text
-    .replace(/\\/g, '\\\\')
-    .replace(/\t/g, '\\t')
-    .replace(/\n/g, '\\n')
-    .replace(/\r/g, '\\r');
+  return orElse(source[key], fallback);
 }
 
 function cell(value: unknown): string {
-  return tsvText(jqText(value));
+  return tsvEscape(jqText(value));
 }
 
 // jq's truncation: a description longer than 24 codepoints keeps its first 23
@@ -122,7 +88,7 @@ function intValue(text: string): null | number {
 function stylePick(
   picks: Readonly<Record<string, string>> | undefined,
 ): string {
-  const spec = ITEMS.find(candidate => candidate.item === 'style');
+  const spec = specFor('style');
   if (spec === undefined) {
     return 'plain';
   }
@@ -172,10 +138,6 @@ function makeBar(pct: number, width: number): string {
   return bar;
 }
 
-function pad2(n: number): string {
-  return String(n).padStart(2, '0');
-}
-
 // The startTime heuristic: milliseconds above the threshold become seconds
 // (truncated), and only a start at or before now yields a duration.
 function duration(startText: string, now: number): string {
@@ -221,13 +183,7 @@ function renderRow(
   if (fields.model !== '') {
     let name = fields.model;
     if (state.modeld >= 1) {
-      const at = name.lastIndexOf('[');
-      if (at !== -1) {
-        name = name.slice(0, at);
-      }
-      if (name.endsWith(' ')) {
-        name = name.slice(0, -1);
-      }
+      name = stripModelSuffix(name);
     }
     const effort = state.modeld >= 2 ? '' : fields.effort;
     if (effort !== '') {
@@ -292,7 +248,6 @@ function emitLine(id: string, content: string): string {
 }
 
 export function renderPanel(input: PanelInput): string {
-  capturePayload(input.home, 'tick', input.payload);
   const tick: unknown = JSON.parse(input.payload);
   const avail = availColumns(tick);
   const sep = styleSeparators(stylePick(input.picks)).sep;

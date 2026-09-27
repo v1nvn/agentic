@@ -12,17 +12,18 @@ export interface GitFacts {
 
 export interface GitEnv {
   readonly home: string;
-  readonly timeZone: string;
 }
 
 const BRANCH_HEAD = '# branch.head ';
+// `# branch.ab +2 -3` rides the porcelain status only when an upstream
+// exists — absent lines read as the zeros a failed rev-list counted.
+const BRANCH_AB = /^# branch\.ab \+(\d+) -(\d+)$/;
 
 function gitEnv(env: GitEnv): Readonly<Record<string, string>> {
   return {
     HOME: env.home,
     LC_ALL: 'C',
     PATH: process.env.PATH ?? '',
-    TZ: env.timeZone,
   };
 }
 
@@ -71,6 +72,12 @@ export function readGit(dir: string, env: GitEnv): GitFacts {
   for (const line of (status ?? '').split('\n')) {
     if (line.startsWith(BRANCH_HEAD)) {
       facts.branch = line.slice(BRANCH_HEAD.length);
+      continue;
+    }
+    const ab = BRANCH_AB.exec(line);
+    if (ab !== null) {
+      facts.ahead = count(ab[1]);
+      facts.behind = count(ab[2]);
     } else if (
       (line.startsWith('1 ') || line.startsWith('2 ')) &&
       line.length >= 4
@@ -86,10 +93,6 @@ export function readGit(dir: string, env: GitEnv): GitFacts {
   if (facts.branch === '(detached)') {
     facts.branch = '';
   }
-  facts.ahead = count(gitText(dir, ['rev-list', '--count', '@{u}..HEAD'], env));
-  facts.behind = count(
-    gitText(dir, ['rev-list', '--count', 'HEAD..@{u}'], env),
-  );
   facts.untracked = lineCount(
     gitText(dir, ['ls-files', '--others', '--exclude-standard'], env),
   );

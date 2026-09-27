@@ -6,18 +6,18 @@ import {
   BUNDLED_RENDERER,
   isOurMember,
   memberCommand,
-  parseClusters,
   parseSettings,
   readOrNull,
   SETTINGS_KEYS,
   type SettingsBackup,
   type SettingsKey,
 } from './configure.js';
-import { liveTheme } from './live-theme.js';
 import { DATA_DIR } from './render/capture.js';
-import { ITEMS } from './render/index.js';
+import { specFor } from './render/index.js';
+import { layoutItemsOf } from './render/layout.js';
 import {
   capturePath,
+  parsePanelCommand,
   readKeyConfig,
   renderMjsPath,
   type ScriptConfig,
@@ -59,26 +59,40 @@ function keyRow(key: SettingsKey, state: KeyState, detail = ''): string {
   return `${key}: foreign${state.command === null ? '' : ` (${state.command})`} — fix: rerun configure --force --theme classic`;
 }
 
-function layoutItemsOf(layout: string): readonly string[] {
-  const items: string[] = [];
-  for (const cluster of parseClusters(layout)) {
-    for (const item of cluster) {
-      if (!items.includes(item)) {
-        items.push(item);
-      }
-    }
-  }
-  return items;
+// A layout-less key (the theme or the default carries its layout) still has
+// its flagged decisions to show and check.
+function keyItems(config: ScriptConfig): readonly string[] {
+  const layout = config.layout === null ? [] : layoutItemsOf(config.layout);
+  return [...new Set([...layout, ...Object.keys(config.values)])];
 }
 
 function configDetail(config: ScriptConfig): string {
-  if (config.layout === null) {
-    return '';
-  }
-  const assignments = layoutItemsOf(config.layout)
+  const assignments = keyItems(config)
     .filter(item => Object.hasOwn(config.values, item))
     .map(item => `${item}=${config.values[item]}`);
-  return [`layout='${config.layout}'`, ...assignments].join(' ');
+  return [
+    ...(config.layout === null ? [] : [`layout='${config.layout}'`]),
+    ...assignments,
+  ].join(' ');
+}
+
+function panelDetail(config: ScriptConfig): string {
+  return [
+    ...(config.theme === undefined ? [] : [`theme=${config.theme}`]),
+    ...Object.entries(config.values).map(([item, alt]) => `${item}=${alt}`),
+  ].join(' ');
+}
+
+// The row names what the key names — the theme plus the swaps it carries,
+// never a pick-matching derivation.
+function themeRow(config: ScriptConfig): readonly string[] {
+  if (config.theme === undefined) {
+    return [];
+  }
+  const swaps = Object.entries(config.values).map(
+    ([item, alt]) => `+${item}=${alt}`,
+  );
+  return [`theme: ${[config.theme, ...swaps].join(' ')}`];
 }
 
 type DriftFinding =
@@ -96,13 +110,9 @@ function findingText(finding: DriftFinding): string {
 }
 
 function driftFindings(config: ScriptConfig): readonly DriftFinding[] {
-  if (config.layout === null) {
-    return [];
-  }
-  const byItem = new Map(ITEMS.map(entry => [entry.item, entry]));
   const findings: DriftFinding[] = [];
-  for (const item of layoutItemsOf(config.layout)) {
-    const entry = byItem.get(item);
+  for (const item of keyItems(config)) {
+    const entry = specFor(item);
     if (entry === undefined) {
       findings.push({ item, kind: 'unknown-item' });
       continue;
@@ -235,7 +245,9 @@ export function status(options: StatusOptions): StatusResult {
   const main = keyState('statusLine', members.statusLine);
   const subagent = keyState('subagentStatusLine', members.subagentStatusLine);
   const config = readKeyConfig(options.home);
-  const theme = liveTheme(config);
+  const panelConfig = parsePanelCommand(
+    memberCommand(members.subagentStatusLine),
+  );
   const findings = main.kind === 'ours' ? driftFindings(config) : [];
   const node = nodeOnPath(options.path ?? process.env.PATH ?? '');
   const renderer = rendererState(options.home);
@@ -246,13 +258,8 @@ export function status(options: StatusOptions): StatusResult {
       : `node: on PATH (${node})`,
     rendererRow(renderer),
     keyRow('statusLine', main, configDetail(config)),
-    keyRow('subagentStatusLine', subagent),
-    ...(main.kind === 'ours'
-      ? [
-          configRow(findings),
-          ...(theme === undefined ? [] : [`theme: ${theme}`]),
-        ]
-      : []),
+    keyRow('subagentStatusLine', subagent, panelDetail(panelConfig)),
+    ...(main.kind === 'ours' ? [configRow(findings), ...themeRow(config)] : []),
     backupRow(options.home),
     capturesRow(options.home),
   ];

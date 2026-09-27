@@ -1,4 +1,4 @@
-import { resolveSelection } from './configure.js';
+import { validateSelection } from './configure.js';
 import { previewSources, renderPreview } from './payloads.js';
 
 export interface PreviewOptions {
@@ -11,17 +11,18 @@ export interface PreviewOptions {
 }
 
 export function preview(options: PreviewOptions): string {
-  const { layout, values } = resolveSelection(options);
+  validateSelection(options);
   const sources = previewSources(options.home, Number(options.now));
   try {
     const { line, panel } = renderPreview({
       home: options.home,
-      layout,
+      layout: options.layout,
       main: sources.main,
       now: options.now,
       plain: options.plain ?? !process.stdout.isTTY,
       tick: sources.tick,
-      values,
+      theme: options.theme,
+      values: options.variants,
     });
     return `preview at 200 columns — nothing written\n${line}\npanel ${panel}\n`;
   } finally {

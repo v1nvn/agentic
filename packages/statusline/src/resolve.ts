@@ -2,7 +2,6 @@ import { readFileSync } from 'node:fs';
 import { join, sep } from 'node:path';
 
 import { DATA_DIR } from './render/capture.js';
-import { DEFAULT_LAYOUT } from './render/index.js';
 
 export function capturePath(home: string, surface: 'main' | 'tick'): string {
   return join(home, DATA_DIR, 'captures', `${surface}.json`);
@@ -18,6 +17,7 @@ export function renderMjsPath(home: string): string {
 
 export interface ScriptConfig {
   readonly layout: null | string;
+  readonly theme?: string;
   readonly values: Readonly<Record<string, string>>;
 }
 
@@ -28,50 +28,59 @@ const RENDER_PROGRAM = `node "$HOME/${DATA_DIR.split(sep).join('/')}/render.mjs"
 const PANEL_PROGRAM = `${RENDER_PROGRAM} panel`;
 const KEY_SUFFIX = ' || true';
 
-export function mainKeyValue(
+// The one spelling of a settings key: program, --theme, a quoted --layout,
+// the differing flags, the swallow-everything suffix.
+function keyValue(
+  program: string,
+  theme: null | string,
   layout: null | string,
   flags: readonly string[],
 ): string {
-  return [
-    RENDER_PROGRAM,
+  return `${[
+    program,
+    ...(theme === null ? [] : [`--theme=${theme}`]),
     ...(layout === null ? [] : [`--layout='${layout}'`]),
     ...flags,
-    '|| true',
-  ].join(' ');
+  ].join(' ')}${KEY_SUFFIX}`;
 }
 
-export function panelKeyValue(flags: readonly string[]): string {
-  return [PANEL_PROGRAM, ...flags, '|| true'].join(' ');
+export function mainKeyValue(
+  theme: null | string,
+  layout: null | string,
+  flags: readonly string[],
+): string {
+  return keyValue(RENDER_PROGRAM, theme, layout, flags);
 }
 
-function isOurCommand(program: string, command: string): boolean {
+export function panelKeyValue(
+  theme: null | string,
+  flags: readonly string[],
+): string {
+  return keyValue(PANEL_PROGRAM, theme, null, flags);
+}
+
+// The flags span between program and suffix — null unless the command is
+// ours-shaped (nothing after the program but flags).
+function commandMiddle(program: string, command: string): null | string {
   if (!command.startsWith(program) || !command.endsWith(KEY_SUFFIX)) {
-    return false;
+    return null;
   }
   const middle = command.slice(
     program.length,
     command.length - KEY_SUFFIX.length,
   );
-  return middle === '' || middle.startsWith(' --');
+  return middle === '' || middle.startsWith(' --') ? middle : null;
 }
 
 export function isOurMainCommand(command: string): boolean {
-  return isOurCommand(RENDER_PROGRAM, command);
+  return commandMiddle(RENDER_PROGRAM, command) !== null;
 }
 
 export function isOurPanelCommand(command: string): boolean {
-  return isOurCommand(PANEL_PROGRAM, command);
+  return commandMiddle(PANEL_PROGRAM, command) !== null;
 }
 
-function mainKeyFlags(command: string): null | string {
-  if (!isOurMainCommand(command)) {
-    return null;
-  }
-  return command.slice(
-    RENDER_PROGRAM.length,
-    command.length - KEY_SUFFIX.length,
-  );
-}
+const NO_DECISIONS: ScriptConfig = { layout: null, values: {} };
 
 function settingsCommand(home: string): null | string {
   let raw: string;
@@ -94,23 +103,42 @@ function settingsCommand(home: string): null | string {
   return typeof command === 'string' ? command : null;
 }
 
-// The main key's flags parsed back into a selection: a null layout means no
-// ours key at all; an ours key without --layout reads as the default layout
-// it implies. Unknown item names survive to surface as status drift.
-export function readKeyConfig(home: string): ScriptConfig {
-  const command = settingsCommand(home);
-  const flags = command === null ? null : mainKeyFlags(command);
-  if (flags === null) {
-    return { layout: null, values: {} };
-  }
+// The flags a settings key carries parsed back into the decisions it
+// records: --theme as the name, --<item>=<alt> as values, a quoted --layout.
+// A null layout means no explicit --layout — a theme key leaves the layout
+// to the theme. Unknown item names survive to surface as drift.
+function parseKeyFlags(flags: string): ScriptConfig {
   const values: Record<string, string> = {};
+  let theme: string | undefined;
   for (const [, name, alt] of flags.matchAll(
     /(?:^| )--([a-z][a-z0-9]*)=([a-z0-9]+)/g,
   )) {
-    if (name !== 'theme' && name !== 'now') {
+    if (name === 'theme') {
+      theme = alt;
+    } else if (name !== 'now' && name !== 'layout') {
       values[name] = alt;
     }
   }
   const layout = /--layout='([^']*)'/.exec(flags);
-  return { layout: layout === null ? DEFAULT_LAYOUT : layout[1], values };
+  return {
+    layout: layout === null ? null : layout[1],
+    values,
+    ...(theme === undefined ? {} : { theme }),
+  };
+}
+
+// The main key's decisions. A missing settings member or a foreign key reads
+// the same way, with no theme and no values.
+export function readKeyConfig(home: string): ScriptConfig {
+  const command = settingsCommand(home);
+  const flags =
+    command === null ? null : commandMiddle(RENDER_PROGRAM, command);
+  return flags === null ? NO_DECISIONS : parseKeyFlags(flags);
+}
+
+// The panel key's decisions — the theme it carries, a style pick when one
+// rides. An absent or foreign member reads as no decisions.
+export function parsePanelCommand(command: null | string): ScriptConfig {
+  const flags = command === null ? null : commandMiddle(PANEL_PROGRAM, command);
+  return flags === null ? NO_DECISIONS : parseKeyFlags(flags);
 }

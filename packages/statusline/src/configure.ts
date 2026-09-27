@@ -8,7 +8,14 @@ import {
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { DEFAULT_LAYOUT, ITEMS } from './render/index.js';
+import {
+  DEFAULT_LAYOUT,
+  DEFAULT_PICKS,
+  ITEM_IDS,
+  ITEMS,
+  specFor,
+} from './render/index.js';
+import { layoutItems } from './render/layout.js';
 import {
   backupPath,
   isOurMainCommand,
@@ -17,12 +24,7 @@ import {
   panelKeyValue,
   renderMjsPath,
 } from './resolve.js';
-import {
-  type Theme,
-  THEME_NAMES,
-  type ThemeName,
-  themesFor,
-} from './themes.js';
+import { type Theme, THEME_NAMES, type ThemeName, THEMES } from './themes.js';
 
 export interface ConfigureOptions {
   readonly force?: boolean;
@@ -54,80 +56,6 @@ export function syncRenderer(home: string): void {
 export type SettingsKey = 'statusLine' | 'subagentStatusLine';
 
 export const SETTINGS_KEYS = ['statusLine', 'subagentStatusLine'] as const;
-
-export function layoutItems(
-  layout: string,
-  valid: readonly string[],
-): string[] {
-  const known = new Set(valid);
-  const items: string[] = [];
-  for (const cluster of parseClusters(layout)) {
-    for (const word of cluster) {
-      if (!known.has(word)) {
-        throw new Error(
-          `unknown layout item '${word}' — valid items: ${valid.join(' ')}`,
-        );
-      }
-      if (!items.includes(word)) {
-        items.push(word);
-      }
-    }
-  }
-  return items;
-}
-
-export function parseClusters(layout: string): string[][] {
-  const clusters: string[][] = [];
-  let words: string[] = [];
-  let word = '';
-  let open = false;
-  function pushWord(): void {
-    if (word !== '') {
-      words.push(word);
-      word = '';
-    }
-  }
-  for (const c of layout) {
-    if (c === '{') {
-      if (open) {
-        throw new Error(`layout '${layout}': '{' inside a cluster`);
-      }
-      open = true;
-      words = [];
-    } else if (c === '}') {
-      if (!open) {
-        throw new Error(`layout '${layout}': '}' outside a cluster`);
-      }
-      pushWord();
-      open = false;
-      if (words.length > 0) {
-        clusters.push(words);
-      }
-    } else if (c === ' ') {
-      if (open) {
-        pushWord();
-      } else if (word !== '') {
-        throw new Error(`layout '${layout}': '${word}' sits outside a cluster`);
-      }
-    } else if (/[a-z0-9]/.test(c)) {
-      word += c;
-    } else {
-      throw new Error(
-        `layout '${layout}': '${c}' is not layout grammar (braces, item ids, spaces)`,
-      );
-    }
-  }
-  if (open) {
-    throw new Error(`layout '${layout}': unterminated cluster`);
-  }
-  if (word !== '') {
-    throw new Error(`layout '${layout}': '${word}' sits outside a cluster`);
-  }
-  if (clusters.length === 0) {
-    throw new Error(`layout '${layout}': no clusters`);
-  }
-  return clusters;
-}
 
 export function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -477,51 +405,27 @@ function themeNamed(
   return theme;
 }
 
-export interface Selection {
-  readonly layout: string;
-  readonly values: Readonly<Record<string, string>>;
-}
-
-// One engine under every guide: configure writes what this resolves, preview
-// renders it. Resolution is item flags > theme > error naming the gap.
-export function resolveSelection(
+// Validation only: the theme name is in the table, the overrides are picks
+// the registry offers, the layout's items are known — and some layout source
+// exists. The renderer resolves theme plus overrides at paint
+// (src/render/theme.ts); the writer below records the decisions, never
+// resolved output. Returns the named theme so its caller resolves it once.
+export function validateSelection(
   options: Pick<ConfigureOptions, 'layout' | 'theme' | 'variants'>,
-): Selection {
-  const variants = options.variants ?? {};
-  const themes = themesFor();
+): Theme | undefined {
   const theme =
-    options.theme === undefined ? undefined : themeNamed(options.theme, themes);
+    options.theme === undefined ? undefined : themeNamed(options.theme, THEMES);
 
   const layout = options.layout ?? theme?.layout;
   if (layout === undefined) {
     throw new Error('no layout — pass --layout <spec> or --theme <name>');
   }
-  const byItem = new Map(ITEMS.map(item => [item.item, item]));
-  const items = layoutItems(
-    layout,
-    ITEMS.map(item => item.item),
-  );
-
-  const values: Record<string, string> = {
-    ...(theme?.variants ?? {}),
-    ...variants,
-  };
-  const missing = items.filter(item => !(item in values));
-  if (missing.length > 0) {
-    const hints = missing.map(item => `--${item} <alt>`).join(' ');
-    const names = missing.map(item => `'${item}'`).join(' ');
-    const plural = missing.length > 1 ? 's' : '';
-    throw new Error(
-      theme === undefined
-        ? `no variant for layout item${plural} ${names} — pass ${hints}, or name a theme: --theme ${THEME_NAMES.join('|')}`
-        : `theme '${options.theme}' has no pick for layout item${plural} ${names} — pass ${hints}, or drop ${missing.length > 1 ? 'them' : 'it'} from the layout`,
-    );
-  }
-  for (const [item, alt] of Object.entries(values)) {
-    const entry = byItem.get(item);
+  layoutItems(layout, ITEM_IDS);
+  for (const [item, alt] of Object.entries(options.variants ?? {})) {
+    const entry = specFor(item);
     if (entry === undefined) {
       throw new Error(
-        `unknown item '${item}' — valid items: ${[...byItem.keys()].join(' ')}`,
+        `unknown item '${item}' — valid items: ${ITEM_IDS.join(' ')}`,
       );
     }
     if (!entry.alternatives.includes(alt)) {
@@ -530,16 +434,21 @@ export function resolveSelection(
       );
     }
   }
-
-  return { layout, values };
+  return theme;
 }
 
-// The key records only the decisions that differ from the registry defaults —
-// the renderer resolves absent picks to them at paint.
-function itemFlags(values: Readonly<Record<string, string>>): string[] {
-  return ITEMS.flatMap(({ default: def, item }) => {
-    const pick = values[item] ?? def;
-    return pick === def ? [] : [`--${item}=${pick}`];
+// A key records only the decisions that differ from the picks its base
+// already carries — registry defaults with the theme's variants over them;
+// the renderer resolves absent picks at paint.
+function decisionFlags(
+  base: Readonly<Record<string, string>>,
+  decisions: Readonly<Partial<Record<string, string>>>,
+): string[] {
+  return ITEMS.flatMap(({ item }) => {
+    const pick = decisions[item];
+    return pick === undefined || pick === base[item]
+      ? []
+      : [`--${item}=${pick}`];
   });
 }
 
@@ -554,18 +463,24 @@ export function configure(options: ConfigureOptions): void {
     );
   }
 
-  const { layout, values } = resolveSelection(options);
-  // The panel consumes one decision — style; an absent pick falls to the
-  // default inside itemFlags.
-  const panelFlags = itemFlags({ style: values.style });
+  const theme = validateSelection(options);
+  const base = { ...DEFAULT_PICKS, ...theme?.variants };
+  const decisions = options.variants ?? {};
+  const baseLayout = theme?.layout ?? DEFAULT_LAYOUT;
+  const layout =
+    options.layout === undefined || options.layout === baseLayout
+      ? null
+      : options.layout;
+  const flags = decisionFlags(base, decisions);
   const plan = planSettings(
     options.home,
     {
-      statusLine: mainKeyValue(
-        layout === DEFAULT_LAYOUT ? null : layout,
-        itemFlags(values),
+      statusLine: mainKeyValue(options.theme ?? null, layout, flags),
+      // The panel consumes one decision — style.
+      subagentStatusLine: panelKeyValue(
+        options.theme ?? null,
+        flags.filter(flag => flag.startsWith('--style=')),
       ),
-      subagentStatusLine: panelKeyValue(panelFlags),
     },
     options.force ?? false,
   );

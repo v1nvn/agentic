@@ -1,39 +1,32 @@
-import { readdirSync, readFileSync, rmSync } from 'node:fs';
-import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { readdirSync, rmSync } from 'node:fs';
 
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 // The door implemented in src/render/:
-//   renderStatusline({ payload, home, now, timeZone, columns?, layout?,
+//   renderStatusline({ payload, home, now, columns?, layout?,
 //                      picks?, noColor? }): string
-//   ITEMS: readonly { item, default, alternatives }[] — the COMPS registry
+//   ITEMS: readonly { item, default, alternatives }[] — the item registry
 //   DEFAULT_LAYOUT: string
-// payload is the JSON text exactly as the bash runtime's stdin; the engine
+// payload is the JSON text exactly as the renderer's stdin; the engine
 // owns the parse and reads git at payload.workspace.current_dir. picks map
-// item -> alternative (STATUSLINE_LAB_<ITEM>), layout overrides the default,
-// columns is COLUMNS (omitted -> the engine default), noColor is NO_COLOR.
+// item -> alternative, layout overrides the default, columns is COLUMNS
+// (omitted -> the engine default), noColor is NO_COLOR.
 // The return is the emitted stdout: lines joined by '\n' with a trailing
 // '\n'. The panel goldens (multi-*, subagent.sh) are the panel engine's
 // corpus, not this door.
+import { DEFAULT_LAYOUT, ITEMS } from '../src/render/index.js';
+import { SEGMENTS } from '../src/render/segments.js';
 import {
-  DEFAULT_LAYOUT,
-  ITEMS,
-  renderStatusline as renderEngine,
-} from '../src/render/index.js';
-import {
+  createDemoHome,
   DEFAULT_NOW,
+  GOLDENS_DIR,
+  golden,
+  loadPayload,
   NOW_AFTER_CACHE_EXPIRY,
   NOW_BEFORE_CACHE_EXPIRY,
-  createDemoHome,
-  golden,
+  renderAt,
   type DemoHome,
 } from './runtime.js';
-
-const PAYLOADS_DIR = fileURLToPath(
-  new URL('../assets/payloads', import.meta.url),
-);
-const GOLDENS_DIR = fileURLToPath(new URL('./goldens', import.meta.url));
 
 type Loose = Record<string, unknown>;
 
@@ -47,12 +40,6 @@ export interface CorpusCase {
   readonly noColor?: boolean;
   readonly picks?: Readonly<Record<string, string>>;
   readonly mutate?: (payload: Loose) => void;
-}
-
-function loadFixture(name: string): Loose {
-  return JSON.parse(
-    readFileSync(join(PAYLOADS_DIR, `${name}.json`), 'utf8'),
-  ) as Loose;
 }
 
 function setPct(payload: Loose, pct: number): void {
@@ -321,14 +308,10 @@ function renderCase(c: CorpusCase): string {
   if (!demo) {
     throw new Error('demo home not materialized');
   }
-  const payload = loadFixture(c.payload);
+  const payload = loadPayload(c.payload);
   c.mutate?.(payload);
-  (payload.workspace as Loose).current_dir = demo.repoDir;
-  return renderEngine({
-    payload: JSON.stringify(payload, null, 2),
-    home: demo.home,
-    now: Number(c.now ?? DEFAULT_NOW),
-    timeZone: 'UTC',
+  return renderAt(demo, payload, {
+    ...(c.now === undefined ? {} : { now: c.now }),
     ...(c.columns === undefined ? {} : { columns: c.columns }),
     ...(c.layout === undefined ? {} : { layout: c.layout }),
     ...(c.picks === undefined ? {} : { picks: c.picks }),
@@ -337,7 +320,7 @@ function renderCase(c: CorpusCase): string {
 }
 
 describe('the src/render door', () => {
-  it('exposes the registry in COMPS order with the 3 inline shims', () => {
+  it('exposes the registry in paint order with the 3 inline rung shims', () => {
     expect(ITEMS.map(entry => entry.item)).toEqual([
       'model', 'effort', 'state', 'cwd', 'branch', 'status', 'ahead', 'pr',
       'bar', 'tokens', 'cache', 'cost', 'duration', 'lines', 'rate', 'style',
@@ -356,6 +339,22 @@ describe('the src/render door', () => {
     expect(DEFAULT_LAYOUT).toBe(
       '{model effort state} {cwd branch status ahead pr} {bar tokens cache} {cost} {duration} {lines} {rate}',
     );
+  });
+
+  // style is the one registry item no layout paints — separators, not a
+  // segment. Every other registered alternative must have a renderer, or it
+  // would silently paint ''.
+  it('every registered alternative has a segment renderer', () => {
+    for (const { alternatives, item } of ITEMS) {
+      if (item === 'style') {
+        continue;
+      }
+      for (const alt of alternatives) {
+        expect(typeof SEGMENTS[item]?.[alt], `${item}=${alt}`).toBe(
+          'function',
+        );
+      }
+    }
   });
 
   it('omitting layout renders the same bytes as layout: DEFAULT_LAYOUT', () => {

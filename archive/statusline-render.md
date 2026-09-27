@@ -38,19 +38,19 @@ ships only `.claude-plugin/plugin.json` and `SKILL.md`; a paint is
 
 ## Current state
 
-r1–r4 landed (PR 1's units): the renderer is package code end to end —
-engine, panel, and entry in `src/render/`, `dist/render.mjs` synced into the
-data dir, settings keys spelling `node "$HOME/…/render.mjs" --<item>=<alt>
-|| true` (panel adds the positional), non-default picks as flags only. The
-bash runtime, env wall, cache-glob, and six suites are deleted; goldens 103
-byte-protected; 296/296 green. Interim: live-theme matches effective picks
-(defaults filled) until t4; `--theme` accepted by argv but not written until
-t2; custom's branch seed is `none` (the unified registry knows the shim).
+All ten units landed. The renderer is TypeScript end to end; the settings
+keys spell the direct data-dir command carrying `--theme` plus differing
+flags; configure is the sole writer (keys + renderer sync); resolution
+happens at paint through one resolver; status/catalog/wizard read the name
+from the key; the bash runtime, env wall, cache-glob, live-theme, and six
+bash-spawning suites are gone; docs state the current contracts. 333/333
+package tests, whole-repo gate green at both PR boundaries, goldens 103
+byte-protected throughout.
 
 ## Next step
 
-t1 — the five themes as a static `THEMES` const plus the one resolver;
-today's compile output and the `--theme` spelling render byte-identical.
+Close the thread: PR 2 open (t1–t6, base statusline-render), archive this
+file, delete the index entry.
 
 ## Steps
 
@@ -60,12 +60,12 @@ today's compile output and the `--theme` spelling render byte-identical.
 | r2 | entry + panel mode | | | `render.mjs` entry owns its argv grammar — `node:util` parseArgs, never commander/agentic-core; it shares only the registry data with the CLI. Flags: `--theme`, `--layout`, `--now=<epoch>`, `--<item>=<alt>`; `panel` positional. Ambient reads stay env: `NO_COLOR`, `COLUMNS`, `HOME`, `TZ`. Unknown flag name → stderr warning + ignored; unknown value → warning + default (the `check_config` rule). Keeps the capture tee to the data dir. `panel` argv mode ports `subagent.sh`'s own engine — its `vlen` (codepoint semantics), fit ladder, `make_bar`, `fmt_k`, 24-char description truncation, ms-vs-s `startTime` heuristic — exact, not unified with the main engine; panel goldens (ticks/multi.json × widths) byte-identical — landed `dd0d2d0` + fix rounds `0cfa768`/`78261fa` (awk tie rounding via shared `fmtFixed` in both engines, capture before parse): panel corpus +16 goldens, argv 11/11, 103 goldens protected |
 | r3 | ship + sync | | | vite emits `dist/render.mjs` beside the CLI bundle; the tarball needs no manifest change (`files: ["dist","assets"]` already ships it; the entry shebang banner is harmless under `node`). `configure` syncs its bundled renderer into `$DATA_DIR` on every write, content-diffed; `restore` deletes `render.mjs` with the rest of the lab data by explicit path; `status` replaces the cache-version `runtime:` row with two rows — `node` on PATH, data-dir renderer vs the CLI's bundle (hash) — each with a runnable fix — landed `b417d40` + fix `43b3174` (vitest globalSetup bootstraps the bundle for fresh-clone test runs): 34.5 kB dep-free bundle, tarball ships it, sync byte-diffed tmp+rename, key pins byte-identical (three guard bytes per the inventory ruling) |
 | r4 | switchover | | checklist | key constants become the direct data-dir flag commands (main: `node "$HOME/…/render.mjs" --theme=… --<item>=<alt> \|\| true`; panel adds the `panel` positional); ours-matcher and `readKeyConfig` re-derived on the new prefix/suffix — the prefix is the program itself, so the assignments-hug-the-command constraint dies; wizard/preview/tests render through the TS entry (engine-level tests in-process, below the argv layer; the only argv-seam tests are `key-e2e` and t3's e2e); every bash-spawning suite (`statusline`, `responsive`, `ramps`, `subagent`, `runtime-tee`, `plugin-runtime`) plus the `test/{runtime,plugin-runtime}.ts` helpers converts or dies in this one motion; `plugins/statusline/runtime/` deleted; `key-e2e`/`configure` pins re-baselined (PR 1's only re-baseline); CLAUDE.md layout rule drops the runtime exception — landed `2d83ec6` + fix `48663a0` (negative-reset oracle resurrected in responsive): 58 files +865/−3256, runtime/ gone (19 files), suites died statusline/ramps/subagent/plugin-runtime + converted responsive/runtime-tee, key round-trip and matcher cross-cases live-verified, gate.sh r4 all families PASS, 296/296 |
-| t1 | themes as data + the resolver | | checklist | the five themes (layouts, per-item picks, summaries, `custom`'s absence seeds) are a static `THEMES` const beside the registry — `themesFor(runtime)` the function is deleted, layouts embedding the default layout's string; one resolver function in `src/render/` resolves theme + item flags + layout at paint; the panel resolves the theme's `style`; for every theme, today's compile output and the `--theme` spelling render byte-identical (goldens untouched) |
-| t2 | the key shape | | checklist | `configure --theme lean` writes `node … --theme=lean` and nothing else — no item flags, no layout; `--theme lean --bar gauge` adds only `--bar=gauge`; `--layout` rides only when passed; the panel key carries `--theme` (and `--style` on a flags-only style write) with a prefix/suffix ours-matcher like the main key's; `readKeyConfig` parses flags — theme without layout is legal, the theme carries it; `resolveSelection` slims to validation (name in table, overrides valid, layout items known) — the every-item-needs-a-pick error dies with the wall; key-text and footprint pins re-baselined once |
-| t3 | e2e door | | | a scratch-home test configures `--theme lean`, asserts the key text, then runs both written keys through the real node renderer at the data-dir path with the fixture payload and tick (`--now` pinned), asserting lean's markers on the line and the panel row (`·` separators, percent bar) |
-| t4 | status + catalog read the name | | | `status` prints `theme: lean` from the key with swaps appended, and the panel row carries its theme; `catalog` stars the theme by name and stars resolved picks per item through the shared resolver; `live-theme.ts` and its tests deleted; fix strings still name a runnable fix |
-| t5 | wizard rides names | | | the themes pass previews by `--theme`; refine edits overrides and offers `style`; the save writes `--theme` plus **only the picks that differ from the theme** — the full draft must not ride, that rebuilds the assignment wall; the fake-deps test asserts the saved key text, not just the outcome |
-| t6 | contracts + docs | | | README contracts rewritten (renderer in the package, data-dir key, configure sole writer, flags carry decisions, theme resolution at paint, name rides the key, swaps keep the name); module table current; SKILL.md status example current; the plugin manifest description drops "bash render runtime"; root README checked; repo grep finds no "runtime never learns themes", no "no theme name is stored", and no `STATUSLINE_LAB_` in `src/` outside `archive/` and `progress/` |
+| t1 | themes as data + the resolver | | checklist | the five themes (layouts, per-item picks, summaries, `custom`'s absence seeds) are a static `THEMES` const beside the registry — `themesFor(runtime)` the function is deleted, layouts embedding the default layout's string; one resolver function in `src/render/` resolves theme + item flags + layout at paint; the panel resolves the theme's `style`; for every theme, today's compile output and the `--theme` spelling render byte-identical (goldens untouched) — landed `5a8ed94` + fix `f7c0296` (unknown-theme warning + custom absence pinned at bytes): `resolvePaint` in `src/render/theme.ts` (sparse picks, layout always concrete), entry wired both doors, five-theme byte-equivalence at 200/60 cols + panel, 320/320 |
+| t2 | the key shape | | checklist | `configure --theme lean` writes `node … --theme=lean` and nothing else — no item flags, no layout; `--theme lean --bar gauge` adds only `--bar=gauge`; `--layout` rides only when passed; the panel key carries `--theme` (and `--style` on a flags-only style write) with a prefix/suffix ours-matcher like the main key's; `readKeyConfig` parses flags — theme without layout is legal, the theme carries it; `resolveSelection` slims to validation (name in table, overrides valid, layout items known) — the every-item-needs-a-pick error dies with the wall; key-text and footprint pins re-baselined once — landed `899842e` + fix `15d73ab` (drift detection re-gated off the ours signal, not the layout field): spellings pinned byte-exact (theme first; flag rides iff pick ≠ base — theme variant or default), readKeyConfig round-trips all seven key shapes, resolveSelection dead → `validateSelection` void, footprint pins untouched, 328/328 |
+| t3 | e2e door | | | a scratch-home test configures `--theme lean`, asserts the key text, then runs both written keys through the real node renderer at the data-dir path with the fixture payload and tick (`--now` pinned), asserting lean's markers on the line and the panel row (`·` separators, percent bar) — landed `b71bff1`: door passed first run against the tree (no wiring defect), flags parsed from the written key, `--now` pinned to the corpora epoch, scratch-home isolated, markers empirically discriminative (lean `·`/58%/71% vs classic │/█); absorbed the old lean render test one-way |
+| t4 | status + catalog read the name | | | `status` prints `theme: lean` from the key with swaps appended, and the panel row carries its theme; `catalog` stars the theme by name and stars resolved picks per item through the shared resolver; `live-theme.ts` and its tests deleted; fix strings still name a runnable fix — landed `ed19ffd`: theme row verbatim from `config.theme` (name is truth — contradicting flags verified), panel row `ours — theme=lean style=bare`, catalog stars by name + per-item via `resolvePaint`, live-theme dead (grep clean), `resolve.ts` extracted `parseKeyFlags`/`parsePanelCommand` (readKeyConfig byte-identical), 327/327 |
+| t5 | wizard rides names | | | the themes pass previews by `--theme`; refine edits overrides and offers `style`; the save writes `--theme` plus **only the picks that differ from the theme** — the full draft must not ride, that rebuilds the assignment wall; the fake-deps test asserts the saved key text, not just the outcome — landed `89b2239` + t2-territory fix `2054530` (configure's diff base = defaults merged with theme variants, matching the wizard): previews by name through the one resolver door, refine seeds an empty override draft with `style` offered, unrefined save = bare `--theme=<name>` on both keys, refined adds exactly the differing flags, fake-deps asserts written key text, 333/333 |
+| t6 | contracts + docs | | | README contracts rewritten (renderer in the package, data-dir key, configure sole writer, flags carry decisions, theme resolution at paint, name rides the key, swaps keep the name); module table current; SKILL.md status example current; the plugin manifest description drops "bash render runtime"; root README checked; repo grep finds no "runtime never learns themes", no "no theme name is stored", and no `STATUSLINE_LAB_` in `src/` outside `archive/` and `progress/` — landed `ac608cb` + fix `ea38ab4` (resolver importers + configure footprint corrected): status example byte-exact from a live run, key spellings byte-identical to the key-config pins, module table 14 src + 12 render rows all present, 13 gate families green |
 
 ## Plan
 
@@ -103,9 +103,15 @@ Per-unit reading:
   effective-picks matcher in live-theme is the interim t4 deletes; t6 —
   SKILL.md/plugin.json/README still name the bash runtime, untouched.
 - t2: `src/{configure,resolve}.ts`, `test/{configure,key-e2e,fixtures}.ts`, any
-  `restore`/`subagent` pin on the old exact panel constant.
+  `restore`/`subagent` pin on the old exact panel constant. Facts from t1:
+  `--theme` rides first in flag order; `readKeyConfig` already skips
+  theme/now when parsing; `resolveSelection` still compiles themes today —
+  t2 slims it to validation; import the resolver direct from
+  `src/render/theme.js` (not the render/index barrel).
 - t3: `test/key-e2e.test.ts` — the door extends the real-renderer harness
-  from r4.
+  from r4. Facts from t2: final spellings and `readKeyConfig`'s parsed shape
+  are pinned in `test/key-config.test.ts`; reuse `fixtures.keyArgv` +
+  key-e2e's real-node harness; `--now` pins the tick.
 - t4: `src/{status,catalog}.ts`, `src/live-theme.ts` (deleted),
   `test/{status,catalog,themes}.test.ts`.
 - t5: `src/wizard.ts`, `test/wizard.test.ts`.

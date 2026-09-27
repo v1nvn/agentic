@@ -1,3 +1,5 @@
+import { isRecord, orElse } from './jq.js';
+
 export interface RateRow {
   readonly label: string;
   readonly pctText: string;
@@ -29,10 +31,6 @@ export interface Row {
   readonly wt: string;
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
 function member(source: unknown, key: string): unknown {
   return isRecord(source) ? source[key] : undefined;
 }
@@ -45,28 +43,20 @@ function field(source: unknown, path: string): unknown {
   return current;
 }
 
-// jq's `//`: only null, false, and a missing member fall through.
-function orElse(value: unknown, fallback: unknown): unknown {
-  return value === undefined || value === null || value === false
-    ? fallback
-    : value;
-}
-
-function tsvText(value: unknown): string {
+// The line's bash side never saw a container in a scalar field; one reads
+// as empty text, not as JSON.
+function textOf(value: unknown): string {
   if (typeof value === 'string') {
     return value;
   }
-  if (typeof value === 'number') {
+  if (typeof value === 'number' || typeof value === 'boolean') {
     return String(value);
-  }
-  if (typeof value === 'boolean') {
-    return value ? 'true' : 'false';
   }
   return '';
 }
 
 function scalar(source: unknown, path: string, fallback: string): string {
-  return tsvText(orElse(field(source, path), fallback));
+  return textOf(orElse(field(source, path), fallback));
 }
 
 function numberField(source: unknown, path: string): number {

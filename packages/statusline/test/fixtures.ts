@@ -12,9 +12,8 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 
 import { DATA_DIR } from '../src/render/capture.js';
-import { themesFor } from '../src/themes.js';
 
-export const THEMES = themesFor();
+export { THEMES } from '../src/themes.js';
 
 export function settingsPath(home: string): string {
   return join(home, '.claude', 'settings.json');
@@ -41,10 +40,6 @@ export function settingsCommand(
     throw new Error(`${key} in ${settingsPath(home)} is not a command member`);
   }
   return (value as { command: string }).command;
-}
-
-export function backupPath(home: string): string {
-  return join(home, DATA_DIR, 'backup.json');
 }
 
 export function writeCapture(

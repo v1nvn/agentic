@@ -8,18 +8,15 @@ import {
   configure,
   type ConfigureOptions,
 } from '../src/configure.js';
-import { liveTheme } from '../src/live-theme.js';
 import {
+  backupPath,
   mainKeyValue,
   panelKeyValue,
-  readKeyConfig,
   renderMjsPath,
 } from '../src/resolve.js';
 import { nodeOnPath, rendererHash, status } from '../src/status.js';
 import {
-  backupPath,
   createHomes,
-  settingsCommand,
   writeCapture,
   writeSettings,
 } from './fixtures.js';
@@ -80,8 +77,8 @@ describe('status: config drift (contract 5)', () => {
     writeSettings(
       home,
       `{
-  "statusLine": ${JSON.stringify({ command: mainKeyValue('{model flux}', ['--model=neon', '--flux=pulse']), type: 'command' })},
-  "subagentStatusLine": ${JSON.stringify({ command: panelKeyValue([]), type: 'command' })}
+  "statusLine": ${JSON.stringify({ command: mainKeyValue(null, '{model flux}', ['--model=neon', '--flux=pulse']), type: 'command' })},
+  "subagentStatusLine": ${JSON.stringify({ command: panelKeyValue(null, []), type: 'command' })}
 }
 `,
     );
@@ -108,8 +105,8 @@ describe('status: variants-only drift (contract 5)', () => {
     writeSettings(
       home,
       `{
-  "statusLine": ${JSON.stringify({ command: mainKeyValue('{model effort}', ['--model=neon', '--effort=dim']), type: 'command' })},
-  "subagentStatusLine": ${JSON.stringify({ command: panelKeyValue([]), type: 'command' })}
+  "statusLine": ${JSON.stringify({ command: mainKeyValue(null, '{model effort}', ['--model=neon', '--effort=dim']), type: 'command' })},
+  "subagentStatusLine": ${JSON.stringify({ command: panelKeyValue(null, []), type: 'command' })}
 }
 `,
     );
@@ -127,6 +124,27 @@ describe('status: variants-only drift (contract 5)', () => {
       'captures: main absent, tick absent',
       'unhealthy',
     ]);
+  });
+});
+
+describe('status: layout-less drift (t2)', () => {
+  it('a layout-less ours key still flags unknown variants and shows its decisions', () => {
+    const home = homes.newHome();
+    writeSettings(
+      home,
+      `{
+  "statusLine": ${JSON.stringify({ command: mainKeyValue(null, null, ['--model=zzz']), type: 'command' })}
+}
+`,
+    );
+
+    const result = status({ home });
+
+    expect(result.rows).toContain('statusLine: ours — model=zzz');
+    expect(result.rows).toContain(
+      "config: drift — unknown variant 'zzz' for 'model' — fix: rerun configure --theme classic",
+    );
+    expect(result.healthy).toBe(false);
   });
 });
 
@@ -242,7 +260,7 @@ describe('status: fix lines run (contract 5 seam)', () => {
     writeSettings(
       absentHome,
       `{
-  "subagentStatusLine": ${JSON.stringify({ command: panelKeyValue([]), type: 'command' })}
+  "subagentStatusLine": ${JSON.stringify({ command: panelKeyValue(null, []), type: 'command' })}
 }
 `,
     );
@@ -252,7 +270,7 @@ describe('status: fix lines run (contract 5 seam)', () => {
       foreignHome,
       `{
   "statusLine": { "type": "command", "command": "./old-main.sh" },
-  "subagentStatusLine": ${JSON.stringify({ command: panelKeyValue([]), type: 'command' })}
+  "subagentStatusLine": ${JSON.stringify({ command: panelKeyValue(null, []), type: 'command' })}
 }
 `,
     );
@@ -261,8 +279,8 @@ describe('status: fix lines run (contract 5 seam)', () => {
     writeSettings(
       variantDriftHome,
       `{
-  "statusLine": ${JSON.stringify({ command: mainKeyValue('{model effort}', ['--model=neon', '--effort=dim']), type: 'command' })},
-  "subagentStatusLine": ${JSON.stringify({ command: panelKeyValue([]), type: 'command' })}
+  "statusLine": ${JSON.stringify({ command: mainKeyValue(null, '{model effort}', ['--model=neon', '--effort=dim']), type: 'command' })},
+  "subagentStatusLine": ${JSON.stringify({ command: panelKeyValue(null, []), type: 'command' })}
 }
 `,
     );
@@ -271,8 +289,8 @@ describe('status: fix lines run (contract 5 seam)', () => {
     writeSettings(
       itemDriftHome,
       `{
-  "statusLine": ${JSON.stringify({ command: mainKeyValue('{model flux}', ['--model=neon', '--flux=pulse']), type: 'command' })},
-  "subagentStatusLine": ${JSON.stringify({ command: panelKeyValue([]), type: 'command' })}
+  "statusLine": ${JSON.stringify({ command: mainKeyValue(null, '{model flux}', ['--model=neon', '--flux=pulse']), type: 'command' })},
+  "subagentStatusLine": ${JSON.stringify({ command: panelKeyValue(null, []), type: 'command' })}
 }
 `,
     );
@@ -337,8 +355,8 @@ function themeRows(rows: readonly string[]): readonly string[] {
   return rows.filter(row => row.startsWith('theme:'));
 }
 
-describe('status: the live theme (contract 5)', () => {
-  it("names the theme the main key equals exactly — a 'theme: lean' row right after the config row", () => {
+describe('status: the theme row (t4)', () => {
+  it('prints the name straight from a configure theme key, right after the config row', () => {
     const home = homes.newHome();
     configure({ home, theme: 'lean' });
 
@@ -351,57 +369,91 @@ describe('status: the live theme (contract 5)', () => {
     );
   });
 
-  it('a one-swap key (--theme lean --bar gauge) names no theme', () => {
+  it('appends the key’s swaps after the name, in the key’s flag order', () => {
+    const one = homes.newHome();
+    configure({ home: one, theme: 'lean', variants: { bar: 'gauge' } });
+
+    const two = homes.newHome();
+    configure({
+      home: two,
+      theme: 'lean',
+      variants: { bar: 'gauge', model: 'block' },
+    });
+
+    expect(themeRows(status({ home: one }).rows)).toEqual([
+      'theme: lean +bar=gauge',
+    ]);
+    expect(themeRows(status({ home: two }).rows)).toEqual([
+      'theme: lean +model=block +bar=gauge',
+    ]);
+  });
+
+  it('a drifted swap still prints the row — the name is the truth, the drift row names the fix', () => {
     const home = homes.newHome();
-    configure({ home, theme: 'lean', variants: { bar: 'gauge' } });
+    writeSettings(
+      home,
+      `{
+  "statusLine": ${JSON.stringify({ command: mainKeyValue('lean', null, ['--bar=wat']), type: 'command' })},
+  "subagentStatusLine": ${JSON.stringify({ command: panelKeyValue('lean', []), type: 'command' })}
+}
+`,
+    );
 
     const result = status({ home });
 
-    expect(result.healthy).toBe(true);
-    expect(themeRows(result.rows)).toEqual([]);
+    expect(themeRows(result.rows)).toEqual(['theme: lean +bar=wat']);
+    expect(result.rows).toContain(
+      "config: drift — unknown variant 'wat' for 'bar' — fix: rerun configure --theme classic",
+    );
   });
 
-  it('no key names no theme', () => {
+  it('a themeless key prints no theme row', () => {
     const home = homes.newHome();
+    configure({ home, layout: '{model effort}', variants: { effort: 'dim' } });
 
     expect(themeRows(status({ home }).rows)).toEqual([]);
   });
+});
 
-  it('rides the shared matcher — the row says exactly what liveTheme says on the same key, a dropped decision included', () => {
-    const exact = homes.newHome();
-    configure({ home: exact, theme: 'lean' });
+describe('status: the panel row carries its theme (t4)', () => {
+  it('a theme write names the theme on the panel row, a style swap beside it', () => {
+    const themed = homes.newHome();
+    configure({ home: themed, theme: 'lean' });
 
     const swapped = homes.newHome();
-    configure({ home: swapped, theme: 'lean', variants: { bar: 'gauge' } });
+    configure({ home: swapped, theme: 'lean', variants: { style: 'bare' } });
 
-    // a hand-edited key missing one non-default decision falls back to the
-    // registry default for it, so it no longer equals the theme
-    const dropped = homes.newHome();
-    configure({ home: dropped, theme: 'lean' });
-    const key = settingsCommand(dropped, 'statusLine');
+    expect(status({ home: themed }).rows).toContain(
+      'subagentStatusLine: ours — theme=lean',
+    );
+    expect(status({ home: swapped }).rows).toContain(
+      'subagentStatusLine: ours — theme=lean style=bare',
+    );
+  });
+
+  it('a themeless panel key shows its style pick alone', () => {
+    const home = homes.newHome();
+    configure({ home, layout: '{model}', variants: { style: 'dots' } });
+
+    expect(status({ home }).rows).toContain(
+      'subagentStatusLine: ours — style=dots',
+    );
+  });
+
+  it('a hand-seeded themed key names its theme on both rows', () => {
+    const home = homes.newHome();
     writeSettings(
-      dropped,
-      `${JSON.stringify(
-        {
-          statusLine: {
-            command: key.replace(' --style=dots', ''),
-            type: 'command',
-          },
-        },
-        null,
-        2,
-      )}\n`,
+      home,
+      `{
+  "statusLine": ${JSON.stringify({ command: mainKeyValue('quiet', null, []), type: 'command' })},
+  "subagentStatusLine": ${JSON.stringify({ command: panelKeyValue('quiet', []), type: 'command' })}
+}
+`,
     );
 
-    expect(liveTheme(readKeyConfig(exact))).toBe('lean');
-    expect(liveTheme(readKeyConfig(swapped))).toBeUndefined();
-    expect(liveTheme(readKeyConfig(dropped))).toBeUndefined();
+    const rows = status({ home }).rows;
 
-    for (const home of [exact, swapped, dropped]) {
-      const live = liveTheme(readKeyConfig(home));
-      expect(themeRows(status({ home }).rows)).toEqual(
-        live === undefined ? [] : [`theme: ${live}`],
-      );
-    }
+    expect(themeRows(rows)).toEqual(['theme: quiet']);
+    expect(rows).toContain('subagentStatusLine: ours — theme=quiet');
   });
 });

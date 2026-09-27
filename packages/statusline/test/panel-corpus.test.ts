@@ -1,31 +1,24 @@
-import { readdirSync, readFileSync, rmSync, mkdtempSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { readdirSync } from 'node:fs';
 
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 // The panel door implemented in src/render/panel.ts (r2: the port of
 // plugins/statusline/runtime/subagent.sh, exact — its own vlen with jq
 // codepoint semantics, its own fit ladder, make_bar, fmt_k, the 24-char
 // description truncation, the ms-vs-s startTime heuristic — never unified
 // with the main engine):
-//   renderPanel({ payload, home, now, picks?, noColor? }): string
+//   renderPanel({ payload, now, picks?, noColor? }): string
 // payload is the tick JSON text exactly as subagent.sh's stdin; the panel
 // owns the parse — width comes from the payload's own `columns` field
 // (absent -> 200, non-numeric -> 200, floor 20, available = columns - 1),
-// rows from tasks[] (a task without id renders no line). home feeds the
-// capture tee ($home/.claude/plugins/data/statusline-agentic/captures/
-// tick.json), picks map item -> alternative (STATUSLINE_LAB_<ITEM>; only
-// style is consumed today), noColor is NO_COLOR. The return is the emitted
-// stdout: one jq -c JSON line per identified task, '\n'-joined with a
-// trailing '\n'. Every golden pins now = DEFAULT_NOW; unlike the engine
-// corpus there are no oracle cases — each panel golden is exact stdout.
+// rows from tasks[] (a task without id renders no line). picks map
+// item -> alternative (only style is consumed), noColor is NO_COLOR. The
+// return is the emitted stdout: one jq -c JSON line per identified task,
+// '\n'-joined with a trailing '\n'. Every golden pins now = DEFAULT_NOW;
+// unlike the engine corpus there are no oracle cases — each panel golden
+// is exact stdout.
 import { renderPanel } from '../src/render/panel.js';
-import { DEFAULT_NOW, golden } from './runtime.js';
-
-const TICKS_DIR = fileURLToPath(new URL('../assets/ticks', import.meta.url));
-const GOLDENS_DIR = fileURLToPath(new URL('./goldens', import.meta.url));
+import { DEFAULT_NOW, GOLDENS_DIR, golden, loadTick } from './runtime.js';
 
 type Loose = Record<string, unknown>;
 
@@ -35,12 +28,6 @@ export interface PanelCase {
   readonly noColor?: boolean;
   readonly picks?: Readonly<Record<string, string>>;
   readonly mutate?: (tick: Loose) => void;
-}
-
-function loadTick(): Loose {
-  return JSON.parse(
-    readFileSync(join(TICKS_DIR, 'multi.json'), 'utf8'),
-  ) as Loose;
 }
 
 function row(tick: Loose, id: string): Loose {
@@ -111,22 +98,7 @@ const PANEL_CORPUS: readonly PanelCase[] = [
   },
 ];
 
-let home: string | undefined;
-
-beforeAll(() => {
-  home = mkdtempSync(join(tmpdir(), 'panel-corpus-'));
-});
-
-afterAll(() => {
-  if (home) {
-    rmSync(home, { recursive: true, force: true });
-  }
-});
-
 function renderCase(c: PanelCase): string {
-  if (!home) {
-    throw new Error('panel home not materialized');
-  }
   const tick = loadTick();
   c.mutate?.(tick);
   if (c.columns === 'absent') {
@@ -138,7 +110,6 @@ function renderCase(c: PanelCase): string {
   }
   return renderPanel({
     payload: JSON.stringify(tick, null, 2),
-    home,
     now: Number(DEFAULT_NOW),
     ...(c.picks === undefined ? {} : { picks: c.picks }),
     ...(c.noColor === undefined ? {} : { noColor: c.noColor }),
