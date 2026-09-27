@@ -6,14 +6,16 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
+import { DEFAULT_LAYOUT, ITEMS } from './render/index.js';
 import {
   backupPath,
   isOurMainCommand,
+  isOurPanelCommand,
   mainKeyValue,
-  type ResolvedRuntime,
-  resolveRuntime,
-  subagentKeyValue,
+  panelKeyValue,
+  renderMjsPath,
 } from './resolve.js';
 import {
   type Theme,
@@ -28,6 +30,25 @@ export interface ConfigureOptions {
   readonly layout?: string;
   readonly theme?: string;
   readonly variants?: Readonly<Record<string, string>>;
+}
+
+// The renderer the settings keys spawn, as vite emits it beside the CLI bundle.
+// ../dist resolves to the package's dist/ from both src/ (tests) and the
+// bundled dist/index.js — both sit one level below dist/.
+export const BUNDLED_RENDERER = fileURLToPath(
+  new URL('../dist/render.mjs', import.meta.url),
+);
+
+export function syncRenderer(home: string): void {
+  const source = readFileSync(BUNDLED_RENDERER);
+  const dest = renderMjsPath(home);
+  if (existsSync(dest) && readFileSync(dest).equals(source)) {
+    return;
+  }
+  mkdirSync(dirname(dest), { recursive: true });
+  const tmp = `${dest}.tmp`;
+  writeFileSync(tmp, source);
+  renameSync(tmp, dest);
 }
 
 export type SettingsKey = 'statusLine' | 'subagentStatusLine';
@@ -153,7 +174,7 @@ export function isOurMember(key: SettingsKey, value: unknown): boolean {
   }
   return key === 'statusLine'
     ? isOurMainCommand(command)
-    : command === subagentKeyValue;
+    : isOurPanelCommand(command);
 }
 
 interface SettingsPlan {
@@ -165,14 +186,11 @@ interface SettingsPlan {
 
 function planSettings(
   home: string,
-  mainCommand: string,
+  commands: Readonly<Record<SettingsKey, string>>,
   force: boolean,
 ): SettingsPlan {
   const file = join(home, '.claude', 'settings.json');
-  const wanted: Readonly<Record<SettingsKey, string>> = {
-    statusLine: mainCommand,
-    subagentStatusLine: subagentKeyValue,
-  };
+  const wanted = commands;
   const raw = readOrNull(file);
   if (raw === null) {
     return {
@@ -461,18 +479,16 @@ function themeNamed(
 
 export interface Selection {
   readonly layout: string;
-  readonly ordered: readonly string[];
   readonly values: Readonly<Record<string, string>>;
 }
 
 // One engine under every guide: configure writes what this resolves, preview
 // renders it. Resolution is item flags > theme > error naming the gap.
 export function resolveSelection(
-  runtime: ResolvedRuntime,
   options: Pick<ConfigureOptions, 'layout' | 'theme' | 'variants'>,
 ): Selection {
   const variants = options.variants ?? {};
-  const themes = themesFor(runtime);
+  const themes = themesFor();
   const theme =
     options.theme === undefined ? undefined : themeNamed(options.theme, themes);
 
@@ -480,10 +496,10 @@ export function resolveSelection(
   if (layout === undefined) {
     throw new Error('no layout — pass --layout <spec> or --theme <name>');
   }
-  const byItem = new Map(runtime.items.map(item => [item.item, item]));
+  const byItem = new Map(ITEMS.map(item => [item.item, item]));
   const items = layoutItems(
     layout,
-    runtime.items.map(item => item.item),
+    ITEMS.map(item => item.item),
   );
 
   const values: Record<string, string> = {
@@ -515,17 +531,19 @@ export function resolveSelection(
     }
   }
 
-  const ordered = [
-    ...items,
-    ...runtime.items
-      .map(entry => entry.item)
-      .filter(item => !items.includes(item) && item in values),
-  ];
-  return { layout, ordered, values };
+  return { layout, values };
+}
+
+// The key records only the decisions that differ from the registry defaults —
+// the renderer resolves absent picks to them at paint.
+function itemFlags(values: Readonly<Record<string, string>>): string[] {
+  return ITEMS.flatMap(({ default: def, item }) => {
+    const pick = values[item] ?? def;
+    return pick === def ? [] : [`--${item}=${pick}`];
+  });
 }
 
 export function configure(options: ConfigureOptions): void {
-  const runtime = resolveRuntime({ home: options.home });
   if (
     options.theme === undefined &&
     options.layout === undefined &&
@@ -536,17 +554,24 @@ export function configure(options: ConfigureOptions): void {
     );
   }
 
-  const { layout, ordered, values } = resolveSelection(runtime, options);
-  const assignments = ordered.map(
-    item => `STATUSLINE_LAB_${item.toUpperCase()}=${values[item]}`,
-  );
+  const { layout, values } = resolveSelection(options);
+  // The panel consumes one decision — style; an absent pick falls to the
+  // default inside itemFlags.
+  const panelFlags = itemFlags({ style: values.style });
   const plan = planSettings(
     options.home,
-    mainKeyValue(layout, assignments),
+    {
+      statusLine: mainKeyValue(
+        layout === DEFAULT_LAYOUT ? null : layout,
+        itemFlags(values),
+      ),
+      subagentStatusLine: panelKeyValue(panelFlags),
+    },
     options.force ?? false,
   );
   if (plan.adds.length > 0 || plan.repoints.length > 0) {
     writeBackupIfAbsent(options.home, plan);
   }
   commitSettings(plan);
+  syncRenderer(options.home);
 }

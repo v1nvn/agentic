@@ -1,27 +1,25 @@
-import { rmSync } from 'node:fs';
+import { readFileSync, rmSync } from 'node:fs';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import {
-  createDemoHome,
-  golden,
-  renderStatusline,
-  type DemoHome,
-} from './runtime.js';
+import { renderStatusline } from '../src/render/index.js';
+import { createDemoHome, DEFAULT_NOW, golden, type DemoHome } from './runtime.js';
 
-// The rung ladder and 2-line wrap are pinned from the live responsive engine
-// (FULL_STEPS/L1_STEPS/L2_STEPS): details step down least-valuable-first and
-// the wrap splits between the location and context clusters, never mid-segment.
+// The rung ladder and 2-line wrap are pinned by the golden corpus at their
+// pinned widths; this suite covers what the corpus cannot — the fit invariant
+// across every width, and rungs no golden sits on.
+const PAYLOADS_DIR = fileURLToPath(
+  new URL('../assets/payloads', import.meta.url),
+);
 
 const stripAnsi = (line: string) => line.replace(/\x1b\[[0-9;]*m/g, '');
 // the engine's vlen counts ⚡ as 2 visible columns
 const vlen = (line: string) =>
   [...line].length + (line.match(/⚡/g) ?? []).length;
 
-const linesOf = (stdout: Buffer) =>
-  stdout.toString('utf8').replace(/\n$/, '').split('\n');
-
-const barWidth = (plain: string) => (plain.match(/[█░]/g) ?? []).length;
+const linesOf = (out: string) => out.replace(/\n$/, '').split('\n');
 
 function expectFits(lines: string[], columns: number): void {
   expect(lines.length).toBeLessThanOrEqual(2);
@@ -57,18 +55,24 @@ afterEach(() => {
 function render(
   payload: string,
   columns?: number,
-  home: { home: string; repoDir: string } | undefined = demo,
   modelDisplayName?: string,
-) {
-  if (!home) {
+): string {
+  if (!demo) {
     throw new Error('demo home not materialized');
   }
+  const parsed = JSON.parse(
+    readFileSync(join(PAYLOADS_DIR, `${payload}.json`), 'utf8'),
+  ) as { model: { display_name: string }; workspace: { current_dir: string } };
+  parsed.workspace.current_dir = demo.repoDir;
+  if (modelDisplayName !== undefined) {
+    parsed.model.display_name = modelDisplayName;
+  }
   return renderStatusline({
-    payload,
-    home: home.home,
-    repoDir: home.repoDir,
+    home: demo.home,
+    now: Number(DEFAULT_NOW),
+    payload: `${JSON.stringify(parsed, null, 2)}\n`,
+    timeZone: 'UTC',
     ...(columns === undefined ? {} : { columns }),
-    ...(modelDisplayName === undefined ? {} : { modelDisplayName }),
   });
 }
 
@@ -76,94 +80,9 @@ describe('wide and unset equivalence', () => {
   it('COLUMNS=250 renders the identical full-detail single line as unset COLUMNS', () => {
     const wide = render('p1', 250);
     const unset = render('p1');
-    expect(wide.status).toBe(0);
-    expect(linesOf(wide.stdout)).toHaveLength(1);
-    expect(wide.stdout).toEqual(unset.stdout);
-    expect(unset.stdout).toEqual(golden('p1-default'));
-  });
-});
-
-describe('rung ladder on p1', () => {
-  const rungs = [
-    {
-      name: 'drops only the duration',
-      columns: 88,
-      gone: ['82m05s'],
-      kept: [
-        'Opus high',
-        '~/d/atlas-web',
-        'f/login-flow',
-        '+2 ~2',
-        '116.8k/200k',
-        '⚡94%',
-        '$3.87',
-      ],
-      bar: 10,
-    },
-    {
-      name: 'drops the cache hit next',
-      columns: 82,
-      gone: ['82m05s', '⚡'],
-      kept: ['Opus high', 'f/login-flow', '+2 ~2', '116.8k/200k', '$3.87'],
-      bar: 10,
-    },
-    {
-      name: 'compacts the tokens next',
-      columns: 76,
-      gone: ['82m05s', '⚡', '116.8k/200k'],
-      kept: ['117k', '+2 ~2', 'f/login-flow', '$3.87'],
-      bar: 10,
-    },
-    {
-      name: 'halves the bar and drops the git counts next',
-      columns: 66,
-      gone: ['82m05s', '⚡', '116.8k/200k', '+2 ~2'],
-      kept: ['117k', 'f/login-flow', 'Opus high', '$3.87'],
-      bar: 6,
-    },
-    {
-      name: 'shortens the branch and thins the bar next',
-      columns: 60,
-      gone: ['82m05s', '⚡', '116.8k/200k', '+2 ~2', 'f/login-flow'],
-      kept: ['login-flow', '117k', 'Opus high', '$3.87'],
-      bar: 4,
-    },
-    {
-      name: 'flattens the bar to a percent and drops the branch next',
-      columns: 50,
-      gone: ['82m05s', '⚡', '116.8k/200k', '+2 ~2', 'login-flow'],
-      kept: ['58%', '117k', 'Opus high', '~/d/atlas-web', '$3.87'],
-      bar: 0,
-    },
-  ];
-
-  it.each(rungs)('$name (COLUMNS=$columns)', ({ columns, gone, kept, bar }) => {
-    const run = render('p1', columns);
-    expect(run.status).toBe(0);
-    const lines = linesOf(run.stdout);
-    expect(lines).toHaveLength(1);
-    expectFits(lines, columns);
-    const plain = stripAnsi(lines[0]);
-    for (const detail of gone) {
-      expect(plain).not.toContain(detail);
-    }
-    for (const detail of kept) {
-      expect(plain).toContain(detail);
-    }
-    expect(barWidth(plain)).toBe(bar);
-  });
-
-  it('ladders the sparse fixture p3 the same way', () => {
-    const run = render('p3', 82);
-    expect(run.status).toBe(0);
-    const lines = linesOf(run.stdout);
-    expect(lines).toHaveLength(1);
-    expectFits(lines, 82);
-    const plain = stripAnsi(lines[0]);
-    expect(plain).not.toContain('101m50s');
-    expect(plain).not.toContain('⚡');
-    expect(plain).toContain('190.8k/200k');
-    expect(plain).toContain('$8.91');
+    expect(linesOf(wide)).toHaveLength(1);
+    expect(wide).toBe(unset);
+    expect(unset).toBe(golden('p1-default').toString('utf8'));
   });
 });
 
@@ -172,123 +91,17 @@ describe('fit invariant', () => {
     '%s: every COLUMNS from 40 to 240 fits inside COLUMNS-3 on at most 2 lines',
     payload => {
       for (let columns = 40; columns <= 240; columns += 8) {
-        const run = render(payload, columns);
-        expect(run.status, `COLUMNS=${columns}`).toBe(0);
-        const lines = linesOf(run.stdout);
+        const lines = linesOf(render(payload, columns));
         expectFits(lines, columns);
         expectNoBlankArtifacts(lines);
       }
     },
   );
-});
-
-describe('two-line wrap', () => {
-  const COST: Record<'p1' | 'p3', string> = { p1: '$3.87', p3: '$8.91' };
-  const TOKENS_COMPACT: Record<'p1' | 'p3', string> = {
-    p1: '117k',
-    p3: '191k',
-  };
-  const DURATION: Record<'p1' | 'p3', string> = {
-    p1: '82m05s',
-    p3: '101m50s',
-  };
-
-  it.each(['p1', 'p3'] as const)(
-    '%s at COLUMNS=30 wraps between location and context at the pinned rungs',
-    payload => {
-      const run = render(payload, 30);
-      expect(run.status).toBe(0);
-      const lines = linesOf(run.stdout);
-      expect(lines).toHaveLength(2);
-      expectFits(lines, 30);
-      expectNoBlankArtifacts(lines);
-      const [first, second] = lines.map(stripAnsi);
-      expect(first).toContain('Opus high');
-      expect(first).toContain('~/d/atlas-web');
-      expect(first).not.toContain('login-flow');
-      expect(second).toContain(TOKENS_COMPACT[payload]);
-      expect(second).toContain(COST[payload]);
-      expect(barWidth(second)).toBe(10);
-      expect(second).not.toContain(DURATION[payload]);
-      expect(second).not.toContain('⚡');
-      expect(second).not.toContain('/200k');
-    },
-  );
-
-  it.each(['p1', 'p3'] as const)(
-    '%s: two-line output keeps every detail whole on one line',
-    payload => {
-      for (const columns of [30, 24, 20]) {
-        const run = render(payload, columns);
-        const lines = linesOf(run.stdout);
-        expect(lines, `COLUMNS=${columns}`).toHaveLength(2);
-        expectFits(lines, columns);
-        expectNoBlankArtifacts(lines);
-        const plains = lines.map(stripAnsi);
-        const markers = [
-          'Opus',
-          'atlas-web',
-          TOKENS_COMPACT[payload],
-          COST[payload],
-        ];
-        for (const marker of markers) {
-          expect(
-            plains.filter(plain => plain.includes(marker)),
-            `COLUMNS=${columns} marker ${marker}`,
-          ).toHaveLength(1);
-        }
-        expect(plains[0]).toContain('Opus');
-        expect(plains[1]).toContain(COST[payload]);
-      }
-    },
-  );
-});
-
-describe('custom layout wrap', () => {
-  it('a two-cluster layout puts one cluster on each wrap line', () => {
-    if (!demo) {
-      throw new Error('demo home not materialized');
-    }
-    const run = renderStatusline({
-      payload: 'p1',
-      home: demo.home,
-      repoDir: demo.repoDir,
-      columns: 24,
-      env: { STATUSLINE_LAB_LAYOUT: '{cwd branch} {model effort cost}' },
-    });
-    expect(run.status).toBe(0);
-    const lines = linesOf(run.stdout);
-    expect(lines).toHaveLength(2);
-    expectFits(lines, 24);
-    expectNoBlankArtifacts(lines);
-    const [first, second] = lines.map(stripAnsi);
-    expect(first).toContain('atlas-web');
-    expect(first).not.toContain('Opus');
-    expect(second).toContain('Opus');
-    expect(second).toContain('$3.87');
-    expect(second).not.toContain('atlas-web');
-  });
-});
-
-describe('determinism', () => {
-  it('two fresh demo homes at COLUMNS=60 render identical bytes', () => {
-    const first = render('p1', 60);
-    const other = createDemoHome();
-    try {
-      const again = render('p1', 60, other);
-      expect(again.status).toBe(0);
-      expect(again.stdout).toEqual(first.stdout);
-    } finally {
-      rmSync(other.home, { recursive: true, force: true });
-    }
-  });
 });
 
 describe('percent rung fidelity', () => {
   it('renders one unstyled percent at the bar=percent rung (live BARB=0)', () => {
-    const run = render('p1', 47);
-    expect(run.status).toBe(0);
-    const lines = linesOf(run.stdout);
+    const lines = linesOf(render('p1', 47));
     expect(lines).toHaveLength(1);
     expectFits(lines, 47);
     const plain = stripAnsi(lines[0]);
@@ -298,59 +111,50 @@ describe('percent rung fidelity', () => {
   });
 });
 
-// live MODELD=1 strips a trailing "[...]" from the model display name:
-// FULL_STEPS position 10 (after bar=flat4, before bar=percent), L1_STEPS
-// position 5 (after branch=last, before branch=none).
+// A stale capture renders resets_at < NOW: the port floors the negative
+// delta, bash $(( )) division truncates toward zero. -60 agrees by accident
+// (exact multiple of 60).
+describe('rate=strip negative reset deltas', () => {
+  it('floors negative reset deltas like the oracle', () => {
+    if (!demo) {
+      throw new Error('demo home not materialized');
+    }
+    const payload = JSON.parse(
+      readFileSync(join(PAYLOADS_DIR, 'p1.json'), 'utf8'),
+    ) as Record<string, unknown>;
+    const now = Number(DEFAULT_NOW);
+    payload.rate_limits = {
+      five_hour: { used_percentage: 41.2, resets_at: now - 5 },
+      seven_day: { used_percentage: 41.2, resets_at: now - 3601 },
+      spend_limit: { used_percentage: 41.2, resets_at: now - 60 },
+    };
+    (payload.workspace as { current_dir: string }).current_dir = demo.repoDir;
+    const line = renderStatusline({
+      home: demo.home,
+      layout: '{rate}',
+      now,
+      payload: `${JSON.stringify(payload, null, 2)}\n`,
+      picks: { rate: 'strip' },
+      timeZone: 'UTC',
+    });
+    expect(line).toContain('resets -1m55s');
+    expect(line).toContain('resets -61m59s');
+    expect(line).toContain('resets -1m00s');
+  });
+});
+
+// live MODELD=1 strips a trailing "[...]" from the model display name; the
+// corpus pins the strip at 58 and 36 — 75 pins the bracket surviving below
+// the model rung.
 describe('model suffix rung', () => {
   const NAME = 'Opus 4.5[1m]';
 
-  it('renders the full bracketed name at wide widths', () => {
-    const run = render('p1', 250, undefined, NAME);
-    expect(run.status).toBe(0);
-    const lines = linesOf(run.stdout);
-    expect(lines).toHaveLength(1);
-    const plain = stripAnsi(lines[0]);
-    expect(plain).toContain('Opus 4.5[1m] high');
-    expect(plain).toContain('116.8k/200k');
-    expect(plain).toContain('82m05s');
-  });
-
   it('keeps the bracket while the ladder has not reached the model rung', () => {
-    const run = render('p1', 75, undefined, NAME);
-    expect(run.status).toBe(0);
-    const lines = linesOf(run.stdout);
+    const lines = linesOf(render('p1', 75, NAME));
     expect(lines).toHaveLength(1);
     expectFits(lines, 75);
     const plain = stripAnsi(lines[0]);
     expect(plain).toContain('Opus 4.5[1m] high');
     expect(plain).not.toContain('Opus 4.5 high');
-  });
-
-  it('strips the bracket once the ladder reaches the model rung', () => {
-    const run = render('p1', 58, undefined, NAME);
-    expect(run.status).toBe(0);
-    const lines = linesOf(run.stdout);
-    expect(lines).toHaveLength(1);
-    expectFits(lines, 58);
-    const plain = stripAnsi(lines[0]);
-    expect(plain).toContain('Opus 4.5 high');
-    expect(plain).not.toContain('[1m]');
-    expect(plain).toContain('117k');
-    expect(plain).toContain('$3.87');
-  });
-
-  it('strips the bracket on the wrap line too', () => {
-    const run = render('p1', 36, undefined, NAME);
-    expect(run.status).toBe(0);
-    const lines = linesOf(run.stdout);
-    expect(lines).toHaveLength(2);
-    expectFits(lines, 36);
-    const [first, second] = lines.map(stripAnsi);
-    expect(first).toContain('Opus 4.5 high');
-    expect(first).not.toContain('[1m]');
-    expect(first).toContain('~/d/atlas-web');
-    expect(second).toContain('/200k');
-    expect(second).toContain('$3.87');
-    expect(second).not.toContain('82m05s');
   });
 });

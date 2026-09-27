@@ -2,29 +2,13 @@ import { parseQuietly } from '@v1nvn/agentic-core';
 import { Command } from 'commander';
 
 import pkg from '../package.json' with { type: 'json' };
+import { ITEMS } from './render/items.js';
 
 export const VERSION = pkg.version;
 
-// The flag surface mirrors statusline.sh's COMPS item registry; the catalog
-// and configure suites pin the two together.
-const ITEM_IDS = [
-  'model',
-  'effort',
-  'state',
-  'cwd',
-  'branch',
-  'status',
-  'ahead',
-  'pr',
-  'bar',
-  'tokens',
-  'cache',
-  'cost',
-  'duration',
-  'lines',
-  'rate',
-  'style',
-] as const satisfies readonly string[];
+// The flag surface is the render registry's item ids — one registry, shared
+// with the data-dir renderer.
+const ITEM_IDS: readonly string[] = ITEMS.map(item => item.item);
 
 export type Subcommand =
   'catalog' | 'configure' | 'preview' | 'restore' | 'status';

@@ -1,39 +1,25 @@
-import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { catalog } from '../src/catalog.js';
 import { parseArgs } from '../src/cli.js';
-import { configure } from '../src/configure.js';
+import { configure, BUNDLED_RENDERER } from '../src/configure.js';
+import { DATA_DIR } from '../src/render/capture.js';
+import { ITEMS } from '../src/render/index.js';
+import { mainKeyValue, panelKeyValue, renderMjsPath } from '../src/resolve.js';
 import {
-  DATA_REL,
   THEMES,
   createHomes,
-  installRuntime,
-  mainKeyValue,
   settingsCommand,
   settingsPath,
-  subagentKeyValue,
   writeSettings,
 } from './fixtures.js';
 
-const RUNTIME_MAIN = fileURLToPath(
-  new URL('../../../plugins/statusline/runtime/statusline.sh', import.meta.url),
-);
-
-function itemIds(): string[] {
-  const match = /^COMPS="(.+)"$/m.exec(readFileSync(RUNTIME_MAIN, 'utf8'));
-  if (match === null) {
-    throw new Error('statusline.sh declares no COMPS order');
-  }
-  return match[1].split(' ');
-}
-
 function assertNothingWritten(home: string): void {
   expect(existsSync(settingsPath(home)), 'settings.json').toBe(false);
-  expect(existsSync(join(home, DATA_REL)), 'data dir').toBe(false);
+  expect(existsSync(join(home, DATA_DIR)), 'data dir').toBe(false);
 }
 
 const homes = createHomes();
@@ -41,12 +27,6 @@ const homes = createHomes();
 afterEach(() => {
   homes.dispose();
 });
-
-function newInstalledHome(): string {
-  const home = homes.newHome();
-  installRuntime(home);
-  return home;
-}
 
 describe('configure: parsing', () => {
   it('parses the full flag set; rejects --fallback, --dry-run, unknown flags, and stray arguments', () => {
@@ -89,7 +69,7 @@ describe('configure: parsing', () => {
   });
 
   it('offers a valued flag for every item id', () => {
-    for (const item of itemIds()) {
+    for (const { item } of ITEMS) {
       expect(parseArgs(['configure', `--${item}`, 'zzz']), item).toMatchObject({
         command: 'configure',
         variants: { [item]: 'zzz' },
@@ -100,7 +80,7 @@ describe('configure: parsing', () => {
 
 describe('configure: strict mode (contract 3)', () => {
   it('fails naming every unflagged layout item and writes nothing', () => {
-    const home = newInstalledHome();
+    const home = homes.newHome();
     const attempt = () =>
       configure({
         home,
@@ -115,7 +95,7 @@ describe('configure: strict mode (contract 3)', () => {
   });
 
   it('writes exactly the two settings keys, nothing else on disk', () => {
-    const home = newInstalledHome();
+    const home = homes.newHome();
     const layout = '{cwd branch} {model effort} {bar tokens cache}';
 
     configure({
@@ -134,25 +114,26 @@ describe('configure: strict mode (contract 3)', () => {
 
     expect(settingsCommand(home, 'statusLine')).toBe(
       mainKeyValue(layout, [
-        'STATUSLINE_LAB_CWD=full',
-        'STATUSLINE_LAB_BRANCH=last',
-        'STATUSLINE_LAB_MODEL=block',
-        'STATUSLINE_LAB_EFFORT=dim',
-        'STATUSLINE_LAB_BAR=gauge',
-        'STATUSLINE_LAB_TOKENS=compact',
-        'STATUSLINE_LAB_CACHE=fuse',
+        '--model=block',
+        '--effort=dim',
+        '--cwd=full',
+        '--branch=last',
+        '--bar=gauge',
+        '--tokens=compact',
+        '--cache=fuse',
       ]),
     );
     expect(settingsCommand(home, 'subagentStatusLine')).toBe(
-      subagentKeyValue,
+      panelKeyValue([]),
     );
-    expect(readdirSync(join(home, DATA_REL)), 'data dir').toEqual([
+    expect(readdirSync(join(home, DATA_DIR)).sort(), 'data dir').toEqual([
       'backup.json',
+      'render.mjs',
     ]);
   });
 
   it('reconfiguring an ours key repoints it in place, no --force needed', () => {
-    const home = newInstalledHome();
+    const home = homes.newHome();
     writeSettings(home, `{"model":"opus-4"}\n`);
     configure({ home, layout: '{model}', variants: { model: 'block' } });
 
@@ -163,14 +144,28 @@ describe('configure: strict mode (contract 3)', () => {
     });
 
     expect(settingsCommand(home, 'statusLine')).toBe(
-      mainKeyValue('{model}', ['STATUSLINE_LAB_MODEL=pill']),
+      mainKeyValue('{model}', ['--model=pill']),
     );
     const after = readFileSync(settingsPath(home), 'utf8');
     expect(after).toContain('"model":"opus-4"');
   });
 
+  it('default-equal picks ride no flag — the key records only decisions', () => {
+    const home = homes.newHome();
+
+    configure({
+      home,
+      layout: '{model bar}',
+      variants: { bar: 'flat', model: 'block' },
+    });
+
+    expect(settingsCommand(home, 'statusLine')).toBe(
+      mainKeyValue('{model bar}', ['--model=block']),
+    );
+  });
+
   it('an unknown item id in --layout fails listing the valid ids', () => {
-    const home = newInstalledHome();
+    const home = homes.newHome();
     const attempt = () =>
       configure({ home, layout: '{cwd bogusitem}', variants: { cwd: 'full' } });
 
@@ -180,9 +175,8 @@ describe('configure: strict mode (contract 3)', () => {
   });
 
   it('an unknown variant value fails listing the item valid ids', () => {
-    const home = newInstalledHome();
-    const attempt = () =>
-      configure({ home, layout: '{model}', variants: { model: 'nonsense' } });
+    const home = homes.newHome();
+    const attempt = () => configure({ home, layout: '{model}', variants: { model: 'nonsense' } });
 
     expect(attempt).toThrowError(/nonsense/);
     expect(attempt).toThrowError(/plain/);
@@ -193,8 +187,8 @@ describe('configure: strict mode (contract 3)', () => {
 
 describe('configure: --theme', () => {
   it('writes lean; the settings text is byte-equal to a flags-only write of the same layout and variants', () => {
-    const themed = newInstalledHome();
-    const flagged = newInstalledHome();
+    const themed = homes.newHome();
+    const flagged = homes.newHome();
 
     configure({ home: themed, theme: 'lean' });
     configure({
@@ -209,29 +203,29 @@ describe('configure: --theme', () => {
   });
 
   it('an item flag swaps exactly that one pick over the theme', () => {
-    const themed = newInstalledHome();
-    const swapped = newInstalledHome();
+    const themed = homes.newHome();
+    const swapped = homes.newHome();
 
     configure({ home: themed, theme: 'lean' });
     configure({ home: swapped, theme: 'lean', variants: { bar: 'gauge' } });
 
     const lean = settingsCommand(themed, 'statusLine');
-    expect(lean).toContain('STATUSLINE_LAB_BAR=percent');
+    expect(lean).toContain('--bar=percent');
     expect(settingsCommand(swapped, 'statusLine')).toBe(
-      lean.replace('STATUSLINE_LAB_BAR=percent', 'STATUSLINE_LAB_BAR=gauge'),
+      lean.replace('--bar=percent', '--bar=gauge'),
     );
   });
 
   it('a theme write replaces a seeded ours key with exactly the theme values', () => {
-    const home = newInstalledHome();
+    const home = homes.newHome();
     writeSettings(
       home,
       `${JSON.stringify(
         {
           statusLine: {
             command: mainKeyValue('{model bar}', [
-              'STATUSLINE_LAB_MODEL=block',
-              'STATUSLINE_LAB_BAR=gauge',
+              '--model=block',
+              '--bar=gauge',
             ]),
             type: 'command',
           },
@@ -245,15 +239,18 @@ describe('configure: --theme', () => {
 
     expect(settingsCommand(home, 'statusLine')).toBe(
       mainKeyValue('{model cwd}', [
-        'STATUSLINE_LAB_MODEL=zen',
-        'STATUSLINE_LAB_CWD=tail',
-        'STATUSLINE_LAB_STYLE=bare',
+        '--model=zen',
+        '--cwd=tail',
+        '--style=bare',
       ]),
+    );
+    expect(settingsCommand(home, 'subagentStatusLine')).toBe(
+      panelKeyValue(['--style=bare']),
     );
   });
 
   it('a theme gap errors naming the item and its flag — no registry-default fill, nothing written', () => {
-    const home = newInstalledHome();
+    const home = homes.newHome();
     const attempt = () =>
       configure({ home, theme: 'quiet', layout: '{model effort} {cwd}' });
 
@@ -264,7 +261,7 @@ describe('configure: --theme', () => {
   });
 
   it('an unknown theme errors naming the valid themes', () => {
-    const home = newInstalledHome();
+    const home = homes.newHome();
     const attempt = () => configure({ home, theme: 'nope' });
 
     expect(attempt).toThrowError(/nope/);
@@ -278,7 +275,7 @@ describe('configure: --theme', () => {
 
 describe('configure: no params, no TTY (contract 3)', () => {
   it('errors naming the two guides — the wizard on a terminal, the lab skill in Claude Code — and writes nothing', () => {
-    const home = newInstalledHome();
+    const home = homes.newHome();
 
     const attempt = () => configure({ home });
 
@@ -292,7 +289,7 @@ describe('configure: no params, no TTY (contract 3)', () => {
 
 describe('configure: settings refusal (E4 port)', () => {
   it('refuses a foreign statusLine key, touching nothing', () => {
-    const home = newInstalledHome();
+    const home = homes.newHome();
     const seed = `${JSON.stringify(
       {
         model: 'opus-4',
@@ -311,7 +308,7 @@ describe('configure: settings refusal (E4 port)', () => {
   });
 
   it('refuses a foreign subagentStatusLine key, touching nothing', () => {
-    const home = newInstalledHome();
+    const home = homes.newHome();
     const seed = `${JSON.stringify(
       {
         model: 'opus-4',
@@ -330,7 +327,7 @@ describe('configure: settings refusal (E4 port)', () => {
   });
 
   it('--force takes over both foreign keys and preserves siblings', () => {
-    const home = newInstalledHome();
+    const home = homes.newHome();
     writeSettings(
       home,
       `${JSON.stringify(
@@ -352,32 +349,62 @@ describe('configure: settings refusal (E4 port)', () => {
     });
 
     expect(settingsCommand(home, 'statusLine')).toBe(
-      mainKeyValue('{model}', ['STATUSLINE_LAB_MODEL=block']),
+      mainKeyValue('{model}', ['--model=block']),
     );
-    expect(settingsCommand(home, 'subagentStatusLine')).toBe(subagentKeyValue);
+    expect(settingsCommand(home, 'subagentStatusLine')).toBe(
+      panelKeyValue([]),
+    );
     const settings = JSON.parse(readFileSync(settingsPath(home), 'utf8'));
     expect(settings.model).toBe('opus-4');
-    expect(readdirSync(join(home, DATA_REL)), 'data dir').toEqual([
+    expect(readdirSync(join(home, DATA_DIR)).sort(), 'data dir').toEqual([
       'backup.json',
+      'render.mjs',
     ]);
   });
 });
 
-describe('configure: install check', () => {
-  it('no plugin cache dir under $HOME fails with the install hint', () => {
+describe('configure: renderer sync', () => {
+  it('every run syncs the bundled renderer into the data dir, byte-equal', () => {
     const home = homes.newHome();
-    const attempt = () =>
-      configure({ home, layout: '{model}', variants: { model: 'block' } });
 
-    expect(attempt).toThrowError(/install/);
-    expect(attempt).toThrowError(/no statusline runtime/);
-    assertNothingWritten(home);
+    configure({ home, theme: 'lean' });
+
+    expect(readFileSync(renderMjsPath(home), 'utf8')).toBe(
+      readFileSync(BUNDLED_RENDERER, 'utf8'),
+    );
+  });
+
+  it('an identical copy is not rewritten — mtime untouched on a rerun', () => {
+    const home = homes.newHome();
+    configure({ home, theme: 'lean' });
+    const synced = renderMjsPath(home);
+    const before = statSync(synced).mtimeMs;
+
+    configure({ home, theme: 'lean' });
+
+    expect(statSync(synced).mtimeMs).toBe(before);
+    expect(readFileSync(synced, 'utf8')).toBe(
+      readFileSync(BUNDLED_RENDERER, 'utf8'),
+    );
+  });
+
+  it('a diverged copy is refreshed on the next run — even a settings no-op', () => {
+    const home = homes.newHome();
+    configure({ home, theme: 'lean' });
+    const synced = renderMjsPath(home);
+    writeFileSync(synced, '// diverged\n');
+
+    configure({ home, theme: 'lean' });
+
+    expect(readFileSync(synced, 'utf8')).toBe(
+      readFileSync(BUNDLED_RENDERER, 'utf8'),
+    );
   });
 });
 
 describe('configure to catalog (the scratch-home e2e)', () => {
   it('after configure, catalog stars follow the written key', () => {
-    const home = newInstalledHome();
+    const home = homes.newHome();
 
     configure({
       home,
@@ -387,6 +414,6 @@ describe('configure to catalog (the scratch-home e2e)', () => {
 
     const lines = catalog({ home }).split('\n');
     expect(lines).toContain('model: plain | block* | pill | zen');
-    expect(lines).toContain('bar: flat | gauge* | percent | none');
+    expect(lines).toContain('bar: flat | gauge* | percent | none | flat6 | flat4');
   });
 });

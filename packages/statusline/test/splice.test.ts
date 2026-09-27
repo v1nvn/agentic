@@ -3,17 +3,11 @@ import { readFileSync } from 'node:fs';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { configure } from '../src/configure.js';
-import {
-  createHomes,
-  installRuntime,
-  mainKeyValue,
-  settingsPath,
-  subagentKeyValue,
-  writeSettings,
-} from './fixtures.js';
+import { mainKeyValue, panelKeyValue } from '../src/resolve.js';
+import { createHomes, settingsPath, writeSettings } from './fixtures.js';
 
-const MAIN_COMMAND = mainKeyValue('{model}', ['STATUSLINE_LAB_MODEL=block']);
-const SUB_COMMAND = subagentKeyValue;
+const MAIN_COMMAND = mainKeyValue('{model}', ['--model=block']);
+const SUB_COMMAND = panelKeyValue([]);
 
 // Valid JSON, deliberately ugly — mixed indent widths, a space before a
 // colon, blank lines. A whole-file rewrite (plain jq output) normalizes every
@@ -66,19 +60,13 @@ afterEach(() => {
   homes.dispose();
 });
 
-function newInstalledHome(): string {
-  const home = homes.newHome();
-  installRuntime(home);
-  return home;
-}
-
 function configureModel(home: string, force = false): void {
   configure({ force, home, layout: '{model}', variants: { model: 'block' } });
 }
 
 describe('configure: the settings splice preserves owner bytes', () => {
   it('adds both keys as one insertion, leaving every other byte alone', () => {
-    const home = newInstalledHome();
+    const home = homes.newHome();
     writeSettings(home, ODD_SETTINGS);
 
     configureModel(home);
@@ -99,7 +87,7 @@ describe('configure: the settings splice preserves owner bytes', () => {
   });
 
   it('re-running over its own work leaves settings.json byte-identical', () => {
-    const home = newInstalledHome();
+    const home = homes.newHome();
     writeSettings(home, ODD_SETTINGS);
     configureModel(home);
     const once = readFileSync(settingsPath(home), 'utf8');
@@ -136,7 +124,7 @@ describe('configure: --force over foreign commands carrying braces', () => {
       command: "awk '{print $1}'",
     },
   ])('$name', ({ command }) => {
-    const home = newInstalledHome();
+    const home = homes.newHome();
     writeSettings(home, settingsWith(command));
 
     configureModel(home, true);
@@ -157,7 +145,7 @@ describe('configure: --force over foreign commands carrying braces', () => {
   });
 
   it('repoints the root statusLine, never a same-named member nested in env', () => {
-    const home = newInstalledHome();
+    const home = homes.newHome();
     writeSettings(
       home,
       `{"env":{"statusLine":"legacy"},"statusLine":{"type":"command","command":"~/.claude/old-main-line.sh"},"model":"opus-4"}\n`,

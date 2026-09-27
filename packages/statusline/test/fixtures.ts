@@ -1,5 +1,5 @@
 import {
-  cpSync,
+  existsSync,
   mkdirSync,
   mkdtempSync,
   readdirSync,
@@ -10,40 +10,11 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 
-import { resolveRuntimeDir } from '../src/resolve.js';
+import { DATA_DIR } from '../src/render/capture.js';
 import { themesFor } from '../src/themes.js';
 
-export const RUNTIME_SOURCE = fileURLToPath(
-  new URL('../../../plugins/statusline/runtime', import.meta.url),
-);
-export const RUNTIME = resolveRuntimeDir(RUNTIME_SOURCE);
-export const THEMES = themesFor(RUNTIME);
-
-export const DATA_REL = join(
-  '.claude',
-  'plugins',
-  'data',
-  'statusline-agentic',
-);
-
-// A fake installed plugin (contract 6): the repo runtime copied into the
-// versioned cache dir the shared install seam resolves (contract 2).
-export function installRuntime(home: string, version = '0.19.0'): string {
-  const dest = join(
-    home,
-    '.claude',
-    'plugins',
-    'cache',
-    'agentic',
-    'statusline',
-    version,
-    'runtime',
-  );
-  cpSync(RUNTIME_SOURCE, dest, { recursive: true });
-  return dest;
-}
+export const THEMES = themesFor();
 
 export function settingsPath(home: string): string {
   return join(home, '.claude', 'settings.json');
@@ -73,7 +44,7 @@ export function settingsCommand(
 }
 
 export function backupPath(home: string): string {
-  return join(home, DATA_REL, 'backup.json');
+  return join(home, DATA_DIR, 'backup.json');
 }
 
 export function writeCapture(
@@ -81,26 +52,12 @@ export function writeCapture(
   surface: 'main' | 'tick',
   ageMs: number,
 ): void {
-  const file = join(home, DATA_REL, 'captures', `${surface}.json`);
+  const file = join(home, DATA_DIR, 'captures', `${surface}.json`);
   mkdirSync(dirname(file), { recursive: true });
   writeFileSync(file, '{}\n');
   const at = new Date(Date.now() - ageMs);
   utimesSync(file, at, at);
 }
-
-export const KEY_RESOLVER =
-  "d=$(printf '%s\\n' ~/.claude/plugins/cache/agentic/statusline/*/ | sort -V | tail -1)";
-
-export function mainKeyValue(
-  layout: string,
-  assignments: readonly string[],
-): string {
-  return `${KEY_RESOLVER}; STATUSLINE_LAB_LAYOUT='${layout}' ${assignments.join(
-    ' ',
-  )} bash "\${d}runtime/statusline.sh" 2>/dev/null || true`;
-}
-
-export const subagentKeyValue = `${KEY_RESOLVER}; bash "\${d}runtime/subagent.sh" 2>/dev/null || true`;
 
 export function snapshotTree(root: string): Record<string, Buffer> {
   const files: Record<string, Buffer> = {};
@@ -119,6 +76,67 @@ export function snapshotTree(root: string): Record<string, Buffer> {
   };
   walk(root, '');
   return files;
+}
+
+// The settings key is a shell command: split it into the argv the host shell
+// would hand node — single-quoted flag values stay one word, "$HOME/…"
+// expands, `|| true` drops away. The first word must be the program.
+export function keyArgv(key: string, home: string): readonly string[] {
+  const words: string[] = [];
+  let word = '';
+  let quoted = false;
+  for (const c of key) {
+    if (quoted) {
+      if (c === "'") {
+        quoted = false;
+      } else {
+        word += c;
+      }
+    } else if (c === "'") {
+      quoted = true;
+    } else if (c === ' ') {
+      if (word !== '') {
+        words.push(word);
+        word = '';
+      }
+    } else {
+      word += c;
+    }
+  }
+  if (word !== '') {
+    words.push(word);
+  }
+  const argv = words
+    .filter(word => word !== '||' && word !== 'true')
+    .map(word =>
+      word.replace(/^"(.*)"$/, '$1').replace(/^\$HOME/, home),
+    );
+  if (argv[0] !== 'node') {
+    throw new Error(`key does not spawn node: ${key}`);
+  }
+  return argv.slice(1);
+}
+
+// The capture tee writes tmp + rename, so a .tmp name anywhere under the
+// data dir is a torn write.
+export function tmpFilesUnder(home: string): string[] {
+  const root = join(home, DATA_DIR);
+  if (!existsSync(root)) {
+    return [];
+  }
+  const found: string[] = [];
+  const walk = (dir: string): void => {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      const child = join(dir, entry.name);
+      if (entry.isDirectory()) {
+        walk(child);
+      } else if (entry.name.includes('.tmp')) {
+        found.push(child);
+      }
+    }
+  };
+  walk(root);
+  return found;
 }
 
 export interface Homes {

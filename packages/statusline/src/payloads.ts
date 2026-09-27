@@ -1,4 +1,3 @@
-import { spawnSync } from 'node:child_process';
 import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -6,7 +5,9 @@ import { fileURLToPath } from 'node:url';
 
 import { isObject } from './configure.js';
 import { materializeDemoRepo } from './demo-repo.js';
-import { capturePath, type ResolvedRuntime } from './resolve.js';
+import { renderStatusline } from './render/index.js';
+import { renderPanel } from './render/panel.js';
+import { capturePath } from './resolve.js';
 
 const PAYLOADS_DIR = fileURLToPath(
   new URL('../assets/payloads', import.meta.url),
@@ -20,12 +21,6 @@ const P1_RESETS_IN: Readonly<Record<string, number>> = {
   spend_limit: 950400,
 };
 const PANEL_STEP_S = 300;
-
-export interface RenderSpec {
-  readonly bin: string;
-  readonly env: Readonly<Record<string, string>>;
-  readonly stdin: string;
-}
 
 export interface PreviewSources {
   readonly cleanup: () => void;
@@ -66,7 +61,7 @@ function hasStart(value: unknown): boolean {
   return typeof value === 'number' && Number.isFinite(value) && value > 0;
 }
 
-// subagent.sh drops a row's duration unless its start is at or before NOW
+// The panel drops a row's duration unless its start is at or before NOW
 // (the elapsed >= 0 guard), so the demo schedule staggers every started row
 // strictly into the past — ids and order ride over untouched.
 function anchoredTick(now: number): string {
@@ -113,9 +108,9 @@ export function previewSources(home: string, now: number): PreviewSources {
   };
 }
 
-// subagent.sh answers with one {"id","content"} JSON line per task; a frame
+// The panel answers with one {"id","content"} JSON line per task; a frame
 // carries the first row's content.
-export function firstPanelRow(output: string): string {
+function firstPanelRow(output: string): string {
   const [row] = output.split('\n');
   if (row === '') {
     return '';
@@ -124,32 +119,12 @@ export function firstPanelRow(output: string): string {
   return typeof content === 'string' ? content : '';
 }
 
-export function runtimeRenderer(spec: RenderSpec): string {
-  const run = spawnSync('bash', [spec.bin], {
-    input: spec.stdin,
-    env: {
-      PATH: process.env.PATH ?? '',
-      ...spec.env,
-      LC_ALL: 'C',
-      TZ: 'UTC',
-    },
-    timeout: 30_000,
-  });
-  if (run.status !== 0) {
-    throw new Error(`render failed: ${run.stderr.toString('utf8')}`);
-  }
-  const stdout = run.stdout.toString('utf8');
-  const warn = run.stderr.toString('utf8').trim();
-  return warn === '' ? stdout : `${stdout}${warn}\n`;
-}
-
 export interface PreviewRender {
   readonly home: string;
   readonly layout: string;
   readonly main: string;
   readonly now: string;
   readonly plain?: boolean;
-  readonly runtime: ResolvedRuntime;
   readonly tick: string;
   readonly values: Readonly<Record<string, string>>;
   readonly width?: number;
@@ -160,38 +135,28 @@ export interface PreviewSurfaces {
   readonly panel: string;
 }
 
-// Both renders read the same bag — subagent.sh takes STATUSLINE_LAB_STYLE for
-// its row and its width out of the tick's columns — and NO_COLOR rides the
-// render env because runtimeRenderer passes no ambient environment through to
-// the runtime.
+// Both surfaces render in-process through the packaged engine and panel —
+// the same doors the data-dir renderer runs. The panel reads its width from
+// the tick's own columns; the line reads the bag's.
 export function renderPreview(bag: PreviewRender): PreviewSurfaces {
-  const variantEnv: Record<string, string> = Object.fromEntries(
-    Object.entries(bag.values).map(([item, alt]) => [
-      `STATUSLINE_LAB_${item.toUpperCase()}`,
-      alt,
-    ]),
-  );
   const plain = bag.plain === true || (process.env.NO_COLOR ?? '') !== '';
-  const env: Record<string, string> = {
-    ...variantEnv,
-    ...(plain ? { NO_COLOR: '1' } : {}),
-  };
-  const line = runtimeRenderer({
-    bin: join(bag.runtime.dir, 'statusline.sh'),
-    env: {
-      ...env,
-      COLUMNS: String(bag.width ?? 200),
-      HOME: bag.home,
-      NOW: bag.now,
-      STATUSLINE_LAB_LAYOUT: bag.layout,
-    },
-    stdin: bag.main,
+  const line = renderStatusline({
+    home: bag.home,
+    layout: bag.layout,
+    noColor: plain,
+    now: Number(bag.now),
+    payload: bag.main,
+    picks: bag.values,
+    timeZone: 'UTC',
+    ...(bag.width === undefined ? {} : { columns: bag.width }),
   }).replace(/\n+$/, '');
   const panel = firstPanelRow(
-    runtimeRenderer({
-      bin: join(bag.runtime.dir, 'subagent.sh'),
-      env: { ...env, HOME: bag.home, NOW: bag.now },
-      stdin: bag.tick,
+    renderPanel({
+      home: bag.home,
+      noColor: plain,
+      now: Number(bag.now),
+      payload: bag.tick,
+      picks: bag.values,
     }).replace(/\n+$/, ''),
   );
   return { line, panel };

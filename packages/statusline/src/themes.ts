@@ -1,4 +1,4 @@
-import { type ResolvedRuntime, type RuntimeItem } from './resolve.js';
+import { DEFAULT_LAYOUT, ITEMS, type ItemSpec } from './render/items.js';
 
 export type ThemeName = 'classic' | 'custom' | 'lean' | 'quiet' | 'rich';
 
@@ -17,17 +17,16 @@ export const THEME_NAMES = [
 ] as const satisfies readonly ThemeName[];
 
 const CUSTOM_SEEDS: Readonly<Partial<Record<string, string>>> = {
-  branch: 'last',
   cwd: 'base',
   model: 'zen',
   style: 'bare',
 };
 
-function offers(item: RuntimeItem, variant: string): boolean {
+function offers(item: ItemSpec, variant: string): boolean {
   return item.default === variant || item.alternatives.includes(variant);
 }
 
-function absenceSeed(item: RuntimeItem): string {
+function absenceSeed(item: ItemSpec): string {
   if (offers(item, 'none')) {
     return 'none';
   }
@@ -41,12 +40,10 @@ function absenceSeed(item: RuntimeItem): string {
   return named;
 }
 
-export function themesFor(
-  runtime: ResolvedRuntime,
-): Readonly<Record<ThemeName, Theme>> {
-  function variantsOf(pick: (item: RuntimeItem) => string) {
+export function themesFor(): Readonly<Record<ThemeName, Theme>> {
+  function variantsOf(pick: (item: ItemSpec) => string) {
     return Object.fromEntries(
-      runtime.items.map((item): [string, string] => [item.item, pick(item)]),
+      ITEMS.map((item): [string, string] => [item.item, pick(item)]),
     );
   }
   return {
@@ -56,12 +53,12 @@ export function themesFor(
       variants: { cwd: 'tail', model: 'zen', style: 'bare' },
     },
     classic: {
-      layout: runtime.defaultLayout,
+      layout: DEFAULT_LAYOUT,
       summary: 'the shipped defaults, named',
       variants: variantsOf(item => item.default),
     },
     lean: {
-      layout: runtime.defaultLayout,
+      layout: DEFAULT_LAYOUT,
       summary: 'text only, no graphics',
       variants: {
         model: 'plain',
@@ -83,7 +80,7 @@ export function themesFor(
       },
     },
     rich: {
-      layout: runtime.defaultLayout,
+      layout: DEFAULT_LAYOUT,
       summary: 'every gauge and counter',
       variants: {
         model: 'pill',
@@ -105,7 +102,7 @@ export function themesFor(
       },
     },
     custom: {
-      layout: runtime.defaultLayout,
+      layout: DEFAULT_LAYOUT,
       summary: 'bare; you decide everything',
       variants: variantsOf(absenceSeed),
     },

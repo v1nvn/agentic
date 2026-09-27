@@ -1,27 +1,11 @@
-import { readFileSync, readdirSync } from 'node:fs';
-import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
-
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { catalog } from '../src/catalog.js';
 import { buildProgram, parseArgs } from '../src/cli.js';
+import { ITEMS } from '../src/render/index.js';
+import { mainKeyValue } from '../src/resolve.js';
 import { liveTheme } from '../src/live-theme.js';
-import {
-  RUNTIME,
-  THEMES,
-  createHomes,
-  installRuntime,
-  mainKeyValue,
-  writeSettings,
-} from './fixtures.js';
-
-const RUNTIME_DIR = fileURLToPath(
-  new URL('../../../plugins/statusline/runtime', import.meta.url),
-);
-const RUNTIME_MAIN = join(RUNTIME_DIR, 'statusline.sh');
-const RUNTIME_COMPONENTS = join(RUNTIME_DIR, 'components');
-const RUNTIME_LIB = join(RUNTIME_DIR, 'lib.sh');
+import { THEMES, createHomes, writeSettings } from './fixtures.js';
 
 // Each dead verb is invoked the way a user would really type it — with the
 // arguments it used to accept — so a pass is a surviving verb, not a missing
@@ -38,63 +22,17 @@ const DEAD_VERBS: ReadonlyArray<{
   { args: ['resolve'], name: 'resolve' },
 ];
 
-// Independent parses of the plugin runtime (contract 6's forever home) — the
-// catalog is cross-checked against these, never against the implementation's
-// own readers.
-function declaredAlternatives(): Map<string, readonly string[]> {
-  const declared = new Map<string, readonly string[]>();
-  for (const file of readdirSync(RUNTIME_COMPONENTS).sort()) {
-    if (!file.endsWith('.sh')) {
-      continue;
-    }
-    for (const line of readFileSync(
-      join(RUNTIME_COMPONENTS, file),
-      'utf8',
-    ).split('\n')) {
-      if (!line.startsWith('#')) {
-        break;
-      }
-      const match = /alternatives:\s*(.+)$/.exec(line);
-      if (match) {
-        declared.set(
-          file.slice(0, -'.sh'.length),
-          match[1]
-            .split('|')
-            .map(alt => alt.trim().replace(/\s*\(current\)$/, '')),
-        );
-      }
-    }
-  }
-  return declared;
-}
-
-function declaredOrder(): string[] {
-  const match = /^COMPS="(.+)"$/m.exec(readFileSync(RUNTIME_MAIN, 'utf8'));
-  if (match === null) {
-    throw new Error('statusline.sh declares no COMPS order');
-  }
-  return match[1].split(' ');
-}
-
-function declaredDefaults(): Map<string, string> {
-  const defaults = new Map<string, string>();
-  for (const [, item, alt] of readFileSync(RUNTIME_LIB, 'utf8').matchAll(
-    /([a-z]+)\) echo ([a-z]+) ;;/g,
-  )) {
-    defaults.set(item, alt);
-  }
-  return defaults;
-}
-
 function expectedLines(
   live: Record<string, string>,
   items?: readonly string[],
 ): string[] {
-  const alternatives = declaredAlternatives();
-  const defaults = declaredDefaults();
-  return (items ?? declaredOrder()).map(item => {
-    const current = live[item] ?? defaults.get(item);
-    return `${item}: ${(alternatives.get(item) ?? [])
+  return (items ?? ITEMS.map(({ item }) => item)).map(item => {
+    const entry = ITEMS.find(spec => spec.item === item);
+    if (entry === undefined) {
+      throw new Error(`unknown item '${item}'`);
+    }
+    const current = live[item] ?? entry.default;
+    return `${item}: ${entry.alternatives
       .map(alt => (alt === current ? `${alt}*` : alt))
       .join(' | ')}`;
   });
@@ -102,15 +40,15 @@ function expectedLines(
 
 function seedOursKey(
   home: string,
-  layout: string,
-  assignments: readonly string[],
+  layout: null | string,
+  flags: readonly string[],
 ): void {
   writeSettings(
     home,
     `${JSON.stringify(
       {
         statusLine: {
-          command: mainKeyValue(layout, assignments),
+          command: mainKeyValue(layout, flags),
           type: 'command',
         },
       },
@@ -128,12 +66,11 @@ function expectedThemeLines(live: string | undefined): string[] {
   );
 }
 
-function themeKeyAssignments(
-  variants: Readonly<Record<string, string>>,
-): string[] {
-  return Object.entries(variants).map(
-    ([item, variant]) => `STATUSLINE_LAB_${item.toUpperCase()}=${variant}`,
-  );
+// The flags a theme's picks write onto a key: only the non-default decisions.
+function themeFlags(variants: Readonly<Record<string, string>>): string[] {
+  return ITEMS.filter(
+    ({ default: def, item }) => variants[item] !== undefined && variants[item] !== def,
+  ).map(({ item }) => `--${item}=${variants[item]}`);
 }
 
 const homes = createHomes();
@@ -143,7 +80,7 @@ afterEach(() => {
 });
 
 describe('the verb surface (contracts 1 and 10)', () => {
-  it('registers exactly catalog, configure, restore, and status', () => {
+  it('registers exactly catalog, configure, preview, restore, and status', () => {
     expect(
       buildProgram()
         .commands.map(command => command.name())
@@ -181,7 +118,7 @@ describe('catalog: parsing', () => {
   });
 
   it('offers a boolean flag for every item id', () => {
-    for (const item of declaredOrder()) {
+    for (const { item } of ITEMS) {
       expect(parseArgs(['catalog', `--${item}`]), item).toMatchObject({
         command: 'catalog',
         items: [item],
@@ -190,20 +127,9 @@ describe('catalog: parsing', () => {
   });
 });
 
-describe('catalog: the runtime install seam (contract 2)', () => {
-  it('no resolvable runtime under $HOME fails with the install hint', () => {
-    const home = homes.newHome();
-    const attempt = (): string => catalog({ home });
-
-    expect(attempt).toThrowError(/install/);
-    expect(attempt).toThrowError(/no statusline runtime/);
-  });
-});
-
 describe('catalog: output (contract 2)', () => {
-  it('leads with the themes block, a blank line, then the item lines with the lib default starred and zero ANSI', () => {
+  it('leads with the themes block, a blank line, then the item lines with the registry default starred and zero ANSI', () => {
     const home = homes.newHome();
-    installRuntime(home);
 
     const out = catalog({ home });
 
@@ -215,13 +141,9 @@ describe('catalog: output (contract 2)', () => {
     ]);
   });
 
-  it('stars follow the main key assignments in settings.json', () => {
+  it('stars follow the main key flags in settings.json', () => {
     const home = homes.newHome();
-    installRuntime(home);
-    seedOursKey(home, '{model cache}', [
-      'STATUSLINE_LAB_MODEL=block',
-      'STATUSLINE_LAB_CACHE=none',
-    ]);
+    seedOursKey(home, '{model cache}', ['--model=block', '--cache=none']);
 
     const out = catalog({ home });
 
@@ -234,7 +156,6 @@ describe('catalog: output (contract 2)', () => {
 
   it('boolean flags cut the item lines to those items; the block still leads', () => {
     const home = homes.newHome();
-    installRuntime(home);
 
     const out = catalog({ home, items: ['model', 'bar'] });
 
@@ -247,74 +168,66 @@ describe('catalog: output (contract 2)', () => {
 });
 
 describe('the live-theme matcher', () => {
-  it('names the theme whose layout and assignments the key equals exactly', () => {
+  it('names the theme whose effective picks and layout the key equals', () => {
     expect(
-      liveTheme(
-        {
-          layout: THEMES.quiet.layout,
-          values: { ...THEMES.quiet.variants },
-        },
-        RUNTIME,
-      ),
+      liveTheme({
+        layout: THEMES.quiet.layout,
+        values: { ...THEMES.quiet.variants },
+      }),
     ).toBe('quiet');
     expect(
-      liveTheme(
-        {
-          layout: THEMES.lean.layout,
-          values: { ...THEMES.lean.variants },
-        },
-        RUNTIME,
-      ),
+      liveTheme({
+        layout: THEMES.lean.layout,
+        values: { ...THEMES.lean.variants },
+      }),
     ).toBe('lean');
   });
 
   it('a one-swap key (--theme lean --bar gauge) matches nothing', () => {
     expect(
-      liveTheme(
-        {
-          layout: THEMES.lean.layout,
-          values: { ...THEMES.lean.variants, bar: 'gauge' },
-        },
-        RUNTIME,
-      ),
+      liveTheme({
+        layout: THEMES.lean.layout,
+        values: { ...THEMES.lean.variants, bar: 'gauge' },
+      }),
     ).toBeUndefined();
   });
 
   it('the layout must equal too — lean assignments on quiet layout match nothing', () => {
     expect(
-      liveTheme(
-        {
-          layout: THEMES.quiet.layout,
-          values: { ...THEMES.lean.variants },
-        },
-        RUNTIME,
-      ),
+      liveTheme({
+        layout: THEMES.quiet.layout,
+        values: { ...THEMES.lean.variants },
+      }),
     ).toBeUndefined();
   });
 
-  it('equality runs both directions — a dropped assignment matches nothing', () => {
+  it('a dropped non-default decision falls back to the default and matches nothing', () => {
     const values = { ...THEMES.lean.variants };
-    delete values.rate;
+    delete values.style;
 
+    expect(liveTheme({ layout: THEMES.lean.layout, values })).toBeUndefined();
+  });
+
+  it('an extra decision beyond the theme set matches nothing', () => {
     expect(
-      liveTheme({ layout: THEMES.lean.layout, values }, RUNTIME),
+      liveTheme({
+        layout: THEMES.quiet.layout,
+        values: { ...THEMES.quiet.variants, branch: 'last' },
+      }),
     ).toBeUndefined();
   });
 
-  it('the key side of both directions — an assignment beyond the theme set matches nothing', () => {
+  it('a pick equal to the default is indistinguishable from an absent one', () => {
     expect(
-      liveTheme(
-        {
-          layout: THEMES.quiet.layout,
-          values: { ...THEMES.quiet.variants, branch: 'initials' },
-        },
-        RUNTIME,
-      ),
-    ).toBeUndefined();
+      liveTheme({
+        layout: THEMES.quiet.layout,
+        values: { ...THEMES.quiet.variants, branch: 'initials' },
+      }),
+    ).toBe('quiet');
   });
 
   it('no key (null layout, no values) matches nothing', () => {
-    expect(liveTheme({ layout: null, values: {} }, RUNTIME)).toBeUndefined();
+    expect(liveTheme({ layout: null, values: {} })).toBeUndefined();
   });
 });
 
@@ -334,14 +247,9 @@ describe('catalog: the themes block', () => {
     expect(parseArgs(['catalog'])).not.toMatchObject({ themes: true });
   });
 
-  it('stars the theme the live key equals exactly', () => {
+  it('stars the theme the live key equals effectively', () => {
     const home = homes.newHome();
-    installRuntime(home);
-    seedOursKey(
-      home,
-      THEMES.lean.layout,
-      themeKeyAssignments(THEMES.lean.variants),
-    );
+    seedOursKey(home, THEMES.lean.layout, themeFlags(THEMES.lean.variants));
 
     const out = catalog({ home });
 
@@ -354,11 +262,10 @@ describe('catalog: the themes block', () => {
 
   it('a one-swap key (--theme lean --bar gauge) stars nothing', () => {
     const home = homes.newHome();
-    installRuntime(home);
     seedOursKey(
       home,
       THEMES.lean.layout,
-      themeKeyAssignments({ ...THEMES.lean.variants, bar: 'gauge' }),
+      themeFlags({ ...THEMES.lean.variants, bar: 'gauge' }),
     );
 
     const out = catalog({ home });
@@ -372,12 +279,7 @@ describe('catalog: the themes block', () => {
 
   it('--themes cuts the output to the block alone', () => {
     const home = homes.newHome();
-    installRuntime(home);
-    seedOursKey(
-      home,
-      THEMES.lean.layout,
-      themeKeyAssignments(THEMES.lean.variants),
-    );
+    seedOursKey(home, THEMES.lean.layout, themeFlags(THEMES.lean.variants));
 
     const out = catalog({ home, themes: true });
 
@@ -386,7 +288,6 @@ describe('catalog: the themes block', () => {
 
   it('no key present: no star, five clean lines', () => {
     const home = homes.newHome();
-    installRuntime(home);
 
     const out = catalog({ home, themes: true });
 

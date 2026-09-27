@@ -1,7 +1,9 @@
-import { statSync } from 'node:fs';
-import { basename, dirname, join } from 'node:path';
+import { createHash } from 'node:crypto';
+import { existsSync, readFileSync, statSync } from 'node:fs';
+import { delimiter, join } from 'node:path';
 
 import {
+  BUNDLED_RENDERER,
   isOurMember,
   memberCommand,
   parseClusters,
@@ -12,26 +14,25 @@ import {
   type SettingsKey,
 } from './configure.js';
 import { liveTheme } from './live-theme.js';
+import { DATA_DIR } from './render/capture.js';
+import { ITEMS } from './render/index.js';
 import {
   capturePath,
-  DATA_REL,
   readKeyConfig,
-  type ResolvedRuntime,
-  resolveRuntime,
+  renderMjsPath,
   type ScriptConfig,
 } from './resolve.js';
 import { readBackup } from './restore.js';
 
 export interface StatusOptions {
   readonly home: string;
+  readonly path?: string;
 }
 
 export interface StatusResult {
   readonly healthy: boolean;
   readonly rows: readonly string[];
 }
-
-const INSTALL_FIX = 'claude plugin install statusline@agentic';
 
 type KeyState =
   | { readonly command: null | string; readonly kind: 'foreign' }
@@ -94,14 +95,11 @@ function findingText(finding: DriftFinding): string {
     : `unknown variant '${finding.alt}' for '${finding.item}'`;
 }
 
-function driftFindings(
-  config: ScriptConfig,
-  runtime: ResolvedRuntime,
-): readonly DriftFinding[] {
+function driftFindings(config: ScriptConfig): readonly DriftFinding[] {
   if (config.layout === null) {
     return [];
   }
-  const byItem = new Map(runtime.items.map(entry => [entry.item, entry]));
+  const byItem = new Map(ITEMS.map(entry => [entry.item, entry]));
   const findings: DriftFinding[] = [];
   for (const item of layoutItemsOf(config.layout)) {
     const entry = byItem.get(item);
@@ -117,12 +115,55 @@ function driftFindings(
   return findings;
 }
 
-function runtimeRow(runtime: null | ResolvedRuntime): string {
-  if (runtime === null) {
-    return `runtime: missing — fix: ${INSTALL_FIX}`;
+// The settings keys spawn plain `node`, not this CLI's runtime — PATH is the
+// one thing the paint needs that the CLI cannot vouch for.
+export function nodeOnPath(pathVar: string): null | string {
+  const found = pathVar
+    .split(delimiter)
+    .filter(dir => dir !== '')
+    .map(dir => join(dir, 'node'))
+    .find(existsSync);
+  return found ?? null;
+}
+
+export function rendererHash(bytes: Buffer): string {
+  return createHash('sha256').update(bytes).digest('hex').slice(0, 12);
+}
+
+type RendererState =
+  | { readonly cli: string; readonly data: string; readonly kind: 'stale' }
+  | { readonly hash: string; readonly kind: 'current' }
+  | { readonly kind: 'missing' }
+  | { readonly kind: 'no-bundle' };
+
+function rendererState(home: string): RendererState {
+  if (!existsSync(BUNDLED_RENDERER)) {
+    return { kind: 'no-bundle' };
   }
-  const version = basename(dirname(runtime.dir));
-  return `runtime: ${version} — ${runtime.items.length} items`;
+  const cli = readFileSync(BUNDLED_RENDERER);
+  const dataFile = renderMjsPath(home);
+  if (!existsSync(dataFile)) {
+    return { kind: 'missing' };
+  }
+  const data = readFileSync(dataFile);
+  const hash = rendererHash(data);
+  return hash === rendererHash(cli)
+    ? { hash, kind: 'current' }
+    : { cli: rendererHash(cli), data: hash, kind: 'stale' };
+}
+
+function rendererRow(state: RendererState): string {
+  if (state.kind === 'current') {
+    return `renderer: current — ${state.hash}`;
+  }
+  // --force so the fix also completes on a home holding foreign keys.
+  if (state.kind === 'stale') {
+    return `renderer: stale — data ${state.data}, this CLI ${state.cli} — fix: rerun configure --force --theme classic`;
+  }
+  if (state.kind === 'no-bundle') {
+    return 'renderer: this CLI ships no render.mjs — fix: rerun /lab to refresh the CLI';
+  }
+  return 'renderer: missing — fix: rerun configure --force --theme classic';
 }
 
 function configRow(findings: readonly DriftFinding[]): string {
@@ -137,7 +178,7 @@ function backupRow(home: string): string {
   try {
     backup = readBackup(home);
   } catch {
-    return `backup: unreadable — fix: delete ~/${DATA_REL}/backup.json`;
+    return `backup: unreadable — fix: delete ~/${DATA_DIR}/backup.json`;
   }
   if (backup === null) {
     return 'backup: absent';
@@ -189,31 +230,24 @@ function settingsMembers(home: string): Record<string, unknown> {
   return raw === null ? {} : parseSettings(file, raw);
 }
 
-function resolveOrNull(home: string): null | ResolvedRuntime {
-  try {
-    return resolveRuntime({ home });
-  } catch {
-    return null;
-  }
-}
-
 export function status(options: StatusOptions): StatusResult {
-  const runtime = resolveOrNull(options.home);
   const members = settingsMembers(options.home);
   const main = keyState('statusLine', members.statusLine);
   const subagent = keyState('subagentStatusLine', members.subagentStatusLine);
   const config = readKeyConfig(options.home);
-  const theme = runtime === null ? undefined : liveTheme(config, runtime);
-  const findings =
-    runtime === null || main.kind !== 'ours'
-      ? []
-      : driftFindings(config, runtime);
+  const theme = liveTheme(config);
+  const findings = main.kind === 'ours' ? driftFindings(config) : [];
+  const node = nodeOnPath(options.path ?? process.env.PATH ?? '');
+  const renderer = rendererState(options.home);
 
   const rows = [
-    runtimeRow(runtime),
+    node === null
+      ? 'node: missing — fix: install node ≥ 18 from nodejs.org, then restart Claude Code'
+      : `node: on PATH (${node})`,
+    rendererRow(renderer),
     keyRow('statusLine', main, configDetail(config)),
     keyRow('subagentStatusLine', subagent),
-    ...(runtime !== null && main.kind === 'ours'
+    ...(main.kind === 'ours'
       ? [
           configRow(findings),
           ...(theme === undefined ? [] : [`theme: ${theme}`]),
@@ -223,7 +257,8 @@ export function status(options: StatusOptions): StatusResult {
     capturesRow(options.home),
   ];
   const healthy =
-    runtime !== null &&
+    node !== null &&
+    renderer.kind === 'current' &&
     main.kind === 'ours' &&
     subagent.kind === 'ours' &&
     findings.length === 0;

@@ -1,15 +1,11 @@
-import { readFileSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { describe, expect, it } from 'vitest';
 
-import { afterEach, describe, expect, it } from 'vitest';
-
-import { resolveRuntime, resolveRuntimeDir } from '../src/resolve.js';
+import { DEFAULT_LAYOUT, ITEMS } from '../src/render/index.js';
 import * as themes from '../src/themes.js';
-import { createHomes, installRuntime, RUNTIME_SOURCE } from './fixtures.js';
 
 // The Design block's literal theme definitions — the pin the builder
-// implements to. Only classic's default picks and the layout/membership
-// cross-checks derive from the resolved runtime below.
+// implements to. Classic's default picks and the layout/membership
+// cross-checks derive from the registry below.
 const QUIET_LAYOUT = '{model cwd}';
 
 const QUIET_VARIANTS: Readonly<Record<string, string>> = {
@@ -56,13 +52,14 @@ const RICH_VARIANTS: Readonly<Record<string, string>> = {
   tokens: 'full',
 };
 
-// Custom seeds bare — the Design block's sixteen pairs: `none` for the
-// eleven items that offer it, effort's absence word `hidden`, and the four
-// named picks for the items with no absence word.
+// Custom seeds bare — sixteen pairs: `none` for the twelve items that offer
+// it (branch included — the registry knows the inline shim the old bash
+// scrape could not see), effort's absence word `hidden`, and the three named
+// picks for the items with no absence word.
 const CUSTOM_VARIANTS: Readonly<Record<string, string>> = {
   ahead: 'none',
   bar: 'none',
-  branch: 'last',
+  branch: 'none',
   cache: 'none',
   cost: 'none',
   cwd: 'base',
@@ -101,19 +98,7 @@ const DEFAULT_LAYOUT_THEMES = [
   'rich',
 ] as const satisfies readonly string[];
 
-const THEMES = themes.themesFor(resolveRuntimeDir(RUNTIME_SOURCE));
-
-const homes = createHomes();
-
-afterEach(() => {
-  homes.dispose();
-});
-
-function registry() {
-  const home = homes.newHome();
-  installRuntime(home);
-  return resolveRuntime({ home });
-}
+const THEMES = themes.themesFor();
 
 describe('themes: surface', () => {
   it('exports only THEME_NAMES and themesFor; the record is keyed by exactly the five themes', () => {
@@ -134,43 +119,11 @@ describe('themes: surface', () => {
   );
 });
 
-describe('themes: derivation', () => {
-  it('follows the runtime it is given, not any ambient registry', () => {
-    const home = homes.newHome();
-    const dir = installRuntime(home);
-    const model = resolveRuntime({ home }).items.find(
-      item => item.item === 'model',
-    );
-    if (model === undefined) {
-      throw new Error('registry declares no model item');
-    }
-    const other = model.alternatives.find(alt => alt !== model.default);
-    if (other === undefined) {
-      throw new Error('model item offers no alternative to its default');
-    }
-    const lib = join(dir, 'lib.sh');
-    writeFileSync(
-      lib,
-      readFileSync(lib, 'utf8').replace(
-        /model\) echo [a-z]+ ;;/,
-        `model) echo ${other} ;;`,
-      ),
-    );
-
-    expect(THEMES.classic.variants.model).toBe(model.default);
-    expect(
-      themes.themesFor(resolveRuntime({ home })).classic.variants.model,
-    ).toBe(other);
-  });
-});
-
 describe('themes: layouts', () => {
-  it('quiet verbatim; the other four are the runtime default layout', () => {
-    const runtime = registry();
-
+  it('quiet verbatim; the other four are the registry default layout', () => {
     expect(THEMES.quiet.layout).toBe(QUIET_LAYOUT);
     for (const name of DEFAULT_LAYOUT_THEMES) {
-      expect(THEMES[name].layout, name).toBe(runtime.defaultLayout);
+      expect(THEMES[name].layout, name).toBe(DEFAULT_LAYOUT);
     }
   });
 });
@@ -183,10 +136,8 @@ describe('themes: variant picks', () => {
   });
 
   it('classic is every registry item at its default pick', () => {
-    const runtime = registry();
-
     expect(THEMES.classic.variants).toEqual(
-      Object.fromEntries(runtime.items.map(item => [item.item, item.default])),
+      Object.fromEntries(ITEMS.map(({ default: def, item }) => [item, def])),
     );
   });
 
@@ -199,12 +150,10 @@ describe('themes: registry pin', () => {
   it.each([...THEME_NAMES])(
     '%s picks only registry items, at variants they offer',
     name => {
-      const runtime = registry();
-      const byItem = new Map(runtime.items.map(item => [item.item, item]));
       const picks = Object.entries(THEMES[name].variants);
 
       for (const [item, variant] of picks) {
-        const entry = byItem.get(item);
+        const entry = ITEMS.find(spec => spec.item === item);
         expect(entry, `${name} picks unknown item '${item}'`).toBeDefined();
         expect(
           entry !== undefined &&

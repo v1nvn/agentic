@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -8,16 +8,20 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { catalog } from '../src/catalog.js';
 import { configure } from '../src/configure.js';
 import {
-  createHomes,
-  installRuntime,
+  capturePath,
   mainKeyValue,
+  panelKeyValue,
+  renderMjsPath,
+} from '../src/resolve.js';
+import {
+  createHomes,
+  keyArgv,
   settingsCommand,
   snapshotTree,
-  subagentKeyValue,
 } from './fixtures.js';
-import { capturePath } from './plugin-runtime.js';
 
 const P1 = fileURLToPath(new URL('../assets/payloads/p1.json', import.meta.url));
+const TICK = fileURLToPath(new URL('../assets/ticks/multi.json', import.meta.url));
 
 const homes = createHomes();
 
@@ -25,28 +29,30 @@ afterEach(() => {
   homes.dispose();
 });
 
-function newInstalledHome(): string {
-  const home = homes.newHome();
-  installRuntime(home);
-  return home;
-}
-
-function bashKey(key: string, home: string) {
-  return spawnSync('bash', ['-c', key], {
+function runKey(
+  key: string,
+  home: string,
+  stdin: string,
+): { readonly status: number; readonly stdout: string } {
+  const run = spawnSync('node', [...keyArgv(key, home)], {
+    input: stdin,
     env: {
       HOME: home,
       LC_ALL: 'C',
       PATH: process.env.PATH ?? '',
       TZ: 'UTC',
     },
-    input: readFileSync(P1),
     timeout: 30_000,
   });
+  return {
+    status: run.status ?? -1,
+    stdout: (run.stdout ?? Buffer.alloc(0)).toString('utf8'),
+  };
 }
 
 describe('configure on a scratch home (rulings 1 and 4)', () => {
-  it('holds exactly the two key values, writes no script files anywhere, and catalog stars follow the written variants', () => {
-    const home = newInstalledHome();
+  it('holds exactly the two key values, writes nothing outside its footprint, and catalog stars follow the written variants', () => {
+    const home = homes.newHome();
 
     configure({
       home,
@@ -55,57 +61,80 @@ describe('configure on a scratch home (rulings 1 and 4)', () => {
     });
 
     expect(settingsCommand(home, 'statusLine')).toBe(
-      mainKeyValue('{model bar}', [
-        'STATUSLINE_LAB_MODEL=block',
-        'STATUSLINE_LAB_BAR=gauge',
-      ]),
+      mainKeyValue('{model bar}', ['--model=block', '--bar=gauge']),
     );
-    expect(settingsCommand(home, 'subagentStatusLine')).toBe(subagentKeyValue);
+    expect(settingsCommand(home, 'subagentStatusLine')).toBe(
+      panelKeyValue([]),
+    );
 
     const written = Object.keys(snapshotTree(join(home, '.claude'))).sort();
-    expect(written).toContain('settings.json');
-    for (const path of written) {
-      expect(
-        path === 'settings.json' ||
-          path.startsWith('plugins/cache/') ||
-          path === 'plugins/data/statusline-agentic/backup.json',
-        `configure wrote outside the two-key footprint: ${path}`,
-      ).toBe(true);
-    }
+    expect(written).toEqual([
+      'plugins/data/statusline-agentic/backup.json',
+      'plugins/data/statusline-agentic/render.mjs',
+      'settings.json',
+    ]);
 
     const lines = catalog({ home }).split('\n');
     expect(lines).toContain('model: plain | block* | pill | zen');
-    expect(lines).toContain('bar: flat | gauge* | percent | none');
+    expect(lines).toContain('bar: flat | gauge* | percent | none | flat6 | flat4');
+  });
+
+  it('a non-default style pick rides the panel key too', () => {
+    const home = homes.newHome();
+    configure({ home, theme: 'quiet' });
+
+    expect(settingsCommand(home, 'subagentStatusLine')).toBe(
+      panelKeyValue(['--style=bare']),
+    );
   });
 });
 
-describe('the written main key in a real shell (host-fact pin)', () => {
-  it('renders the piped payload on stdout and tees captures/main.json; an empty cache dir yields empty stdout and exit 0', () => {
-    const home = newInstalledHome();
+describe('the written keys through the real node renderer (host-fact pin)', () => {
+  it('the main key renders the piped payload and tees it byte-identical to captures/main.json', () => {
+    const home = homes.newHome();
     configure({
       home,
       layout: '{model effort}',
       variants: { effort: 'dim', model: 'block' },
     });
-    const key = settingsCommand(home, 'statusLine');
+    const stdin = readFileSync(P1, 'utf8');
 
-    const painted = bashKey(key, home);
+    const painted = runKey(settingsCommand(home, 'statusLine'), home, stdin);
+
     expect(painted.status).toBe(0);
-    expect(
-      painted.stdout.toString('utf8').trim(),
-      'rendered statusline line',
-    ).not.toBe('');
-    expect(existsSync(capturePath(home, 'main')), 'captures/main.json').toBe(
-      true,
+    expect(painted.stdout.trim(), 'rendered statusline line').not.toBe('');
+    expect(readFileSync(capturePath(home, 'main'))).toEqual(
+      Buffer.from(stdin),
+    );
+  });
+
+  it('the panel key emits one JSON row per identified task', () => {
+    const home = homes.newHome();
+    configure({ home, theme: 'quiet' });
+
+    const painted = runKey(
+      settingsCommand(home, 'subagentStatusLine'),
+      home,
+      readFileSync(TICK, 'utf8'),
     );
 
-    const sweptHome = homes.newHome();
-    mkdirSync(
-      join(sweptHome, '.claude', 'plugins', 'cache', 'agentic', 'statusline'),
-      { recursive: true },
-    );
-    const swept = bashKey(key, sweptHome);
-    expect(swept.status).toBe(0);
-    expect(swept.stdout.toString('utf8')).toBe('');
+    expect(painted.status).toBe(0);
+    const rows = painted.stdout.split('\n').filter(row => row !== '');
+    expect(rows.length).toBeGreaterThan(0);
+    for (const row of rows) {
+      expect(() => JSON.parse(row)).not.toThrow();
+    }
+  });
+
+  it('a home whose data dir lost render.mjs renders nothing and exits non-zero — the failure || true swallows', () => {
+    const home = homes.newHome();
+    configure({ home, theme: 'lean' });
+    rmSync(renderMjsPath(home));
+    expect(existsSync(renderMjsPath(home))).toBe(false);
+
+    const swept = runKey(settingsCommand(home, 'statusLine'), home, '{}\n');
+
+    expect(swept.status).not.toBe(0);
+    expect(swept.stdout).toBe('');
   });
 });
