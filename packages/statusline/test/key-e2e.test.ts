@@ -1,4 +1,3 @@
-import { spawnSync } from 'node:child_process';
 import { existsSync, readFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -19,7 +18,7 @@ import {
   settingsCommand,
   snapshotTree,
 } from './fixtures.js';
-import { DEFAULT_NOW } from './runtime.js';
+import { DEFAULT_NOW, runRenderer } from './runtime.js';
 
 const P1 = fileURLToPath(new URL('../assets/payloads/p1.json', import.meta.url));
 const TICK = fileURLToPath(new URL('../assets/ticks/multi.json', import.meta.url));
@@ -36,20 +35,8 @@ function runKey(
   stdin: string,
   extra: readonly string[] = [],
 ): { readonly status: number; readonly stdout: string } {
-  const run = spawnSync('node', [...keyArgv(key, home), ...extra], {
-    input: stdin,
-    env: {
-      HOME: home,
-      LC_ALL: 'C',
-      PATH: process.env.PATH ?? '',
-      TZ: 'UTC',
-    },
-    timeout: 30_000,
-  });
-  return {
-    status: run.status ?? -1,
-    stdout: (run.stdout ?? Buffer.alloc(0)).toString('utf8'),
-  };
+  const run = runRenderer([...keyArgv(key, home), ...extra], home, stdin);
+  return { status: run.status, stdout: run.stdout };
 }
 
 describe('configure on a scratch home (rulings 1 and 4)', () => {

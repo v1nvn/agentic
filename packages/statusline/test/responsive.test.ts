@@ -1,36 +1,34 @@
-import { readFileSync, rmSync } from 'node:fs';
-import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { rmSync } from 'node:fs';
 
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import { renderStatusline } from '../src/render/index.js';
-import { createDemoHome, DEFAULT_NOW, golden, type DemoHome } from './runtime.js';
+import { stripSgr, vlen } from '../src/render/engine.js';
+import {
+  createDemoHome,
+  DEFAULT_NOW,
+  golden,
+  loadPayload,
+  renderAt,
+  type DemoHome,
+} from './runtime.js';
 
 // The rung ladder and 2-line wrap are pinned by the golden corpus at their
 // pinned widths; this suite covers what the corpus cannot — the fit invariant
-// across every width, and rungs no golden sits on.
-const PAYLOADS_DIR = fileURLToPath(
-  new URL('../assets/payloads', import.meta.url),
-);
-
-const stripAnsi = (line: string) => line.replace(/\x1b\[[0-9;]*m/g, '');
-// the engine's vlen counts ⚡ as 2 visible columns
-const vlen = (line: string) =>
-  [...line].length + (line.match(/⚡/g) ?? []).length;
+// across every width, and rungs no golden sits on. vlen counts ⚡ as 2
+// visible columns.
 
 const linesOf = (out: string) => out.replace(/\n$/, '').split('\n');
 
 function expectFits(lines: string[], columns: number): void {
   expect(lines.length).toBeLessThanOrEqual(2);
   for (const line of lines) {
-    expect(vlen(stripAnsi(line))).toBeLessThanOrEqual(columns - 3);
+    expect(vlen(stripSgr(line))).toBeLessThanOrEqual(columns - 3);
   }
 }
 
 function expectNoBlankArtifacts(lines: string[]): void {
   for (const line of lines) {
-    const plain = stripAnsi(line);
+    const plain = stripSgr(line);
     expect(plain, `blank artifact in ${JSON.stringify(line)}`).not.toBe('');
     expect(plain).not.toMatch(/  /);
     expect(plain).not.toMatch(/│ │/);
@@ -60,17 +58,11 @@ function render(
   if (!demo) {
     throw new Error('demo home not materialized');
   }
-  const parsed = JSON.parse(
-    readFileSync(join(PAYLOADS_DIR, `${payload}.json`), 'utf8'),
-  ) as { model: { display_name: string }; workspace: { current_dir: string } };
-  parsed.workspace.current_dir = demo.repoDir;
+  const parsed = loadPayload(payload);
   if (modelDisplayName !== undefined) {
-    parsed.model.display_name = modelDisplayName;
+    (parsed.model as Record<string, unknown>).display_name = modelDisplayName;
   }
-  return renderStatusline({
-    home: demo.home,
-    now: Number(DEFAULT_NOW),
-    payload: `${JSON.stringify(parsed, null, 2)}\n`,
+  return renderAt(demo, parsed, {
     ...(columns === undefined ? {} : { columns }),
   });
 }
@@ -103,7 +95,7 @@ describe('percent rung fidelity', () => {
     const lines = linesOf(render('p1', 47));
     expect(lines).toHaveLength(1);
     expectFits(lines, 47);
-    const plain = stripAnsi(lines[0]);
+    const plain = stripSgr(lines[0]);
     expect(plain).toContain('117k');
     expect(plain).toMatch(/58%(?!%)/);
     expect(lines[0]).not.toMatch(/\x1b\[2m\d+%/);
@@ -118,21 +110,16 @@ describe('rate=strip negative reset deltas', () => {
     if (!demo) {
       throw new Error('demo home not materialized');
     }
-    const payload = JSON.parse(
-      readFileSync(join(PAYLOADS_DIR, 'p1.json'), 'utf8'),
-    ) as Record<string, unknown>;
+    const payload = loadPayload('p1');
     const now = Number(DEFAULT_NOW);
     payload.rate_limits = {
       five_hour: { used_percentage: 41.2, resets_at: now - 5 },
       seven_day: { used_percentage: 41.2, resets_at: now - 3601 },
       spend_limit: { used_percentage: 41.2, resets_at: now - 60 },
     };
-    (payload.workspace as { current_dir: string }).current_dir = demo.repoDir;
-    const line = renderStatusline({
-      home: demo.home,
+    const line = renderAt(demo, payload, {
       layout: '{rate}',
-      now,
-      payload: `${JSON.stringify(payload, null, 2)}\n`,
+      now: DEFAULT_NOW,
       picks: { rate: 'strip' },
     });
     expect(line).toContain('resets -1m55s');
@@ -151,7 +138,7 @@ describe('model suffix rung', () => {
     const lines = linesOf(render('p1', 75, NAME));
     expect(lines).toHaveLength(1);
     expectFits(lines, 75);
-    const plain = stripAnsi(lines[0]);
+    const plain = stripSgr(lines[0]);
     expect(plain).toContain('Opus 4.5[1m] high');
     expect(plain).not.toContain('Opus 4.5 high');
   });

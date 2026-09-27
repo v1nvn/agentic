@@ -7,13 +7,13 @@ import { configure } from '../src/configure.js';
 import { DATA_DIR } from '../src/render/capture.js';
 import { restore } from '../src/restore.js';
 import {
+  backupPath,
   capturePath,
   mainKeyValue,
   panelKeyValue,
   renderMjsPath,
 } from '../src/resolve.js';
 import {
-  backupPath,
   createHomes,
   settingsCommand,
   settingsPath,

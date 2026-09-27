@@ -191,10 +191,10 @@ describe('configure: --theme', () => {
     configure({ home, theme: 'lean' });
 
     expect(settingsCommand(home, 'statusLine')).toBe(
-      'node "$HOME/.claude/plugins/data/statusline-agentic/render.mjs" --theme=lean || true',
+      mainKeyValue('lean', null, []),
     );
     expect(settingsCommand(home, 'subagentStatusLine')).toBe(
-      'node "$HOME/.claude/plugins/data/statusline-agentic/render.mjs" panel --theme=lean || true',
+      panelKeyValue('lean', []),
     );
   });
 

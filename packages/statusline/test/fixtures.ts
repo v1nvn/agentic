@@ -42,10 +42,6 @@ export function settingsCommand(
   return (value as { command: string }).command;
 }
 
-export function backupPath(home: string): string {
-  return join(home, DATA_DIR, 'backup.json');
-}
-
 export function writeCapture(
   home: string,
   surface: 'main' | 'tick',

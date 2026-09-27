@@ -9,7 +9,8 @@ import { materializeDemoRepo } from '../src/demo-repo.js';
 import { ITEMS } from '../src/render/index.js';
 import { renderPreview, type PreviewRender } from '../src/payloads.js';
 import { preview, type PreviewOptions } from '../src/preview.js';
-import { THEMES, backupPath, createHomes, settingsPath, writeSettings } from './fixtures.js';
+import { THEMES, createHomes, settingsPath, writeSettings } from './fixtures.js';
+import { backupPath } from '../src/resolve.js';
 import { DEFAULT_NOW } from './runtime.js';
 
 const ESC = '\x1b';

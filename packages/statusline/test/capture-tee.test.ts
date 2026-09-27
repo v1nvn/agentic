@@ -1,4 +1,3 @@
-import { spawnSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 
 import { afterEach, describe, expect, it } from 'vitest';
@@ -6,7 +5,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { configure } from '../src/configure.js';
 import { capturePath } from '../src/resolve.js';
 import { createHomes, keyArgv, settingsCommand, tmpFilesUnder } from './fixtures.js';
-import { tickStdin } from './runtime.js';
+import { runRenderer, tickStdin } from './runtime.js';
 
 // Both tees live in the entry the keys spawn — these run the real node
 // renderer the way the host shell does. The main surface's tee is pinned in
@@ -18,17 +17,11 @@ afterEach(() => {
 });
 
 function runPanel(home: string, stdin: string): number {
-  const run = spawnSync('node', keyArgv(settingsCommand(home, 'subagentStatusLine'), home), {
-    input: stdin,
-    env: {
-      HOME: home,
-      LC_ALL: 'C',
-      PATH: process.env.PATH ?? '',
-      TZ: 'UTC',
-    },
-    timeout: 30_000,
-  });
-  return run.status ?? -1;
+  return runRenderer(
+    keyArgv(settingsCommand(home, 'subagentStatusLine'), home),
+    home,
+    stdin,
+  ).status;
 }
 
 describe('the capture tee', () => {

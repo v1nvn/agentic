@@ -1,16 +1,21 @@
-import { spawnSync } from 'node:child_process';
-import { readFileSync, rmSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
+import { rmSync } from 'node:fs';
 
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { BUNDLED_RENDERER } from '../src/configure.js';
-import { renderStatusline } from '../src/render/engine.js';
 import { DEFAULT_LAYOUT, ITEMS } from '../src/render/index.js';
 import { renderPanel } from '../src/render/panel.js';
 import { resolvePaint } from '../src/render/theme.js';
 import * as themes from '../src/themes.js';
-import { createDemoHome, DEFAULT_NOW, tickStdin, type DemoHome } from './runtime.js';
+import {
+  createDemoHome,
+  DEFAULT_NOW,
+  loadPayload,
+  renderAt,
+  runRenderer,
+  tickStdin,
+  type DemoHome,
+} from './runtime.js';
 
 // One theme's content pinned verbatim as the independent oracle; the rest
 // are pinned by rule — what each theme IS derives from the registry, so the
@@ -116,12 +121,7 @@ const tickPayload = tickStdin();
 
 beforeAll(() => {
   demo = createDemoHome();
-  const payload = JSON.parse(
-    readFileSync(
-      fileURLToPath(new URL('../assets/payloads/p1.json', import.meta.url)),
-      'utf8',
-    ),
-  ) as Record<string, unknown>;
+  const payload = loadPayload('p1');
   payload.workspace = { current_dir: demo.repoDir };
   mainPayload = `${JSON.stringify(payload, null, 2)}\n`;
 });
@@ -140,11 +140,8 @@ function lineBytes(
   if (demo === undefined) {
     throw new Error('demo home not materialized');
   }
-  return renderStatusline({
-    home: demo.home,
+  return renderAt(demo, loadPayload('p1'), {
     layout,
-    now: Number(DEFAULT_NOW),
-    payload: mainPayload,
     picks,
     ...(columns === undefined ? {} : { columns }),
   });
@@ -249,29 +246,11 @@ describe('resolvePaint: precedence', () => {
 });
 
 describe('the entry resolves --theme at paint', () => {
-  function runRenderer(
-    args: readonly string[],
-    stdin: string,
-  ): { readonly status: number; readonly stderr: string; readonly stdout: string } {
-    const run = spawnSync('node', [BUNDLED_RENDERER, ...args], {
-      input: stdin,
-      env: {
-        HOME: demo?.home ?? '',
-        LC_ALL: 'C',
-        PATH: process.env.PATH ?? '',
-        TZ: 'UTC',
-      },
-      timeout: 30_000,
-    });
-    return {
-      status: run.status ?? -1,
-      stderr: (run.stderr ?? Buffer.alloc(0)).toString('utf8'),
-      stdout: (run.stdout ?? Buffer.alloc(0)).toString('utf8'),
-    };
-  }
+  const runPaint = (args: readonly string[], stdin: string) =>
+    runRenderer([BUNDLED_RENDERER, ...args], demo?.home ?? '', stdin);
 
   it('a hand-written key spelling --theme=lean paints the lean line', () => {
-    const painted = runRenderer(
+    const painted = runPaint(
       ['--theme=lean', `--now=${DEFAULT_NOW}`],
       mainPayload,
     );
@@ -283,7 +262,7 @@ describe('the entry resolves --theme at paint', () => {
   });
 
   it('the panel key spelling --theme=lean paints the lean panel', () => {
-    const painted = runRenderer(
+    const painted = runPaint(
       ['panel', '--theme=lean', `--now=${DEFAULT_NOW}`],
       tickPayload,
     );
@@ -293,7 +272,7 @@ describe('the entry resolves --theme at paint', () => {
   });
 
   it('an unknown theme on the key paints the default line', () => {
-    const painted = runRenderer(
+    const painted = runPaint(
       [`--theme=wat`, `--now=${DEFAULT_NOW}`],
       mainPayload,
     );

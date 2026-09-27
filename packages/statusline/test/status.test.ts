@@ -9,13 +9,13 @@ import {
   type ConfigureOptions,
 } from '../src/configure.js';
 import {
+  backupPath,
   mainKeyValue,
   panelKeyValue,
   renderMjsPath,
 } from '../src/resolve.js';
 import { nodeOnPath, rendererHash, status } from '../src/status.js';
 import {
-  backupPath,
   createHomes,
   writeCapture,
   writeSettings,

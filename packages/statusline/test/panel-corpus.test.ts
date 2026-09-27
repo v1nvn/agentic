@@ -1,6 +1,4 @@
-import { readdirSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { readdirSync } from 'node:fs';
 
 import { describe, expect, it } from 'vitest';
 
@@ -20,10 +18,7 @@ import { describe, expect, it } from 'vitest';
 // unlike the engine corpus there are no oracle cases — each panel golden
 // is exact stdout.
 import { renderPanel } from '../src/render/panel.js';
-import { DEFAULT_NOW, golden } from './runtime.js';
-
-const TICKS_DIR = fileURLToPath(new URL('../assets/ticks', import.meta.url));
-const GOLDENS_DIR = fileURLToPath(new URL('./goldens', import.meta.url));
+import { DEFAULT_NOW, GOLDENS_DIR, golden, loadTick } from './runtime.js';
 
 type Loose = Record<string, unknown>;
 
@@ -33,12 +28,6 @@ export interface PanelCase {
   readonly noColor?: boolean;
   readonly picks?: Readonly<Record<string, string>>;
   readonly mutate?: (tick: Loose) => void;
-}
-
-function loadTick(): Loose {
-  return JSON.parse(
-    readFileSync(join(TICKS_DIR, 'multi.json'), 'utf8'),
-  ) as Loose;
 }
 
 function row(tick: Loose, id: string): Loose {
