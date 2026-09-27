@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
-// The door unit r1 must implement in src/render/:
+// The door implemented in src/render/:
 //   renderStatusline({ payload, home, now, timeZone, columns?, layout?,
 //                      picks?, noColor? }): string
 //   ITEMS: readonly { item, default, alternatives }[] — the COMPS registry
@@ -14,8 +14,8 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 // item -> alternative (STATUSLINE_LAB_<ITEM>), layout overrides the default,
 // columns is COLUMNS (omitted -> the engine default), noColor is NO_COLOR.
 // The return is the emitted stdout: lines joined by '\n' with a trailing
-// '\n'. The panel goldens (multi-*, subagent.sh) are r2's engine, not this
-// door.
+// '\n'. The panel goldens (multi-*, subagent.sh) are the panel engine's
+// corpus, not this door.
 import {
   DEFAULT_LAYOUT,
   ITEMS,
@@ -265,6 +265,15 @@ const CORPUS: readonly CorpusCase[] = [
       picks: { [item]: alt },
     }),
   ),
+  // bar=gauge above 100%: the bar geometry clamps, the percent label does not.
+  {
+    name: 'seg-p1-bar-gauge150',
+    payload: 'p1',
+    oracle: true,
+    layout: '{bar}',
+    picks: { bar: 'gauge' },
+    mutate: payload => setPct(payload, 150),
+  },
   { name: 'seg-p4-state-pills', payload: 'p4', oracle: true, layout: '{state}', picks: { state: 'pills' } },
   { name: 'seg-p4-pr-badge', payload: 'p4', oracle: true, layout: '{pr}', picks: { pr: 'badge' } },
   { name: 'seg-p2-state-pills', payload: 'p2', oracle: true, layout: '{state}', picks: { state: 'pills' } },

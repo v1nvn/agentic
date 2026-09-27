@@ -312,14 +312,15 @@ function barFlat(input: SegmentInput): string {
 }
 
 function barGauge({ row }: SegmentInput): string {
-  const pct = Math.max(0, Math.min(100, row.pct));
-  const full = trunc((pct * 26) / 100);
-  const idx = trunc((((pct * 26) % 100) * 8) / 100);
+  const pct = row.pct;
+  const p = Math.max(0, Math.min(100, pct));
+  const full = trunc((p * 26) / 100);
+  const idx = trunc((((p * 26) % 100) * 8) / 100);
   const lead =
-    pct >= 50
-      ? `\x1b[38;2;242;${trunc((4845 * (15000 + 1683 * (100 - pct))) / 2000000)};36m`
-      : `\x1b[38;2;${trunc((4845 * (185000 - 1683 * (100 - pct))) / 2000000)};242;36m`;
-  const moon = ['○', '◔', '◑', '◕', '●'][Math.min(trunc(pct / 20), 4)];
+    p >= 50
+      ? `\x1b[38;2;242;${trunc((4845 * (15000 + 1683 * (100 - p))) / 2000000)};36m`
+      : `\x1b[38;2;${trunc((4845 * (185000 - 1683 * (100 - p))) / 2000000)};242;36m`;
+  const moon = ['○', '◔', '◑', '◕', '●'][Math.min(trunc(p / 20), 4)];
   let bar = '';
   for (let i = 0; i < 26; i++) {
     let col: string;
