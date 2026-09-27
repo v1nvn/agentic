@@ -77,7 +77,7 @@ Node ≥ 22. One workspace dep: `@v1nvn/agentic-core` (usage/exit helpers).
 | `src/preview.ts`                       | the preview command — a candidate rendered, nothing written                                                  |
 | `src/wizard.ts` · `src/wizard-tui.ts`  | the terminal wizard — theme pass, then refinement of the pick's overrides                                    |
 | `src/payloads.ts` · `src/demo-repo.ts` | preview plumbing — fixtures anchored to the moment, in-process renders; demo git repo                        |
-| `src/render/entry.ts`                  | the `render.mjs` entry the keys spawn — argv to line or panel                                                |
+| `src/render/entry.ts`                  | the `render.mjs` entry the keys spawn — argv to line or panel, both capture tees                             |
 | `src/render/argv.ts`                   | the renderer's argv grammar — `node:util` parseArgs, never commander                                         |
 | `src/render/theme.ts`                  | `resolvePaint` — the one theme resolver, shared by paint and display                                         |
 | `src/render/engine.ts`                 | the line engine — compose, `vlen`, the fit ladder                                                            |
@@ -103,7 +103,7 @@ Node ≥ 22. One workspace dep: `@v1nvn/agentic-core` (usage/exit helpers).
   positional. Key spellings are pinned byte-exact by tests.
 - Decisions ride argv: `--theme` first, then one `--<item>=<alt>` per pick
   that differs from the theme's own, `--layout` only when passed. Ambient
-  state stays env — `NO_COLOR`, `COLUMNS`, `TZ`, `HOME`.
+  state stays env — `NO_COLOR`, `COLUMNS`, `HOME`.
 - The renderer resolves the theme at paint: item flags beat it, `--layout`
   beats its layout — one resolver, no second path. `catalog` stars through
   it, `preview` and the wizard render through it in-process, and `status`
