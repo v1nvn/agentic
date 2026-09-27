@@ -111,6 +111,38 @@ describe('percent rung fidelity', () => {
   });
 });
 
+// A stale capture renders resets_at < NOW: the port floors the negative
+// delta, bash $(( )) division truncates toward zero. -60 agrees by accident
+// (exact multiple of 60).
+describe('rate=strip negative reset deltas', () => {
+  it('floors negative reset deltas like the oracle', () => {
+    if (!demo) {
+      throw new Error('demo home not materialized');
+    }
+    const payload = JSON.parse(
+      readFileSync(join(PAYLOADS_DIR, 'p1.json'), 'utf8'),
+    ) as Record<string, unknown>;
+    const now = Number(DEFAULT_NOW);
+    payload.rate_limits = {
+      five_hour: { used_percentage: 41.2, resets_at: now - 5 },
+      seven_day: { used_percentage: 41.2, resets_at: now - 3601 },
+      spend_limit: { used_percentage: 41.2, resets_at: now - 60 },
+    };
+    (payload.workspace as { current_dir: string }).current_dir = demo.repoDir;
+    const line = renderStatusline({
+      home: demo.home,
+      layout: '{rate}',
+      now,
+      payload: `${JSON.stringify(payload, null, 2)}\n`,
+      picks: { rate: 'strip' },
+      timeZone: 'UTC',
+    });
+    expect(line).toContain('resets -1m55s');
+    expect(line).toContain('resets -61m59s');
+    expect(line).toContain('resets -1m00s');
+  });
+});
+
 // live MODELD=1 strips a trailing "[...]" from the model display name; the
 // corpus pins the strip at 58 and 36 — 75 pins the bracket surviving below
 // the model rung.
