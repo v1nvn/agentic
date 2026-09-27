@@ -1,10 +1,9 @@
 import type { PreviewRender, PreviewSurfaces } from './payloads.js';
-import type { RuntimeItem } from './resolve.js';
 
 import { VERSION } from './cli.js';
 import { configure, type ConfigureOptions, layoutItems } from './configure.js';
 import { previewSources } from './payloads.js';
-import { resolveRuntime } from './resolve.js';
+import { ITEMS, type ItemSpec } from './render/items.js';
 import { type ThemeName, themesFor } from './themes.js';
 
 export interface WizardDeps {
@@ -45,11 +44,10 @@ export async function createWizard(
   options: WizardOptions,
   deps: WizardDeps,
 ): Promise<WizardOutcome> {
-  const runtime = resolveRuntime({ home: options.home });
-  const themes = themesFor(runtime);
+  const themes = themesFor();
   const names = Object.keys(themes) as ThemeName[];
-  const byItem = new Map<string, RuntimeItem>(
-    runtime.items.map(item => [item.item, item] as const),
+  const byItem = new Map<string, ItemSpec>(
+    ITEMS.map(item => [item.item, item] as const),
   );
   const sources = previewSources(options.home, Number(options.now));
   const tickBase = JSON.parse(sources.tick) as Record<string, unknown>;
@@ -74,7 +72,6 @@ export async function createWizard(
       layout,
       main: sources.main,
       now: options.now,
-      runtime,
       tick: `${JSON.stringify(
         { ...tickBase, columns: WIDTHS[widthAt] },
         null,
@@ -90,7 +87,7 @@ export async function createWizard(
     draftLayout = theme.layout;
     offered = layoutItems(
       theme.layout,
-      runtime.items.map(item => item.item),
+      ITEMS.map(item => item.item),
     ).flatMap(item => {
       const entry = byItem.get(item);
       return entry === undefined

@@ -4,8 +4,9 @@ export interface ItemSpec {
   readonly item: string;
 }
 
-// The registry the bash runtime scraped from component headers, plus the three
-// inline shims the headers omit (branch=none, bar=flat6, bar=flat4).
+// The one item registry, shared by the renderer and the CLI: 16 items in
+// paint order, including the three rungs no component header ever declared
+// (branch=none, bar=flat6, bar=flat4).
 export const ITEMS: readonly ItemSpec[] = [
   {
     alternatives: ['plain', 'block', 'pill', 'zen'],

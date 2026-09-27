@@ -1,5 +1,6 @@
 import { liveTheme } from './live-theme.js';
-import { readKeyConfig, resolveRuntime } from './resolve.js';
+import { ITEMS } from './render/index.js';
+import { readKeyConfig } from './resolve.js';
 import { themesFor } from './themes.js';
 
 export interface CatalogOptions {
@@ -12,17 +13,16 @@ export function catalog(options: CatalogOptions): string {
   if (options.themes === true && options.items !== undefined) {
     throw new Error('--themes cannot combine with item flags');
   }
-  const runtime = resolveRuntime({ home: options.home });
   const key = readKeyConfig(options.home);
-  const live = liveTheme(key, runtime);
-  const block = Object.entries(themesFor(runtime)).map(
+  const live = liveTheme(key);
+  const block = Object.entries(themesFor()).map(
     ([name, theme]) => `${name}${live === name ? '*' : ''}: ${theme.summary}`,
   );
   if (options.themes === true) {
     return block.join('\n');
   }
-  const byItem = new Map(runtime.items.map(item => [item.item, item]));
-  const wanted = options.items ?? runtime.items.map(item => item.item);
+  const byItem = new Map(ITEMS.map(item => [item.item, item]));
+  const wanted = options.items ?? ITEMS.map(item => item.item);
   const itemLines = wanted.map(item => {
     const entry = byItem.get(item);
     if (entry === undefined) {

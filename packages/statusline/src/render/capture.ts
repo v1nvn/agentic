@@ -1,9 +1,14 @@
 import { mkdirSync, renameSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 
-const DATA_DIR = join('.claude', 'plugins', 'data', 'statusline-agentic');
+export const DATA_DIR = join(
+  '.claude',
+  'plugins',
+  'data',
+  'statusline-agentic',
+);
 
-// lib.sh capture: the raw stdin bytes tee to the data dir, written to a temp
+// The capture tee: the raw stdin bytes tee to the data dir, written to a temp
 // name and renamed so a reader never sees a half-written payload.
 export function capturePayload(
   home: string,

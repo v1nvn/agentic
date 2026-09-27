@@ -9,18 +9,17 @@ import {
   parseClusters,
   parseSettings,
   readOrNull,
-  renderMjsPath,
   SETTINGS_KEYS,
   type SettingsBackup,
   type SettingsKey,
 } from './configure.js';
 import { liveTheme } from './live-theme.js';
+import { DATA_DIR } from './render/capture.js';
+import { ITEMS } from './render/index.js';
 import {
   capturePath,
-  DATA_REL,
   readKeyConfig,
-  type ResolvedRuntime,
-  resolveRuntime,
+  renderMjsPath,
   type ScriptConfig,
 } from './resolve.js';
 import { readBackup } from './restore.js';
@@ -34,8 +33,6 @@ export interface StatusResult {
   readonly healthy: boolean;
   readonly rows: readonly string[];
 }
-
-const INSTALL_FIX = 'claude plugin install statusline@agentic';
 
 type KeyState =
   | { readonly command: null | string; readonly kind: 'foreign' }
@@ -98,14 +95,11 @@ function findingText(finding: DriftFinding): string {
     : `unknown variant '${finding.alt}' for '${finding.item}'`;
 }
 
-function driftFindings(
-  config: ScriptConfig,
-  runtime: ResolvedRuntime,
-): readonly DriftFinding[] {
+function driftFindings(config: ScriptConfig): readonly DriftFinding[] {
   if (config.layout === null) {
     return [];
   }
-  const byItem = new Map(runtime.items.map(entry => [entry.item, entry]));
+  const byItem = new Map(ITEMS.map(entry => [entry.item, entry]));
   const findings: DriftFinding[] = [];
   for (const item of layoutItemsOf(config.layout)) {
     const entry = byItem.get(item);
@@ -184,7 +178,7 @@ function backupRow(home: string): string {
   try {
     backup = readBackup(home);
   } catch {
-    return `backup: unreadable — fix: delete ~/${DATA_REL}/backup.json`;
+    return `backup: unreadable — fix: delete ~/${DATA_DIR}/backup.json`;
   }
   if (backup === null) {
     return 'backup: absent';
@@ -236,39 +230,24 @@ function settingsMembers(home: string): Record<string, unknown> {
   return raw === null ? {} : parseSettings(file, raw);
 }
 
-function resolveOrNull(home: string): null | ResolvedRuntime {
-  try {
-    return resolveRuntime({ home });
-  } catch {
-    return null;
-  }
-}
-
 export function status(options: StatusOptions): StatusResult {
-  const runtime = resolveOrNull(options.home);
   const members = settingsMembers(options.home);
   const main = keyState('statusLine', members.statusLine);
   const subagent = keyState('subagentStatusLine', members.subagentStatusLine);
   const config = readKeyConfig(options.home);
-  const theme = runtime === null ? undefined : liveTheme(config, runtime);
-  const findings =
-    runtime === null || main.kind !== 'ours'
-      ? []
-      : driftFindings(config, runtime);
+  const theme = liveTheme(config);
+  const findings = main.kind === 'ours' ? driftFindings(config) : [];
   const node = nodeOnPath(options.path ?? process.env.PATH ?? '');
   const renderer = rendererState(options.home);
 
   const rows = [
-    // The bash runtime dies at r4; until then a missing cache is a broken
-    // paint and keeps its row — only its version display is gone.
-    ...(runtime === null ? [`runtime: missing — fix: ${INSTALL_FIX}`] : []),
     node === null
       ? 'node: missing — fix: install node ≥ 18 from nodejs.org, then restart Claude Code'
       : `node: on PATH (${node})`,
     rendererRow(renderer),
     keyRow('statusLine', main, configDetail(config)),
     keyRow('subagentStatusLine', subagent),
-    ...(runtime !== null && main.kind === 'ours'
+    ...(main.kind === 'ours'
       ? [
           configRow(findings),
           ...(theme === undefined ? [] : [`theme: ${theme}`]),
@@ -278,7 +257,6 @@ export function status(options: StatusOptions): StatusResult {
     capturesRow(options.home),
   ];
   const healthy =
-    runtime !== null &&
     node !== null &&
     renderer.kind === 'current' &&
     main.kind === 'ours' &&

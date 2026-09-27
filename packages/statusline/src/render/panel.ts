@@ -4,7 +4,7 @@ import { stripSgr } from './engine.js';
 import { ITEMS } from './items.js';
 import { styleSeparators } from './segments.js';
 
-// The agent panel, ported exact from plugins/statusline/runtime/subagent.sh —
+// The agent panel, ported exact from the bash subagent renderer it replaced —
 // a second renderer by ruling: its vlen counts codepoints (jq `length`), not
 // the main engine's bytes, and its fit ladder is its own. Never unify them.
 
@@ -261,7 +261,7 @@ function renderRow(
   return s;
 }
 
-// subagent.sh's vlen: codepoints of the SGR-stripped row.
+// The panel's own vlen: codepoints of the SGR-stripped row.
 function vlen(text: string): number {
   return Array.from(stripSgr(text)).length;
 }

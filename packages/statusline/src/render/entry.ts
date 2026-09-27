@@ -21,8 +21,8 @@ function readStdin(): Promise<string> {
   });
 }
 
-// statusline.sh reads COLUMNS through the bash string rule (unset, empty, or
-// non-digit -> the engine's 200); the engine's own floor-20 path stays as is.
+// The bash string rule on COLUMNS (unset, empty, or non-digit -> the engine's
+// 200) survives the port: Claude Code exports width as a string env var.
 function columnsFromEnv(text: string | undefined): number | undefined {
   if (text === undefined || text === '' || !/^\d+$/.test(text)) {
     return undefined;

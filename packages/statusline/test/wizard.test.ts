@@ -11,7 +11,9 @@ import {
   type PreviewRender,
   type PreviewSurfaces,
 } from '../src/payloads.js';
-import { resolveRuntime } from '../src/resolve.js';
+import { DATA_DIR } from '../src/render/capture.js';
+import { ITEMS } from '../src/render/index.js';
+import { panelKeyValue } from '../src/resolve.js';
 import { type ThemeName } from '../src/themes.js';
 import {
   createWizard,
@@ -21,13 +23,10 @@ import {
   type WizardOptions,
 } from '../src/wizard.js';
 import {
-  DATA_REL,
   THEMES,
   createHomes,
-  installRuntime,
   settingsCommand,
   settingsPath,
-  subagentKeyValue,
   writeSettings,
 } from './fixtures.js';
 import { DEFAULT_NOW } from './runtime.js';
@@ -98,15 +97,9 @@ afterEach(() => {
   homes.dispose();
 });
 
-function newInstalledHome(): string {
-  const home = homes.newHome();
-  installRuntime(home);
-  return home;
-}
-
 async function runWizard(
   keys: readonly string[],
-  home = newInstalledHome(),
+  home = homes.newHome(),
   options: Partial<WizardOptions> = {},
 ): Promise<{ home: string; outcome: WizardOutcome; recorded: Recorded }> {
   const { deps, recorded } = fakeDeps(keys);
@@ -122,7 +115,7 @@ function seedCapture(
   surface: 'main' | 'tick',
   body: string,
 ): void {
-  const file = join(home, DATA_REL, 'captures', `${surface}.json`);
+  const file = join(home, DATA_DIR, 'captures', `${surface}.json`);
   mkdirSync(dirname(file), { recursive: true });
   writeFileSync(file, body);
 }
@@ -234,7 +227,7 @@ describe('wizard: pass one — the theme pass', () => {
 
 describe('wizard: pass two — refinement seeded from the pick', () => {
   it('enter on a theme picks it — the draft is the theme itself, q cancels with nothing written', async () => {
-    const home = newInstalledHome();
+    const home = homes.newHome();
     const { outcome, recorded } = await runWizard(['\r', 'q'], home);
 
     expect(outcome).toBe('cancelled');
@@ -268,8 +261,8 @@ describe('wizard: pass two — refinement seeded from the pick', () => {
   });
 
   it('j/k and the arrows move item focus over the picked theme layout items', async () => {
-    const home = newInstalledHome();
-    const ids = resolveRuntime({ home }).items.map(item => item.item);
+    const home = homes.newHome();
+    const ids = ITEMS.map(({ item }) => item);
     const { recorded } = await runWizard(['\r', 'j', '\x1b[B', 'k', 'q'], home);
 
     expect([...new Set(focusedItems(recorded))]).toEqual(
@@ -279,10 +272,8 @@ describe('wizard: pass two — refinement seeded from the pick', () => {
   });
 
   it('h/l cycle the focused variant; s none only where none is offered', async () => {
-    const home = newInstalledHome();
-    const model = resolveRuntime({ home }).items.find(
-      item => item.item === 'model',
-    );
+    const home = homes.newHome();
+    const model = ITEMS.find(item => item.item === 'model');
     if (model === undefined) {
       throw new Error('registry declares no model item');
     }
@@ -302,10 +293,10 @@ describe('wizard: pass two — refinement seeded from the pick', () => {
       seeded,
     );
 
-    const leanHome = newInstalledHome();
+    const leanHome = homes.newHome();
     const items = layoutItems(
       THEMES.lean.layout,
-      resolveRuntime({ home: leanHome }).items.map(item => item.item),
+      ITEMS.map(({ item }) => item),
     );
     const hidden = await runWizard(
       ['j', 'j', '\r', ...Array(items.indexOf('cost')).fill('j'), 's', 'q'],
@@ -330,8 +321,8 @@ describe('wizard: pass two — refinement seeded from the pick', () => {
 
 describe('wizard: a theme pick saved', () => {
   it('enter on lean, then save — the settings text is byte-equal to what configure --theme lean writes', async () => {
-    const wizardHome = newInstalledHome();
-    const themedHome = newInstalledHome();
+    const wizardHome = homes.newHome();
+    const themedHome = homes.newHome();
     configure({ home: themedHome, theme: 'lean' });
 
     const { outcome } = await runWizard(['j', 'j', '\r', '\r'], wizardHome);
@@ -341,13 +332,13 @@ describe('wizard: a theme pick saved', () => {
       readFileSync(settingsPath(themedHome), 'utf8'),
     );
     expect(settingsCommand(wizardHome, 'subagentStatusLine')).toBe(
-      subagentKeyValue,
+      panelKeyValue(['--style=dots']),
     );
   });
 
   it('a quiet pick seeds the layout too — byte-equal to configure --theme quiet', async () => {
-    const wizardHome = newInstalledHome();
-    const themedHome = newInstalledHome();
+    const wizardHome = homes.newHome();
+    const themedHome = homes.newHome();
     configure({ home: themedHome, theme: 'quiet' });
 
     const { outcome } = await runWizard(['\r', '\r'], wizardHome);
@@ -359,7 +350,7 @@ describe('wizard: a theme pick saved', () => {
   });
 
   it('a foreign settings key fails the save — a failure outcome, nothing written', async () => {
-    const home = newInstalledHome();
+    const home = homes.newHome();
     const seed = `${JSON.stringify(
       { statusLine: { command: './old-main.sh', type: 'command' } },
       null,
@@ -382,8 +373,8 @@ describe('wizard: a theme pick saved', () => {
       null,
       2,
     )}\n`;
-    const wizardHome = newInstalledHome();
-    const flagged = newInstalledHome();
+    const wizardHome = homes.newHome();
+    const flagged = homes.newHome();
     writeSettings(wizardHome, seed);
     writeSettings(flagged, seed);
     configure({ home: flagged, force: true, theme: 'quiet' });
@@ -402,16 +393,16 @@ describe('wizard: a theme pick saved', () => {
 describe('wizard: cancel', () => {
   it('q and Ctrl-C cancel from pass one — nothing written', async () => {
     for (const keys of [['q'], ['\x03']]) {
-      const home = newInstalledHome();
+      const home = homes.newHome();
       const { outcome } = await runWizard(keys, home);
       expect(outcome).toBe('cancelled');
       expect(existsSync(settingsPath(home))).toBe(false);
-      expect(existsSync(join(home, DATA_REL))).toBe(false);
+      expect(existsSync(join(home, DATA_DIR))).toBe(false);
     }
   });
 
   it('a closed key stream cancels — the adapter owning the TTY died', async () => {
-    const home = newInstalledHome();
+    const home = homes.newHome();
     const { outcome } = await runWizard([], home);
 
     expect(outcome).toBe('cancelled');
@@ -419,12 +410,12 @@ describe('wizard: cancel', () => {
   });
 
   it('a picked-and-edited draft never touches disk when cancelled', async () => {
-    const home = newInstalledHome();
+    const home = homes.newHome();
     const { outcome } = await runWizard(['j', 'j', '\r', 'l', 'q'], home);
 
     expect(outcome).toBe('cancelled');
     expect(existsSync(settingsPath(home))).toBe(false);
-    expect(existsSync(join(home, DATA_REL))).toBe(false);
+    expect(existsSync(join(home, DATA_DIR))).toBe(false);
   });
 });
 
@@ -455,7 +446,7 @@ describe('wizard: sources', () => {
   });
 
   it('renders seeded captures verbatim, the wizard width over the captured tick columns', async () => {
-    const home = newInstalledHome();
+    const home = homes.newHome();
     const main = `${JSON.stringify(
       { model: { display_name: 'Seeded' } },
       null,
@@ -491,7 +482,7 @@ describe('wizard: render honesty', () => {
   });
 
   it('the width the bags carry is the width the renderer renders at', async () => {
-    const home = newInstalledHome();
+    const home = homes.newHome();
     const sources = previewSources(home, Number(DEFAULT_NOW));
     try {
       const bag: PreviewRender = {
@@ -499,8 +490,7 @@ describe('wizard: render honesty', () => {
         layout: THEMES.lean.layout,
         main: sources.main,
         now: DEFAULT_NOW,
-        runtime: resolveRuntime({ home }),
-        tick: sources.tick,
+          tick: sources.tick,
         values: THEMES.lean.variants,
       };
 

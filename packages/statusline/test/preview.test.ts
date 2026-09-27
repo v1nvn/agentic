@@ -5,17 +5,10 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { parseArgs } from '../src/cli.js';
 import { configure } from '../src/configure.js';
 import { materializeDemoRepo } from '../src/demo-repo.js';
+import { ITEMS } from '../src/render/index.js';
 import { renderPreview, type PreviewRender } from '../src/payloads.js';
 import { preview, type PreviewOptions } from '../src/preview.js';
-import { resolveRuntime } from '../src/resolve.js';
-import {
-  THEMES,
-  backupPath,
-  createHomes,
-  installRuntime,
-  settingsPath,
-  writeSettings,
-} from './fixtures.js';
+import { THEMES, backupPath, createHomes, settingsPath, writeSettings } from './fixtures.js';
 import { DEFAULT_NOW } from './runtime.js';
 
 const ESC = '\x1b';
@@ -118,12 +111,6 @@ afterEach(() => {
   homes.dispose();
 });
 
-function installedHome(): string {
-  const home = homes.newHome();
-  installRuntime(home);
-  return home;
-}
-
 function assertNothingWritten(home: string): void {
   expect(existsSync(settingsPath(home)), 'settings.json').toBe(false);
   expect(existsSync(backupPath(home)), 'backup').toBe(false);
@@ -210,10 +197,7 @@ describe('preview: parsing', () => {
   });
 
   it('offers a valued flag for every registry item', () => {
-    const home = installedHome();
-    for (const item of resolveRuntime({ home }).items.map(
-      entry => entry.item,
-    )) {
+    for (const { item } of ITEMS) {
       expect(parseArgs(['preview', `--${item}`, 'zzz']), item).toMatchObject({
         command: 'preview',
         variants: { [item]: 'zzz' },
@@ -222,7 +206,7 @@ describe('preview: parsing', () => {
   });
 
   it("a bare preview rides the engine's no-layout refusal", () => {
-    const home = installedHome();
+    const home = homes.newHome();
     const message = messageOf(() => preview({ home, now: DEFAULT_NOW }));
     expect(message).toBe('no layout — pass --layout <spec> or --theme <name>');
   });
@@ -230,13 +214,12 @@ describe('preview: parsing', () => {
 
 describe('renderPreview: both surfaces from one resolution', () => {
   it('renders the status line and the panel row from one values bag', () => {
-    const home = installedHome();
+    const home = homes.newHome();
     const { line, panel } = renderPreview({
       home,
       layout: THEMES.lean.layout,
       main: samplePayload(materializeDemoRepo(home)),
       now: DEFAULT_NOW,
-      runtime: resolveRuntime({ home }),
       tick: sampleTick(),
       values: THEMES.lean.variants,
     });
@@ -257,13 +240,12 @@ describe('renderPreview: both surfaces from one resolution', () => {
   });
 
   it('the resolution style pick reaches the panel row too', () => {
-    const home = installedHome();
+    const home = homes.newHome();
     const lean = {
       home,
       layout: THEMES.lean.layout,
       main: samplePayload(materializeDemoRepo(home)),
       now: DEFAULT_NOW,
-      runtime: resolveRuntime({ home }),
       tick: sampleTick(),
       values: THEMES.lean.variants,
     } satisfies PreviewRender;
@@ -279,13 +261,12 @@ describe('renderPreview: both surfaces from one resolution', () => {
   });
 
   it('an item-flag swap over the theme restyles the line', () => {
-    const home = installedHome();
+    const home = homes.newHome();
     const lean = {
       home,
       layout: THEMES.lean.layout,
       main: samplePayload(materializeDemoRepo(home)),
       now: DEFAULT_NOW,
-      runtime: resolveRuntime({ home }),
       tick: sampleTick(),
       values: THEMES.lean.variants,
     } satisfies PreviewRender;
@@ -308,14 +289,13 @@ describe('renderPreview: plain', () => {
       layout: THEMES.lean.layout,
       main: samplePayload(materializeDemoRepo(home)),
       now: DEFAULT_NOW,
-      runtime: resolveRuntime({ home }),
       tick: sampleTick(),
       values: THEMES.lean.variants,
     };
   }
 
   it('plain strips every ESC byte and keeps every glyph', () => {
-    const home = installedHome();
+    const home = homes.newHome();
     const { line, panel } = renderPreview({ ...leanSpec(home), plain: true });
 
     expect(line).not.toContain(ESC);
@@ -326,7 +306,7 @@ describe('renderPreview: plain', () => {
   });
 
   it('renders colored when plain is unset and color is allowed', () => {
-    const home = installedHome();
+    const home = homes.newHome();
     withEnv('NO_COLOR', undefined, () => {
       const { line, panel } = renderPreview(leanSpec(home));
       expect(line).toContain(`${ESC}[36m${SAMPLE_MODEL}`);
@@ -335,7 +315,7 @@ describe('renderPreview: plain', () => {
   });
 
   it('NO_COLOR in the environment renders plain', () => {
-    const home = installedHome();
+    const home = homes.newHome();
     withEnv('NO_COLOR', '1', () => {
       const { line, panel } = renderPreview(leanSpec(home));
       expect(line).not.toContain(ESC);
@@ -346,7 +326,7 @@ describe('renderPreview: plain', () => {
 
 describe('preview: theme alone', () => {
   it('renders both surfaces from one resolution and writes nothing', () => {
-    const home = installedHome();
+    const home = homes.newHome();
     const text = preview({ home, theme: 'lean', now: DEFAULT_NOW });
 
     const lines = text.split('\n');
@@ -365,7 +345,7 @@ describe('preview: theme alone', () => {
   });
 
   it('leaves an existing settings file byte-unchanged, no backup', () => {
-    const home = installedHome();
+    const home = homes.newHome();
     const seed = `${JSON.stringify(
       {
         model: 'opus-4',
@@ -387,7 +367,7 @@ describe('preview: the same resolution inputs configure takes', () => {
   type Resolution = Pick<PreviewOptions, 'layout' | 'theme' | 'variants'>;
 
   it('an item flag swaps exactly that pick over the theme', () => {
-    const home = installedHome();
+    const home = homes.newHome();
     const text = preview({
       home,
       theme: 'lean',
@@ -401,7 +381,7 @@ describe('preview: the same resolution inputs configure takes', () => {
   });
 
   it('layout and item flags render with no theme named', () => {
-    const home = installedHome();
+    const home = homes.newHome();
     const text = preview({
       home,
       layout: '{model bar}',
@@ -428,8 +408,8 @@ describe('preview: the same resolution inputs configure takes', () => {
   it.each(refusals)(
     "preview refuses %s with configure's exact message",
     (_name, options) => {
-      const configured = installedHome();
-      const previewed = installedHome();
+      const configured = homes.newHome();
+      const previewed = homes.newHome();
 
       const byConfigure = messageOf(() =>
         configure({ home: configured, ...options }),
@@ -446,7 +426,7 @@ describe('preview: the same resolution inputs configure takes', () => {
 
 describe('preview: plain and the terminal', () => {
   it('renders plain by default when stdout is piped', () => {
-    const home = installedHome();
+    const home = homes.newHome();
     const text = preview({ home, theme: 'lean', now: DEFAULT_NOW });
 
     expect(process.stdout.isTTY).toBeFalsy();
@@ -457,7 +437,7 @@ describe('preview: plain and the terminal', () => {
   });
 
   it('renders colored by default on a TTY', () => {
-    const home = installedHome();
+    const home = homes.newHome();
     withEnv('NO_COLOR', undefined, () => {
       withTtyStdout(() => {
         const text = preview({ home, theme: 'lean', now: DEFAULT_NOW });
@@ -467,7 +447,7 @@ describe('preview: plain and the terminal', () => {
   });
 
   it('plain forces zero ESC bytes even on a TTY', () => {
-    const home = installedHome();
+    const home = homes.newHome();
     withTtyStdout(() => {
       const text = preview({
         home,
@@ -481,7 +461,7 @@ describe('preview: plain and the terminal', () => {
   });
 
   it('NO_COLOR forces plain even on a TTY', () => {
-    const home = installedHome();
+    const home = homes.newHome();
     withEnv('NO_COLOR', '1', () => {
       withTtyStdout(() => {
         const text = preview({ home, theme: 'lean', now: DEFAULT_NOW });

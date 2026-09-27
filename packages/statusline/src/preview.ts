@@ -1,6 +1,5 @@
 import { resolveSelection } from './configure.js';
 import { previewSources, renderPreview } from './payloads.js';
-import { resolveRuntime } from './resolve.js';
 
 export interface PreviewOptions {
   readonly home: string;
@@ -12,8 +11,7 @@ export interface PreviewOptions {
 }
 
 export function preview(options: PreviewOptions): string {
-  const runtime = resolveRuntime({ home: options.home });
-  const { layout, values } = resolveSelection(runtime, options);
+  const { layout, values } = resolveSelection(options);
   const sources = previewSources(options.home, Number(options.now));
   try {
     const { line, panel } = renderPreview({
@@ -22,7 +20,6 @@ export function preview(options: PreviewOptions): string {
       main: sources.main,
       now: options.now,
       plain: options.plain ?? !process.stdout.isTTY,
-      runtime,
       tick: sources.tick,
       values,
     });

@@ -12,14 +12,14 @@ import {
   isOurMember,
   readOrNull,
   removeMembers,
-  renderMjsPath,
   repointRootMembers,
   rootMemberValueSpan,
   SETTINGS_KEYS,
   type SettingsBackup,
   type SettingsKey,
 } from './configure.js';
-import { backupPath, DATA_REL } from './resolve.js';
+import { DATA_DIR } from './render/capture.js';
+import { backupPath, renderMjsPath } from './resolve.js';
 
 export interface RestoreOptions {
   readonly dryRun?: boolean;
@@ -157,7 +157,7 @@ export function restore(options: RestoreOptions): RestoreResult {
     }
   }
 
-  const dataDir = join(options.home, DATA_REL);
+  const dataDir = join(options.home, DATA_DIR);
   const capturesDir = join(dataDir, 'captures');
   const backupFile = backupPath(options.home);
   const rendererFile = renderMjsPath(options.home);
