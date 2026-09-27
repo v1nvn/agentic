@@ -13,7 +13,7 @@ import {
 } from '../src/payloads.js';
 import { DATA_DIR } from '../src/render/capture.js';
 import { ITEMS } from '../src/render/index.js';
-import { panelKeyValue } from '../src/resolve.js';
+import { mainKeyValue, panelKeyValue } from '../src/resolve.js';
 import { type ThemeName } from '../src/themes.js';
 import {
   createWizard,
@@ -35,28 +35,18 @@ const THEME_NAMES = Object.keys(THEMES) as ThemeName[];
 const MULTI_TICK = multiTick as unknown as {
   tasks: ReadonlyArray<{ id?: string; startTime?: number }>;
 };
+const RENDER_MJS =
+  'node "$HOME/.claude/plugins/data/statusline-agentic/render.mjs"';
+const ITEM_IDS = ITEMS.map(item => item.item);
 
 interface Recorded {
   readonly frames: string[];
   readonly bags: PreviewRender[];
 }
 
-function sameValues(
-  values: unknown,
-  theme: Readonly<Record<string, string>>,
-): boolean {
-  if (typeof values !== 'object' || values === null) {
-    return false;
-  }
-  const held = values as Record<string, string>;
-  return (
-    Object.keys(held).length === Object.keys(theme).length &&
-    Object.entries(theme).every(([item, alt]) => held[item] === alt)
-  );
-}
-
-// One canned surface per theme bag, so frame pins name the theme a bar came
-// from; every other bag renders as its layout.
+// One canned surface per theme bar — a bag that rides the name alone — so
+// frame pins name the theme a bar came from; every other bag renders as its
+// layout when it carries one, and as its override set when it does not.
 function fakeDeps(keys: readonly string[]): {
   readonly deps: WizardDeps;
   readonly recorded: Recorded;
@@ -76,15 +66,19 @@ function fakeDeps(keys: readonly string[]): {
       },
       preview: (bag: PreviewRender): PreviewSurfaces => {
         bags.push(bag);
-        const theme = THEME_NAMES.find(
-          name =>
-            bag.layout === THEMES[name].layout &&
-            sameValues(bag.values, THEMES[name].variants),
-        );
-        if (theme !== undefined) {
-          return { line: `bar:${theme}`, panel: `panel:${theme}` };
+        const overrides = bag.values ?? {};
+        if (
+          bag.theme !== undefined &&
+          bag.layout === undefined &&
+          Object.keys(overrides).length === 0
+        ) {
+          return { line: `bar:${bag.theme}`, panel: `panel:${bag.theme}` };
         }
-        return { line: `line:${bag.layout}`, panel: 'panel:draft' };
+        const label = bag.layout ?? `@${bag.theme}`;
+        return {
+          line: `line:${label}`,
+          panel: `panel:${JSON.stringify(overrides)}`,
+        };
       },
     },
     recorded: { frames, bags },
@@ -132,20 +126,23 @@ function focusedThemes(frame: string): ThemeName[] {
   return THEME_NAMES.filter(name => labelLine(frame, name).startsWith('>'));
 }
 
+// A theme bar bag: the name alone, no layout, no picks.
 function themeBags(recorded: Recorded, name: ThemeName): PreviewRender[] {
   return recorded.bags.filter(
     bag =>
-      bag.layout === THEMES[name].layout &&
-      sameValues(bag.values, THEMES[name].variants),
+      bag.theme === name &&
+      bag.layout === undefined &&
+      Object.keys(bag.values ?? {}).length === 0,
   );
 }
 
-function lastBag(recorded: Recorded, layout: string): PreviewRender {
+// The refine pass's full render: the name plus the overrides, no layout.
+function lastFullBag(recorded: Recorded): PreviewRender {
   const bag = [...recorded.bags]
     .reverse()
-    .find(candidate => candidate.layout === layout);
+    .find(candidate => candidate.layout === undefined);
   if (bag === undefined) {
-    throw new Error(`no preview bag rendered at layout ${layout}`);
+    throw new Error('no full-theme bag rendered');
   }
   return bag;
 }
@@ -153,11 +150,16 @@ function lastBag(recorded: Recorded, layout: string): PreviewRender {
 function focusedItems(recorded: Recorded): string[] {
   const seen: string[] = [];
   for (const bag of recorded.bags) {
-    if (/^{\w+}$/.test(bag.layout)) {
+    if (bag.layout !== undefined && /^{\w+}$/.test(bag.layout)) {
       seen.push(bag.layout.slice(1, -1));
     }
   }
   return seen;
+}
+
+function refineRow(frame: string, item: string): string {
+  const re = new RegExp(`^[> ] ${item}\\s`);
+  return frame.split('\n').find(line => re.test(line)) ?? '';
 }
 
 function rungs<T>(values: readonly T[]): T[] {
@@ -175,13 +177,17 @@ describe('wizard: the gate', () => {
 });
 
 describe('wizard: pass one — the theme pass', () => {
-  it('stacks the five theme bars in THEMES order, each a live render of its own theme; focus starts on the first', async () => {
+  it('previews each theme by its name alone — no compiled picks ride the bag', async () => {
     const { recorded } = await runWizard([]);
 
     expect(recorded.bags).toHaveLength(5);
     const frame = recorded.frames[0] ?? '';
     for (const name of THEME_NAMES) {
-      expect(themeBags(recorded, name), name).toHaveLength(1);
+      const bags = themeBags(recorded, name);
+      expect(bags, name).toHaveLength(1);
+      expect(bags[0]?.theme, name).toBe(name);
+      expect(bags[0]?.layout, name).toBeUndefined();
+      expect(bags[0]?.values, name).toEqual({});
       expect(frame, name).toContain(`${name}: ${THEMES[name].summary}`);
     }
     const bars = THEME_NAMES.map(name => frame.indexOf(`bar:${name}`));
@@ -225,29 +231,40 @@ describe('wizard: pass one — the theme pass', () => {
   });
 });
 
-describe('wizard: pass two — refinement seeded from the pick', () => {
-  it('enter on a theme picks it — the draft is the theme itself, q cancels with nothing written', async () => {
+describe('wizard: pass two — refinement over the theme name', () => {
+  it('enter on a theme picks it — the draft rides the name with no overrides, q cancels with nothing written', async () => {
     const home = homes.newHome();
     const { outcome, recorded } = await runWizard(['\r', 'q'], home);
 
     expect(outcome).toBe('cancelled');
     expect(existsSync(settingsPath(home))).toBe(false);
     expect(focusedItems(recorded).length).toBeGreaterThan(0);
-    expect(lastBag(recorded, THEMES.quiet.layout).values).toEqual(
-      THEMES.quiet.variants,
-    );
+    const full = lastFullBag(recorded);
+    expect(full.theme).toBe('quiet');
+    expect(full.values).toEqual({});
     const frame = recorded.frames[1] ?? '';
     expect(focusedThemes(frame)).toEqual([]);
     expect(frame).toContain('line:{model}');
   });
 
-  it("picking custom seeds bare — the draft is custom's most-absent set", async () => {
+  it("picking custom seeds bare — the samples resolve custom's own picks through the name", async () => {
     const { recorded } = await runWizard(['j', 'j', 'j', 'j', '\r', 'q']);
 
-    expect(focusedItems(recorded).length).toBeGreaterThan(0);
-    expect(lastBag(recorded, THEMES.custom.layout).values).toEqual(
-      THEMES.custom.variants,
-    );
+    const full = lastFullBag(recorded);
+    expect(full.theme).toBe('custom');
+    expect(full.values).toEqual({});
+    const sample = recorded.bags.find(bag => bag.layout === '{model}');
+    expect(sample?.theme).toBe('custom');
+  });
+
+  it('the refine list offers the theme layout items plus style, each row showing its effective pick', async () => {
+    const { recorded } = await runWizard(['\r', 'q']);
+
+    const frame = recorded.frames[1] ?? '';
+    for (const item of layoutItems(THEMES.quiet.layout, ITEM_IDS)) {
+      expect(refineRow(frame, item), item).not.toBe('');
+    }
+    expect(refineRow(frame, 'style')).toBe(`  style     bare`);
   });
 
   it('t returns to pass one with the previous pick still focused', async () => {
@@ -262,16 +279,26 @@ describe('wizard: pass two — refinement seeded from the pick', () => {
 
   it('j/k and the arrows move item focus over the picked theme layout items', async () => {
     const home = homes.newHome();
-    const ids = ITEMS.map(({ item }) => item);
     const { recorded } = await runWizard(['\r', 'j', '\x1b[B', 'k', 'q'], home);
 
-    expect([...new Set(focusedItems(recorded))]).toEqual(
-      layoutItems(THEMES.quiet.layout, ids),
-    );
-    expect(focusedItems(recorded).slice(-1)).toEqual(['cwd']);
+    expect([...new Set(focusedItems(recorded))]).toEqual([
+      ...layoutItems(THEMES.quiet.layout, ITEM_IDS),
+    ]);
+    const styleFrame = recorded.frames[3] ?? '';
+    expect(styleFrame).toContain('style: plain | dots | dim | bare');
+    expect(refineRow(styleFrame, 'style')).toBe(`> style     bare`);
   });
 
-  it('h/l cycle the focused variant; s none only where none is offered', async () => {
+  it('style samples render the panel row — every alternative visible', async () => {
+    const { recorded } = await runWizard(['\r', 'j', 'j', 'q']);
+
+    const frame = recorded.frames[3] ?? '';
+    for (const alt of ['plain', 'dots', 'dim', 'bare']) {
+      expect(frame).toContain(`{"style":"${alt}"}`);
+    }
+  });
+
+  it('h/l cycle the focused variant; an override lives only while it differs from the theme pick', async () => {
     const home = homes.newHome();
     const model = ITEMS.find(item => item.item === 'model');
     if (model === undefined) {
@@ -284,76 +311,104 @@ describe('wizard: pass two — refinement seeded from the pick', () => {
       ];
 
     const forward = await runWizard(['\r', 'l', 'q'], home);
-    expect(lastBag(forward.recorded, THEMES.quiet.layout).values.model).toBe(
-      cycled,
-    );
+    expect(lastFullBag(forward.recorded).values).toEqual({ model: cycled });
 
     const back = await runWizard(['\r', 'l', 'h', 'q'], home);
-    expect(lastBag(back.recorded, THEMES.quiet.layout).values.model).toBe(
-      seeded,
-    );
+    expect(lastFullBag(back.recorded).values).toEqual({});
 
     const leanHome = homes.newHome();
-    const items = layoutItems(
-      THEMES.lean.layout,
-      ITEMS.map(({ item }) => item),
-    );
+    const items = layoutItems(THEMES.lean.layout, ITEM_IDS);
     const hidden = await runWizard(
       ['j', 'j', '\r', ...Array(items.indexOf('cost')).fill('j'), 's', 'q'],
       leanHome,
     );
-    expect(lastBag(hidden.recorded, THEMES.lean.layout).values.cost).toBe(
-      'none',
-    );
+    expect(lastFullBag(hidden.recorded).values).toEqual({ cost: 'none' });
 
     const inert = await runWizard(['\r', 's', 'q'], home);
-    expect(lastBag(inert.recorded, THEMES.quiet.layout).values.model).toBe(
-      seeded,
-    );
+    expect(lastFullBag(inert.recorded).values).toEqual({});
   });
 
   it('w keeps cycling the width in pass two', async () => {
     const { recorded } = await runWizard(['\r', 'w', 'q']);
 
-    expect(lastBag(recorded, THEMES.quiet.layout).width ?? 200).toBe(120);
+    expect(lastFullBag(recorded).width ?? 200).toBe(120);
   });
 });
 
 describe('wizard: a theme pick saved', () => {
-  it('enter on lean, then save — the settings text is byte-equal to a flags-only write of the same picks', async () => {
+  it('enter on quiet, then save — the key text is the bare theme spelling, byte-equal to a theme write', async () => {
     const wizardHome = homes.newHome();
-    const flaggedHome = homes.newHome();
-    configure({
-      home: flaggedHome,
-      layout: THEMES.lean.layout,
-      variants: THEMES.lean.variants,
-    });
-
-    const { outcome } = await runWizard(['j', 'j', '\r', '\r'], wizardHome);
-
-    expect(outcome).toBe('saved');
-    expect(readFileSync(settingsPath(wizardHome), 'utf8')).toBe(
-      readFileSync(settingsPath(flaggedHome), 'utf8'),
-    );
-    expect(settingsCommand(wizardHome, 'subagentStatusLine')).toBe(
-      panelKeyValue(null, ['--style=dots']),
-    );
-  });
-
-  it('a quiet pick seeds the layout too — byte-equal to a flags-only write of the quiet picks', async () => {
-    const wizardHome = homes.newHome();
-    const flaggedHome = homes.newHome();
-    configure({
-      home: flaggedHome,
-      layout: THEMES.quiet.layout,
-      variants: THEMES.quiet.variants,
-    });
+    const referenceHome = homes.newHome();
+    configure({ home: referenceHome, theme: 'quiet' });
 
     const { outcome } = await runWizard(['\r', '\r'], wizardHome);
 
     expect(outcome).toBe('saved');
+    expect(settingsCommand(wizardHome, 'statusLine')).toBe(
+      `${RENDER_MJS} --theme=quiet || true`,
+    );
+    expect(settingsCommand(wizardHome, 'subagentStatusLine')).toBe(
+      panelKeyValue('quiet', []),
+    );
     expect(readFileSync(settingsPath(wizardHome), 'utf8')).toBe(
-      readFileSync(settingsPath(flaggedHome), 'utf8'),
+      readFileSync(settingsPath(referenceHome), 'utf8'),
+    );
+  });
+
+  it('a lean save that never edited a pick writes the lean name alone', async () => {
+    const home = homes.newHome();
+    const { outcome } = await runWizard(['j', 'j', '\r', '\r'], home);
+
+    expect(outcome).toBe('saved');
+    expect(settingsCommand(home, 'statusLine')).toBe(
+      mainKeyValue('lean', null, []),
+    );
+    expect(settingsCommand(home, 'subagentStatusLine')).toBe(
+      panelKeyValue('lean', []),
+    );
+  });
+
+  it('a refined save adds exactly the differing pick — lean bar cycled to none', async () => {
+    const home = homes.newHome();
+    const barAt = layoutItems(THEMES.lean.layout, ITEM_IDS).indexOf('bar');
+    const { outcome } = await runWizard(
+      ['j', 'j', '\r', ...Array(barAt).fill('j'), 'l', '\r'],
+      home,
+    );
+
+    expect(outcome).toBe('saved');
+    expect(settingsCommand(home, 'statusLine')).toBe(
+      mainKeyValue('lean', null, ['--bar=none']),
+    );
+    expect(settingsCommand(home, 'subagentStatusLine')).toBe(
+      panelKeyValue('lean', []),
+    );
+  });
+
+  it('cycling back to the theme pick drops the override — the save is the bare spelling', async () => {
+    const home = homes.newHome();
+    const barAt = layoutItems(THEMES.lean.layout, ITEM_IDS).indexOf('bar');
+    const { outcome } = await runWizard(
+      ['j', 'j', '\r', ...Array(barAt).fill('j'), 'l', 'h', '\r'],
+      home,
+    );
+
+    expect(outcome).toBe('saved');
+    expect(settingsCommand(home, 'statusLine')).toBe(
+      mainKeyValue('lean', null, []),
+    );
+  });
+
+  it('a style refinement rides both keys — quiet style cycled to plain', async () => {
+    const home = homes.newHome();
+    const { outcome } = await runWizard(['\r', 'j', 'j', 'l', '\r'], home);
+
+    expect(outcome).toBe('saved');
+    expect(settingsCommand(home, 'statusLine')).toBe(
+      mainKeyValue('quiet', null, ['--style=plain']),
+    );
+    expect(settingsCommand(home, 'subagentStatusLine')).toBe(
+      panelKeyValue('quiet', ['--style=plain']),
     );
   });
 
@@ -375,7 +430,7 @@ describe('wizard: a theme pick saved', () => {
     expect(readFileSync(settingsPath(home), 'utf8')).toBe(seed);
   });
 
-  it('force takes the foreign key over — byte-equal to a forced flags-only quiet write', async () => {
+  it('force takes the foreign key over — byte-equal to a forced theme write', async () => {
     const seed = `${JSON.stringify(
       { statusLine: { command: './old-main.sh', type: 'command' } },
       null,
@@ -385,12 +440,7 @@ describe('wizard: a theme pick saved', () => {
     const flagged = homes.newHome();
     writeSettings(wizardHome, seed);
     writeSettings(flagged, seed);
-    configure({
-      force: true,
-      home: flagged,
-      layout: THEMES.quiet.layout,
-      variants: THEMES.quiet.variants,
-    });
+    configure({ force: true, home: flagged, theme: 'quiet' });
 
     const { outcome } = await runWizard(['\r', '\r'], wizardHome, {
       force: true,
@@ -484,14 +534,16 @@ describe('wizard: sources', () => {
 });
 
 describe('wizard: render honesty', () => {
-  it('a theme bar bag renders verbatim through the real renderer', async () => {
+  it('a theme bar bag renders through the resolver — the name alone carries the picks', async () => {
     const { recorded } = await runWizard(['j']);
 
     const bag = themeBags(recorded, 'lean')[0];
     if (bag === undefined) {
       throw new Error('no lean theme bag rendered');
     }
-    expect(renderPreview(bag).line).toContain('Opus');
+    const { line } = renderPreview(bag);
+    expect(line).toContain('Opus');
+    expect(line).toContain('·');
   });
 
   it('the width the bags carry is the width the renderer renders at', async () => {
@@ -503,7 +555,7 @@ describe('wizard: render honesty', () => {
         layout: THEMES.lean.layout,
         main: sources.main,
         now: DEFAULT_NOW,
-          tick: sources.tick,
+        tick: sources.tick,
         values: THEMES.lean.variants,
       };
 

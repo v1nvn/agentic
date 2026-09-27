@@ -7,6 +7,7 @@ import { isObject } from './configure.js';
 import { materializeDemoRepo } from './demo-repo.js';
 import { renderStatusline } from './render/index.js';
 import { renderPanel } from './render/panel.js';
+import { resolvePaint } from './render/theme.js';
 import { capturePath } from './resolve.js';
 
 const PAYLOADS_DIR = fileURLToPath(
@@ -121,12 +122,13 @@ function firstPanelRow(output: string): string {
 
 export interface PreviewRender {
   readonly home: string;
-  readonly layout: string;
+  readonly layout?: string;
   readonly main: string;
   readonly now: string;
   readonly plain?: boolean;
+  readonly theme?: string;
   readonly tick: string;
-  readonly values: Readonly<Record<string, string>>;
+  readonly values?: Readonly<Record<string, string>>;
   readonly width?: number;
 }
 
@@ -135,18 +137,24 @@ export interface PreviewSurfaces {
   readonly panel: string;
 }
 
-// Both surfaces render in-process through the packaged engine and panel —
-// the same doors the data-dir renderer runs. The panel reads its width from
-// the tick's own columns; the line reads the bag's.
+// Both surfaces render in-process from one resolution — theme plus overrides
+// resolve exactly as the render entry does at paint, then feed the packaged
+// engine and panel. The panel reads its width from the tick's own columns;
+// the line reads the bag's.
 export function renderPreview(bag: PreviewRender): PreviewSurfaces {
   const plain = bag.plain === true || (process.env.NO_COLOR ?? '') !== '';
+  const paint = resolvePaint({
+    layout: bag.layout,
+    picks: bag.values,
+    theme: bag.theme,
+  });
   const line = renderStatusline({
     home: bag.home,
-    layout: bag.layout,
+    layout: paint.layout,
     noColor: plain,
     now: Number(bag.now),
     payload: bag.main,
-    picks: bag.values,
+    picks: paint.picks,
     timeZone: 'UTC',
     ...(bag.width === undefined ? {} : { columns: bag.width }),
   }).replace(/\n+$/, '');
@@ -156,7 +164,7 @@ export function renderPreview(bag: PreviewRender): PreviewSurfaces {
       noColor: plain,
       now: Number(bag.now),
       payload: bag.tick,
-      picks: bag.values,
+      picks: paint.picks,
     }).replace(/\n+$/, ''),
   );
   return { line, panel };

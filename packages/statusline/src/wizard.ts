@@ -25,6 +25,11 @@ type Pass = 'refine' | 'themes';
 const THEME_KEYMAP = 'j/k focus · w width · enter pick · q cancel';
 const REFINE_KEYMAP =
   'j/k move · h/l variant · s none · t themes · w width · enter save · q cancel';
+// The one registry item no layout paints; its refine sample is the panel row.
+const STYLE = 'style';
+const DEFAULT_PICKS: Readonly<Record<string, string>> = Object.fromEntries(
+  ITEMS.map(({ default: alt, item }) => [item, alt]),
+);
 
 // index.ts routes its interactive branch through this predicate — the entry
 // executes the CLI on import, so the gate's one door is a wizard export.
@@ -53,22 +58,24 @@ export async function createWizard(
 
   let pass: Pass = 'themes';
   let themeAt = 0;
-  let draftLayout = '';
+  let picked: ThemeName = names[0];
+  let base: Readonly<Record<string, string>> = DEFAULT_PICKS;
   let offered: {
     readonly alternatives: readonly string[];
     readonly item: string;
   }[] = [];
-  const draft = new Map<string, string>();
+  const overrides = new Map<string, string>();
   let focus = 0;
   let widthAt = 0;
 
   function bag(
-    layout: string,
-    values: Readonly<Record<string, string>>,
+    theme: string,
+    layout?: string,
+    values: Readonly<Record<string, string>> = {},
   ): PreviewRender {
     return {
       home: options.home,
-      layout,
+      ...(layout === undefined ? {} : { layout }),
       main: sources.main,
       now: options.now,
       tick: `${JSON.stringify(
@@ -76,28 +83,41 @@ export async function createWizard(
         null,
         2,
       )}\n`,
+      theme,
       values,
       width: WIDTHS[widthAt],
     };
   }
 
   function enterRefine(name: ThemeName): void {
-    const theme = THEMES[name];
-    draftLayout = theme.layout;
-    offered = layoutItems(
-      theme.layout,
+    picked = name;
+    base = { ...DEFAULT_PICKS, ...THEMES[name].variants };
+    const items = layoutItems(
+      THEMES[name].layout,
       ITEMS.map(item => item.item),
-    ).flatMap(item => {
+    );
+    offered = [...new Set([...items, STYLE])].flatMap(item => {
       const entry = byItem.get(item);
       return entry === undefined
         ? []
         : [{ alternatives: entry.alternatives, item }];
     });
-    draft.clear();
-    for (const [item, alt] of Object.entries(theme.variants)) {
-      draft.set(item, alt);
-    }
+    overrides.clear();
     focus = 0;
+  }
+
+  function effectivePick(item: string): string {
+    return overrides.get(item) ?? base[item];
+  }
+
+  // An override lives only while it differs from the theme's own pick — the
+  // save records the name plus true differences, never a resolved draft.
+  function setPick(item: string, alt: string): void {
+    if (alt === base[item]) {
+      overrides.delete(item);
+    } else {
+      overrides.set(item, alt);
+    }
   }
 
   function cycle(delta: number): void {
@@ -106,8 +126,8 @@ export async function createWizard(
       return;
     }
     const alts = focused.alternatives;
-    const at = alts.indexOf(draft.get(focused.item) ?? '');
-    draft.set(focused.item, alts[(at + delta + alts.length) % alts.length]);
+    const at = alts.indexOf(effectivePick(focused.item));
+    setPick(focused.item, alts[(at + delta + alts.length) % alts.length]);
   }
 
   function step(key: string): Pass {
@@ -134,7 +154,7 @@ export async function createWizard(
     } else if (key === 's') {
       const focused = offered.at(focus);
       if (focused?.alternatives.includes('none')) {
-        draft.set(focused.item, 'none');
+        setPick(focused.item, 'none');
       }
     }
     return pass;
@@ -146,7 +166,7 @@ export async function createWizard(
     for (let at = 0; at < names.length; at += 1) {
       const name = names[at];
       const theme = THEMES[name];
-      const surfaces = deps.preview(bag(theme.layout, theme.variants));
+      const surfaces = deps.preview(bag(name));
       const focused = at === themeAt;
       if (focused) {
         panel = surfaces.panel;
@@ -172,17 +192,20 @@ export async function createWizard(
     if (focused === undefined) {
       return;
     }
-    const values = Object.fromEntries(draft);
-    const samples = focused.alternatives.map(
-      alt =>
-        deps.preview(
-          bag(`{${focused.item}}`, { ...values, [focused.item]: alt }),
-        ).line,
-    );
-    const full = deps.preview(bag(draftLayout, values));
+    const values = Object.fromEntries(overrides);
+    const samples = focused.alternatives.map(alt => {
+      const surfaces = deps.preview(
+        bag(picked, focused.item === STYLE ? undefined : `{${focused.item}}`, {
+          ...values,
+          [focused.item]: alt,
+        }),
+      );
+      return focused.item === STYLE ? surfaces.panel : surfaces.line;
+    });
+    const full = deps.preview(bag(picked, undefined, values));
     const rows = offered.map(
       (entry, at) =>
-        `${at === focus ? '>' : ' '} ${entry.item.padEnd(9)} ${draft.get(entry.item)}`,
+        `${at === focus ? '>' : ' '} ${entry.item.padEnd(9)} ${effectivePick(entry.item)}`,
     );
     deps.render(
       [
@@ -194,7 +217,7 @@ export async function createWizard(
         `${focused.item}: ${focused.alternatives.join(' | ')}`,
         ...focused.alternatives.map(
           (alt, at) =>
-            `  ${alt === draft.get(focused.item) ? '*' : ' '} ${samples[at]}`,
+            `  ${alt === effectivePick(focused.item) ? '*' : ' '} ${samples[at]}`,
         ),
         '',
         ...rows,
@@ -217,8 +240,8 @@ export async function createWizard(
       configure({
         force: options.force,
         home: options.home,
-        layout: draftLayout,
-        variants: Object.fromEntries(draft),
+        theme: picked,
+        variants: Object.fromEntries(overrides),
       });
     } catch (e) {
       deps.render(
