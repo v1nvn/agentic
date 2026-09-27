@@ -38,25 +38,24 @@ ships only `.claude-plugin/plugin.json` and `SKILL.md`; a paint is
 
 ## Current state
 
-Not started. The launching sitting measured the render paths (bash render
-158 ms, bare node 27 ms, npx 230 ms — the bash subshell-per-segment style costs
-more than one node boot), settled the port design against the Claude Code
-plugin docs (`${CLAUDE_PLUGIN_DATA}` is the documented durable per-plugin dir;
-version cache dirs churn and are GC'd; `CLAUDE_PLUGIN_ROOT` is not documented
-for statusline commands), and merged the port with the theme-key thread by
-owner ruling. A design sitting ruled flags over env and audited every plan
-anchor against the source; a docs pass then confirmed the platform contract
-(the rulings below carry what it found).
+r1 landed: the render engine is TypeScript in `src/render/` (door:
+`renderStatusline({payload, home, now, timeZone, columns?, layout?, picks?,
+noColor?})` + `ITEMS` + `DEFAULT_LAYOUT` from `src/render/index.js`), the
+golden corpus grew 39 → 85 (width ladder, fixture × pick oracles, degenerate
+gauge), byte-identity proven in-process and spot-proven against the live bash
+runtime; the bash runtime and its suites are untouched and green. The corpus
+harness (`test/engine-corpus.test.ts`) keeps a hardcoded CORPUS list — a new
+golden needs its registration entry.
 
 ## Next step
 
-r1 — port the renderer core, goldens byte-identical.
+r2 — the `render.mjs` entry + panel mode; panel goldens byte-identical.
 
 ## Steps
 
 | id | unit | model | review | close criteria |
 | --- | --- | --- | --- | --- |
-| r1 | renderer core in TS | | checklist | items, alternatives, defaults, `DEFAULT_LAYOUT`, rung orders are TS data in `src/render/` — 16 items (the `COMPS` order = `components/*.sh`) plus the 3 inline shims (`branch=none`, `bar=flat6`, `bar=flat4`); payload parse, git read, every component, `compose`/`vlen`/fit engine ported as functions; the TS engine renders byte-identical against the **existing** `test/goldens/*.ans` corpus, extended where fixture × width × pick gaps exist (new `.ans` captured from the bash runtime in this unit, never regenerated later); bash runtime and its tests untouched and green |
+| r1 | renderer core in TS | | checklist | items, alternatives, defaults, `DEFAULT_LAYOUT`, rung orders are TS data in `src/render/` — 16 items (the `COMPS` order = `components/*.sh`) plus the 3 inline shims (`branch=none`, `bar=flat6`, `bar=flat4`); payload parse, git read, every component, `compose`/`vlen`/fit engine ported as functions; the TS engine renders byte-identical against the **existing** `test/goldens/*.ans` corpus, extended where fixture × width × pick gaps exist (new `.ans` captured from the bash runtime in this unit, never regenerated later); bash runtime and its tests untouched and green — landed `fe2eca0` + `d18868a` (fix round: gauge label prints raw percent like bash + degenerate golden): corpus 39 → 85 goldens, harness 80 renders + 5 door green, full gate 330 green |
 | r2 | entry + panel mode | | | `render.mjs` entry owns its argv grammar — `node:util` parseArgs, never commander/agentic-core; it shares only the registry data with the CLI. Flags: `--theme`, `--layout`, `--now=<epoch>`, `--<item>=<alt>`; `panel` positional. Ambient reads stay env: `NO_COLOR`, `COLUMNS`, `HOME`, `TZ`. Unknown flag name → stderr warning + ignored; unknown value → warning + default (the `check_config` rule). Keeps the capture tee to the data dir. `panel` argv mode ports `subagent.sh`'s own engine — its `vlen` (codepoint semantics), fit ladder, `make_bar`, `fmt_k`, 24-char description truncation, ms-vs-s `startTime` heuristic — exact, not unified with the main engine; panel goldens (ticks/multi.json × widths) byte-identical |
 | r3 | ship + sync | | | vite emits `dist/render.mjs` beside the CLI bundle; the tarball needs no manifest change (`files: ["dist","assets"]` already ships it; the entry shebang banner is harmless under `node`). `configure` syncs its bundled renderer into `$DATA_DIR` on every write, content-diffed; `restore` deletes `render.mjs` with the rest of the lab data by explicit path; `status` replaces the cache-version `runtime:` row with two rows — `node` on PATH, data-dir renderer vs the CLI's bundle (hash) — each with a runnable fix |
 | r4 | switchover | | checklist | key constants become the direct data-dir flag commands (main: `node "$HOME/…/render.mjs" --theme=… --<item>=<alt> \|\| true`; panel adds the `panel` positional); ours-matcher and `readKeyConfig` re-derived on the new prefix/suffix — the prefix is the program itself, so the assignments-hug-the-command constraint dies; wizard/preview/tests render through the TS entry (engine-level tests in-process, below the argv layer; the only argv-seam tests are `key-e2e` and t3's e2e); every bash-spawning suite (`statusline`, `responsive`, `ramps`, `subagent`, `runtime-tee`, `plugin-runtime`) plus the `test/{runtime,plugin-runtime}.ts` helpers converts or dies in this one motion; `plugins/statusline/runtime/` deleted; `key-e2e`/`configure` pins re-baselined (PR 1's only re-baseline); CLAUDE.md layout rule drops the runtime exception |
@@ -79,7 +78,10 @@ Per-unit reading:
   `test/{statusline,responsive,ramps}.test.ts` (the golden cases to draw).
 - r2: `runtime/subagent.sh` (its own `vlen`, fit ladder, `make_bar`, `fmt_k`,
   truncation, startTime heuristic), `src/payloads.ts` (`renderPreview` env
-  contract, capture tee), `assets/ticks/multi.json`.
+  contract, capture tee), `assets/ticks/multi.json`. Facts from r1: COLUMNS
+  keeps the bash string rule before the number door (non-digit → 200, then
+  floor 20); the engine already warns to `process.stderr` — the entry's
+  unknown-flag warnings ride that channel.
 - r3: `vite.config.ts` (second entry), `src/{configure,restore,status}.ts`,
   `references/npm-publishing.md` before touching the tarball surface.
 - r4: `src/{resolve,configure,payloads,preview,wizard-tui}.ts`,
