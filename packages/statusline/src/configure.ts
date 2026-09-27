@@ -512,8 +512,8 @@ const REGISTRY_BASE: Readonly<Record<string, string>> = Object.fromEntries(
 );
 
 // A key records only the decisions that differ from the picks its base
-// already carries — the theme's picks under a theme, the registry defaults
-// without one; the renderer resolves absent picks at paint.
+// already carries — registry defaults with the theme's variants over them;
+// the renderer resolves absent picks at paint.
 function decisionFlags(
   base: Readonly<Record<string, string>>,
   decisions: Readonly<Partial<Record<string, string>>>,
@@ -543,7 +543,7 @@ export function configure(options: ConfigureOptions): void {
   validateSelection(options);
   const theme =
     options.theme === undefined ? undefined : themeNamed(options.theme, THEMES);
-  const base = theme?.variants ?? REGISTRY_BASE;
+  const base = { ...REGISTRY_BASE, ...theme?.variants };
   const decisions = options.variants ?? {};
   const baseLayout = theme?.layout ?? DEFAULT_LAYOUT;
   const layout =

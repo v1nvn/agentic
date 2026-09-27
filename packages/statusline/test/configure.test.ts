@@ -218,6 +218,19 @@ describe('configure: --theme', () => {
     );
   });
 
+  it('an override equal to the registry default rides no flag — the theme resolves it at paint', () => {
+    const home = homes.newHome();
+
+    configure({ home, theme: 'quiet', variants: { bar: 'flat' } });
+
+    expect(settingsCommand(home, 'statusLine')).toBe(
+      mainKeyValue('quiet', null, []),
+    );
+    expect(settingsCommand(home, 'subagentStatusLine')).toBe(
+      panelKeyValue('quiet', []),
+    );
+  });
+
   it('a custom layout rides beside the theme; the theme own layout does not', () => {
     const custom = homes.newHome();
     const own = homes.newHome();
