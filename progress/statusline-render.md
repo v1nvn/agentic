@@ -38,20 +38,19 @@ ships only `.claude-plugin/plugin.json` and `SKILL.md`; a paint is
 
 ## Current state
 
-r1–r3 landed: engine, panel, and entry are TypeScript in `src/render/`
-(corpus 103 goldens byte-identical); vite emits `dist/render.mjs` (dep-free,
-tarball-shipped), `configure` syncs it content-diffed into the data dir
-(`BUNDLED_RENDERER`, `renderMjsPath` exported from configure.ts — r4 lifts
-the path beside `capturePath` in resolve.ts), `restore` deletes it by
-explicit path, `status` carries `node` + `renderer` rows (the bash
-missing-cache diagnostic row survives until r4). Keys still bash-shaped;
-tests bootstrap the bundle via `test/global-setup.ts`. Known
-micro-divergence, ruled: strtol-tolerant numeric coercion is not ported.
+r1–r4 landed (PR 1's units): the renderer is package code end to end —
+engine, panel, and entry in `src/render/`, `dist/render.mjs` synced into the
+data dir, settings keys spelling `node "$HOME/…/render.mjs" --<item>=<alt>
+|| true` (panel adds the positional), non-default picks as flags only. The
+bash runtime, env wall, cache-glob, and six suites are deleted; goldens 103
+byte-protected; 296/296 green. Interim: live-theme matches effective picks
+(defaults filled) until t4; `--theme` accepted by argv but not written until
+t2; custom's branch seed is `none` (the unified registry knows the shim).
 
 ## Next step
 
-r4 — switchover: keys become direct data-dir flag commands, the bash runtime
-dies, every bash-spawning suite converts or dies.
+t1 — the five themes as a static `THEMES` const plus the one resolver;
+today's compile output and the `--theme` spelling render byte-identical.
 
 ## Steps
 
@@ -60,7 +59,7 @@ dies, every bash-spawning suite converts or dies.
 | r1 | renderer core in TS | | checklist | items, alternatives, defaults, `DEFAULT_LAYOUT`, rung orders are TS data in `src/render/` — 16 items (the `COMPS` order = `components/*.sh`) plus the 3 inline shims (`branch=none`, `bar=flat6`, `bar=flat4`); payload parse, git read, every component, `compose`/`vlen`/fit engine ported as functions; the TS engine renders byte-identical against the **existing** `test/goldens/*.ans` corpus, extended where fixture × width × pick gaps exist (new `.ans` captured from the bash runtime in this unit, never regenerated later); bash runtime and its tests untouched and green — landed `fe2eca0` + `d18868a` (fix round: gauge label prints raw percent like bash + degenerate golden): corpus 39 → 85 goldens, harness 80 renders + 5 door green, full gate 330 green |
 | r2 | entry + panel mode | | | `render.mjs` entry owns its argv grammar — `node:util` parseArgs, never commander/agentic-core; it shares only the registry data with the CLI. Flags: `--theme`, `--layout`, `--now=<epoch>`, `--<item>=<alt>`; `panel` positional. Ambient reads stay env: `NO_COLOR`, `COLUMNS`, `HOME`, `TZ`. Unknown flag name → stderr warning + ignored; unknown value → warning + default (the `check_config` rule). Keeps the capture tee to the data dir. `panel` argv mode ports `subagent.sh`'s own engine — its `vlen` (codepoint semantics), fit ladder, `make_bar`, `fmt_k`, 24-char description truncation, ms-vs-s `startTime` heuristic — exact, not unified with the main engine; panel goldens (ticks/multi.json × widths) byte-identical — landed `dd0d2d0` + fix rounds `0cfa768`/`78261fa` (awk tie rounding via shared `fmtFixed` in both engines, capture before parse): panel corpus +16 goldens, argv 11/11, 103 goldens protected |
 | r3 | ship + sync | | | vite emits `dist/render.mjs` beside the CLI bundle; the tarball needs no manifest change (`files: ["dist","assets"]` already ships it; the entry shebang banner is harmless under `node`). `configure` syncs its bundled renderer into `$DATA_DIR` on every write, content-diffed; `restore` deletes `render.mjs` with the rest of the lab data by explicit path; `status` replaces the cache-version `runtime:` row with two rows — `node` on PATH, data-dir renderer vs the CLI's bundle (hash) — each with a runnable fix — landed `b417d40` + fix `43b3174` (vitest globalSetup bootstraps the bundle for fresh-clone test runs): 34.5 kB dep-free bundle, tarball ships it, sync byte-diffed tmp+rename, key pins byte-identical (three guard bytes per the inventory ruling) |
-| r4 | switchover | | checklist | key constants become the direct data-dir flag commands (main: `node "$HOME/…/render.mjs" --theme=… --<item>=<alt> \|\| true`; panel adds the `panel` positional); ours-matcher and `readKeyConfig` re-derived on the new prefix/suffix — the prefix is the program itself, so the assignments-hug-the-command constraint dies; wizard/preview/tests render through the TS entry (engine-level tests in-process, below the argv layer; the only argv-seam tests are `key-e2e` and t3's e2e); every bash-spawning suite (`statusline`, `responsive`, `ramps`, `subagent`, `runtime-tee`, `plugin-runtime`) plus the `test/{runtime,plugin-runtime}.ts` helpers converts or dies in this one motion; `plugins/statusline/runtime/` deleted; `key-e2e`/`configure` pins re-baselined (PR 1's only re-baseline); CLAUDE.md layout rule drops the runtime exception |
+| r4 | switchover | | checklist | key constants become the direct data-dir flag commands (main: `node "$HOME/…/render.mjs" --theme=… --<item>=<alt> \|\| true`; panel adds the `panel` positional); ours-matcher and `readKeyConfig` re-derived on the new prefix/suffix — the prefix is the program itself, so the assignments-hug-the-command constraint dies; wizard/preview/tests render through the TS entry (engine-level tests in-process, below the argv layer; the only argv-seam tests are `key-e2e` and t3's e2e); every bash-spawning suite (`statusline`, `responsive`, `ramps`, `subagent`, `runtime-tee`, `plugin-runtime`) plus the `test/{runtime,plugin-runtime}.ts` helpers converts or dies in this one motion; `plugins/statusline/runtime/` deleted; `key-e2e`/`configure` pins re-baselined (PR 1's only re-baseline); CLAUDE.md layout rule drops the runtime exception — landed `2d83ec6` + fix `48663a0` (negative-reset oracle resurrected in responsive): 58 files +865/−3256, runtime/ gone (19 files), suites died statusline/ramps/subagent/plugin-runtime + converted responsive/runtime-tee, key round-trip and matcher cross-cases live-verified, gate.sh r4 all families PASS, 296/296 |
 | t1 | themes as data + the resolver | | checklist | the five themes (layouts, per-item picks, summaries, `custom`'s absence seeds) are a static `THEMES` const beside the registry — `themesFor(runtime)` the function is deleted, layouts embedding the default layout's string; one resolver function in `src/render/` resolves theme + item flags + layout at paint; the panel resolves the theme's `style`; for every theme, today's compile output and the `--theme` spelling render byte-identical (goldens untouched) |
 | t2 | the key shape | | checklist | `configure --theme lean` writes `node … --theme=lean` and nothing else — no item flags, no layout; `--theme lean --bar gauge` adds only `--bar=gauge`; `--layout` rides only when passed; the panel key carries `--theme` (and `--style` on a flags-only style write) with a prefix/suffix ours-matcher like the main key's; `readKeyConfig` parses flags — theme without layout is legal, the theme carries it; `resolveSelection` slims to validation (name in table, overrides valid, layout items known) — the every-item-needs-a-pick error dies with the wall; key-text and footprint pins re-baselined once |
 | t3 | e2e door | | | a scratch-home test configures `--theme lean`, asserts the key text, then runs both written keys through the real node renderer at the data-dir path with the fixture payload and tick (`--now` pinned), asserting lean's markers on the line and the panel row (`·` separators, percent bar) |
@@ -98,7 +97,11 @@ Per-unit reading:
   missing-cache row is r4's to delete; suites need no manual build
   (global-setup).
 - t1: `src/themes.ts` (`THEMES` replaces `themesFor`), `src/render/`
-  (resolver home), `test/themes.test.ts`.
+  (resolver home), `test/themes.test.ts`. Facts from r4: t2 — `--theme`
+  rides first in flag order, `readKeyConfig` already skips theme/now; t3 —
+  reuse `fixtures.keyArgv` + key-e2e's real-node harness; t4 — the
+  effective-picks matcher in live-theme is the interim t4 deletes; t6 —
+  SKILL.md/plugin.json/README still name the bash runtime, untouched.
 - t2: `src/{configure,resolve}.ts`, `test/{configure,key-e2e,fixtures}.ts`, any
   `restore`/`subagent` pin on the old exact panel constant.
 - t3: `test/key-e2e.test.ts` — the door extends the real-renderer harness
