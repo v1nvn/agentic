@@ -7,13 +7,13 @@ import { DEFAULT_LAYOUT } from './items.js';
 // no second resolution path. Precedence: item flags beat the theme, --layout
 // beats the theme's layout, no theme leaves the registry defaults.
 
-export interface PaintInput {
+interface PaintInput {
   readonly layout?: string;
   readonly picks?: Readonly<Record<string, string>>;
   readonly theme?: string;
 }
 
-export interface PaintSelection {
+interface PaintSelection {
   readonly layout: string;
   readonly picks: Readonly<Record<string, string>>;
 }

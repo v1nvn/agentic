@@ -28,60 +28,59 @@ const RENDER_PROGRAM = `node "$HOME/${DATA_DIR.split(sep).join('/')}/render.mjs"
 const PANEL_PROGRAM = `${RENDER_PROGRAM} panel`;
 const KEY_SUFFIX = ' || true';
 
+// The one spelling of a settings key: program, --theme, a quoted --layout,
+// the differing flags, the swallow-everything suffix.
+function keyValue(
+  program: string,
+  theme: null | string,
+  layout: null | string,
+  flags: readonly string[],
+): string {
+  return `${[
+    program,
+    ...(theme === null ? [] : [`--theme=${theme}`]),
+    ...(layout === null ? [] : [`--layout='${layout}'`]),
+    ...flags,
+  ].join(' ')}${KEY_SUFFIX}`;
+}
+
 export function mainKeyValue(
   theme: null | string,
   layout: null | string,
   flags: readonly string[],
 ): string {
-  return [
-    RENDER_PROGRAM,
-    ...(theme === null ? [] : [`--theme=${theme}`]),
-    ...(layout === null ? [] : [`--layout='${layout}'`]),
-    ...flags,
-    '|| true',
-  ].join(' ');
+  return keyValue(RENDER_PROGRAM, theme, layout, flags);
 }
 
 export function panelKeyValue(
   theme: null | string,
   flags: readonly string[],
 ): string {
-  return [
-    PANEL_PROGRAM,
-    ...(theme === null ? [] : [`--theme=${theme}`]),
-    ...flags,
-    '|| true',
-  ].join(' ');
+  return keyValue(PANEL_PROGRAM, theme, null, flags);
 }
 
-function isOurCommand(program: string, command: string): boolean {
+// The flags span between program and suffix — null unless the command is
+// ours-shaped (nothing after the program but flags).
+function commandMiddle(program: string, command: string): null | string {
   if (!command.startsWith(program) || !command.endsWith(KEY_SUFFIX)) {
-    return false;
+    return null;
   }
   const middle = command.slice(
     program.length,
     command.length - KEY_SUFFIX.length,
   );
-  return middle === '' || middle.startsWith(' --');
+  return middle === '' || middle.startsWith(' --') ? middle : null;
 }
 
 export function isOurMainCommand(command: string): boolean {
-  return isOurCommand(RENDER_PROGRAM, command);
+  return commandMiddle(RENDER_PROGRAM, command) !== null;
 }
 
 export function isOurPanelCommand(command: string): boolean {
-  return isOurCommand(PANEL_PROGRAM, command);
+  return commandMiddle(PANEL_PROGRAM, command) !== null;
 }
 
-function mainKeyFlags(command: string): null | string {
-  if (!isOurMainCommand(command)) {
-    return null;
-  }
-  return command.slice(
-    RENDER_PROGRAM.length,
-    command.length - KEY_SUFFIX.length,
-  );
-}
+const NO_DECISIONS: ScriptConfig = { layout: null, values: {} };
 
 function settingsCommand(home: string): null | string {
   let raw: string;
@@ -132,23 +131,14 @@ function parseKeyFlags(flags: string): ScriptConfig {
 // the same way, with no theme and no values.
 export function readKeyConfig(home: string): ScriptConfig {
   const command = settingsCommand(home);
-  const flags = command === null ? null : mainKeyFlags(command);
-  return flags === null ? { layout: null, values: {} } : parseKeyFlags(flags);
-}
-
-function panelKeyFlags(command: string): null | string {
-  if (!isOurPanelCommand(command)) {
-    return null;
-  }
-  return command.slice(
-    PANEL_PROGRAM.length,
-    command.length - KEY_SUFFIX.length,
-  );
+  const flags =
+    command === null ? null : commandMiddle(RENDER_PROGRAM, command);
+  return flags === null ? NO_DECISIONS : parseKeyFlags(flags);
 }
 
 // The panel key's decisions — the theme it carries, a style pick when one
 // rides. An absent or foreign member reads as no decisions.
 export function parsePanelCommand(command: null | string): ScriptConfig {
-  const flags = command === null ? null : panelKeyFlags(command);
-  return flags === null ? { layout: null, values: {} } : parseKeyFlags(flags);
+  const flags = command === null ? null : commandMiddle(PANEL_PROGRAM, command);
+  return flags === null ? NO_DECISIONS : parseKeyFlags(flags);
 }
