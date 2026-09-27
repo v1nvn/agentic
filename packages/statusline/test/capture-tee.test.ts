@@ -1,31 +1,45 @@
+import { spawnSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
-import { renderPanel } from '../src/render/panel.js';
+import { configure } from '../src/configure.js';
 import { capturePath } from '../src/resolve.js';
-import { createHomes, tmpFilesUnder } from './fixtures.js';
+import { createHomes, keyArgv, settingsCommand, tmpFilesUnder } from './fixtures.js';
 import { tickStdin } from './runtime.js';
 
-// The line-mode tee lives in the entry the keys spawn; key-e2e pins it through
-// the real node renderer. Here the panel door carries the same contract.
+// Both tees live in the entry the keys spawn — these run the real node
+// renderer the way the host shell does. The main surface's tee is pinned in
+// key-e2e; here the panel door carries the same contract.
 const homes = createHomes();
-
-let home: string;
-
-beforeEach(() => {
-  home = homes.newHome();
-});
 
 afterEach(() => {
   homes.dispose();
 });
 
+function runPanel(home: string, stdin: string): number {
+  const run = spawnSync('node', keyArgv(settingsCommand(home, 'subagentStatusLine'), home), {
+    input: stdin,
+    env: {
+      HOME: home,
+      LC_ALL: 'C',
+      PATH: process.env.PATH ?? '',
+      TZ: 'UTC',
+    },
+    timeout: 30_000,
+  });
+  return run.status ?? -1;
+}
+
 describe('the capture tee', () => {
   it('a piped tick lands byte-identical in captures/tick.json', () => {
+    const home = homes.newHome();
+    configure({ home, theme: 'quiet' });
     const stdin = tickStdin();
-    renderPanel({ home, now: 0, payload: stdin });
 
+    const status = runPanel(home, stdin);
+
+    expect(status).toBe(0);
     const capture = capturePath(home, 'tick');
     expect(existsSync(capture), capture).toBe(true);
     expect(readFileSync(capture)).toEqual(Buffer.from(stdin));
@@ -33,13 +47,16 @@ describe('the capture tee', () => {
   });
 
   it('a later render replaces the capture with the newer tick', () => {
-    renderPanel({ home, now: 0, payload: tickStdin() });
+    const home = homes.newHome();
+    configure({ home, theme: 'quiet' });
+    runPanel(home, tickStdin());
     const second = `${JSON.stringify(
       { columns: 80, tasks: [] },
       null,
       2,
     )}\n`;
-    renderPanel({ home, now: 0, payload: second });
+
+    runPanel(home, second);
 
     expect(readFileSync(capturePath(home, 'tick'))).toEqual(
       Buffer.from(second),
@@ -48,11 +65,13 @@ describe('the capture tee', () => {
   });
 
   it('an unparseable tick is captured whole before the parse fails — no partial capture', () => {
+    const home = homes.newHome();
+    configure({ home, theme: 'quiet' });
     const garbage = '{not json\n';
-    expect(() =>
-      renderPanel({ home, now: 0, payload: garbage }),
-    ).toThrowError();
 
+    const status = runPanel(home, garbage);
+
+    expect(status).not.toBe(0);
     expect(readFileSync(capturePath(home, 'tick'))).toEqual(
       Buffer.from(garbage),
     );

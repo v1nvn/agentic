@@ -43,8 +43,9 @@ async function main(): Promise<void> {
   const now = argv.now ?? Math.floor(Date.now() / 1000);
   const paint = resolvePaint(argv);
   if (argv.mode === 'panel') {
+    capturePayload(home, 'tick', payload);
     process.stdout.write(
-      renderPanel({ home, now, payload, picks: paint.picks, noColor }),
+      renderPanel({ now, payload, picks: paint.picks, noColor }),
     );
     return;
   }

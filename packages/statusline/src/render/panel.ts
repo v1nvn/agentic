@@ -1,5 +1,4 @@
 import { fmtK, fmtM } from './awk.js';
-import { capturePayload } from './capture.js';
 import { stripSgr } from './engine.js';
 import { ITEMS } from './items.js';
 import { styleSeparators } from './segments.js';
@@ -17,7 +16,6 @@ const YELLOW = '\x1b[33m';
 const MS_THRESHOLD = 200_000_000_000;
 
 export interface PanelInput {
-  readonly home: string;
   readonly noColor?: boolean;
   readonly now: number;
   readonly payload: string;
@@ -292,7 +290,6 @@ function emitLine(id: string, content: string): string {
 }
 
 export function renderPanel(input: PanelInput): string {
-  capturePayload(input.home, 'tick', input.payload);
   const tick: unknown = JSON.parse(input.payload);
   const avail = availColumns(tick);
   const sep = styleSeparators(stylePick(input.picks)).sep;

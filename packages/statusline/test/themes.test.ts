@@ -232,7 +232,6 @@ function panelBytes(picks: Readonly<Record<string, string>>): string {
     throw new Error('demo home not materialized');
   }
   return renderPanel({
-    home: demo.home,
     now: Number(DEFAULT_NOW),
     payload: tickPayload,
     picks,

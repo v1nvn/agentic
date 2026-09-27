@@ -1,4 +1,5 @@
 import { existsSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 import { afterEach, describe, expect, it } from 'vitest';
 
@@ -114,6 +115,7 @@ afterEach(() => {
 function assertNothingWritten(home: string): void {
   expect(existsSync(settingsPath(home)), 'settings.json').toBe(false);
   expect(existsSync(backupPath(home)), 'backup').toBe(false);
+  expect(existsSync(join(home, '.claude')), 'data under .claude').toBe(false);
 }
 
 function messageOf(job: () => void): string {
