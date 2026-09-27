@@ -14,7 +14,7 @@ import {
   type SettingsKey,
 } from './configure.js';
 import { DATA_DIR } from './render/capture.js';
-import { ITEMS } from './render/index.js';
+import { specFor } from './render/index.js';
 import {
   capturePath,
   parsePanelCommand,
@@ -122,10 +122,9 @@ function findingText(finding: DriftFinding): string {
 }
 
 function driftFindings(config: ScriptConfig): readonly DriftFinding[] {
-  const byItem = new Map(ITEMS.map(entry => [entry.item, entry]));
   const findings: DriftFinding[] = [];
   for (const item of keyItems(config)) {
-    const entry = byItem.get(item);
+    const entry = specFor(item);
     if (entry === undefined) {
       findings.push({ item, kind: 'unknown-item' });
       continue;

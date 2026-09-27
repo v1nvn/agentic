@@ -3,7 +3,7 @@ import type { PreviewRender, PreviewSurfaces } from './payloads.js';
 import { VERSION } from './cli.js';
 import { configure, type ConfigureOptions, layoutItems } from './configure.js';
 import { previewSources } from './payloads.js';
-import { ITEMS, type ItemSpec } from './render/items.js';
+import { DEFAULT_PICKS, ITEM_IDS, specFor } from './render/items.js';
 import { type ThemeName, THEMES } from './themes.js';
 
 export interface WizardDeps {
@@ -27,9 +27,6 @@ const REFINE_KEYMAP =
   'j/k move · h/l variant · s none · t themes · w width · enter save · q cancel';
 // The one registry item no layout paints; its refine sample is the panel row.
 const STYLE = 'style';
-const DEFAULT_PICKS: Readonly<Record<string, string>> = Object.fromEntries(
-  ITEMS.map(({ default: alt, item }) => [item, alt]),
-);
 
 // index.ts routes its interactive branch through this predicate — the entry
 // executes the CLI on import, so the gate's one door is a wizard export.
@@ -50,9 +47,6 @@ export async function createWizard(
   deps: WizardDeps,
 ): Promise<WizardOutcome> {
   const names = Object.keys(THEMES) as ThemeName[];
-  const byItem = new Map<string, ItemSpec>(
-    ITEMS.map(item => [item.item, item] as const),
-  );
   const sources = previewSources(options.home, Number(options.now));
   const tickBase = JSON.parse(sources.tick) as Record<string, unknown>;
 
@@ -92,12 +86,9 @@ export async function createWizard(
   function enterRefine(name: ThemeName): void {
     picked = name;
     base = { ...DEFAULT_PICKS, ...THEMES[name].variants };
-    const items = layoutItems(
-      THEMES[name].layout,
-      ITEMS.map(item => item.item),
-    );
+    const items = layoutItems(THEMES[name].layout, ITEM_IDS);
     offered = [...new Set([...items, STYLE])].flatMap(item => {
-      const entry = byItem.get(item);
+      const entry = specFor(item);
       return entry === undefined
         ? []
         : [{ alternatives: entry.alternatives, item }];

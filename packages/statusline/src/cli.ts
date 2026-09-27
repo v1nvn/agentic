@@ -2,13 +2,12 @@ import { parseQuietly } from '@v1nvn/agentic-core';
 import { Command } from 'commander';
 
 import pkg from '../package.json' with { type: 'json' };
-import { ITEMS } from './render/items.js';
+import { ITEM_IDS } from './render/items.js';
 
 export const VERSION = pkg.version;
 
 // The flag surface is the render registry's item ids — one registry, shared
 // with the data-dir renderer.
-const ITEM_IDS: readonly string[] = ITEMS.map(item => item.item);
 
 export type Subcommand =
   'catalog' | 'configure' | 'preview' | 'restore' | 'status';

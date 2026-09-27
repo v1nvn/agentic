@@ -8,7 +8,13 @@ import {
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { DEFAULT_LAYOUT, ITEMS } from './render/index.js';
+import {
+  DEFAULT_LAYOUT,
+  DEFAULT_PICKS,
+  ITEM_IDS,
+  ITEMS,
+  specFor,
+} from './render/index.js';
 import {
   backupPath,
   isOurMainCommand,
@@ -487,16 +493,12 @@ export function validateSelection(
   if (layout === undefined) {
     throw new Error('no layout — pass --layout <spec> or --theme <name>');
   }
-  layoutItems(
-    layout,
-    ITEMS.map(item => item.item),
-  );
-  const byItem = new Map(ITEMS.map(item => [item.item, item]));
+  layoutItems(layout, ITEM_IDS);
   for (const [item, alt] of Object.entries(options.variants ?? {})) {
-    const entry = byItem.get(item);
+    const entry = specFor(item);
     if (entry === undefined) {
       throw new Error(
-        `unknown item '${item}' — valid items: ${[...byItem.keys()].join(' ')}`,
+        `unknown item '${item}' — valid items: ${ITEM_IDS.join(' ')}`,
       );
     }
     if (!entry.alternatives.includes(alt)) {
@@ -507,27 +509,20 @@ export function validateSelection(
   }
 }
 
-const REGISTRY_BASE: Readonly<Record<string, string>> = Object.fromEntries(
-  ITEMS.map(({ default: def, item }) => [item, def]),
-);
-
 // A key records only the decisions that differ from the picks its base
 // already carries — registry defaults with the theme's variants over them;
 // the renderer resolves absent picks at paint.
 function decisionFlags(
   base: Readonly<Record<string, string>>,
   decisions: Readonly<Partial<Record<string, string>>>,
-  items: readonly { readonly item: string }[] = ITEMS,
 ): string[] {
-  return items.flatMap(({ item }) => {
+  return ITEMS.flatMap(({ item }) => {
     const pick = decisions[item];
     return pick === undefined || pick === base[item]
       ? []
       : [`--${item}=${pick}`];
   });
 }
-
-const STYLE_ITEM = ITEMS.filter(({ item }) => item === 'style');
 
 export function configure(options: ConfigureOptions): void {
   if (
@@ -543,25 +538,22 @@ export function configure(options: ConfigureOptions): void {
   validateSelection(options);
   const theme =
     options.theme === undefined ? undefined : themeNamed(options.theme, THEMES);
-  const base = { ...REGISTRY_BASE, ...theme?.variants };
+  const base = { ...DEFAULT_PICKS, ...theme?.variants };
   const decisions = options.variants ?? {};
   const baseLayout = theme?.layout ?? DEFAULT_LAYOUT;
   const layout =
     options.layout === undefined || options.layout === baseLayout
       ? null
       : options.layout;
+  const flags = decisionFlags(base, decisions);
   const plan = planSettings(
     options.home,
     {
-      statusLine: mainKeyValue(
-        options.theme ?? null,
-        layout,
-        decisionFlags(base, decisions),
-      ),
+      statusLine: mainKeyValue(options.theme ?? null, layout, flags),
       // The panel consumes one decision — style.
       subagentStatusLine: panelKeyValue(
         options.theme ?? null,
-        decisionFlags(base, decisions, STYLE_ITEM),
+        flags.filter(flag => flag.startsWith('--style=')),
       ),
     },
     options.force ?? false,

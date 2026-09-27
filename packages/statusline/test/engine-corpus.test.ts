@@ -21,6 +21,7 @@ import {
   ITEMS,
   renderStatusline as renderEngine,
 } from '../src/render/index.js';
+import { SEGMENTS } from '../src/render/segments.js';
 import {
   DEFAULT_NOW,
   NOW_AFTER_CACHE_EXPIRY,
@@ -356,6 +357,22 @@ describe('the src/render door', () => {
     expect(DEFAULT_LAYOUT).toBe(
       '{model effort state} {cwd branch status ahead pr} {bar tokens cache} {cost} {duration} {lines} {rate}',
     );
+  });
+
+  // style is the one registry item no layout paints — separators, not a
+  // segment. Every other registered alternative must have a renderer, or it
+  // would silently paint ''.
+  it('every registered alternative has a segment renderer', () => {
+    for (const { alternatives, item } of ITEMS) {
+      if (item === 'style') {
+        continue;
+      }
+      for (const alt of alternatives) {
+        expect(typeof SEGMENTS[item]?.[alt], `${item}=${alt}`).toBe(
+          'function',
+        );
+      }
+    }
   });
 
   it('omitting layout renders the same bytes as layout: DEFAULT_LAYOUT', () => {

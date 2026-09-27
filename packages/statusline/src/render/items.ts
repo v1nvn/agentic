@@ -69,6 +69,19 @@ export const ITEMS: readonly ItemSpec[] = [
 export const DEFAULT_LAYOUT =
   '{model effort state} {cwd branch status ahead pr} {bar tokens cache} {cost} {duration} {lines} {rate}';
 
+// The registry's lookup door — every module that asks "is this item known,
+// is this alt offered" comes through here, never a Map of its own.
+const BY_ITEM = new Map(ITEMS.map(spec => [spec.item, spec]));
+
+export function specFor(item: string): ItemSpec | undefined {
+  return BY_ITEM.get(item);
+}
+
+export const ITEM_IDS: readonly string[] = ITEMS.map(spec => spec.item);
+
+export const DEFAULT_PICKS: Readonly<Record<string, string>> =
+  Object.fromEntries(ITEMS.map(({ default: alt, item }) => [item, alt]));
+
 export const RUNG_ORDERS: Readonly<Partial<Record<string, readonly string[]>>> =
   {
     bar: ['flat', 'flat6', 'flat4', 'percent', 'none'],

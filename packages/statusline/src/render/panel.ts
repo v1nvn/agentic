@@ -1,6 +1,6 @@
 import { fmtK, fmtM } from './awk.js';
 import { stripSgr } from './engine.js';
-import { ITEMS } from './items.js';
+import { specFor } from './items.js';
 import { styleSeparators } from './segments.js';
 
 // The agent panel, ported exact from the bash subagent renderer it replaced —
@@ -120,7 +120,7 @@ function intValue(text: string): null | number {
 function stylePick(
   picks: Readonly<Record<string, string>> | undefined,
 ): string {
-  const spec = ITEMS.find(candidate => candidate.item === 'style');
+  const spec = specFor('style');
   if (spec === undefined) {
     return 'plain';
   }
