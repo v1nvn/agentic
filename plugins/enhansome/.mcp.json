@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "enhansome": {
+      "type": "http",
+      "url": "https://enhansome.xyz/mcp"
+    }
+  }
+}

@@ -1,11 +1,12 @@
 # agentic — rules
 
-A Claude Code plugin marketplace: `readability` and `omlx` (MCP servers) plus `rm`,
-`md`, `zai`, `tokens` (zero-token hook plugins), `statusline` (status line +
-agent panel), and `todo` (work tracking) — eight independently-installable plugins
-in one repo. The code lives in eight npm packages (`@v1nvn/*`) under `packages/`;
-each plugin directory is only a manifest plus config wrapper — `todo` is
-manifest + skills, no package.
+A Claude Code plugin marketplace: `readability` and `omlx` (local MCP servers) plus
+`enhansome` (hosted registry MCP server), `rm`, `md`, `zai`, `tokens` (zero-token
+hook plugins), `statusline` (status line + agent panel), and `todo` (work tracking) —
+nine independently-installable plugins in one repo. The code lives in eight npm
+packages (`@v1nvn/*`) under `packages/`; each plugin directory is only a manifest
+plus config wrapper — `enhansome` points its `.mcp.json` at the deployed server,
+and `todo` is manifest + skills, no package.
 
 ## Philosophy
 
@@ -54,7 +55,7 @@ name or shape wins.
 - **Scripts resolve binaries only from deps the workspace declares.** Each package
   declares the tools its scripts invoke (`vite`, `vitest`); the root declares the
   root-run tools (eslint stack, prettier, typescript).
-- **Eight independent plugins, one marketplace.** Never collapse them into a
+- **Nine independent plugins, one marketplace.** Never collapse them into a
   mega-plugin; each installs and runs on its own.
 - **statusline ships exactly one skill** — root `SKILL.md`, invoked by its
   bare short name `/lab` (the menu lists it namespaced as

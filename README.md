@@ -1,13 +1,15 @@
 # agentic
 
-Eight Claude Code plugins, installed independently from one marketplace. The code lives
-in eight npm packages (`@v1nvn/*`); each plugin directory is a thin manifest that runs
-its package through version-pinned `npx` — except todo: manifest + skills, no package.
+Nine Claude Code plugins, installed independently from one marketplace. The code lives
+in eight npm packages (`@v1nvn/*`); each plugin directory is a thin manifest — most run
+their package through version-pinned `npx`; `enhansome` is an HTTP MCP config pointing
+at the hosted registry server, and `todo` is manifest + skills, no package.
 
 | Plugin          | What it does                                                                                                                           | Invoke                                                |
 | --------------- | -------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
 | **readability** | Read a URL to clean Markdown via the readability MCP server. The host shell fetches with `curl`; the server never touches the network. | paste a URL, or "read this"                           |
 | **omlx**        | Delegate bulk work — commit messages, docstrings, summarization, extraction, image description — to a local omlx inference server.     | the agent routes on its own, or "ask the local model" |
+| **enhansome**   | Search the enhansome registry forest — curated registries and the repos they carry — via the hosted MCP server.                        | the agent routes on its own, or "search the registry" |
 | **rm**          | Beam the last reply to a reMarkable as EPUB.                                                                                           | `/rm:send`                                            |
 | **md**          | Send the last reply to a Markdown-Viewer as a `#share=` URL — editable or read-only.                                                   | `/md:edit`, `/md:view`                                |
 | **zai**         | Query GLM Coding Plan quota and usage.                                                                                                 | `/zai:usage`                                          |
@@ -20,7 +22,7 @@ its package through version-pinned `npx` — except todo: manifest + skills, no 
 ## Prerequisites
 
 - Claude Code
-- Node.js — every plugin runs its package through `npx`
+- Node.js — the package-backed plugins run through `npx`
 - A running [omlx](https://github.com/jundot/omlx) server on `127.0.0.1:6659`, for `omlx` (`omlx serve`)
 
 ## Install
@@ -29,7 +31,7 @@ Add the marketplace, then install any subset. Each plugin stands alone.
 
 ```sh
 claude plugin marketplace add v1nvn/agentic
-claude plugin install rm@agentic        # or: readability, omlx, md, zai, tokens, statusline, todo
+claude plugin install rm@agentic        # or: readability, omlx, enhansome, md, zai, tokens, statusline, todo
 ```
 
 Start Claude Code and run the command shown above for the plugin you installed.
@@ -133,8 +135,9 @@ packages/                           the eight npm packages — one yarn workspac
   core/                             @v1nvn/agentic-core — last-reply + text formatting, shared by the tools
   zai/  tokens/  rm/  md/           the tool CLIs (zai-usage, tokens-report, rm-send, md-send)
   statusline/                    the configure CLI + renderer — pure TS (@v1nvn/statusline)
-plugins/                            the eight plugins — manifests, skills, config wrappers; no code
+plugins/                            the nine plugins — manifests, skills, config wrappers; no code
   readability/  omlx/               .mcp.json (pinned npx) + plugin.json
+  enhansome/                        .mcp.json (hosted HTTP) + plugin.json
   zai/  tokens/  rm/  md/           hooks.json (pinned npx) + plugin.json + commands/
   statusline/                   root SKILL.md (see statusline above)
   todo/                         plugin.json + skills/ — the rules and six verbs, no package

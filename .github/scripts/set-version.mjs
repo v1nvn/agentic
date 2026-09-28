@@ -20,7 +20,8 @@ const MIRRORS = discover([
 ]);
 
 // Plugin configs invoke the published bins via npx; every @v1nvn/<pkg>@<version>
-// pin must ride the train with everything else.
+// pin must ride the train with everything else. A hosted HTTP config invokes
+// nothing from npm and carries no pin.
 const PINNED_CONFIGS = discover([
   'plugins/*/.mcp.json',
   'plugins/*/hooks/hooks.json',
@@ -150,7 +151,8 @@ if (check) {
     path => `${path}: ${readVersion(path)} != repo version ${repo}`,
   );
   for (const path of PINNED_CONFIGS) {
-    messages.push(pinDrift(path, repo, KNOWN, true));
+    const invokesNpm = /\b(?:npx|npm|yarn)\b/.test(readFileSync(path, 'utf8'));
+    messages.push(pinDrift(path, repo, KNOWN, invokesNpm));
   }
   for (const path of MD_SURFACES) {
     messages.push(pinDrift(path, repo, KNOWN, false));
