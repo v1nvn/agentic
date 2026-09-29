@@ -1,7 +1,6 @@
 ---
 name: handoff
-description: Produce the handoff that lets this session's work continue in a fresh session (here or in another repo). Updates this sitting's thread file and emits a short pointer prompt; otherwise emits a self-contained paste-into-fresh-session block. Use when the user says "handoff", "handoff prompt", "fresh new session", or is ending a session to continue the work elsewhere.
-argument-hint: (no args)
+description: Produce the handoff that lets this session's work continue in a fresh session (here or in another repo). Updates this sitting's thread file and emits a short pointer prompt when the work is a tracked thread; otherwise emits a self-contained paste-into-fresh-session block. Use when the user says "handoff", "handoff prompt", "fresh new session", or is ending a session to continue the work elsewhere.
 ---
 
 Load `/todo:rules` first — the thread-file and index shapes this handoff updates live there.

@@ -1,6 +1,6 @@
 ---
 name: read-url
-description: Fetch a live web URL and extract its main article to clean Markdown + metadata via the readability `extract` tool. Use whenever the user gives a URL and wants the page read, summarized, quoted, or converted to Markdown — e.g. "read this", "what does this page say", "summarize <url>", "grab the article at <url>". Fetches with curl and only falls back to a browser render when the static HTML is a JS shell.
+description: Fetch a live web URL and extract its main article to clean Markdown + metadata via the readability `extract` tool. Use whenever the user gives a URL and wants the page read, summarized, quoted, or converted to Markdown — e.g. "read this", "what does this page say", "summarize <url>", "grab the article at <url>". Use this even when the user only pastes a bare link.
 ---
 
 # Read a URL to Markdown
@@ -12,16 +12,18 @@ page HTML into the conversation; only the `localPath` crosses to `extract`.
 
 ## Flow
 
-1. **Fetch to a temp file** (host shell):
+1. **Fetch to a fresh temp dir** (host shell) — one per read, so parallel reads never
+   overwrite each other:
    ```
-   curl -fsSL -o /tmp/read-url.html '<URL>'
+   d=$(mktemp -d) && curl -fsSL -o "$d/page.html" '<URL>' && echo "$d"
    ```
+   Shell state does not carry between calls: write the printed dir in place of `$d` below.
    A curl failure (non-2xx status, connection refused, DNS) is a hard error — report it and
    stop. That is *not* "needs JS"; it's a dead fetch, and a browser won't save it.
 
 2. **Extract**, passing the path and the URL as origin context:
    - tool: `extract`
-   - args: `{ localPath: "/tmp/read-url.html", baseUrl: "<URL>", cache: true }`
+   - args: `{ localPath: "$d/page.html", baseUrl: "<URL>", cache: true }`
 
 3. **Branch on `diagnostics` from the result:**
 
@@ -40,10 +42,10 @@ page HTML into the conversation; only the `localPath` crosses to `extract`.
    1. `navigate_page` to `<URL>`; wait for network idle / load. Scroll to trigger lazy
       content if it still looks partial.
    2. `evaluate_script` returning `document.documentElement.outerHTML`, with its `filePath`
-      argument set to an absolute path (e.g. `/tmp/read-url-rendered.json`). The tool writes
-      the return value **as a JSON string literal**, not raw HTML — unwrap before extract:
+      argument set to `$d/rendered.json`. The tool writes the return value **as a JSON
+      string literal**, not raw HTML — unwrap before extract:
       ```
-      python3 -c 'import json,sys; open(sys.argv[2],"w").write(json.load(open(sys.argv[1])))' /tmp/read-url-rendered.json /tmp/read-url-rendered.html
+      python3 -c 'import json,sys; open(sys.argv[2],"w").write(json.load(open(sys.argv[1])))' "$d/rendered.json" "$d/rendered.html"
       ```
       Emit the path only, never the HTML.
    3. Re-run `extract` with the unwrapped `localPath` (same `baseUrl`, `cache: true`).

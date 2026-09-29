@@ -88,6 +88,10 @@ time, so it speaks only to that model.
 - **todo: `/todo:run` is the primary skill.** It is the battle-tested one; `rules` defines
   the progress-file shape `run` consumes, and every other todo skill stays in sync with
   both — a change to one lands in the others in the same change.
+- **Review a skill before creating or updating it.** Without installing it, read Anthropic's
+  skill-creator (`anthropics/claude-plugins-official`, `plugins/skill-creator/skills/skill-creator`)
+  with `gh`, review the surface against it and `references/skill-review.md`, and promote any
+  new class of finding into that reference.
 - **Size sampling `maxTokens` for thinking models.** Thinking counts toward the cap, so a
   ceiling tuned to the visible reply truncates it. Reply length belongs in the prompt, not the cap.
 
@@ -96,3 +100,5 @@ time, so it speaks only to that model.
 - **`references/npm-publishing.md`** — the release train, keyless publishing, and the one-time
   manual bootstrap a never-published package name needs. Read before cutting a release or
   adding a package.
+- **`references/skill-review.md`** — the skill and command review checklist, upstream rules
+  adapted to this repo. Read before creating or changing any `SKILL.md` or `commands/*.md`.

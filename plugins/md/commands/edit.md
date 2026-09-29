@@ -10,6 +10,4 @@ Run this exactly:
     npx -y @v1nvn/md@0.30.0
 
 Report the single status line it prints (e.g. "Opened in Markdown-Viewer (link copied).") —
-the page is opened in the browser and the link is copied to the clipboard. (A
-`UserPromptExpansion` hook normally intercepts `/md:edit` and runs this with **no model
-tokens**; this body is the fallback for when hooks are disabled.)
+the page is opened in the browser and the link is copied to the clipboard.

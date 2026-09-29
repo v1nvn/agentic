@@ -84,7 +84,7 @@ zero ANSI, agent-runnable:
 
 A healthy install prints:
 
-    node: on PATH (/Users/vineet/.local/share/mise/installs/node/26/bin/node)
+    node: on PATH (/usr/local/bin/node)
     renderer: current — 49c1950e148a
     statusLine: ours
     subagentStatusLine: ours — theme=lean
