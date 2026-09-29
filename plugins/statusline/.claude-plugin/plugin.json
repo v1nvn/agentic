@@ -1,7 +1,7 @@
 {
   "name": "statusline",
   "description": "Status line and agent-panel rows from a component library of pickable designs — the statusline CLI writes keys that paint through a TypeScript renderer synced into the plugin data dir",
-  "version": "0.30.0",
+  "version": "0.30.1",
   "author": {
     "name": "v1nvn",
     "email": "v1n@outlook.com"

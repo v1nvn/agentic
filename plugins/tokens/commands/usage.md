@@ -7,6 +7,6 @@ totals for the last 7 days, read from local Claude Code session transcripts.
 
 Run this exactly:
 
-    npx -y @v1nvn/tokens@0.30.0
+    npx -y @v1nvn/tokens@0.30.1
 
 Report the output it prints.
