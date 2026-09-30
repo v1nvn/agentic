@@ -13,8 +13,8 @@ stop and say so.
 
 The plan carries the work in the rules' progress-file shape: Goal, the Steps unit table
 (dependency order, close criteria, `model`, `review`), and its Plan section — reading
-lists, the enforcement inventory, PR grouping, open questions, audit list. This
-skill carries the loop. Where the plan is silent, derive from the repo and CLAUDE.md,
+lists, the enforcement inventory, run mechanics, stop rules, PR grouping, open
+questions, audit list. This skill carries the loop. Where the plan is silent, derive from the repo and CLAUDE.md,
 decide, and write the decision into the plan — inside the deviation law below.
 
 ## Deviations
@@ -29,21 +29,25 @@ single mechanical pick inside the plan's named scope proceeds and is written int
 
 ## Session frame
 
-The session is orchestrator, verifier and decision-maker only. The owner is not
-available during the run; there are no checkpoints. Every decision is written into the
-plan as it is made and reported in the final veto table. The plan file, with its
-scratch notes, is the resume record — a later session picks up from those alone;
-write no parallel run document. On resume, fold any scratch notes in first, then
-re-run the last landed unit's close criteria instead of trusting its row.
+The session is orchestrator, verifier and decision-maker only. The owner answers
+only what §Deviations posts. Every decision is written into the plan as it is made,
+into the section the pick affects (Steps, Plan, Design; open reviewer findings in
+Current state), never a log section — the veto table lives only in the final report.
+The plan file, with its scratch notes and ritual records, is the resume record — a
+later session picks up from those alone; write no parallel run document. On resume,
+fold any scratch notes in first, then re-run the last landed unit's close criteria
+instead of trusting its row.
 
 ## Models
 
 The plan names its models; this skill's defaults are the fallback.
 
-- A `**Run:**` line near the plan's top names the orchestrator model when the plan needs
-  one; without it, the launching session orchestrates. A session on a different model
-  than the line names says so before its first dispatch and continues — it cannot switch
-  itself; the owner launched it.
+- A `**Run:**` line near the plan's top names the orchestrator model when the plan
+  needs one, and may name one per range — `fable, opus orchestrating 2d.1–2d.3 and 3a`
+  names the model the owner launches for those units. Without it, the launching
+  session orchestrates. A session on a different model than the line names says so
+  before its first dispatch and continues — it cannot switch itself; the owner
+  launched it.
 - A `model` column on the Steps table names that unit's builder. The reviewer and test
   writer take the default whatever the cell says — a review reads a diff against the
   plan, it does not re-do the build. fable never builds: it is the orchestrator's
@@ -83,19 +87,26 @@ The plan names its models; this skill's defaults are the fallback.
      what it answered; a firing that answered nothing is a deviation. Iteration inside
      a unit uses scoped commands only. Where builds are slow, ration every run to the
      narrowest scope that answers the question.
-   - Any A/B ritual the plan names: record before, record after, land only on the
-     plan's landing rule (e.g. green count up with zero green→red); probes tune
-     against a frozen snapshot, never a live corpus. A ritual run already recorded for
-     the same base revision and invocation is not re-paid; a re-run is ordered only
-     when the recorded run's log shows environment failure — an anomalous verdict with
-     a clean log is a finding, not a re-run.
+   - Any A/B ritual the plan names: record before, record after — both records go to
+     `progress/.scratch/<slug>/`, the ritual-record folder the rules keep until the
+     thread closes — and land only on the plan's landing rule (e.g. green count up
+     with zero green→red); probes tune against a frozen snapshot, never a live
+     corpus. In a batch, the first item's baseline and log are checked before the
+     rest run — an environment failure stops the batch there. A ritual run already
+     recorded for the same base revision and invocation is not re-paid; a re-run is
+     ordered only when the recorded run's log shows environment failure — an
+     anomalous verdict with a clean log is a finding, not a re-run.
    - PR topology from the plan's grouping; default one branch and one PR at the end.
      Every `gh pr create` names its base explicitly. The run opens PRs; it never
      merges and never pushes to the default branch.
 5. Pre-flight picks. For every question the plan defers to the owner: re-verify the
    premise against the tree first — where the code already settled it, the code wins —
-   then pick by the plan's own evidence and CLAUDE.md. Post one short message listing
-   the picks (question, pick, reason) so the owner can interrupt, then proceed.
+   then send it through §Deviations' test. A mechanical pick inside the plan's named
+   scope is picked by the plan's own evidence and CLAUDE.md and written into the plan,
+   listed in one short message (question, pick, reason) so the owner can interrupt,
+   and the run proceeds; anything else is posted, and the run waits. A question the
+   plan dates to a unit ("ruled at 7") is raised when the run reaches that unit,
+   never at pre-flight — the evidence it needs does not exist at launch.
 6. Preconditions before the first dispatch: tree clean on the plan's base (the default
    branch when the plan names none) — when the prompt asks for a worktree, the run creates
    one on a new branch off that base and the check applies there; the gate green at the start; every unit on another
@@ -152,8 +163,8 @@ The plan names its models; this skill's defaults are the fallback.
    plan doesn't name tests, red-first rides in the builder's brief.
 2. Builder builds compiler/test-driven on the named files, writes no bridge code,
    leaves protected tests untouched, runs the full gate once, commits (one line, no
-   co-author trailer), appends to or opens the PR, writes its unit's notes to the
-   plan's scratch file, and writes what it learned into the sections of later units that owe it. A
+   co-author trailer), appends to or opens the PR, writes its unit's notes to its
+   per-worker scratch file under `progress/.scratch/`, and writes what it learned into the sections of later units that owe it. A
    deviation stops the builder before its commit: it reports the finding and the
    options, and nothing lands until the orchestrator answers.
 3. Where the enforcement inventory names checkables, a `sonnet` writes a scratchpad

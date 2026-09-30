@@ -17,10 +17,10 @@ A thread or unit that does not resolve: say so and stop.
 
 ## Checks
 
-1. **Shape.** Walk every clause of `/todo:rules` against each surface in scope — the index's sections and entry shape, entry context against the rules' test, a file for every entry that needs one and none for an entry that doesn't, the progress file's header, sections and Steps columns, one entry per file, pointers into `progress/` only, priorities on the ladder, no dates or anchors outside the places the rules allow.
+1. **Shape.** Walk every clause of `/todo:rules` against each surface in scope — the index's sections and entry shape, entry context against the rules' test, a file for every entry that needs one and none for an entry that doesn't, the progress file's header, sections and Steps columns, one entry per file, pointers into `progress/` only, priorities on the ladder, no dates or anchors outside the places the rules allow, no history section (`## Log` and the like) in a progress file.
 2. **Truth.** What the shapes cannot show:
    - the file contradicts itself — Current state, Next step or a step row against another part of the file, or against the code;
-   - scratch notes left unfolded in `progress/.scratch/`;
+   - scratch notes (`<slug>.md`, `<slug>-<unit>-<role>.md`) left unfolded in `progress/.scratch/` — the `<slug>/` ritual-record folder is excepted;
    - a next step waits on a date that has passed;
    - a pointer or reference names a file that moved or never existed;
    - a thread whose goal is met still sits in `progress/`;
