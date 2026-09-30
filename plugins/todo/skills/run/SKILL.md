@@ -24,8 +24,9 @@ that — mechanical or not — stops the run and is posted to the owner: no acce
 never a ruling made alone. Scope changes, contract or semantic changes, anything
 unnamed → post it and wait — a small early deviation compounds into places the plan
 never chose. The mechanical test for what must stop: a deviation that forces a second
-deviation to land, touches a file the plan doesn't name, or mints or splits a unit. A
-single mechanical pick inside the plan's named scope proceeds and is written into the plan.
+deviation to land, touches a file the plan doesn't name, or mints or splits a unit — except a
+builder's split at the line ceiling (§Workers), which proceeds. A single mechanical pick inside
+the plan's named scope proceeds and is written into the plan.
 
 ## Session frame
 
@@ -75,9 +76,9 @@ The plan names its models; this skill's defaults are the fallback.
    survive byte-for-byte, forbidden idioms, counts that must never rise) — into the
    plan's Steps table and Plan section, and commits. Nothing builds before they exist.
 3. Resolve the scope to an ordered unit list. Steps the plan marks trivial may bundle
-   into one unit with one-line commits each. A unit whose diff would pass the plan's
-   line ceiling is split before dispatch and the split written into the plan; a pure deletion is
-   exempt, because a tree that must stay green cannot lose a component in halves.
+   into one unit with one-line commits each. A row that carries unrelated risks — a coverage
+   change beside a money change — is split at hardening. A row's size is never guessed before
+   dispatch, because the orchestrator reads no source; the line ceiling is a stop inside the build.
 4. Derive the run mechanics:
    - Gate command(s) from the repo (type-check/lint/test/build, or a workspace-wide
      gate). Each unit's row may name its gate scope — the components it touches plus
@@ -140,6 +141,13 @@ The plan names its models; this skill's defaults are the fallback.
   re-writes the whole context at the write rate, and compaction would pay the same
   bill invisibly. The builder keeps that state file current — the step it has entered
   and when it next expects to be heard from — so a successor resumes cold.
+- The line ceiling counts inserted lines only: deletions, snapshots and moves git detects are
+  free (`git diff --shortstat -M -- ':!*.snap'`). A builder past it stops at the next green
+  point, saves the full patch, and splits along the row's own clauses: each half gates green
+  alone and adds no bridge code, and the first keeps no path the second deletes unless that
+  path is already in the tree, because a split that needs a bridge lands two paths. The split is
+  written into the plan and reported. With no such split — a rename, a rework that deletes the
+  old path — the unit lands whole and the report says why.
 - Workers report in a fixed format under ~20 lines: commit hash(es), gate tail,
   per-criterion proof, A/B verdict where the unit calls for one, deviations, surprises.
 - The orchestrator never opens a source file to understand it. It reads reports, gate
