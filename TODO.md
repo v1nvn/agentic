@@ -19,8 +19,6 @@
   The line engine (`src/render/engine.ts`, byte-counting `vlen`) and the panel engine (`src/render/panel.ts`, codepoint `vlen`, own fit ladder) are two faithful ports of two bash files. Wanted: one engine where unifying changes no rendered bytes — a deliberate re-baseline thread, never a side effect.
 - **Statusline — delete the old `@v1nvn/statusline-lab` npm name** · LOW
   Wanted: no version of `@v1nvn/statusline-lab` left on npm, so the package lives under one name, `@v1nvn/statusline`. `https://registry.npmjs.org/@v1nvn%2fstatusline-lab` shows what remains.
-- **Statusline — resolver release follow-through** · MEDIUM · [plugins/statusline, workflows]
-  After the resolver PR merges: dispatch `gh workflow run release.yml -f bump=patch` and watch prepare → release go green — the first dispatch proves the flow before any real cut. Then rerun `/lab` (or `npx -y @v1nvn/statusline@<new> configure --theme <current>`) on each existing install to swap the data-dir bundle for the resolver.
 
 ## Parked
 
