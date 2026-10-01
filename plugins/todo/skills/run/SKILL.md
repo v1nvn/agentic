@@ -46,28 +46,40 @@ instead of trusting its row.
 
 The plan names its models; this skill's defaults are the fallback.
 
-- A `**Run:**` line near the plan's top names the orchestrator model when the plan
-  needs one, and may name one per range — `fable, opus orchestrating 2d.1–2d.3 and 3a`
-  names the model the owner launches for those units. Without it, the launching
-  session orchestrates. A session on a different model than the line names says so
-  before its first dispatch and continues — it cannot switch itself; the owner
-  launched it.
-- A `model` column on the Steps table names that unit's builder. The reviewer and test
-  writer take the default whatever the cell says — a review reads a diff against the
-  plan, it does not re-do the build. fable never builds: it is the orchestrator's
-  model, and the cell names `opus`, `sonnet`, blank, or `owner` — a cell naming fable
-  is out of shape and hardening rewrites it to blank, posting the rewrite, because a
-  builder's bill is cache fees on its own context and fable's cache rates price the
-  same build at multiples of opus's. fable reaches a unit one way: the rescue — once
-  a unit's fix rounds are burned on the default, the orchestrator may re-dispatch it
-  to fable once, posting the pick. A blank cell is the default. A `review` column
-  tiers the reviewer: `blind` (the default), `checklist` (`sonnet`, the
-  unit's close criteria and the loop's checklist core), or `none` — which the plan
-  must justify in the pre-flight picks and the final veto table. `owner` marks a unit
-  the run does not do: it is skipped, its dependents stop at it, and the final report
-  lists it as owed.
-- Defaults: judgment roles (hardening, test-writing, building, reviewing, fixing) are
-  `opus`; extraction, scripts, re-measures, audits and web enumeration are `sonnet`.
+- A `**Run:**` line names the orchestrator model only when the owner launches one other
+  than the default; without it, the launching session orchestrates. A session on a
+  different model than the line names says so before its first dispatch and continues —
+  it cannot switch itself; the owner launched it.
+- A `model` column on the Steps table names that unit's builder: blank for the default,
+  `sonnet` for a row the plan marks mechanical (renames, deletions with named
+  replacements, doc sweeps) — its edits land in that unit's one commit, never their own —
+  or `owner` for a unit the run does not do: it is skipped, its dependents stop at it,
+  and the final report lists it as owed. The reviewer and test writer take the default
+  whatever the cell says — a review reads a diff against the plan, it does not re-do the
+  build. fable never builds: a builder's bill is cache
+  fees on its own context, every gate past five minutes re-writes it, and fable's cache
+  rates price the same build at multiples of opus's. A cell naming fable is out of shape
+  and hardening rewrites it to blank, posting the rewrite.
+- A `review` column tiers the reviewer: `blind` (the default), `checklist` (`sonnet`,
+  the unit's close criteria and the loop's checklist core), or `none` — which the plan
+  must justify in the pre-flight picks and the final veto table.
+- **Consult:** fable, read-only, one brief and one answer — it runs no build and no gate,
+  so it never idles past its cache. It reaches a unit three ways:
+  - **before dispatch**, on a row that leaves design open or will pass the line ceiling:
+    it reads the code the row names, rules the open picks and the split, and the
+    orchestrator writes them into the row before the builder sees it;
+  - **as a slice reviewer**, beside the unit's blind reviewer, over only the diff the
+    plan marks high-stakes (its silent-failure carriers, money) — a review that
+    re-runs gates over a whole diff idles past the cache at fable's rates, so the
+    rest of the diff stays with the default reviewer;
+  - **the rescue** — once a unit's fix rounds are burned on the default, the
+    orchestrator may re-dispatch it to fable once, posting the pick.
+    The plan marks a row's consults in a `consult` column (`design`, `split`, `review`,
+    comma-separated); the orchestrator may also consult on a question the plan does not
+    mark, one brief per question, logged in the veto table.
+- Defaults: judgment roles (orchestrating, hardening, test-writing, building, reviewing,
+  fixing) are `opus`; extraction, scripts, re-measures, audits and web enumeration are
+  `sonnet`.
 
 ## Open
 
@@ -82,8 +94,9 @@ The plan names its models; this skill's defaults are the fallback.
    cheap proxy; a measure that misses its bar reopens the design here, not mid-run.
 3. Resolve the scope to an ordered unit list. Steps the plan marks trivial may bundle
    into one unit with one-line commits each. A row that carries unrelated risks — a coverage
-   change beside a money change — is split at hardening. A row's size is never guessed before
-   dispatch, because the orchestrator reads no source; the line ceiling is a stop inside the build.
+   change beside a money change — is split at hardening. The orchestrator reads no source, so
+   it never guesses a row's size: a row the plan marks `split` takes its consult before
+   dispatch, and for any other the line ceiling is a stop inside the build.
 4. Derive the run mechanics:
    - Gate command(s) from the repo (type-check/lint/test/build, or a workspace-wide
      gate). Each unit's row may name its gate scope — the components it touches plus
@@ -196,10 +209,11 @@ The plan names its models; this skill's defaults are the fallback.
    never the builder's report; `checklist` (`sonnet`) gets the diff, the unit's close
    criteria and the checklist core below. A diff that crosses a silent-failure
    carrier (migrations, wire bodies, signatures) is reviewed blind whatever the row
-   says. Findings only, `file:line` with a severity, each claim verified before it
-   is called a defect. Checklist core: unasked deviation from the plan's tables;
-   every seam crossed with a non-degenerate value; the one-way rule (old path
-   deleted in the same change); a test weakened to pass; the comment rule; tracking
+   says. A row whose `consult` names `review` also takes a fable slice reviewer over the
+   diff the plan marks high-stakes (§Models). Findings only, `file:line` with a severity,
+   each claim verified before it is called a defect. Checklist core: unasked deviation
+   from the plan's tables; every seam crossed with a non-degenerate value; the one-way
+   rule (old path deleted in the same change); a test weakened to pass; the comment rule; tracking
    references in code; files touched outside the brief.
 5. Fix rounds go back to the builder by message, or to its successor under §Workers' idle
    rule: at most two. A round whose diff
