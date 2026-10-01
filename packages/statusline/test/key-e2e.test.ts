@@ -1,4 +1,10 @@
-import { existsSync, readFileSync, rmSync } from 'node:fs';
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -15,13 +21,18 @@ import {
 import {
   createHomes,
   keyArgv,
+  plantRendererRecord,
   settingsCommand,
   snapshotTree,
 } from './fixtures.js';
 import { DEFAULT_NOW, runRenderer } from './runtime.js';
 
-const P1 = fileURLToPath(new URL('../assets/payloads/p1.json', import.meta.url));
-const TICK = fileURLToPath(new URL('../assets/ticks/multi.json', import.meta.url));
+const P1 = fileURLToPath(
+  new URL('../assets/payloads/p1.json', import.meta.url),
+);
+const TICK = fileURLToPath(
+  new URL('../assets/ticks/multi.json', import.meta.url),
+);
 
 const homes = createHomes();
 
@@ -65,7 +76,9 @@ describe('configure on a scratch home (rulings 1 and 4)', () => {
 
     const lines = catalog({ home }).split('\n');
     expect(lines).toContain('model: plain | block* | pill | zen');
-    expect(lines).toContain('bar: flat | gauge* | percent | none | flat6 | flat4');
+    expect(lines).toContain(
+      'bar: flat | gauge* | percent | none | flat6 | flat4',
+    );
   });
 
   it('a theme write carries the panel key too', () => {
@@ -82,6 +95,10 @@ describe('a theme write through the real node renderer', () => {
   it('both --theme=lean keys paint lean — the line dots-separated with a percent bar, the panel row dots-separated with its context percent', () => {
     const home = homes.newHome();
     configure({ home, theme: 'lean' });
+    plantRendererRecord(home, {
+      lastUpdated: '2026-01-01T00:00:00Z',
+      version: '1.2.3',
+    });
     const payload = readFileSync(P1, 'utf8');
 
     const mainKey = settingsCommand(home, 'statusLine');
@@ -125,20 +142,26 @@ describe('the written keys through the real node renderer (host-fact pin)', () =
       layout: '{model effort}',
       variants: { effort: 'dim', model: 'block' },
     });
+    plantRendererRecord(home, {
+      lastUpdated: '2026-01-01T00:00:00Z',
+      version: '1.2.3',
+    });
     const stdin = readFileSync(P1, 'utf8');
 
     const painted = runKey(settingsCommand(home, 'statusLine'), home, stdin);
 
     expect(painted.status).toBe(0);
     expect(painted.stdout.trim(), 'rendered statusline line').not.toBe('');
-    expect(readFileSync(capturePath(home, 'main'))).toEqual(
-      Buffer.from(stdin),
-    );
+    expect(readFileSync(capturePath(home, 'main'))).toEqual(Buffer.from(stdin));
   });
 
   it('the panel key emits one JSON row per identified task', () => {
     const home = homes.newHome();
     configure({ home, theme: 'quiet' });
+    plantRendererRecord(home, {
+      lastUpdated: '2026-01-01T00:00:00Z',
+      version: '1.2.3',
+    });
 
     const painted = runKey(
       settingsCommand(home, 'subagentStatusLine'),
@@ -159,6 +182,58 @@ describe('the written keys through the real node renderer (host-fact pin)', () =
     configure({ home, theme: 'lean' });
     rmSync(renderMjsPath(home));
     expect(existsSync(renderMjsPath(home))).toBe(false);
+
+    const swept = runKey(settingsCommand(home, 'statusLine'), home, '{}\n');
+
+    expect(swept.status).not.toBe(0);
+    expect(swept.stdout).toBe('');
+  });
+});
+
+describe('the deployed resolver through the written key (r2)', () => {
+  it("paints the install record's renderer — and a newer record repoints the paint", () => {
+    const home = homes.newHome();
+    configure({ home, theme: 'lean' });
+    plantRendererRecord(home, {
+      lastUpdated: '2026-01-01T00:00:00Z',
+      version: '1.2.3',
+    });
+    const key = settingsCommand(home, 'statusLine');
+    const payload = readFileSync(P1, 'utf8');
+
+    const painted = runKey(key, home, payload);
+
+    expect(painted.status).toBe(0);
+    expect(painted.stdout.trim()).not.toBe('');
+
+    const alt = join(home, 'alt-install');
+    mkdirSync(alt, { recursive: true });
+    writeFileSync(
+      join(alt, 'render.mjs'),
+      "process.stdout.write('alt install\\n');\n",
+    );
+    plantRendererRecord(home, {
+      installPath: alt,
+      lastUpdated: '2026-02-01T00:00:00Z',
+      version: '2.0.0',
+    });
+
+    const repointed = runKey(key, home, payload);
+
+    expect(repointed.status).toBe(0);
+    expect(repointed.stdout).toBe('alt install\n');
+  });
+
+  it('a record whose installPath carries no render.mjs paints nothing and exits non-zero', () => {
+    const home = homes.newHome();
+    configure({ home, theme: 'lean' });
+    const bare = join(home, 'no-render');
+    mkdirSync(bare, { recursive: true });
+    plantRendererRecord(home, {
+      installPath: bare,
+      lastUpdated: '2026-01-01T00:00:00Z',
+      version: '9.9.9',
+    });
 
     const swept = runKey(settingsCommand(home, 'statusLine'), home, '{}\n');
 

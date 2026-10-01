@@ -34,15 +34,17 @@ export interface ConfigureOptions {
   readonly variants?: Readonly<Record<string, string>>;
 }
 
-// The renderer the settings keys spawn, as vite emits it beside the CLI bundle.
-// ../dist resolves to the package's dist/ from both src/ (tests) and the
-// bundled dist/index.js — both sit one level below dist/.
+// The renderer and the resolver vite emits beside the CLI bundle; ../dist
+// resolves from both src/ (tests) and the bundled dist/index.js.
 export const BUNDLED_RENDERER = fileURLToPath(
   new URL('../dist/render.mjs', import.meta.url),
 );
+export const BUNDLED_RESOLVER = fileURLToPath(
+  new URL('../dist/resolver.mjs', import.meta.url),
+);
 
-export function syncRenderer(home: string): void {
-  const source = readFileSync(BUNDLED_RENDERER);
+export function syncResolver(home: string): void {
+  const source = readFileSync(BUNDLED_RESOLVER);
   const dest = renderMjsPath(home);
   if (existsSync(dest) && readFileSync(dest).equals(source)) {
     return;
@@ -488,5 +490,5 @@ export function configure(options: ConfigureOptions): void {
     writeBackupIfAbsent(options.home, plan);
   }
   commitSettings(plan);
-  syncRenderer(options.home);
+  syncResolver(options.home);
 }

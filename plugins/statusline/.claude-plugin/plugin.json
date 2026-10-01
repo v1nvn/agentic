@@ -1,6 +1,6 @@
 {
   "name": "statusline",
-  "description": "Status line and agent-panel rows from a component library of pickable designs — the statusline CLI writes keys that paint through a TypeScript renderer synced into the plugin data dir",
+  "description": "Status line and agent-panel rows from a component library of pickable designs — the statusline CLI writes keys that spawn a resolver in the plugin data dir, which imports the renderer shipped in the plugin",
   "version": "0.30.8",
   "author": {
     "name": "v1nvn",

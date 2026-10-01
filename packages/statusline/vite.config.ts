@@ -1,10 +1,10 @@
 import { configDefaults, defineConfig } from 'vitest/config';
 
-// One config, two build modes, both run by `yarn build`. The renderer is ONE
-// self-contained file — configure syncs render.mjs alone into the data dir
-// where the settings keys spawn it — so it shares no chunk with the CLI and
-// is built in its own pass (`--mode render`). The CLI builds the default way
-// and inlines the engine it now renders through in-process.
+// One config, two build modes, both run by `yarn build`. The render pass
+// emits two standalone entries the data dir and the plugin dir carry: the
+// resolver the keys spawn, and the renderer it imports. Neither shares a
+// chunk with the CLI, which builds the default way and inlines the engine it
+// renders through in-process.
 export default defineConfig(({ mode }) => {
   const common = {
     outDir: 'dist',
@@ -16,8 +16,7 @@ export default defineConfig(({ mode }) => {
     ssr: true,
     // `bin` (dist/index.js) is exec'd by the kernel; without a shebang the OS
     // runs it under /bin/sh and `npx statusline` dies parsing `import`. The
-    // render entry only ever runs as `node render.mjs`, where the banner is
-    // inert — one banner rule covers both.
+    // render entries only ever run under `node`, where the banner is inert.
     banner: (chunk: { isEntry: boolean }) =>
       chunk.isEntry ? '#!/usr/bin/env node' : '',
   };
@@ -30,8 +29,11 @@ export default defineConfig(({ mode }) => {
         ssr: common.ssr,
         emptyOutDir: false,
         rollupOptions: {
-          input: { render: 'src/render/entry.ts' },
-          output: { banner: common.banner, entryFileNames: 'render.mjs' },
+          input: {
+            render: 'src/render/entry.ts',
+            resolver: 'src/render/resolver.ts',
+          },
+          output: { banner: common.banner, entryFileNames: '[name].mjs' },
         },
       },
     };

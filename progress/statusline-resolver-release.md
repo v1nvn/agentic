@@ -116,7 +116,8 @@ module-scope `await main()` — importable only in a child process),
    description: "…keys that spawn a resolver in the plugin data dir, which
    imports the renderer shipped in the plugin".
 8. **Docs, rewritten in place**: `packages/statusline/README.md` (:3-6, :40,
-   :43, :55-61, modules table gains resolver + install-record rows, :96-99,
+   :43, :55-61 (Develop block), modules table :65-92 gains resolver +
+   install-record rows, :96-99,
    :100-103 — keep the command bytes, replace "no glob resolver, no
    plugin-cache coupling" with the resolver semantics, :114-116, :119-120);
    root `README.md` (:71-73, :80-81 bytes unchanged with resolver prose,
@@ -154,6 +155,11 @@ module-scope `await main()` — importable only in a child process),
    re-trigger `on: push`; the same run is the only publisher.
 3. **`test.yml`**: after `yarn build`, `git diff --exit-code
    plugins/statusline/render.mjs` — the stale-artifact enforcer.
+   (Unit 1 verified: the package's render pass emits `dist/render.mjs` +
+   `dist/resolver.mjs` with no shared chunk, and the trailing root-build `cp`
+   is byte-deterministic across clean rebuilds — the drift gate cannot
+   false-positive. The prepare job's `git add -A` carries the synced artifact
+   with the version bumps; `dist/` stays gitignored.)
 4. **`references/npm-publishing.md`** train section: dispatch flow (prepare →
    publish at the pushed sha; plain push publishes the current version;
    manual `set-version.mjs <version>` remains for local cuts).

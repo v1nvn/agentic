@@ -1,9 +1,7 @@
-import { createHash } from 'node:crypto';
-import { existsSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, statSync } from 'node:fs';
 import { delimiter, join } from 'node:path';
 
 import {
-  BUNDLED_RENDERER,
   isOurMember,
   memberCommand,
   parseSettings,
@@ -14,6 +12,7 @@ import {
 } from './configure.js';
 import { DATA_DIR } from './render/capture.js';
 import { specFor } from './render/index.js';
+import { resolveInstall } from './render/install-record.js';
 import { layoutItemsOf } from './render/layout.js';
 import {
   capturePath,
@@ -59,8 +58,6 @@ function keyRow(key: SettingsKey, state: KeyState, detail = ''): string {
   return `${key}: foreign${state.command === null ? '' : ` (${state.command})`} — fix: rerun configure --force --theme classic`;
 }
 
-// A layout-less key (the theme or the default carries its layout) still has
-// its flagged decisions to show and check.
 function keyItems(config: ScriptConfig): readonly string[] {
   const layout = config.layout === null ? [] : layoutItemsOf(config.layout);
   return [...new Set([...layout, ...Object.keys(config.values)])];
@@ -136,51 +133,37 @@ export function nodeOnPath(pathVar: string): null | string {
   return found ?? null;
 }
 
-export function rendererHash(bytes: Buffer): string {
-  return createHash('sha256').update(bytes).digest('hex').slice(0, 12);
-}
-
 type RendererState =
-  | { readonly cli: string; readonly data: string; readonly kind: 'stale' }
-  | { readonly hash: string; readonly kind: 'current' }
   | { readonly kind: 'missing' }
-  | { readonly kind: 'no-bundle' };
+  | { readonly kind: 'resolves'; readonly version: string }
+  | { readonly kind: 'unresolved'; readonly reason: string };
 
 function rendererState(home: string): RendererState {
-  if (!existsSync(BUNDLED_RENDERER)) {
-    return { kind: 'no-bundle' };
-  }
-  const cli = readFileSync(BUNDLED_RENDERER);
-  const dataFile = renderMjsPath(home);
-  if (!existsSync(dataFile)) {
+  if (!existsSync(renderMjsPath(home))) {
     return { kind: 'missing' };
   }
-  const data = readFileSync(dataFile);
-  const hash = rendererHash(data);
-  return hash === rendererHash(cli)
-    ? { hash, kind: 'current' }
-    : { cli: rendererHash(cli), data: hash, kind: 'stale' };
+  const record = resolveInstall(home);
+  return record.kind === 'resolved'
+    ? { kind: 'resolves', version: record.version }
+    : { kind: 'unresolved', reason: record.reason };
 }
 
-function rendererRow(state: RendererState): string {
-  if (state.kind === 'current') {
-    return `renderer: current — ${state.hash}`;
+function rendererRow(state: RendererState, theme: string): string {
+  if (state.kind === 'resolves') {
+    return `renderer: resolves → ${state.version}`;
   }
-  // --force so the fix also completes on a home holding foreign keys.
-  if (state.kind === 'stale') {
-    return `renderer: stale — data ${state.data}, this CLI ${state.cli} — fix: rerun configure --force --theme classic`;
+  if (state.kind === 'missing') {
+    // --force so the fix also completes on a home holding foreign keys.
+    return `renderer: missing — fix: rerun configure --force --theme ${theme}`;
   }
-  if (state.kind === 'no-bundle') {
-    return 'renderer: this CLI ships no render.mjs — fix: rerun /lab to refresh the CLI';
-  }
-  return 'renderer: missing — fix: rerun configure --force --theme classic';
+  return `renderer: unresolved — ${state.reason} — fix: claude plugin install statusline@agentic`;
 }
 
-function configRow(findings: readonly DriftFinding[]): string {
+function configRow(findings: readonly DriftFinding[], theme: string): string {
   if (findings.length === 0) {
     return 'config: no drift';
   }
-  return `config: drift — ${findings.map(findingText).join(', ')} — fix: rerun configure --theme classic`;
+  return `config: drift — ${findings.map(findingText).join(', ')} — fix: rerun configure --theme ${theme}`;
 }
 
 function backupRow(home: string): string {
@@ -245,6 +228,7 @@ export function status(options: StatusOptions): StatusResult {
   const main = keyState('statusLine', members.statusLine);
   const subagent = keyState('subagentStatusLine', members.subagentStatusLine);
   const config = readKeyConfig(options.home);
+  const theme = config.theme ?? 'classic';
   const panelConfig = parsePanelCommand(
     memberCommand(members.subagentStatusLine),
   );
@@ -256,16 +240,18 @@ export function status(options: StatusOptions): StatusResult {
     node === null
       ? 'node: missing — fix: install node ≥ 18 from nodejs.org, then restart Claude Code'
       : `node: on PATH (${node})`,
-    rendererRow(renderer),
+    rendererRow(renderer, theme),
     keyRow('statusLine', main, configDetail(config)),
     keyRow('subagentStatusLine', subagent, panelDetail(panelConfig)),
-    ...(main.kind === 'ours' ? [configRow(findings), ...themeRow(config)] : []),
+    ...(main.kind === 'ours'
+      ? [configRow(findings, theme), ...themeRow(config)]
+      : []),
     backupRow(options.home),
     capturesRow(options.home),
   ];
   const healthy =
     node !== null &&
-    renderer.kind === 'current' &&
+    renderer.kind === 'resolves' &&
     main.kind === 'ours' &&
     subagent.kind === 'ours' &&
     findings.length === 0;

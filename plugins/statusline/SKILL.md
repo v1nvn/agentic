@@ -85,7 +85,7 @@ zero ANSI, agent-runnable:
 A healthy install prints:
 
     node: on PATH (/usr/local/bin/node)
-    renderer: current — 49c1950e148a
+    renderer: resolves → 0.30.8
     statusLine: ours
     subagentStatusLine: ours — theme=lean
     config: no drift
@@ -98,9 +98,10 @@ When the key carries `--theme`, a `theme: <name>` row sits right after the
 config row, swaps appended — `theme: lean +bar=gauge`; a swap keeps the name.
 Exit 0 on `healthy`, 1 on `unhealthy` — branch on it: 0 ends the check; 1
 means read the rows, each naming a fix that runs exactly as printed: a
-foreign key or a stale/missing renderer takes
+foreign key or a missing renderer takes
 `rerun configure --force --theme classic`; an absent key or a drifted
-variant takes `rerun configure --theme classic`. Run it right after
-configuring, and after a version bump — the renderer row reads `stale` until
-the next `configure` rerun syncs the new bundle, and the config row names any
-item or variant the registry no longer offers.
+variant takes `rerun configure --theme classic` — both fixes carry the key's
+own theme when it names one; an unresolved renderer takes
+`claude plugin install statusline@agentic`. Run it right after configuring —
+the renderer row names the version the install record resolves to, and the
+config row names any item or variant the registry no longer offers.

@@ -11,6 +11,7 @@ import {
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 
+import { BUNDLED_RENDERER } from '../src/configure.js';
 import { DATA_DIR } from '../src/render/capture.js';
 
 export { THEMES } from '../src/themes.js';
@@ -52,6 +53,48 @@ export function writeCapture(
   writeFileSync(file, '{}\n');
   const at = new Date(Date.now() - ageMs);
   utimesSync(file, at, at);
+}
+
+export interface RendererRecordSeed {
+  readonly installPath?: string;
+  readonly lastUpdated: string;
+  readonly version: string;
+}
+
+// Claude Code's install record (v2 shape) — the entries status resolves and
+// the deployed resolver imports. Explicit call sites only: configure and
+// newHome never plant, so a test that forgets to plant reads unresolved, the
+// state a real home without the plugin paints.
+export function plantRendererRecord(
+  home: string,
+  seed: RendererRecordSeed,
+): void {
+  const file = join(home, '.claude', 'plugins', 'installed_plugins.json');
+  const entries = plantedEntries(file);
+  entries.push({
+    installPath: seed.installPath ?? dirname(BUNDLED_RENDERER),
+    installedAt: seed.lastUpdated,
+    lastUpdated: seed.lastUpdated,
+    version: seed.version,
+  });
+  mkdirSync(dirname(file), { recursive: true });
+  writeFileSync(
+    file,
+    `${JSON.stringify({ plugins: { 'statusline@agentic': entries } }, null, 2)}\n`,
+  );
+}
+
+function plantedEntries(file: string): unknown[] {
+  try {
+    const planted = (
+      JSON.parse(readFileSync(file, 'utf8')) as {
+        plugins?: { readonly ['statusline@agentic']?: unknown };
+      }
+    ).plugins?.['statusline@agentic'];
+    return Array.isArray(planted) ? [...planted] : [];
+  } catch {
+    return [];
+  }
 }
 
 export function snapshotTree(root: string): Record<string, Buffer> {
@@ -103,9 +146,7 @@ export function keyArgv(key: string, home: string): readonly string[] {
   }
   const argv = words
     .filter(word => word !== '||' && word !== 'true')
-    .map(word =>
-      word.replace(/^"(.*)"$/, '$1').replace(/^\$HOME/, home),
-    );
+    .map(word => word.replace(/^"(.*)"$/, '$1').replace(/^\$HOME/, home));
   if (argv[0] !== 'node') {
     throw new Error(`key does not spawn node: ${key}`);
   }
