@@ -10,9 +10,9 @@ User-facing docs: [root README](../../README.md).
 ## Install
 
 ```bash
-npm install @v1nvn/readability-mcp@0.30.8
+npm install @v1nvn/readability-mcp@0.30.9
 # or run on demand:
-npx @v1nvn/readability-mcp@0.30.8
+npx @v1nvn/readability-mcp@0.30.9
 ```
 
 Requires Node >= 22. Build from source:
@@ -57,7 +57,7 @@ Add to your MCP client config (Claude Code, Claude Desktop, etc.):
   "mcpServers": {
     "readability": {
       "command": "npx",
-      "args": ["-y", "@v1nvn/readability-mcp@0.30.8"]
+      "args": ["-y", "@v1nvn/readability-mcp@0.30.9"]
     }
   }
 }
