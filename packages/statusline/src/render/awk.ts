@@ -50,6 +50,16 @@ export function pad2(n: number): string {
   return String(n).padStart(2, '0');
 }
 
+export function fmtDuration(minutes: number): string {
+  if (minutes < 60) {
+    return `${minutes}m`;
+  }
+  if (minutes < 1440) {
+    return `${Math.trunc(minutes / 60)}h${pad2(minutes % 60)}m`;
+  }
+  return `${Math.trunc(minutes / 1440)}d${pad2(Math.trunc(minutes / 60) % 24)}h`;
+}
+
 export function fmtK(n: number, d: number): string {
   return `${fmtFixed(n / 1000, d)}k`;
 }

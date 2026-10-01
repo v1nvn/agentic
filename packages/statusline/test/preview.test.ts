@@ -232,12 +232,13 @@ describe('renderPreview: both surfaces from one resolution', () => {
     expect(line).toContain('73%');
     expect(line).toContain('⚡86%');
     expect(line).toContain('$12.34');
-    expect(line).toContain('82m05s');
+    expect(line).toContain('1h22m');
     expect(line).not.toContain('█');
     expect(panel).toContain('Scraper');
     expect(panel).toContain('Sonnet [1m]');
     expect(panel).toContain('42%');
-    expect(panel).toContain('1m30s');
+    expect(panel).toContain('1m');
+    expect(panel).not.toContain('m30s');
     expect(panel).toContain('████░░░░░░');
     expect(panel).not.toContain(SAMPLE_MODEL);
   });

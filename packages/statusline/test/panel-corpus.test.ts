@@ -41,7 +41,7 @@ function row(tick: Loose, id: string): Loose {
 // Widths sit on measured rung boundaries of the bash ladder (AVAIL =
 // columns - 1): each pinned row's visible length equals AVAIL exactly at
 // the widths marked `==`.
-const PANEL_CORPUS: readonly PanelCase[] = [
+export const PANEL_CORPUS: readonly PanelCase[] = [
   { name: 'multi-default' },
   { name: 'multi-cols-80', columns: 80 },
   { name: 'multi-cols-56', columns: 56 }, // explore DURD 55 ==

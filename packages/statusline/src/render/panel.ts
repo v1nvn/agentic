@@ -1,4 +1,4 @@
-import { fmtK, fmtM, pad2 } from './awk.js';
+import { fmtDuration, fmtK, fmtM } from './awk.js';
 import { stripModelSuffix, stripSgr, warn } from './engine.js';
 import { specFor } from './items.js';
 import { isRecord, jqText, orElse, tsvEscape } from './jq.js';
@@ -150,7 +150,7 @@ function duration(startText: string, now: number): string {
   if (elapsed < 0) {
     return '';
   }
-  return `${Math.trunc(elapsed / 60)}m${pad2(Math.trunc(elapsed % 60))}s`;
+  return fmtDuration(Math.trunc(elapsed / 60));
 }
 
 function rowFormats(fields: TaskFields, now: number): RowFormats {

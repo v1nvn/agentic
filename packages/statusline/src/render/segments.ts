@@ -1,7 +1,7 @@
 import type { GitFacts } from './git.js';
 import type { Row } from './payload.js';
 
-import { fmtFixed, fmtK, fmtM, pad2 } from './awk.js';
+import { fmtDuration, fmtFixed, fmtK, fmtM, pad2 } from './awk.js';
 
 export interface SegmentInput {
   readonly git: GitFacts;
@@ -431,12 +431,15 @@ function costBurn(input: SegmentInput): string {
 }
 
 function durationClock({ row }: SegmentInput): string {
-  return `${trunc(row.durationMs / 60000)}m${pad2(trunc((row.durationMs % 60000) / 1000))}s`;
+  return fmtDuration(trunc(row.durationMs / 60000));
 }
 
 function durationHours({ row }: SegmentInput): string {
   const m = trunc(row.durationMs / 60000);
-  return `${trunc(m / 60)}h${pad2(m % 60)}m`;
+  if (m < 1440) {
+    return `${trunc(m / 60)}h${pad2(m % 60)}m`;
+  }
+  return `${trunc(m / 1440)}d${pad2(trunc(m / 60) % 24)}h${pad2(m % 60)}m`;
 }
 
 function linesDiffstat({ row }: SegmentInput): string {

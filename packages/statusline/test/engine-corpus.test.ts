@@ -46,6 +46,10 @@ function setPct(payload: Loose, pct: number): void {
   (payload.context_window as Loose).used_percentage = pct;
 }
 
+function setDuration(payload: Loose, m: number): void {
+  (payload.cost as Loose).total_duration_ms = m * 60000;
+}
+
 function setFuse(
   payload: Loose,
   ttl: null | string,
@@ -86,7 +90,7 @@ function bracketModel(payload: Loose): void {
 
 // Oracle cases ({item} one-item layouts) store the segment without the
 // trailing newline the emit adds; full-line cases store exact stdout.
-const CORPUS: readonly CorpusCase[] = [
+export const CORPUS: readonly CorpusCase[] = [
   { name: 'p1-default', payload: 'p1' },
   { name: 'p2-default', payload: 'p2' },
   { name: 'p3-default', payload: 'p3' },
@@ -122,6 +126,26 @@ const CORPUS: readonly CorpusCase[] = [
       layout: '{bar}',
       picks: { bar: 'flat' },
       mutate: payload => setPct(payload, pct),
+    }),
+  ),
+  ...[0, 42, 2847, 3087].map(
+    (m): CorpusCase => ({
+      name: `ramp-clock-m${m}`,
+      payload: 'p1',
+      oracle: true,
+      layout: '{duration}',
+      picks: { duration: 'clock' },
+      mutate: payload => setDuration(payload, m),
+    }),
+  ),
+  ...[42, 3087].map(
+    (m): CorpusCase => ({
+      name: `ramp-hours-m${m}`,
+      payload: 'p1',
+      oracle: true,
+      layout: '{duration}',
+      picks: { duration: 'hours' },
+      mutate: payload => setDuration(payload, m),
     }),
   ),
   ...(
