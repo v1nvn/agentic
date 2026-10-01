@@ -137,6 +137,18 @@ function rewritePins(path, version) {
   writeFileSync(path, updated);
 }
 
+function apply(version) {
+  for (const path of [SOURCE, ...MIRRORS]) {
+    writeVersion(path, version);
+  }
+  for (const path of [...PINNED_CONFIGS, ...MD_SURFACES]) {
+    rewritePins(path, version);
+  }
+  console.log(
+    `${[SOURCE, ...MIRRORS].length} manifests, ${PINNED_CONFIGS.length} config pins, ${MD_SURFACES.length} md npx surfaces now at ${version}`,
+  );
+}
+
 // Pins invoke npm packages, so the valid names are the scoped ones — plugin
 // manifests carry bare short names that must not leak into the comparison.
 const KNOWN = new Set(
@@ -144,8 +156,8 @@ const KNOWN = new Set(
     .filter(name => name.startsWith('@v1nvn/')),
 );
 
-const check = process.argv[2] === '--check';
-if (check) {
+const [command, argument] = process.argv.slice(2);
+if (command === '--check') {
   const repo = readVersion(SOURCE);
   const messages = MIRRORS.filter(path => readVersion(path) !== repo).map(
     path => `${path}: ${readVersion(path)} != repo version ${repo}`,
@@ -165,16 +177,26 @@ if (check) {
   process.exit(0);
 }
 
-const version = process.argv[2];
-if (!SEMVER.test(version ?? '')) {
-  fail([`usage: set-version.mjs --check | set-version.mjs <semver> — got "${version ?? ''}"`]);
+if (command === '--bump') {
+  const steps = ['major', 'minor', 'patch'];
+  const index = steps.indexOf(argument);
+  if (index === -1) {
+    fail([
+      `usage: set-version.mjs --bump <${steps.join('|')}> — got "${argument ?? ''}"`,
+    ]);
+  }
+  const current = readVersion(SOURCE);
+  const triple = /^(\d+)\.(\d+)\.(\d+)$/.exec(current);
+  if (!triple) {
+    fail([`${SOURCE}: ${current} is not a plain X.Y.Z version`]);
+  }
+  const parts = triple.slice(1).map(Number);
+  parts[index] += 1;
+  apply(parts.map((part, i) => (i > index ? 0 : part)).join('.'));
+} else if (SEMVER.test(command ?? '')) {
+  apply(command);
+} else {
+  fail([
+    `usage: set-version.mjs --check | set-version.mjs --bump <major|minor|patch> | set-version.mjs <semver> — got "${command ?? ''}"`,
+  ]);
 }
-for (const path of [SOURCE, ...MIRRORS]) {
-  writeVersion(path, version);
-}
-for (const path of [...PINNED_CONFIGS, ...MD_SURFACES]) {
-  rewritePins(path, version);
-}
-console.log(
-  `${[SOURCE, ...MIRRORS].length} manifests, ${PINNED_CONFIGS.length} config pins, ${MD_SURFACES.length} md npx surfaces now at ${version}`,
-);

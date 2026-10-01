@@ -10,20 +10,23 @@ pushes `chore(release): vX.Y.Z`, publishes every package, and tags that sha.
 
 ## Current state
 
-Plan approved (## Plan); nothing implemented. Every existing install — the
-owner machine included — still paints the copied bundle in the data dir; after
-unit 1's release installs, each needs one manual `configure` rerun to swap it
-for the resolver (Migration, in ## Plan).
+Unit 1 landed (`0669d6f`): the resolver deploys to the data dir, imports the
+renderer from the committed plugin `render.mjs` through the install record,
+and `status` reports `resolves → <version>` — 339 tests green, enforcement
+green, artifact sync proven by clean rebuild. Unit 2 (release dispatch) is
+next. Every existing install still paints the pre-resolver bundle until one
+manual `configure` rerun after the next release installs (Migration, in
+## Plan).
 
 ## Next step
 
-Run unit 1: `/todo:run progress/statusline-resolver-release.md`.
+Run unit 2: R1a — release dispatch.
 
 ## Steps
 
 | id | unit | model | review | close criteria |
 | --- | --- | --- | --- | --- |
-| 1 | R2 — resolver-deployed renderer | | checklist | Root `yarn build` syncs a committed `plugins/statusline/render.mjs` (`git diff --exit-code` clean); `configure` writes `dist/resolver.mjs` bytes to the data-dir `render.mjs`; the key-e2e door test paints `alt install` after the planted install record repoints; `yarn workspace @v1nvn/statusline test`, `yarn typecheck`, `yarn lint`, `set-version.mjs --check` green. Commit `feat(statusline): resolve the renderer from the installed plugin`. |
+| 1 | R2 — resolver-deployed renderer | | checklist | Root `yarn build` syncs a committed `plugins/statusline/render.mjs` (`git diff --exit-code` clean); `configure` writes `dist/resolver.mjs` bytes to the data-dir `render.mjs`; the key-e2e door test paints `alt install` after the planted install record repoints; `yarn workspace @v1nvn/statusline test`, `yarn typecheck`, `yarn lint`, `set-version.mjs --check` green. Commit `feat(statusline): resolve the renderer from the installed plugin`. Landed `0669d6f` (339/339 tests, enforcement green, sync proven). |
 | 2 | R1a — release dispatch | | | Scratch-branch `set-version.mjs --bump patch` round-trip passes `--check` and reverts clean; `release.yml` dispatch carries the `bump` input and a `prepare` job whose pushed sha the release job checks out and tags; `test.yml` gates the artifact drift after build; `references/npm-publishing.md` names the dispatch flow. Commit `ci(release): dispatch a version bump through prepare`. |
 
 ## Plan
