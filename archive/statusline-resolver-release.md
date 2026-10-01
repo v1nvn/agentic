@@ -10,24 +10,24 @@ pushes `chore(release): vX.Y.Z`, publishes every package, and tags that sha.
 
 ## Current state
 
-Unit 1 landed (`0669d6f`): the resolver deploys to the data dir, imports the
-renderer from the committed plugin `render.mjs` through the install record,
-and `status` reports `resolves → <version>` — 339 tests green, enforcement
-green, artifact sync proven by clean rebuild. Unit 2 (release dispatch) is
-next. Every existing install still paints the pre-resolver bundle until one
-manual `configure` rerun after the next release installs (Migration, in
-## Plan).
+Both units landed on `statusline-resolver-release`: `0669d6f` (resolver-
+deployed renderer — 339 tests green, enforcement green, artifact sync proven
+by clean rebuild) and `e77efc4` (release dispatch — bump round-trip proven on
+a scratch branch, 0.30.8→0.30.9 with green `--check` and a clean revert).
+Thread closed; the follow-through entry in TODO.md owns the post-merge
+dispatch and the migration rerun.
 
 ## Next step
 
-Run unit 2: R1a — release dispatch.
+None — thread closed. Post-merge follow-through lives in the TODO.md
+statusline section.
 
 ## Steps
 
 | id | unit | model | review | close criteria |
 | --- | --- | --- | --- | --- |
 | 1 | R2 — resolver-deployed renderer | | checklist | Root `yarn build` syncs a committed `plugins/statusline/render.mjs` (`git diff --exit-code` clean); `configure` writes `dist/resolver.mjs` bytes to the data-dir `render.mjs`; the key-e2e door test paints `alt install` after the planted install record repoints; `yarn workspace @v1nvn/statusline test`, `yarn typecheck`, `yarn lint`, `set-version.mjs --check` green. Commit `feat(statusline): resolve the renderer from the installed plugin`. Landed `0669d6f` (339/339 tests, enforcement green, sync proven). |
-| 2 | R1a — release dispatch | | | Scratch-branch `set-version.mjs --bump patch` round-trip passes `--check` and reverts clean; `release.yml` dispatch carries the `bump` input and a `prepare` job whose pushed sha the release job checks out and tags; `test.yml` gates the artifact drift after build; `references/npm-publishing.md` names the dispatch flow. Commit `ci(release): dispatch a version bump through prepare`. |
+| 2 | R1a — release dispatch | | | Scratch-branch `set-version.mjs --bump patch` round-trip passes `--check` and reverts clean; `release.yml` dispatch carries the `bump` input and a `prepare` job whose pushed sha the release job checks out and tags; `test.yml` gates the artifact drift after build; `references/npm-publishing.md` names the dispatch flow. Commit `ci(release): dispatch a version bump through prepare`. Landed `e77efc4` (round-trip green, revert clean). |
 
 ## Plan
 
