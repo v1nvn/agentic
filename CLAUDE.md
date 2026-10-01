@@ -88,6 +88,9 @@ time, so it speaks only to that model.
 - **todo: `/todo:run` is the primary skill.** It is the battle-tested one; `rules` defines
   the progress-file shape `run` consumes, and every other todo skill stays in sync with
   both — a change to one lands in the others in the same change.
+- **A skill names no consumer repo.** What one project needs — its units, files, thresholds,
+  high-stakes slices — lives in that project's plan; the skill states the generic mechanism
+  the plan fills in.
 - **Review a skill before creating or updating it.** Without installing it, read Anthropic's
   skill-creator (`anthropics/claude-plugins-official`, `plugins/skill-creator/skills/skill-creator`)
   with `gh`, review the surface against it and `references/skill-review.md`, and promote any
