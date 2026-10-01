@@ -301,6 +301,9 @@ function barFlatAt(input: SegmentInput, w: number): string {
   if (f > w) {
     f = w;
   }
+  if (pct > 0 && f === 0) {
+    f = 1;
+  }
   const col = pct >= 90 ? RED : pct >= 70 ? YELLOW : GREEN;
   return `${col}${'█'.repeat(f)}${'░'.repeat(w - f)}${RESET}`;
 }

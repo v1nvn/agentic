@@ -114,6 +114,16 @@ const CORPUS: readonly CorpusCase[] = [
       mutate: payload => setPct(payload, pct),
     }),
   ),
+  ...[0, 1, 6, 10].map(
+    (pct): CorpusCase => ({
+      name: `ramp-flat-pct${pct}`,
+      payload: 'p1',
+      oracle: true,
+      layout: '{bar}',
+      picks: { bar: 'flat' },
+      mutate: payload => setPct(payload, pct),
+    }),
+  ),
   ...(
     [
       ['5m-290', '5m', 290],
