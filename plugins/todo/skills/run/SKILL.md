@@ -26,7 +26,10 @@ unnamed → post it and wait — a small early deviation compounds into places t
 never chose. The mechanical test for what must stop: a deviation that forces a second
 deviation to land, touches a file the plan doesn't name, or mints or splits a unit — except a
 builder's split at the line ceiling (§Workers), which proceeds. A single mechanical pick inside
-the plan's named scope proceeds and is written into the plan.
+the plan's named scope proceeds and is written into the plan. A protected test or snapshot that
+moves only by a rename the plan names, with no assertion line and no snapshot value changed
+otherwise, is such a pick: the enforcement script proves it and it goes in the veto table. A
+changed assertion, or a test deleted beyond the row's list, stops.
 
 ## Session frame
 
@@ -75,6 +78,8 @@ The plan names its models; this skill's defaults are the fallback.
    hardening unit that writes them — plus an enforcement inventory (tests that must
    survive byte-for-byte, forbidden idioms, counts that must never rise) — into the
    plan's Steps table and Plan section, and commits. Nothing builds before they exist.
+   A design that rests on a live measure has the measure run once at hardening, on the
+   cheap proxy; a measure that misses its bar reopens the design here, not mid-run.
 3. Resolve the scope to an ordered unit list. Steps the plan marks trivial may bundle
    into one unit with one-line commits each. A row that carries unrelated risks — a coverage
    change beside a money change — is split at hardening. A row's size is never guessed before
@@ -94,9 +99,16 @@ The plan names its models; this skill's defaults are the fallback.
      with zero green→red); probes tune against a frozen snapshot, never a live
      corpus. In a batch, the first item's baseline and log are checked before the
      rest run — an environment failure stops the batch there. A ritual run already
-     recorded for the same base revision and invocation is not re-paid; a re-run is
+     recorded for the same input and invocation is not re-paid — the input is the file's
+     git blob where the ritual runs per file, else the revision; a re-run is
      ordered only when the recorded run's log shows environment failure — an
      anomalous verdict with a clean log is a finding, not a re-run.
+   - A ritual command longer than a few minutes is started by the orchestrator in the
+     background, and its exit notifies it: a subagent is not woken by its own background
+     command, and a sleep loop past five minutes re-writes the poller's whole cache each
+     poll. No worker polls with `sleep`. A `sonnet` writes the ritual's script and
+     reconciles its output. A unit held on an owner ruling runs its after pass on the
+     held tree meanwhile; the ruling re-runs only the inputs its change touches.
    - PR topology from the plan's grouping; default one branch and one PR at the end.
      Every `gh pr create` names its base explicitly. The run opens PRs; it never
      merges and never pushes to the default branch.
@@ -124,8 +136,8 @@ The plan names its models; this skill's defaults are the fallback.
 - One `sonnet` clerk per run, continued by message, owns the run's mechanics: it runs
   the enforcement gate script after every commit and fix round and reports the red or
   green line, collects gate tails and worker-report tails verbatim, drafts scratch
-  notes and veto-table rows, collects the sitting's per-model token totals from the
-  session's usage records, and executes the stall poll. It pastes raw command
+  notes and veto-table rows, and at every builder report reads the builder's context
+  size off its transcript's last usage entry. It pastes raw command
   output, never a summary of it, and decides nothing — a drafted line lands only when
   the orchestrator accepts it, or untouched where the run pre-authorized its template.
 - Fresh agent per unit per role. Briefs point at the plan's section or row, name the
@@ -135,12 +147,12 @@ The plan names its models; this skill's defaults are the fallback.
   explores a tool's options by trial runs. Where the plan does not yet pin one, the
   orchestrator derives it once, writes it into the plan, and every brief thereafter
   uses that line.
-- Workers read only their reading list and keep their context small. A builder past
-  the context ceiling (a third of its window) escalates at the next poll and a
-  successor continues from its state file: a subagent's cache expires after five idle minutes, so one long gate
-  re-writes the whole context at the write rate, and compaction would pay the same
-  bill invisibly. The builder keeps that state file current — the step it has entered
-  and when it next expects to be heard from — so a successor resumes cold.
+- Workers read only their reading list and keep their context small. A builder the
+  clerk reads past the context ceiling (a third of its window) is ended at that report
+  and a successor continues from its state file: a subagent's cache expires after five
+  idle minutes, so one long gate re-writes the whole context at the write rate, and
+  compaction would pay the same bill invisibly. The builder keeps that state file
+  current — the step it has entered — so a successor resumes cold.
 - The line ceiling counts inserted lines only: deletions, snapshots and moves git detects are
   free (`git diff --shortstat -M -- ':!*.snap'`). A builder past it stops at the next green
   point, saves the full patch, and splits along the row's own clauses: each half gates green
@@ -148,19 +160,14 @@ The plan names its models; this skill's defaults are the fallback.
   path is already in the tree, because a split that needs a bridge lands two paths. The split is
   written into the plan and reported. With no such split — a rename, a rework that deletes the
   old path — the unit lands whole and the report says why.
-- Workers report in a fixed format under ~20 lines: commit hash(es), gate tail,
+- Workers report in a fixed format under ~20 lines: diff stat, gate tail,
   per-criterion proof, A/B verdict where the unit calls for one, deviations, surprises.
 - The orchestrator never opens a source file to understand it. It reads reports, gate
-  output, `git show` diffs, and the diff classes the plan flags as silent-failure
+  output, `git diff` and `git show` diffs, and the diff classes the plan flags as silent-failure
   carriers (migrations, wire bodies, signatures) — and may re-run anything to
   reproduce a finding.
-- Every dispatch of a builder or reviewer schedules a stall poll — one cheap look
-  each ~10 minutes at the worker's transcript tail (its usage entries carry the
-  context size) and state file, cancelled by its completion notice; the clerk can
-  run it. No progress past the time the state file named, the same command three
-  times running, or a context past the ceiling escalates: a nudge by message
-  first, a successor from the state file once a nudge goes unanswered. A healthy
-  quiet gate never trips it — the trigger is the state file's own stated expectation.
+- A worker stops only the processes it started, by the PID it recorded — never a
+  pattern kill, which takes down a ritual's processes on the same machine.
 - A stalled or rate-limited worker is continued by message, never replaced. A
   successor starts from the worker's state file, and only once the original is gone.
 
@@ -170,11 +177,14 @@ The plan names its models; this skill's defaults are the fallback.
    nothing, reports test names and files; the builder may not edit them. Where the
    plan doesn't name tests, red-first rides in the builder's brief.
 2. Builder builds compiler/test-driven on the named files, writes no bridge code,
-   leaves protected tests untouched, runs the full gate once, commits (one line, no
-   co-author trailer), appends to or opens the PR, writes its unit's notes to its
-   per-worker scratch file under `progress/.scratch/`, and writes what it learned into the sections of later units that owe it. A
-   deviation stops the builder before its commit: it reports the finding and the
-   options, and nothing lands until the orchestrator answers.
+   leaves protected tests untouched but for a rename §Deviations admits, runs the full
+   gate once, writes its unit's notes to its
+   per-worker scratch file under `progress/.scratch/`, writes what it learned into the
+   sections of later units that owe it, and stops green with the tree uncommitted. The
+   orchestrator commits (one line, no co-author trailer) and appends to or opens the PR,
+   because auto mode refuses a worker's commit. A deviation stops the
+   builder: it reports the finding and the options, and nothing lands until the orchestrator
+   answers.
 3. Where the enforcement inventory names checkables, a `sonnet` writes a scratchpad
    gate script from it (protected-test hashes, forbidden-idiom count deltas,
    comment-line delta, line ceilings); the clerk runs it after every commit and fix
@@ -240,8 +250,7 @@ The plan names its models; this skill's defaults are the fallback.
 - Whole-run audit when the plan carries one: a `sonnet` writes and runs the script
   from the plan's audit list, no builds.
 - Index entries close only on green evidence.
-- Final report: PR URLs; the sitting's per-model token totals — input, cache write,
-  cache read, output; the evidence ladder the plan tracks (start → per-unit →
+- Final report: PR URLs; the evidence ladder the plan tracks (start → per-unit →
   end); the veto table (question, pick, reason,
   where written); every reviewer finding not fixed and why; units closed "probed, no
   landing"; remaining reds; out-of-run follow-ups named with the component that owns
