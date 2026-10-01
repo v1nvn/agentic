@@ -108,7 +108,8 @@ The plan names its models; this skill's defaults are the fallback.
      command, and a sleep loop past five minutes re-writes the poller's whole cache each
      poll. No worker polls with `sleep`. A `sonnet` writes the ritual's script and
      reconciles its output. A unit held on an owner ruling runs its after pass on the
-     held tree meanwhile; the ruling re-runs only the inputs its change touches.
+     held tree meanwhile; the ruling re-runs only the inputs its change touches. A ritual
+     blocks only marking the PR ready for review — never a commit, a push or a dispatch.
    - PR topology from the plan's grouping; default one branch and one PR at the end.
      Every `gh pr create` names its base explicitly. The run opens PRs; it never
      merges and never pushes to the default branch.
@@ -151,8 +152,9 @@ The plan names its models; this skill's defaults are the fallback.
   clerk reads past the context ceiling (a third of its window) is ended at that report
   and a successor continues from its state file: a subagent's cache expires after five
   idle minutes, so one long gate re-writes the whole context at the write rate, and
-  compaction would pay the same bill invisibly. The builder keeps that state file
-  current — the step it has entered — so a successor resumes cold.
+  compaction would pay the same bill invisibly. For the same reason a builder idle past
+  five minutes is not resumed: its next round goes to a successor. The builder keeps that
+  state file current — the step it has entered — so a successor resumes cold.
 - The line ceiling counts inserted lines only: deletions, snapshots and moves git detects are
   free (`git diff --shortstat -M -- ':!*.snap'`). A builder past it stops at the next green
   point, saves the full patch, and splits along the row's own clauses: each half gates green
@@ -182,9 +184,9 @@ The plan names its models; this skill's defaults are the fallback.
    per-worker scratch file under `progress/.scratch/`, writes what it learned into the
    sections of later units that owe it, and stops green with the tree uncommitted. The
    orchestrator commits (one line, no co-author trailer) and appends to or opens the PR,
-   because auto mode refuses a worker's commit. A deviation stops the
-   builder: it reports the finding and the options, and nothing lands until the orchestrator
-   answers.
+   because auto mode refuses a worker's commit. A deviation stops its item, not the
+   builder: it reports the finding and the options, continues every item that does not
+   depend on the answer, and nothing lands until the orchestrator answers.
 3. Where the enforcement inventory names checkables, a `sonnet` writes a scratchpad
    gate script from it (protected-test hashes, forbidden-idiom count deltas,
    comment-line delta, line ceilings); the clerk runs it after every commit and fix
@@ -199,7 +201,8 @@ The plan names its models; this skill's defaults are the fallback.
    every seam crossed with a non-degenerate value; the one-way rule (old path
    deleted in the same change); a test weakened to pass; the comment rule; tracking
    references in code; files touched outside the brief.
-5. Fix rounds go back to the builder by message: at most two. A round whose diff
+5. Fix rounds go back to the builder by message, or to its successor under §Workers' idle
+   rule: at most two. A round whose diff
    changes no code the full gate exercises — free comments, plan text, formatting,
    docs the gate does not test — runs the repo's fast checks and the enforcement
    script only; the full gate does not re-fire for it. A third means the unit
@@ -208,12 +211,19 @@ The plan names its models; this skill's defaults are the fallback.
 6. Route a reported deviation through Deviations. A pick inside the plan's named
    scope: pick it by CLAUDE.md and the plan's own law, write it into the owning
    section, ripple-check later sections in the same edit, note it for the veto table,
-   continue the builder. Anything else stops the run and is posted to the owner.
+   continue the builder. Anything else stops the run and is posted to the owner. The
+   reviewer is dispatched when the builder stops after its build, so every question the
+   unit holds — the builder's and the reviewer's — goes to the owner in one message. A
+   question that touches money or would mint a unit is posted only after a read-only
+   trace of the code it rests on, so every option it offers is buildable.
 7. Close the unit — only on its stated close criteria (greps, tests, gate firings),
    never on the builder's say-so; review stays a blind subagent. Fold the unit's
-   notes into the plan per the rules, then dispatch the next.
+   notes into the plan per the rules, then dispatch the next. A finding outside the unit's
+   row does not hold the unit: the unit commits on its row, and the finding lands as its
+   own commit after its ruling.
    Strictly serial: one lane, one warm build, no worktrees inside a run, no parallel
-   units.
+   units. Read-only prep for the next unit — its trace, its before pass, its brief — runs
+   beside the current one; its build does not.
 8. A unit whose deliverable is a document or a dataset — nothing compiles, no gate —
    skips the test writer and the gate. Its reviewer checks the deliverable against
    the unit's close criterion as written (a row count against the source's catalog, never
