@@ -6,6 +6,6 @@ Query quota and usage statistics for the current GLM Coding Plan account.
 
 Run this exactly:
 
-    npx -y @v1nvn/zai@0.30.3
+    npx -y @v1nvn/zai@0.30.4
 
 Report the output it prints.

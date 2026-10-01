@@ -6,6 +6,6 @@ Beam the previous assistant reply to the reMarkable Paper Pro, then report the r
 
 Run this exactly:
 
-    npx -y @v1nvn/rm@0.30.3
+    npx -y @v1nvn/rm@0.30.4
 
 Report the single "Sent:" line it prints.
