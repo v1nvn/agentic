@@ -51,7 +51,9 @@ name or shape wins.
   bypass the hook) — a hooks/mcp config. Every `npx -y @v1nvn/*` line in the repo,
   config or `.md` surface, is version-pinned to the train by `set-version.mjs`
   (an unpinned npx resolves "latest" through the npx cache and runs a stale CLI).
-  No other code lives under `plugins/`.
+  No other code lives under `plugins/`, with one exception:
+  `plugins/statusline/render.mjs`, a committed build artifact the root
+  `yarn build` syncs from the package dist.
 - **Scripts resolve binaries only from deps the workspace declares.** Each package
   declares the tools its scripts invoke (`vite`, `vitest`); the root declares the
   root-run tools (eslint stack, prettier, typescript).

@@ -69,12 +69,14 @@ npx -y @v1nvn/statusline@0.30.8 status                             # rows + verd
 ```
 
 `configure` is the sole writer: one run touches exactly the `statusLine` and
-`subagentStatusLine` keys of `~/.claude/settings.json` and syncs the bundled
-renderer (`render.mjs`) into the plugin data dir — the whole write footprint.
-Each value is one inline shell command: `node` on that data-dir renderer, the
+`subagentStatusLine` keys of `~/.claude/settings.json` and deploys a resolver
+(`render.mjs`) into the plugin data dir — the whole write footprint.
+Each value is one inline shell command: `node` on that data-dir resolver, the
 decisions as flags — `--theme` first, then one `--<item>=<alt>` per pick that
 differs from the theme's own, `--layout` only when passed; the panel key adds
-the `panel` positional. Raw:
+the `panel` positional. The resolver reads Claude Code's install record
+(`installed_plugins.json`) and imports the newest installed plugin's
+`render.mjs`, so a plugin update repaints with no rerun. Raw:
 
 ```sh
 node "$HOME/.claude/plugins/data/statusline-agentic/render.mjs" --theme=lean --bar=gauge || true
@@ -93,9 +95,9 @@ the pre-lab key values to `backup.json`; `restore` splices them back
 byte-exact — keys absent before the lab are removed — then deletes the lab
 data. The theme name rides the key — `status` and `catalog` read it from
 there, and swaps keep the name. `status` checks the install: node, the
-data-dir renderer, both keys, config drift, the theme, backup, captures —
-one row per fact plus a verdict, every action row naming its fix. `/lab`
-inside a session runs the same commands.
+renderer the install record resolves, both keys, config drift, the theme,
+backup, captures — one row per fact plus a verdict, every action row naming
+its fix. `/lab` inside a session runs the same commands.
 
 Repo and machine:
 
@@ -107,10 +109,12 @@ repo
     assets/ticks/     multi.json          preview fixtures, agent panel
   plugins/statusline/
     SKILL.md                              the /lab skill — model-taught entry point
+    render.mjs                            the renderer — committed build artifact, synced by `yarn build`
 
 machine, after `claude plugin install statusline@agentic`
+  ~/.claude/plugins/cache/agentic/statusline/<version>/   the installed plugin — its render.mjs paints
   ~/.claude/plugins/data/statusline-agentic/
-    render.mjs                            the renderer — synced in by configure, spawned by both keys
+    render.mjs                            the resolver — deployed by configure, spawned by both keys
     backup.json                           pre-lab key values — first takeover wins
     captures/main.json  captures/tick.json  every paint's stdin, teed by the renderer; feeds previews
   ~/.claude/settings.json                 statusLine + subagentStatusLine → the inline commands
@@ -122,9 +126,9 @@ Install: `claude plugin marketplace add v1nvn/agentic`, then
 previews both surfaces at 80/120/200 columns and saves.
 
 Uninstall runs `npx -y @v1nvn/statusline@0.30.8 restore` first, then uninstalls
-the plugin: a plain uninstall deletes the data dir — `backup.json` and
-`render.mjs` go with it — and the keys left behind point `node` at a renderer
-that is gone: a blank line at the next paint.
+the plugin: a plain uninstall deletes the data dir — `backup.json` and the
+resolver go with it — and the keys left behind point `node` at a file that is
+gone: a blank line at the next paint.
 
 ## Layout
 

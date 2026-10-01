@@ -6,9 +6,20 @@ The version lives in `.claude-plugin/marketplace.json`; every package
 manifest, plugin manifest, and npx pin — config files and `.md` surfaces —
 mirrors it.
 `node .github/scripts/set-version.mjs <version>` bumps all mirrors in one
-command; CI runs `--check` and fails any missed mirror. On push to `main`,
-`release.yml` publishes every package at the train version to npm (trusted
-publishing, `--provenance`) and creates the GitHub release `v<version>`.
+command; CI runs `--check` and fails any missed mirror.
+
+Cut a release by dispatching the workflow with a bump step:
+
+```sh
+gh workflow run release.yml -f bump=<patch|minor|major>
+```
+
+The `prepare` job bumps the mirrors, pushes `chore(release): vX.Y.Z`, and the
+release job publishes every package at that sha to npm (trusted publishing,
+`--provenance`) and creates the GitHub release `v<version>`. A dispatch with
+`bump=none`, like any plain push to `main`, skips `prepare` and publishes the
+current version. `node .github/scripts/set-version.mjs <version>` remains for
+local cuts.
 
 ## Keyless publishing
 

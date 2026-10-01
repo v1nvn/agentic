@@ -3,13 +3,14 @@ import { existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { BUNDLED_RENDERER } from '../src/configure.js';
+import { BUNDLED_RENDERER, BUNDLED_RESOLVER } from '../src/configure.js';
 
-// Test-entry bootstrap only: the suites read dist/render.mjs, which the gate
-// builds after the test step. The runtime contract stays loud — a shipped CLI
-// missing its bundle still fails inside syncRenderer, naming the path.
+// Test-entry bootstrap only: the suites read dist/render.mjs and
+// dist/resolver.mjs, which the gate builds after the test step. A build that
+// still emits no render.mjs fails here naming it; a missing resolver.mjs
+// fails inside syncResolver on first use, naming its own path.
 export default function setup(): void {
-  if (existsSync(BUNDLED_RENDERER)) {
+  if (existsSync(BUNDLED_RENDERER) && existsSync(BUNDLED_RESOLVER)) {
     return;
   }
   const pkg = join(dirname(fileURLToPath(import.meta.url)), '..');

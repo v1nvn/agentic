@@ -1,11 +1,17 @@
-import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
+import {
+  existsSync,
+  readFileSync,
+  readdirSync,
+  statSync,
+  writeFileSync,
+} from 'node:fs';
 import { join } from 'node:path';
 
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { catalog } from '../src/catalog.js';
 import { parseArgs } from '../src/cli.js';
-import { configure, BUNDLED_RENDERER } from '../src/configure.js';
+import { configure, BUNDLED_RESOLVER } from '../src/configure.js';
 import { DATA_DIR } from '../src/render/capture.js';
 import { ITEMS } from '../src/render/index.js';
 import { mainKeyValue, panelKeyValue, renderMjsPath } from '../src/resolve.js';
@@ -175,7 +181,8 @@ describe('configure: writes (contract 3)', () => {
 
   it('an unknown variant value fails listing the item valid ids', () => {
     const home = homes.newHome();
-    const attempt = () => configure({ home, layout: '{model}', variants: { model: 'nonsense' } });
+    const attempt = () =>
+      configure({ home, layout: '{model}', variants: { model: 'nonsense' } });
 
     expect(attempt).toThrowError(/nonsense/);
     expect(attempt).toThrowError(/plain/);
@@ -241,7 +248,9 @@ describe('configure: --theme', () => {
     expect(settingsCommand(custom, 'statusLine')).toBe(
       mainKeyValue('quiet', '{model}', []),
     );
-    expect(settingsCommand(own, 'statusLine')).toBe(mainKeyValue('quiet', null, []));
+    expect(settingsCommand(own, 'statusLine')).toBe(
+      mainKeyValue('quiet', null, []),
+    );
   });
 
   it('a style override rides both keys over the theme style', () => {
@@ -261,7 +270,11 @@ describe('configure: --theme', () => {
     const flagged = homes.newHome();
     const themed = homes.newHome();
 
-    configure({ home: flagged, layout: '{model}', variants: { style: 'bare' } });
+    configure({
+      home: flagged,
+      layout: '{model}',
+      variants: { style: 'bare' },
+    });
     configure({ home: themed, theme: 'quiet' });
 
     expect(settingsCommand(flagged, 'subagentStatusLine')).toBe(
@@ -404,14 +417,14 @@ describe('configure: settings refusal (E4 port)', () => {
   });
 });
 
-describe('configure: renderer sync', () => {
-  it('every run syncs the bundled renderer into the data dir, byte-equal', () => {
+describe('configure: resolver sync', () => {
+  it('every run deploys the bundled resolver into the data dir, byte-equal', () => {
     const home = homes.newHome();
 
     configure({ home, theme: 'lean' });
 
     expect(readFileSync(renderMjsPath(home), 'utf8')).toBe(
-      readFileSync(BUNDLED_RENDERER, 'utf8'),
+      readFileSync(BUNDLED_RESOLVER, 'utf8'),
     );
   });
 
@@ -425,11 +438,11 @@ describe('configure: renderer sync', () => {
 
     expect(statSync(synced).mtimeMs).toBe(before);
     expect(readFileSync(synced, 'utf8')).toBe(
-      readFileSync(BUNDLED_RENDERER, 'utf8'),
+      readFileSync(BUNDLED_RESOLVER, 'utf8'),
     );
   });
 
-  it('a diverged copy is refreshed on the next run — even a settings no-op', () => {
+  it('a diverged copy is refreshed on the next run — even a settings no-op (the migration rerun)', () => {
     const home = homes.newHome();
     configure({ home, theme: 'lean' });
     const synced = renderMjsPath(home);
@@ -438,7 +451,7 @@ describe('configure: renderer sync', () => {
     configure({ home, theme: 'lean' });
 
     expect(readFileSync(synced, 'utf8')).toBe(
-      readFileSync(BUNDLED_RENDERER, 'utf8'),
+      readFileSync(BUNDLED_RESOLVER, 'utf8'),
     );
   });
 });
@@ -455,6 +468,8 @@ describe('configure to catalog (the scratch-home e2e)', () => {
 
     const lines = catalog({ home }).split('\n');
     expect(lines).toContain('model: plain | block* | pill | zen');
-    expect(lines).toContain('bar: flat | gauge* | percent | none | flat6 | flat4');
+    expect(lines).toContain(
+      'bar: flat | gauge* | percent | none | flat6 | flat4',
+    );
   });
 });

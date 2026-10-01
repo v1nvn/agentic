@@ -1,22 +1,21 @@
-import { readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { parseArgs, subcommandHelp } from '../src/cli.js';
-import {
-  BUNDLED_RENDERER,
-  configure,
-  type ConfigureOptions,
-} from '../src/configure.js';
+import { configure, type ConfigureOptions } from '../src/configure.js';
 import {
   backupPath,
   mainKeyValue,
   panelKeyValue,
   renderMjsPath,
 } from '../src/resolve.js';
-import { nodeOnPath, rendererHash, status } from '../src/status.js';
+import { nodeOnPath, status } from '../src/status.js';
+import { THEME_NAMES, type ThemeName } from '../src/themes.js';
 import {
   createHomes,
+  plantRendererRecord,
   writeCapture,
   writeSettings,
 } from './fixtures.js';
@@ -32,12 +31,15 @@ const homes = createHomes();
 
 const NODE_ROW = `node: on PATH (${nodeOnPath(process.env.PATH ?? '')})`;
 
-function rendererCurrent(): string {
-  return `renderer: current — ${rendererHash(readFileSync(BUNDLED_RENDERER))}`;
+function rendererResolves(version: string): string {
+  return `renderer: resolves → ${version}`;
 }
 
 const RENDERER_MISSING =
   'renderer: missing — fix: rerun configure --force --theme classic';
+
+const RENDERER_UNREADABLE =
+  'renderer: unresolved — installed_plugins.json unreadable — fix: claude plugin install statusline@agentic';
 
 afterEach(() => {
   homes.dispose();
@@ -53,6 +55,10 @@ describe('status: healthy home (contract 5)', () => {
       layout: '{model effort}',
       variants: { effort: 'dim', model: 'block' },
     });
+    plantRendererRecord(home, {
+      lastUpdated: '2026-01-01T00:00:00Z',
+      version: '1.2.3',
+    });
     writeCapture(home, 'main', 2 * 60 * 60 * 1000);
 
     const result = status({ home });
@@ -60,7 +66,7 @@ describe('status: healthy home (contract 5)', () => {
     expect(result.healthy).toBe(true);
     expect(result.rows).toEqual([
       NODE_ROW,
-      rendererCurrent(),
+      rendererResolves('1.2.3'),
       "statusLine: ours — layout='{model effort}' model=block effort=dim",
       'subagentStatusLine: ours',
       'config: no drift',
@@ -183,6 +189,10 @@ describe('status: unreadable backup (contract 5)', () => {
       layout: '{model effort}',
       variants: { effort: 'dim', model: 'block' },
     });
+    plantRendererRecord(home, {
+      lastUpdated: '2026-01-01T00:00:00Z',
+      version: '1.2.3',
+    });
     writeFileSync(backupPath(home), '{"note": "not a lab backup"}\n');
 
     const result = status({ home });
@@ -190,7 +200,7 @@ describe('status: unreadable backup (contract 5)', () => {
     expect(result.healthy).toBe(true);
     expect(result.rows).toEqual([
       NODE_ROW,
-      rendererCurrent(),
+      rendererResolves('1.2.3'),
       "statusLine: ours — layout='{model effort}' model=block effort=dim",
       'subagentStatusLine: ours',
       'config: no drift',
@@ -205,11 +215,15 @@ describe('status: node and renderer rows (contract 5)', () => {
   it('node and renderer rows lead', () => {
     const home = homes.newHome();
     configure({ home, theme: 'lean' });
+    plantRendererRecord(home, {
+      lastUpdated: '2026-01-01T00:00:00Z',
+      version: '1.2.3',
+    });
 
     const result = status({ home });
 
     expect(result.rows[0]).toBe(NODE_ROW);
-    expect(result.rows[1]).toBe(rendererCurrent());
+    expect(result.rows[1]).toBe(rendererResolves('1.2.3'));
     expect(result.healthy).toBe(true);
   });
 
@@ -225,31 +239,102 @@ describe('status: node and renderer rows (contract 5)', () => {
     expect(result.healthy).toBe(false);
   });
 
-  it('a stale synced renderer names both hashes; the configure fix restores healthy', () => {
-    const home = homes.newHome();
-    configure({ home, theme: 'lean' });
-    const stale = Buffer.from('// stale renderer\n');
-    writeFileSync(renderMjsPath(home), stale);
-
-    const result = status({ home });
-
-    expect(result.rows).toContain(
-      `renderer: stale — data ${rendererHash(stale)}, this CLI ${rendererHash(readFileSync(BUNDLED_RENDERER))} — fix: rerun configure --force --theme classic`,
-    );
-    expect(result.healthy).toBe(false);
-
-    runFixCommand('rerun configure --force --theme classic', home);
-    expect(status({ home }).healthy).toBe(true);
-  });
-
-  it('a missing synced renderer names the configure fix', () => {
+  it('a missing synced renderer names the configure fix carrying the key theme', () => {
     const home = homes.newHome();
     configure({ home, theme: 'lean' });
     rmSync(renderMjsPath(home));
 
     const result = status({ home });
 
-    expect(result.rows).toContain(RENDERER_MISSING);
+    expect(result.rows).toContain(
+      'renderer: missing — fix: rerun configure --force --theme lean',
+    );
+    expect(result.healthy).toBe(false);
+  });
+});
+
+describe('status: the renderer resolves the install record (r2)', () => {
+  it('a home with no install record names the plugin-install fix and signals unhealthy', () => {
+    const home = homes.newHome();
+    configure({ home, theme: 'lean' });
+
+    const result = status({ home });
+
+    expect(result.rows).toContain(RENDERER_UNREADABLE);
+    expect(result.healthy).toBe(false);
+  });
+
+  it('two records — the older entry points at a dir without render.mjs, so the newer resolves', () => {
+    const home = homes.newHome();
+    configure({ home, theme: 'lean' });
+    const swept = join(home, 'no-render');
+    mkdirSync(swept, { recursive: true });
+    plantRendererRecord(home, {
+      installPath: swept,
+      lastUpdated: '2026-01-01T00:00:00Z',
+      version: '1.0.0',
+    });
+    plantRendererRecord(home, {
+      lastUpdated: '2026-02-01T00:00:00Z',
+      version: '2.0.0',
+    });
+
+    const result = status({ home });
+
+    expect(result.rows).toContain(rendererResolves('2.0.0'));
+    expect(result.healthy).toBe(true);
+  });
+
+  it('two records — the newer entry points at a dir without render.mjs, so the older resolves (filter before max)', () => {
+    const home = homes.newHome();
+    configure({ home, theme: 'lean' });
+    const swept = join(home, 'no-render');
+    mkdirSync(swept, { recursive: true });
+    plantRendererRecord(home, {
+      lastUpdated: '2026-01-01T00:00:00Z',
+      version: '1.0.0',
+    });
+    plantRendererRecord(home, {
+      installPath: swept,
+      lastUpdated: '2026-02-01T00:00:00Z',
+      version: '2.0.0',
+    });
+
+    const result = status({ home });
+
+    expect(result.rows).toContain(rendererResolves('1.0.0'));
+    expect(result.healthy).toBe(true);
+  });
+
+  it('a record whose only entry points at a dir without render.mjs reads the no-install reason and signals unhealthy', () => {
+    const home = homes.newHome();
+    configure({ home, theme: 'lean' });
+    const empty = join(home, 'empty-install');
+    mkdirSync(empty, { recursive: true });
+    plantRendererRecord(home, {
+      installPath: empty,
+      lastUpdated: '2026-01-01T00:00:00Z',
+      version: '1.0.0',
+    });
+
+    const result = status({ home });
+
+    expect(result.rows).toContain(
+      'renderer: unresolved — no statusline@agentic install with a render.mjs — fix: claude plugin install statusline@agentic',
+    );
+    expect(result.healthy).toBe(false);
+  });
+
+  it('a garbage install record reads unreadable — one row naming the plugin-install fix', () => {
+    const home = homes.newHome();
+    configure({ home, theme: 'lean' });
+    const file = join(home, '.claude', 'plugins', 'installed_plugins.json');
+    mkdirSync(dirname(file), { recursive: true });
+    writeFileSync(file, '{not json\n');
+
+    const result = status({ home });
+
+    expect(result.rows).toContain(RENDERER_UNREADABLE);
     expect(result.healthy).toBe(false);
   });
 });
@@ -295,7 +380,31 @@ describe('status: fix lines run (contract 5 seam)', () => {
 `,
     );
 
-    for (const home of [absentHome, foreignHome, variantDriftHome, itemDriftHome]) {
+    const themedDriftHome = homes.newHome();
+    writeSettings(
+      themedDriftHome,
+      `{
+  "statusLine": ${JSON.stringify({ command: mainKeyValue('lean', null, ['--bar=wat']), type: 'command' })},
+  "subagentStatusLine": ${JSON.stringify({ command: panelKeyValue('lean', []), type: 'command' })}
+}
+`,
+    );
+    expect(status({ home: themedDriftHome }).rows).toContain(
+      "config: drift — unknown variant 'wat' for 'bar' — fix: rerun configure --theme lean",
+    );
+
+    const seamHomes = [
+      absentHome,
+      foreignHome,
+      variantDriftHome,
+      itemDriftHome,
+      themedDriftHome,
+    ];
+    for (const home of seamHomes) {
+      plantRendererRecord(home, {
+        lastUpdated: '2026-01-01T00:00:00Z',
+        version: '1.2.3',
+      });
       const fixRows = status({ home }).rows.filter(row =>
         row.includes(' — fix: rerun configure '),
       );
@@ -312,17 +421,28 @@ describe('status: fix lines run (contract 5 seam)', () => {
   });
 });
 
+const THEME_TOKENS = THEME_NAMES as readonly string[];
+
 function runFixCommand(fix: string, home: string): void {
   const flags = fix.slice('rerun configure '.length).split(' ');
   for (const flag of flags) {
-    if (flag !== '--force' && flag !== '--theme' && flag !== 'classic') {
+    if (
+      flag !== '--force' &&
+      flag !== '--theme' &&
+      !THEME_TOKENS.includes(flag)
+    ) {
       throw new Error(`fix flag not mapped onto configure: ${flag}`);
     }
+  }
+  const themeAt = flags.indexOf('--theme');
+  const token = themeAt === -1 ? undefined : flags[themeAt + 1];
+  if (token === undefined || !THEME_TOKENS.includes(token)) {
+    throw new Error(`fix names no known theme: ${fix}`);
   }
   const options: ConfigureOptions = {
     force: flags.includes('--force') ? true : undefined,
     home,
-    theme: flags.includes('--theme') ? 'classic' : undefined,
+    theme: token as ThemeName,
   };
   configure(options);
 }
@@ -359,6 +479,10 @@ describe('status: the theme row (t4)', () => {
   it('prints the name straight from a configure theme key, right after the config row', () => {
     const home = homes.newHome();
     configure({ home, theme: 'lean' });
+    plantRendererRecord(home, {
+      lastUpdated: '2026-01-01T00:00:00Z',
+      version: '1.2.3',
+    });
 
     const result = status({ home });
 
@@ -403,7 +527,7 @@ describe('status: the theme row (t4)', () => {
 
     expect(themeRows(result.rows)).toEqual(['theme: lean +bar=wat']);
     expect(result.rows).toContain(
-      "config: drift — unknown variant 'wat' for 'bar' — fix: rerun configure --theme classic",
+      "config: drift — unknown variant 'wat' for 'bar' — fix: rerun configure --theme lean",
     );
   });
 
