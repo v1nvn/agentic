@@ -3,6 +3,8 @@
 ## readability
 
 - **Site-matched extraction presets + real-world corpus** · HIGH · [packages/readability] → progress/presets-corpus.md
+- **npm names follow the plugins** · MEDIUM · [packages/readability, packages/omlx]
+  Wanted: the two MCP-server packages publish as `@v1nvn/readability` and `@v1nvn/omlx`, like the other seven. The `-mcp` names deprecate in the same release, with the bin names and the presets cache namespace following.
 
 ## todo
 
