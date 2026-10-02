@@ -8,21 +8,20 @@ installed copy. Tokens first.
 
 ## Current state
 
-The tokens mod is fully built and shelved on the local branch
-`wip/tokens-mod-full` (commit `9b3db71`): the `register.tsx` +
-`aggregate`/`format`/`text` island in `packages/tokens/plugin/`, the vendored
-`types/claude-code.d.ts` + `tsconfig.mods.json` at the repo root, the engine
-tests in `packages/tokens/plugin/tests/` (2/2 passing), `references/mods.md`,
-and the README/CLAUDE.md mod prose. It was reverted from the working tree so
-the package-home restructure lands alone (owner ruling); nothing of the mod is
-in the tree. The consult page holding the unruled adoptions (G2 zai line, G3
-todo pane/band, G4 `/lab` pane, G5 rm/md) is at
-`/tmp/agentic-mods-rulings/index.html`.
+The package-home restructure the mod waited on has landed (`e1c36f4`,
+released as v0.31.0). The tokens mod is fully built and shelved on the local
+branch `wip/tokens-mod-full` (commit `9b3db71`), which predates the
+restructure: the `register.tsx` + `aggregate`/`format`/`text` island in
+`packages/tokens/plugin/`, the vendored `types/claude-code.d.ts` +
+`tsconfig.mods.json` at the repo root, the engine tests in
+`packages/tokens/plugin/tests/` (2/2 passing), `references/mods.md`, and the
+README/CLAUDE.md mod prose. Nothing of the mod is in the tree. The consult
+page holding the unruled adoptions (G2 zai line, G3 todo pane/band, G4 `/lab`
+pane, G5 rm/md) is at `/tmp/agentic-mods-rulings/index.html`.
 
 ## Next step
 
-Land the restructure (owner review → commit), then re-apply the shelved mod on
-top as its own change.
+Re-land the shelved mod as its own change (unit 1).
 
 ## Steps
 
