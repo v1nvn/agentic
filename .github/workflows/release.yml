@@ -110,6 +110,8 @@ jobs:
           yarn install --immutable
           yarn build
           for pkg in packages/*; do
+            # enhansome and todo are plugin-only homes — nothing to publish
+            [ -f "$pkg/package.json" ] || continue
             name="$(jq -r .name "$pkg/package.json")"
             if npm view "$name@$version" version >/dev/null 2>&1; then
               echo "::notice::$name@$version already on npm; skipping."
