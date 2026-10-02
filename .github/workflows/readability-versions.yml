@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: packages/readability-mcp
+        working-directory: packages/readability
     steps:
       - uses: actions/checkout@v7
       # Node 26 distributions no longer bundle corepack.

@@ -1,25 +1,23 @@
 {
-  "name": "@v1nvn/readability-mcp",
+  "name": "@v1nvn/omlx-mcp",
   "version": "0.30.9",
-  "description": "MCP server that turns rendered (post-JS) HTML into clean Markdown + metadata via Readability, Turndown, and DOMPurify.",
+  "description": "MCP server exposing a local omlx inference server (chat, structured output, model status) so coding agents can delegate bulk work to a local model.",
   "type": "module",
   "main": "dist/index.js",
   "bin": "dist/index.js",
   "scripts": {
     "build": "vite build",
-    "bench": "vite-node test/bench/run.ts",
     "dev": "vite-node src/dev.ts",
     "start": "node dist/index.js",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:update-goldens": "UPDATE_GOLDENS=1 vitest run",
-    "coverage": "vitest run --coverage"
+    "test:live": "RUN_LIVE=1 vitest run test/live.test.ts"
   },
   "keywords": [
     "mcp",
-    "readability",
-    "markdown",
-    "turndown",
+    "omlx",
+    "mlx",
+    "local-llm",
     "model-context-protocol"
   ],
   "author": {
@@ -30,7 +28,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/v1nvn/agentic.git",
-    "directory": "packages/readability-mcp"
+    "directory": "packages/omlx"
   },
   "files": [
     "dist"
@@ -39,26 +37,14 @@
     "access": "public"
   },
   "engines": {
-    "node": ">=22.22.2"
+    "node": ">=22"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
-    "@mozilla/readability": "^0.6.0",
     "@v1nvn/agentic-core": "workspace:^",
-    "commander": "^15.0.0",
-    "dompurify": "^3.4.12",
-    "jsdom": "^30.0.1",
-    "remark-gfm": "^4.0.1",
-    "remark-parse": "^11.0.0",
-    "turndown": "^7.2.4",
-    "turndown-plugin-gfm": "^1.0.2",
-    "unified": "^11.0.5",
-    "yaml": "^2.9.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@types/turndown": "^5.0.6",
-    "@vitest/coverage-v8": "^4.1.10",
     "vite": "^8.1.4",
     "vite-node": "^6.0.0",
     "vitest": "^4.1.10"

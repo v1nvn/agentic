@@ -46,8 +46,8 @@ const MD_SURFACES = [
   'packages/tokens/README.md',
   'packages/rm/README.md',
   'packages/md/README.md',
-  'packages/omlx-mcp/README.md',
-  'packages/readability-mcp/README.md',
+  'packages/omlx/README.md',
+  'packages/readability/README.md',
   'packages/statusline/README.md',
 ];
 
@@ -81,7 +81,8 @@ function readVersion(path) {
 
 function writeVersion(path, version) {
   const contents = readFileSync(path, 'utf8');
-  const count = contents.match(new RegExp(VERSION_KEY.source, 'g'))?.length ?? 0;
+  const count =
+    contents.match(new RegExp(VERSION_KEY.source, 'g'))?.length ?? 0;
   if (count !== 1) {
     fail([`${path} must carry exactly one "version" key, found ${count}`]);
   }
@@ -129,7 +130,9 @@ function rewritePins(path, version) {
   const updated = readFileSync(path, 'utf8')
     .replace(PIN, `$1@${version}`)
     .replace(UNPINNED_MENTION, (mention, offset, contents) =>
-      resolvesThroughRegistry(contents, offset) ? `${mention}@${version}` : mention,
+      resolvesThroughRegistry(contents, offset)
+        ? `${mention}@${version}`
+        : mention,
     );
   if (path.endsWith('.json')) {
     JSON.parse(updated); // the edit must leave valid JSON
@@ -152,8 +155,9 @@ function apply(version) {
 // Pins invoke npm packages, so the valid names are the scoped ones — plugin
 // manifests carry bare short names that must not leak into the comparison.
 const KNOWN = new Set(
-  MIRRORS.map(path => JSON.parse(readFileSync(path, 'utf8')).name)
-    .filter(name => name.startsWith('@v1nvn/')),
+  MIRRORS.map(path => JSON.parse(readFileSync(path, 'utf8')).name).filter(
+    name => name.startsWith('@v1nvn/'),
+  ),
 );
 
 const [command, argument] = process.argv.slice(2);

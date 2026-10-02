@@ -2,7 +2,7 @@
 
 ## readability
 
-- **Site-matched extraction presets + real-world corpus** · HIGH · [packages/readability-mcp] → progress/presets-corpus.md
+- **Site-matched extraction presets + real-world corpus** · HIGH · [packages/readability] → progress/presets-corpus.md
 
 ## todo
 
