@@ -59,13 +59,13 @@ function walk(dir) {
   }
 }
 
-const pluginsDir = path.join(repoRoot, 'plugins');
-if (!fs.existsSync(pluginsDir)) {
-  console.error('Skill lint failed: plugins/ not found');
+const packagesDir = path.join(repoRoot, 'packages');
+if (!fs.existsSync(packagesDir)) {
+  console.error('Skill lint failed: packages/ not found');
   process.exit(1);
 }
 
-walk(pluginsDir);
+walk(packagesDir);
 
 if (errors.length) {
   console.error('Skill lint failed:');
