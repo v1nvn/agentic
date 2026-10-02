@@ -759,9 +759,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@v1nvn/omlx-mcp@workspace:packages/omlx-mcp":
+"@v1nvn/omlx-mcp@workspace:packages/omlx":
   version: 0.0.0-use.local
-  resolution: "@v1nvn/omlx-mcp@workspace:packages/omlx-mcp"
+  resolution: "@v1nvn/omlx-mcp@workspace:packages/omlx"
   dependencies:
     "@modelcontextprotocol/sdk": "npm:^1.29.0"
     "@v1nvn/agentic-core": "workspace:^"
@@ -774,9 +774,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@v1nvn/readability-mcp@workspace:packages/readability-mcp":
+"@v1nvn/readability-mcp@workspace:packages/readability":
   version: 0.0.0-use.local
-  resolution: "@v1nvn/readability-mcp@workspace:packages/readability-mcp"
+  resolution: "@v1nvn/readability-mcp@workspace:packages/readability"
   dependencies:
     "@modelcontextprotocol/sdk": "npm:^1.29.0"
     "@mozilla/readability": "npm:^0.6.0"

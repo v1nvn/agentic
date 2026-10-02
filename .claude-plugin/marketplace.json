@@ -10,55 +10,55 @@
   "plugins": [
     {
       "name": "readability",
-      "source": "./plugins/readability",
+      "source": "./packages/readability/plugin",
       "category": "development",
       "description": "Read a live URL to clean Markdown via the readability MCP server."
     },
     {
       "name": "omlx",
-      "source": "./plugins/omlx",
+      "source": "./packages/omlx/plugin",
       "category": "development",
       "description": "Delegate bulk work to a local omlx inference server."
     },
     {
       "name": "enhansome",
-      "source": "./plugins/enhansome",
+      "source": "./packages/enhansome/plugin",
       "category": "development",
       "description": "Search the enhansome registry forest — curated registries and the repos they carry."
     },
     {
       "name": "rm",
-      "source": "./plugins/rm",
+      "source": "./packages/rm/plugin",
       "category": "productivity",
       "description": "Beam the last reply to a reMarkable as EPUB."
     },
     {
       "name": "md",
-      "source": "./plugins/md",
+      "source": "./packages/md/plugin",
       "category": "productivity",
       "description": "Send the last reply to a Markdown-Viewer as a #share= URL."
     },
     {
       "name": "zai",
-      "source": "./plugins/zai",
+      "source": "./packages/zai/plugin",
       "category": "productivity",
       "description": "Query GLM Coding Plan quota and usage."
     },
     {
       "name": "tokens",
-      "source": "./plugins/tokens",
+      "source": "./packages/tokens/plugin",
       "category": "productivity",
       "description": "Per-model token usage and cache hit rate from local transcripts."
     },
     {
       "name": "statusline",
-      "source": "./plugins/statusline",
+      "source": "./packages/statusline/plugin",
       "category": "productivity",
       "description": "Render the status line and agent-panel rows from a component library of pickable designs."
     },
     {
       "name": "todo",
-      "source": "./plugins/todo",
+      "source": "./packages/todo/plugin",
       "category": "productivity",
       "description": "Work tracking — the rules plus six verbs (init, new, run, status, audit, handoff) over TODO.md, progress/, references/, archive/."
     }

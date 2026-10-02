@@ -2,7 +2,9 @@
 
 ## readability
 
-- **Site-matched extraction presets + real-world corpus** · HIGH · [packages/readability-mcp] → progress/presets-corpus.md
+- **Site-matched extraction presets + real-world corpus** · HIGH · [packages/readability] → progress/presets-corpus.md
+- **npm names follow the plugins** · MEDIUM · [packages/readability, packages/omlx]
+  Wanted: the two MCP-server packages publish as `@v1nvn/readability` and `@v1nvn/omlx`, like the other seven. The `-mcp` names deprecate in the same release, with the bin names and the presets cache namespace following.
 
 ## todo
 
@@ -19,6 +21,10 @@
   The line engine (`src/render/engine.ts`, byte-counting `vlen`) and the panel engine (`src/render/panel.ts`, codepoint `vlen`, own fit ladder) are two faithful ports of two bash files. Wanted: one engine where unifying changes no rendered bytes — a deliberate re-baseline thread, never a side effect.
 - **Statusline — delete the old `@v1nvn/statusline-lab` npm name** · LOW
   Wanted: no version of `@v1nvn/statusline-lab` left on npm, so the package lives under one name, `@v1nvn/statusline`. `https://registry.npmjs.org/@v1nvn%2fstatusline-lab` shows what remains.
+
+## tokens
+
+- **Mods — tokens e2e first** · HIGH · [packages/tokens] → progress/mods.md
 
 ## Parked
 
