@@ -16,15 +16,15 @@ function discover(patterns) {
 
 const MIRRORS = discover([
   'packages/*/package.json',
-  'plugins/*/.claude-plugin/plugin.json',
+  'packages/*/plugin/.claude-plugin/plugin.json',
 ]);
 
 // Plugin configs invoke the published bins via npx; every @v1nvn/<pkg>@<version>
 // pin must ride the train with everything else. A hosted HTTP config invokes
 // nothing from npm and carries no pin.
 const PINNED_CONFIGS = discover([
-  'plugins/*/.mcp.json',
-  'plugins/*/hooks/hooks.json',
+  'packages/*/plugin/.mcp.json',
+  'packages/*/plugin/hooks/hooks.json',
 ]);
 
 // Skill bodies, hook-fallback command shells, and READMEs teach
@@ -36,12 +36,12 @@ const PINNED_CONFIGS = discover([
 // name check).
 const MD_SURFACES = [
   'README.md',
-  'plugins/statusline/SKILL.md',
-  'plugins/rm/commands/send.md',
-  'plugins/md/commands/edit.md',
-  'plugins/md/commands/view.md',
-  'plugins/zai/commands/usage.md',
-  'plugins/tokens/commands/usage.md',
+  'packages/statusline/plugin/SKILL.md',
+  'packages/rm/plugin/commands/send.md',
+  'packages/md/plugin/commands/edit.md',
+  'packages/md/plugin/commands/view.md',
+  'packages/zai/plugin/commands/usage.md',
+  'packages/tokens/plugin/commands/usage.md',
   'packages/zai/README.md',
   'packages/tokens/README.md',
   'packages/rm/README.md',

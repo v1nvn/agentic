@@ -3,10 +3,10 @@
 A Claude Code plugin marketplace: `readability` and `omlx` (local MCP servers) plus
 `enhansome` (hosted registry MCP server), `rm`, `md`, `zai`, `tokens` (zero-token
 hook plugins), `statusline` (status line + agent panel), and `todo` (work tracking) —
-nine independently-installable plugins in one repo. The code lives in eight npm
-packages (`@v1nvn/*`) under `packages/`; each plugin directory is only a manifest
-plus config wrapper — `enhansome` points its `.mcp.json` at the deployed server,
-and `todo` is manifest + skills, no package.
+nine independently-installable plugins
+in one repo. Each plugin lives at `packages/<name>/plugin/` inside its package
+home; seven homes publish npm code (`@v1nvn/*`), while `enhansome` points its
+`.mcp.json` at the deployed server and `todo` is manifest + skills, no package.
 
 ## Philosophy
 
@@ -15,7 +15,7 @@ translated into code, then deleted. The code is the only account of what exists.
 source behind any anchor before relying on it — documentation drifts, and says so.
 
 Prefer clean code. DRY. No band-aids, no workarounds, no deprecated aliases, no dead branches,
-no commented-out code. A reader sees only what the code *is*, never archaeology of what it was.
+no commented-out code. A reader sees only what the code _is_, never archaeology of what it was.
 Surface a real impasse; do not hack past it.
 
 **Zero installs.** Only the owner runs this marketplace, often before adopting a surface at
@@ -34,25 +34,27 @@ name or shape wins.
 
 - **Stripe-style voice.** Lead with a real command or table, then the shortest framing
   sentence. Flat, declarative, one idea per sentence. No first person, no throat-clearing.
-  Name the concrete thing, not the marketing noun — ban *platform, seamless, powerful,
-  comprehensive, robust, intelligent, real-time, first-class, delightful, leverage*.
+  Name the concrete thing, not the marketing noun — ban _platform, seamless, powerful,
+  comprehensive, robust, intelligent, real-time, first-class, delightful, leverage_.
   Table-driven where a list would do.
 - **The README moves with the surface.** When behavior shifts or something ships, the README
   changes in the same step.
 
 ## Layout
 
-- **Code in `packages/`, manifests in `plugins/`.** One yarn workspace at the root
-  (`"workspaces": ["packages/*"]`); each package builds with vite and publishes to npm
-  under `@v1nvn/*`. A plugin directory holds only `plugin.json`, `.md` surfaces —
-  skills (a `SKILL.md` at the root or under `skills/<name>/`) when the model executes the
-  body, a `commands/` shell when a `UserPromptExpansion` hook intercepts the
-  invocation (the body is the no-hooks fallback, and model auto-invocation would
-  bypass the hook) — a hooks/mcp config. Every `npx -y @v1nvn/*` line in the repo,
-  config or `.md` surface, is version-pinned to the train by `set-version.mjs`
-  (an unpinned npx resolves "latest" through the npx cache and runs a stale CLI).
-  No other code lives under `plugins/`, with one exception:
-  `plugins/statusline/render.mjs`, a committed build artifact the root
+- **Every plugin lives at `packages/<name>/plugin/`; there is no `plugins/` directory.**
+  One yarn workspace at the root (`"workspaces": ["packages/*"]`); each package with
+  npm code builds with vite and publishes to `@v1nvn/*`. A home without a
+  `package.json` (`enhansome`, `todo`) holds only its `plugin/` folder. A plugin
+  folder holds the manifest, `.md` surfaces — skills (a `SKILL.md` at the root or
+  under `skills/<name>/`) when the model executes the body, a `commands/` shell when
+  a `UserPromptExpansion` hook intercepts the invocation (the body is the no-hooks
+  fallback, and model auto-invocation would bypass the hook) — a hooks/mcp
+  config. Every
+  `npx -y @v1nvn/*` line in the repo, config or `.md` surface, is version-pinned to
+  the train by `set-version.mjs` (an unpinned npx resolves "latest" through the npx
+  cache and runs a stale CLI). One synced artifact remains:
+  `packages/statusline/plugin/render.mjs`, a committed build artifact the root
   `yarn build` syncs from the package dist.
 - **Scripts resolve binaries only from deps the workspace declares.** Each package
   declares the tools its scripts invoke (`vite`, `vitest`); the root declares the
@@ -85,7 +87,7 @@ time, so it speaks only to that model.
 
 - **Maintainer rules live here, not in a surface.** A rule the running model cannot act on
   (never add a second skill, keep a version pinned) is noise in a `SKILL.md`.
-- **Emphasis is earned by a reason.** State a constraint plainly with its *because*; caps and
+- **Emphasis is earned by a reason.** State a constraint plainly with its _because_; caps and
   `NEVER` are for contract facts and routing, not for steering behavior.
 - **todo: `/todo:run` is the primary skill.** It is the battle-tested one; `rules` defines
   the progress-file shape `run` consumes, and every other todo skill stays in sync with

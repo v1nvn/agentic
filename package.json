@@ -6,12 +6,13 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "yarn workspaces foreach --all --topological run build && cp packages/statusline/dist/render.mjs plugins/statusline/render.mjs",
+    "build": "yarn workspaces foreach --all --topological run build && cp packages/statusline/dist/render.mjs packages/statusline/plugin/render.mjs",
     "test": "yarn workspaces foreach --all run test",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "format": "prettier . --write"
+    "format": "prettier . --write",
+    "test:mods": "claude plugin test packages/tokens/plugin"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

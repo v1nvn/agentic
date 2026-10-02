@@ -38,7 +38,7 @@ Start Claude Code and run the command shown above for the plugin you installed.
 
 ## In a plain shell
 
-The four tool CLIs run outside Claude Code too, same bins the hooks use:
+The four tool CLIs run outside Claude Code too:
 
 ```sh
 npx -y @v1nvn/zai@0.30.9        # GLM Coding Plan usage report
@@ -107,9 +107,9 @@ repo
     src/  test/  dist/                dist/ holds index.js and render.mjs
     assets/payloads/  p1–p4.json          preview fixtures, main surface
     assets/ticks/     multi.json          preview fixtures, agent panel
-  plugins/statusline/
-    SKILL.md                              the /lab skill — model-taught entry point
-    render.mjs                            the renderer — committed build artifact, synced by `yarn build`
+    plugin/
+      SKILL.md                            the /lab skill — model-taught entry point
+      render.mjs                          the renderer — committed build artifact, synced by `yarn build`
 
 machine, after `claude plugin install statusline@agentic`
   ~/.claude/plugins/cache/agentic/statusline/<version>/   the installed plugin — its render.mjs paints
@@ -132,19 +132,23 @@ gone: a blank line at the next paint.
 
 ## Layout
 
+Every plugin lives at `packages/<name>/plugin/` inside its package home; there is
+no `plugins/` directory. Seven homes publish npm code; `enhansome` and `todo`
+are plugin-only homes.
+
 ```
-.claude-plugin/marketplace.json     Claude marketplace manifest; sources point into plugins/
-packages/                           the eight npm packages — one yarn workspace
+.claude-plugin/marketplace.json     Claude marketplace manifest; sources point into the package homes
+packages/                           one yarn workspace — every plugin's home
   readability-mcp/  omlx-mcp/       the two MCP servers (@v1nvn/readability-mcp, @v1nvn/omlx-mcp)
+    plugin/                          .mcp.json (pinned npx) + plugin.json (+ skills/)
   core/                             @v1nvn/agentic-core — last-reply + text formatting, shared by the tools
-  zai/  tokens/  rm/  md/           the tool CLIs (zai-usage, tokens-report, rm-send, md-send)
-  statusline/                    the configure CLI + renderer — pure TS (@v1nvn/statusline)
-plugins/                            the nine plugins — manifests, skills, config wrappers; no code
-  readability/  omlx/               .mcp.json (pinned npx) + plugin.json
-  enhansome/                        .mcp.json (hosted HTTP) + plugin.json
-  zai/  tokens/  rm/  md/           hooks.json (pinned npx) + plugin.json + commands/
-  statusline/                   root SKILL.md (see statusline above)
-  todo/                         plugin.json + skills/ — the rules and six verbs, no package
+  zai/  rm/  md/                   the tool CLIs (zai-usage, rm-send, md-send)
+    plugin/                          hooks.json (pinned npx) + plugin.json + commands/
+  tokens/                            the tokens-report CLI
+    plugin/                          hooks.json (pinned npx) + plugin.json + commands/
+  statusline/                        the configure CLI + renderer — pure TS (@v1nvn/statusline)
+    plugin/                          SKILL.md (see statusline above) + render.mjs (committed artifact)
+  enhansome/  todo/                 package-less homes — plugin/ only (todo: skills/, no code)
 ```
 
 Versions ride one lockstep train: `.claude-plugin/marketplace.json` is the source, and

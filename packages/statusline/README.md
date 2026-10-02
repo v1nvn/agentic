@@ -62,7 +62,7 @@ yarn lint && yarn typecheck               # from the repo root
 yarn build                                # root — every package, then syncs the plugin artifact
 ```
 
-`plugins/statusline/render.mjs` is a committed build artifact: the root
+`packages/statusline/plugin/render.mjs` is a committed build artifact: the root
 `yarn build` copies `dist/render.mjs` there, and CI drift-gates the copy.
 
 Node ≥ 22. One workspace dep: `@v1nvn/agentic-core` (usage/exit helpers).

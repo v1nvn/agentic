@@ -20,6 +20,10 @@
 - **Statusline — delete the old `@v1nvn/statusline-lab` npm name** · LOW
   Wanted: no version of `@v1nvn/statusline-lab` left on npm, so the package lives under one name, `@v1nvn/statusline`. `https://registry.npmjs.org/@v1nvn%2fstatusline-lab` shows what remains.
 
+## tokens
+
+- **Mods — tokens e2e first** · HIGH · [packages/tokens] → progress/mods.md
+
 ## Parked
 
 - **Statusline — adopt `/lab`** · LOW — revisit when statusline-render lands
