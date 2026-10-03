@@ -20,9 +20,8 @@ adoptions (G2 zai line, G3 todo pane/band, G4 `/lab` pane, G5 rm/md) is at
 
 ## Next step
 
-Owner: rule the surgical-edges question (re-home the deleted core test's
-degenerate-value asserts at the island, or leave them unpinned), merge
-PR #11, release the train (unit 2); unit 3 runs after the release.
+Run unit 6 (re-home the degenerate asserts); then owner merges PR #11,
+releases the train (unit 2); unit 3 runs after the release.
 
 ## Steps
 
@@ -33,6 +32,7 @@ PR #11, release the train (unit 2); unit 3 runs after the release.
 | 2   | Release the train                     | owner |           | version bumped; release workflow green; npm packages published                                                                                                                                                                 |
 | 3   | Live verify from an install           |       | checklist | marketplace install of `tokens@agentic` loads the mod in a fresh session: status line under the prompt, `/tokens` opens and draws the pane, `/tokens:usage` is gone                                                            |
 | 5   | Wire the text copy to the island      |       |  | `packages/core/src/text-format.ts` deleted; the island's `packages/tokens/src/text.ts` is the one home, imported through the workspace dep by the consumer (zai directly, or core re-exporting — whichever the importer graph says); repo grep finds no importer of the old path; six gates green (zai's 37 vitest included) — landed `1b6c2c2`, blind review clean |
+| 6   | Re-home the degenerate asserts        | sonnet |  | `packages/tokens/test/text.spec.ts` exists, importing `../src/text.js`, carrying every degenerate assert from the deleted core test (missing → '—', blank bars, `▏` sliver, round-up, overlong pads, meter clamps; the `it`-block shape is the builder's); tokens vitest green in 3 files; no other suite touched |
 
 ## Plan
 
@@ -61,8 +61,9 @@ PR #11, release the train (unit 2); unit 3 runs after the release.
   the `./text` exports entry, a second vite entry and `files: ["dist",
   "src"]`; the lock took the two workspace-dep entries (CI runs
   `yarn install --immutable`). The deleted core test's degenerate-value
-  asserts (null/NaN → '—', bar eighth-block sliver, overlong pad) are
-  unpinned — the owner rules whether they re-home at the island.
+  asserts re-home at the island as `test/text.spec.ts` (owner, G1a —
+  `/tmp/agentic-tokens-edges-rulings`; unit 6). The page's "~27" counted
+  asserts — vitest counts `it` blocks, so the suite lands near 20.
 - The shelf is one commit: take paths from it wholesale; the only hand-merge
   expected is README/CLAUDE.md (the restructure rewrote their layout sections).
 - Unit 1 path list, derived once from `git diff main wip/tokens-mod-full`:
