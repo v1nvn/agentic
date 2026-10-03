@@ -8,25 +8,27 @@ installed copy. Tokens first.
 
 ## Current state
 
-Unit 1 is landed in the `plugin/` shape (`12bc584` on `feat/tokens-mod`,
-PR #11), all six gates green. G1b is ruled (owner): the plugin root becomes
-the package home — unit 4 re-roots the tree before the release. Unit 2
-(release) stays the owner's; unit 3 verifies after it; the port of the other
-eight plugins is parked in TODO.md on unit 3. The consult page holding the
+Units 1 and 4 are landed: the tokens mod is in the tree, rooted at its
+package home (G1b), all six gates green (`f2df47a` on `feat/tokens-mod`,
+PR #11). Inside a mod home `*.test.ts` belongs to the engine runner, so the
+vitest suite is `test/*.spec.ts`. Unit 2 (release) is the owner's; unit 3
+verifies after it; the port of the other eight plugins is parked in TODO.md
+on unit 3. The text-copy question (island `src/text.ts` vs core's
+`text-format.ts`) is open for the owner. The consult page holding the
 unruled adoptions (G2 zai line, G3 todo pane/band, G4 `/lab` pane, G5 rm/md)
 is at /tmp/agentic-mods-rulings/index.html.
 
 ## Next step
 
-Run unit 4 (re-root per G1b); then owner merges PR #11 and releases the
-train (unit 2); unit 3 runs after the release.
+Owner: rule the text-copy question, merge PR #11, release the train
+(unit 2); unit 3 runs after the release.
 
 ## Steps
 
 | id  | unit                                  | model | review    | close criteria                                                                                                                                                                                                                 |
 | --- | ------------------------------------- | ----- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | 1   | Re-land the tokens mod from the shelf |       | checklist | `git checkout wip/tokens-mod-full -- <mod paths>`; gates green (typecheck both tsconfigs, lint, 15 vitest, `claude plugin validate`, `claude plugin test` 2/2); READMEs + CLAUDE.md mod bits and `references/mods.md` restored — landed `12bc584` on `feat/tokens-mod`, all six gates green |
-| 4   | Re-root tokens to the package home (G1b) |       |  | `plugin/` gone from `packages/tokens`: manifest at `packages/tokens/.claude-plugin/`, module at `hooks/register.tsx`, island in `src/`, engine tests at `tests/`, contract types at `types/`; marketplace `source: "./packages/tokens"`; six gates green re-pointed (`set-version --check`, typecheck, lint, `yarn test`, `claude plugin validate packages/tokens`, `test:mods` → `packages/tokens` 2/2); CLAUDE.md layout law and READMEs name the shape |
+| 4   | Re-root tokens to the package home (G1b) |       |  | `plugin/` gone from `packages/tokens`: manifest at `packages/tokens/.claude-plugin/`, module at `hooks/register.tsx`, island in `src/`, engine tests at `tests/`, contract types at `types/`; marketplace `source: "./packages/tokens"`; six gates green re-pointed (`set-version --check`, typecheck, lint, `yarn test`, `claude plugin validate packages/tokens`, `test:mods` → `packages/tokens` 2/2); CLAUDE.md layout law and READMEs name the shape — landed `f2df47a` on `feat/tokens-mod`, all six gates green; review round added the engine-laid `types/` gitignore line and dropped the false core-re-export clause |
 | 2   | Release the train                     | owner |           | version bumped; release workflow green; npm packages published                                                                                                                                                                 |
 | 3   | Live verify from an install           |       | checklist | marketplace install of `tokens@agentic` loads the mod in a fresh session: status line under the prompt, `/tokens` opens and draws the pane, `/tokens:usage` is gone                                                            |
 
@@ -45,6 +47,12 @@ train (unit 2); unit 3 runs after the release.
   prose — CLAUDE.md layout law (the root is the package home; the other
   eight plugins port later), root and tokens READMEs. The vitest `test/`
   stays `test/`.
+- Unit 4 pick (forced, vetoable): inside a mod home `*.test.ts` belongs to
+  the engine runner — it collects every `*.test.ts` under the plugin root
+  (verified live: `2 pass 2 fail` with the vitest files in scope) — so the
+  vitest suite renamed to `test/*.spec.ts`, vitest's other built-in name,
+  zero config. Recorded in `references/mods.md` as the shape the port
+  follows.
 - The shelf is one commit: take paths from it wholesale; the only hand-merge
   expected is README/CLAUDE.md (the restructure rewrote their layout sections).
 - Unit 1 path list, derived once from `git diff main wip/tokens-mod-full`:
@@ -73,8 +81,10 @@ train (unit 2); unit 3 runs after the release.
   `yarn lint` · `yarn test` (tokens vitest 15) ·
   `claude plugin validate packages/tokens/plugin` · `yarn test:mods` (2/2).
 - Re-vendor `types/claude-code.d.ts` after any Claude Code update, from
-  `packages/tokens/plugin/.claude-plugin/types/claude-code/index.d.ts` after
-  one load; the API is early access and moves between releases.
+  `packages/tokens/.claude-plugin/types/claude-code/index.d.ts` after
+  one load; the API is early access and moves between releases. A
+  `--plugin-dir` load also dumps a `types/` dir there that no `.gitignore`
+  line covers yet — covered when the port lands or the next vendor runs.
 - G2–G5 are unruled: each becomes its own unit only on the owner's ruling,
   never folded here silently.
 - Stop rule: if the marketplace-installed copy refuses to load the module,
@@ -91,7 +101,10 @@ train (unit 2); unit 3 runs after the release.
   verifies (parked in TODO.md).
 - Island rule: a hooks module imports only plugin-relative files plus bare
   `claude-code`; shared pure code lives in the island and the packages import
-  from it (`core` re-exports the island's `text.ts` for zai).
+  from it. Open (blind review, unit 4): this is unwired for text — the
+  island's `src/text.ts` and `packages/core/src/text-format.ts` (zai's
+  consumer) are two parallel copies; wiring (core re-exports the island, or
+  zai imports it directly, or the copies stay) is the owner's ruling.
 - `claude-code` is not an npm dep — the npm name is an unrelated package; the
   dep is the vendored engine declaration file plus `tsconfig.mods.json`.
 - Mod surfaces stay zero-token: the status line and pane are engine-drawn and
