@@ -22,6 +22,6 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
-    exclude: [...configDefaults.exclude, 'dist/**', 'plugin/**'],
+    exclude: [...configDefaults.exclude, 'dist/**', 'tests/**'],
   },
 });

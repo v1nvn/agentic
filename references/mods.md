@@ -27,19 +27,24 @@ A hooks module imports **only files inside its own plugin directory, by
 relative path**; the one bare import allowed is `claude-code` (types plus the
 `atom`/`read`/`update`/`derive` state helpers). No npm package, no `node:`
 module — the module environment has no Node. Shared pure code that both the
-mod and the packages need lives in the island (`plugin/hooks/`), and the
+mod and the packages need lives in the island (`src/`), and the
 packages import it from there — the reverse direction is impossible. Imports
 use explicit `.js` extensions so the same file type-checks under `nodenext`
 (packages) and `bundler` (`tsconfig.mods.json`).
 
 ## This repo's shape
 
-- The mod's home is `packages/<name>/plugin/` — sources committed as `.ts`,
-  no artifact, no sync step. The marketplace `source` points there.
-- `tsconfig.mods.json` type-checks every `plugin/` folder against the vendored
+- The mod's home is the package root — `packages/<name>/` itself (`tokens` is
+  the first; the older plugins keep `plugin/` until they port) — sources
+  committed as `.ts`, no artifact, no sync step. The marketplace `source`
+  points there. The engine's test runner collects every `*.test.ts` under that
+  root, so inside a mod home the name belongs to engine tests — the package's
+  vitest suite names its files `*.spec.ts`.
+- `tsconfig.mods.json` type-checks every mod package (`hooks/`, `tests/`,
+  `types/`) against the vendored
   `types/claude-code.d.ts` (`moduleResolution: bundler`, `jsx: react` with
   factory `h`, `noUncheckedIndexedAccess` — island code must satisfy it).
-  `yarn typecheck` runs both tsconfigs; eslint lints `plugin/` without
+  `yarn typecheck` runs both tsconfigs; eslint lints mod sources without
   type-aware rules (loading the vendored d.ts into the linter OOMs it).
 - The engine writes fresh declarations into `<plugin>/.claude-plugin/types/`
   on every `--plugin-dir` load, plus a `tsconfig.json` stub — both

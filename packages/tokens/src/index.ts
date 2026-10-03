@@ -1,7 +1,7 @@
 import { parseQuietly, printUsageAndExit } from '@v1nvn/agentic-core';
 import { Command } from 'commander';
 
-import { render } from '../plugin/hooks/format.js';
+import { render } from './format.js';
 import { scan } from './scan.js';
 
 const program = new Command()

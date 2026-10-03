@@ -15,8 +15,8 @@
   },
   "include": [
     "types",
-    "packages/*/plugin/hooks",
-    "packages/*/plugin/tests",
-    "packages/*/plugin/types"
+    "packages/*/hooks",
+    "packages/*/tests",
+    "packages/*/types"
   ]
 }

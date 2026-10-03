@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { hitRate } from '../plugin/hooks/aggregate.js';
-import type { ScanResult } from '../plugin/hooks/aggregate.js';
-import { render } from '../plugin/hooks/format.js';
+import { hitRate } from '../src/aggregate.js';
+import type { ScanResult } from '../src/aggregate.js';
+import { render } from '../src/format.js';
 
 const now = new Date(2026, 7, 15, 9, 41); // Aug 15 2026 09:41 local
 

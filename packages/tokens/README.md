@@ -1,7 +1,9 @@
 # @v1nvn/tokens
 
-The home of the tokens plugin: the `tokens-report` CLI (`src/`) and the mod
-(`plugin/` — `.ts` sources the engine loads directly, no build). Both read the
+The home of the tokens plugin — and its plugin root: the `tokens-report` CLI and
+the mod's island share `src/`, the hooks module sits at `hooks/register.tsx`
+(`.ts`/`.tsx` the engine loads directly, no build), with engine tests at
+`tests/` and the state contract at `types/`. Both read the
 same local session transcripts — per-model token usage and cache hit rate for
 the last 24 hours, plus daily totals for the last 7 days — and neither spends
 model tokens to tell you what the model cost.
@@ -46,11 +48,11 @@ quota.
 ## Develop
 
 ```sh
-yarn workspace @v1nvn/tokens test             # the CLI side (vitest)
-claude plugin validate packages/tokens/plugin # the mod, as the engine reads it
-claude plugin test packages/tokens/plugin     # the mod, through the engine
-yarn lint && yarn typecheck                   # from the repo root (typecheck
-                                             #   covers tsconfig.mods.json too)
+yarn workspace @v1nvn/tokens test       # the CLI side (vitest)
+claude plugin validate packages/tokens  # the mod, as the engine reads it
+claude plugin test packages/tokens      # the mod, through the engine
+yarn lint && yarn typecheck             # from the repo root (typecheck
+                                        #   covers tsconfig.mods.json too)
 ```
 
 The mod API is early access and moves between Claude Code releases — a build
@@ -60,14 +62,14 @@ and re-vendor `types/claude-code.d.ts` (repo root) from the engine-laid
 
 ## Modules
 
-| File                        | Role                                                            |
-| --------------------------- | --------------------------------------------------------------- |
-| `src/index.ts`              | bin entry (`tokens-report`) — dispatch, exit codes              |
-| `plugin/hooks/aggregate.ts` | the one usage math: JSONL line → per-model/per-day accumulation |
-| `src/scan.ts`               | the CLI's transcript walk (node-fs)                             |
-| `plugin/hooks/register.tsx` | the mod: `$.fs` walk, status line, `/tokens` pane               |
-| `plugin/hooks/format.ts`    | the report both doors print                                     |
-| `plugin/hooks/text.ts`      | fixed-width report primitives; `core` re-exports it             |
+| File                 | Role                                                            |
+| -------------------- | --------------------------------------------------------------- |
+| `src/index.ts`       | bin entry (`tokens-report`) — dispatch, exit codes              |
+| `src/aggregate.ts`   | the one usage math: JSONL line → per-model/per-day accumulation |
+| `src/scan.ts`        | the CLI's transcript walk (node-fs)                             |
+| `hooks/register.tsx` | the mod: `$.fs` walk, status line, `/tokens` pane               |
+| `src/format.ts`      | the report both doors print                                     |
+| `src/text.ts`        | fixed-width report primitives                                   |
 
 ## Contracts
 

@@ -6,16 +6,16 @@
 
 import { atom, read, update } from 'claude-code';
 
-import type { ScanResult } from './aggregate.js';
+import type { ScanResult } from '../src/aggregate.js';
 
 import {
   createAggregator,
   hitRate,
   sumRows,
   totalTokens,
-} from './aggregate.js';
-import { render } from './format.js';
-import { fmtTokens, ymd } from './text.js';
+} from '../src/aggregate.js';
+import { render } from '../src/format.js';
+import { fmtTokens, ymd } from '../src/text.js';
 
 import type { EngineInterface, On } from 'claude-code';
 

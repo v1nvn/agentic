@@ -12,7 +12,7 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier . --write",
-    "test:mods": "claude plugin test packages/tokens/plugin"
+    "test:mods": "claude plugin test packages/tokens"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
