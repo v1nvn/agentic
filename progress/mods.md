@@ -8,28 +8,43 @@ installed copy. Tokens first.
 
 ## Current state
 
-Unit 1 is landed: the tokens mod is in the tree and every gate is green
-(`12bc584` on `feat/tokens-mod`); the picks the landing made over the shelf
-bytes are in Plan. Unit 2 (release the train) is the owner's; unit 3 verifies
-from an installed copy after it. The consult page holding the unruled
-adoptions (G2 zai line, G3 todo pane/band, G4 `/lab` pane, G5 rm/md) is at
-`/tmp/agentic-mods-rulings/index.html`.
+Unit 1 is landed in the `plugin/` shape (`12bc584` on `feat/tokens-mod`,
+PR #11), all six gates green. G1b is ruled (owner): the plugin root becomes
+the package home — unit 4 re-roots the tree before the release. Unit 2
+(release) stays the owner's; unit 3 verifies after it; the port of the other
+eight plugins is parked in TODO.md on unit 3. The consult page holding the
+unruled adoptions (G2 zai line, G3 todo pane/band, G4 `/lab` pane, G5 rm/md)
+is at /tmp/agentic-mods-rulings/index.html.
 
 ## Next step
 
-Owner: merge the `feat/tokens-mod` PR and release the train (unit 2); unit 3
-runs after the release.
+Run unit 4 (re-root per G1b); then owner merges PR #11 and releases the
+train (unit 2); unit 3 runs after the release.
 
 ## Steps
 
 | id  | unit                                  | model | review    | close criteria                                                                                                                                                                                                                 |
 | --- | ------------------------------------- | ----- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | 1   | Re-land the tokens mod from the shelf |       | checklist | `git checkout wip/tokens-mod-full -- <mod paths>`; gates green (typecheck both tsconfigs, lint, 15 vitest, `claude plugin validate`, `claude plugin test` 2/2); READMEs + CLAUDE.md mod bits and `references/mods.md` restored — landed `12bc584` on `feat/tokens-mod`, all six gates green |
+| 4   | Re-root tokens to the package home (G1b) |       |  | `plugin/` gone from `packages/tokens`: manifest at `packages/tokens/.claude-plugin/`, module at `hooks/register.tsx`, island in `src/`, engine tests at `tests/`, contract types at `types/`; marketplace `source: "./packages/tokens"`; six gates green re-pointed (`set-version --check`, typecheck, lint, `yarn test`, `claude plugin validate packages/tokens`, `test:mods` → `packages/tokens` 2/2); CLAUDE.md layout law and READMEs name the shape |
 | 2   | Release the train                     | owner |           | version bumped; release workflow green; npm packages published                                                                                                                                                                 |
 | 3   | Live verify from an install           |       | checklist | marketplace install of `tokens@agentic` loads the mod in a fresh session: status line under the prompt, `/tokens` opens and draws the pane, `/tokens:usage` is gone                                                            |
 
 ## Plan
 
+- Unit 4 seams, derived from G1b: moves — `plugin/.claude-plugin/` →
+  `.claude-plugin/`, `plugin/hooks/{hooks.json,register.tsx}` → `hooks/`,
+  `plugin/hooks/{aggregate,format,text}.ts` → `src/`, `plugin/tests/` →
+  `tests/`, `plugin/types/` → `types/`; re-point — `register.tsx`'s island
+  imports (`../src/*.js`), `tsconfig.mods.json` includes (`packages/*/hooks`,
+  `packages/*/tests`, `packages/*/types` — never `packages/*/src`, island
+  files enter the mods program via the import graph), root `package.json`
+  `test:mods`, `marketplace.json` `source`, `.gitignore`'s engine-laid
+  `packages/*/plugin/tsconfig.json`, eslint's plugin-source block glob, and
+  the engine-laid typings dir now at `packages/tokens/.claude-plugin/types/`;
+  prose — CLAUDE.md layout law (the root is the package home; the other
+  eight plugins port later), root and tokens READMEs. The vitest `test/`
+  stays `test/`.
 - The shelf is one commit: take paths from it wholesale; the only hand-merge
   expected is README/CLAUDE.md (the restructure rewrote their layout sections).
 - Unit 1 path list, derived once from `git diff main wip/tokens-mod-full`:
@@ -68,6 +83,12 @@ runs after the release.
 
 ## Design
 
+- G1b (owner, `/tmp/agentic-tokens-structure-rulings`): the plugin root is the
+  package home — the island lives in `src/`, the module at
+  `hooks/register.tsx`, `plugin/` disappears. Rejected: the `plugin/`
+  subfolder root (Anthropic's shape, what unit 1 landed) and symlink bridges
+  (no duplication). All other plugins port to this shape after unit 3
+  verifies (parked in TODO.md).
 - Island rule: a hooks module imports only plugin-relative files plus bare
   `claude-code`; shared pure code lives in the island and the packages import
   from it (`core` re-exports the island's `text.ts` for zai).
