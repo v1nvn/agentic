@@ -142,12 +142,13 @@ homes publish npm code; `enhansome` and `todo` are plugin-only homes.
 packages/                           one yarn workspace — every plugin's home
   readability/  omlx/               the two MCP servers (@v1nvn/readability-mcp, @v1nvn/omlx-mcp)
     plugin/                          .mcp.json (pinned npx) + plugin.json (+ skills/)
-  core/                             @v1nvn/agentic-core — last-reply + text formatting, shared by the tools
+  core/                             @v1nvn/agentic-core — last-reply + CLI/hook plumbing, shared by the tools
   zai/  rm/  md/                   the tool CLIs (zai-usage, rm-send, md-send)
     plugin/                          hooks.json (pinned npx) + plugin.json + commands/
   tokens/                            tokens-report CLI + the tokens mod — the plugin root itself:
                                      .claude-plugin/ + hooks/register.tsx + tests/ + types/
                                      (state contract), island aggregate/format/text.ts in src/
+                                     (text.ts is the one fixed-width home, via @v1nvn/tokens/text)
   statusline/                        the configure CLI + renderer — pure TS (@v1nvn/statusline)
     plugin/                          SKILL.md (see statusline above) + render.mjs (committed artifact)
   enhansome/  todo/                 package-less homes — plugin/ only (todo: skills/, no code)

@@ -6,6 +6,12 @@
   "bin": {
     "tokens-report": "dist/index.js"
   },
+  "exports": {
+    "./text": {
+      "types": "./src/text.ts",
+      "default": "./dist/text.js"
+    }
+  },
   "scripts": {
     "build": "vite build",
     "test": "vitest run",
@@ -28,7 +34,8 @@
     "directory": "packages/tokens"
   },
   "files": [
-    "dist"
+    "dist",
+    "src"
   ],
   "publishConfig": {
     "access": "public"
