@@ -23,7 +23,7 @@ offers the picker in chat, and writes the pick.
 In a terminal outside Claude Code — the wizard, the terminal guide:
 
 ```sh
-npx -y @v1nvn/statusline@0.31.0 configure
+npx -y @v1nvn/statusline@0.32.0 configure
 ```
 
 Pass one stacks the five theme bars: `j/k` focus · `w` width · enter picks.
@@ -45,12 +45,12 @@ another home instead of `$HOME`.
 | `restore`   | both keys back to their pre-lab values from `backup.json`, then deletes the lab data — `--dry-run` prints the plan; `--force` splices over a key changed after the takeover                                                                                                                                                                                |
 
 ```sh
-npx -y @v1nvn/statusline@0.31.0 preview --theme rich --plain          # chat-safe sketch, nothing written
-npx -y @v1nvn/statusline@0.31.0 configure --theme rich                 # the write — live on the next paint
-npx -y @v1nvn/statusline@0.31.0 configure --theme rich --bar percent   # one swap on top of the theme
-npx -y @v1nvn/statusline@0.31.0 catalog --themes
-npx -y @v1nvn/statusline@0.31.0 status
-npx -y @v1nvn/statusline@0.31.0 restore
+npx -y @v1nvn/statusline@0.32.0 preview --theme rich --plain          # chat-safe sketch, nothing written
+npx -y @v1nvn/statusline@0.32.0 configure --theme rich                 # the write — live on the next paint
+npx -y @v1nvn/statusline@0.32.0 configure --theme rich --bar percent   # one swap on top of the theme
+npx -y @v1nvn/statusline@0.32.0 catalog --themes
+npx -y @v1nvn/statusline@0.32.0 status
+npx -y @v1nvn/statusline@0.32.0 restore
 ```
 
 ## Develop
