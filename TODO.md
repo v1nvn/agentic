@@ -16,3 +16,8 @@
 ## tokens
 
 - **Mods — tokens e2e first** · HIGH · [packages/tokens] → progress/mods.md
+
+## Parked
+
+- **Port the eight plugins to the package-home root** · MEDIUM · [packages] — revisit when the mods thread's unit 3 verifies live
+  Wanted: every plugin's root is its package home (the G1b shape tokens lands in), `plugin/` folders gone — marketplace sources, manifests, hooks paths and the CLAUDE.md layout law move with them.
