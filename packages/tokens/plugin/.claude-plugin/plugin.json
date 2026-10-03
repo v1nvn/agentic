@@ -1,9 +1,10 @@
 {
   "name": "tokens",
-  "description": "Per-model token usage and cache hit rate from local session transcripts",
+  "description": "Live token usage: a status line and the /tokens pane, zero-token",
   "version": "0.31.0",
   "author": {
     "name": "v1nvn",
     "email": "v1n@outlook.com"
-  }
+  },
+  "types": "./types/index.d.ts"
 }

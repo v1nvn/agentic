@@ -1,9 +1,9 @@
 # agentic — rules
 
 A Claude Code plugin marketplace: `readability` and `omlx` (local MCP servers) plus
-`enhansome` (hosted registry MCP server), `rm`, `md`, `zai`, `tokens` (zero-token
-hook plugins), `statusline` (status line + agent panel), and `todo` (work tracking) —
-nine independently-installable plugins
+`enhansome` (hosted registry MCP server), `rm`, `md`, `zai` (zero-token hook
+plugins), `tokens` (a mod: live status line + pane), `statusline` (status line +
+agent panel), and `todo` (work tracking) — nine independently-installable plugins
 in one repo. Each plugin lives at `packages/<name>/plugin/` inside its package
 home; seven homes publish npm code (`@v1nvn/*`), while `enhansome` points its
 `.mcp.json` at the deployed server and `todo` is manifest + skills, no package.
@@ -49,13 +49,22 @@ name or shape wins.
   folder holds the manifest, `.md` surfaces — skills (a `SKILL.md` at the root or
   under `skills/<name>/`) when the model executes the body, a `commands/` shell when
   a `UserPromptExpansion` hook intercepts the invocation (the body is the no-hooks
-  fallback, and model auto-invocation would bypass the hook) — a hooks/mcp
-  config. Every
+  fallback, and model auto-invocation would bypass the hook) — a hooks/mcp config,
+  and, for a mod, the engine-loaded sources and `tests/`. Every
   `npx -y @v1nvn/*` line in the repo, config or `.md` surface, is version-pinned to
   the train by `set-version.mjs` (an unpinned npx resolves "latest" through the npx
   cache and runs a stale CLI). One synced artifact remains:
   `packages/statusline/plugin/render.mjs`, a committed build artifact the root
   `yarn build` syncs from the package dist.
+- **A mod's sources are the plugin folder — `.ts`/`.tsx` the engine loads directly,
+  no bundler, no artifact.** A hooks module imports only plugin-relative files and
+  the bare `claude-code` (types + state helpers) — never an npm package — so the
+  engine island is self-contained; shared pure code lives in the island and the
+  packages import it from there. Types come from the vendored
+  `types/claude-code.d.ts` (engine-written, version-stamped on its first line) via
+  `tsconfig.mods.json`; regenerate it from `.claude-plugin/types/` after an engine
+  update. `claude plugin validate <plugin dir>` and `claude plugin test <plugin
+  dir>` are the mod's gates; read `references/mods.md` before writing one.
 - **Scripts resolve binaries only from deps the workspace declares.** Each package
   declares the tools its scripts invoke (`vite`, `vitest`); the root declares the
   root-run tools (eslint stack, prettier, typescript).

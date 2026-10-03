@@ -21,6 +21,9 @@ export default defineConfig([
       '.pnp.cjs',
       '.pnp.loader.mjs',
       '.yarn/**',
+      // Engine-written, regenerated on every plugin load — never hand-edited.
+      '**/.claude-plugin/types/**',
+      'packages/*/plugin/tsconfig.json',
     ],
   },
   {
@@ -56,6 +59,57 @@ export default defineConfig([
       '@typescript-eslint/restrict-template-expressions': 'off',
       '@typescript-eslint/prefer-nullish-coalescing': 'off',
       'promise/always-return': ['error', { ignoreLastCallback: true }],
+      curly: 'error',
+      'func-style': ['error', 'declaration'],
+      'no-else-return': 'error',
+      'perfectionist/sort-imports': [
+        'error',
+        {
+          groups: [
+            ['value-builtin', 'value-external'],
+            'type-internal',
+            'value-internal',
+            ['type-parent', 'type-sibling', 'type-index'],
+            ['value-parent', 'value-sibling', 'value-index'],
+            'ts-equals-import',
+            'unknown',
+          ],
+          environment: 'node',
+        },
+      ],
+      'perfectionist/sort-objects': 'off',
+      'perfectionist/sort-modules': 'off',
+    },
+  },
+  {
+    // Mod sources (a package's plugin/ folder): the same style, without the
+    // type-aware rules — their type gate is `tsc -p tsconfig.mods.json`, and
+    // type-aware linting would load the 15k-line vendored claude-code.d.ts
+    // into the linter's program.
+    extends: [
+      js.configs['recommended'],
+      nodePlugin.configs['flat/recommended-module'],
+      ...tseslint.configs.recommended,
+      stylistic.configs.customize({
+        indent: 2,
+        quotes: 'single',
+        semi: true,
+        jsx: false,
+      }),
+      promise.configs['flat/recommended'],
+      prettierRecommended,
+      perfectionist.configs['recommended-natural'],
+      eslintConfigPrettier,
+    ],
+    files: ['packages/*/plugin/**/*.{ts,tsx}'],
+    languageOptions: {
+      ecmaVersion: 2020,
+      globals: globals.node,
+    },
+    rules: {
+      'n/no-missing-import': 'off',
+      'n/no-unpublished-import': 'off',
+      'no-unused-vars': 'off',
       curly: 'error',
       'func-style': ['error', 'declaration'],
       'no-else-return': 'error',

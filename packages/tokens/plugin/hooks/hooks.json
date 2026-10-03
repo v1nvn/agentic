@@ -1,17 +1,4 @@
 {
-  "description": "Zero-token token-usage report from local transcripts",
-  "hooks": {
-    "UserPromptExpansion": [
-      {
-        "matcher": "^tokens:usage$",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "npx",
-            "args": ["-y", "@v1nvn/tokens@0.31.0", "--hook"]
-          }
-        ]
-      }
-    ]
-  }
+  "description": "Live token usage: a status line and the /tokens pane",
+  "modules": ["./register.tsx"]
 }
