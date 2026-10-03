@@ -9,6 +9,11 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 import { defineConfig } from 'eslint/config';
 
+// The mod island: mod source files living inside a package's src/, beside the
+// npm code. A glob cannot say "the island subset of src", so it is named here
+// once — the type-aware block skips it, the mod block below lints it.
+const modIsland = 'packages/tokens/src/{aggregate,format,text}.ts';
+
 export default defineConfig([
   {
     ignores: [
@@ -23,7 +28,7 @@ export default defineConfig([
       '.yarn/**',
       // Engine-written, regenerated on every plugin load — never hand-edited.
       '**/.claude-plugin/types/**',
-      'packages/*/plugin/tsconfig.json',
+      'packages/*/tsconfig.json',
     ],
   },
   {
@@ -44,6 +49,7 @@ export default defineConfig([
       eslintConfigPrettier,
     ],
     files: ['packages/*/src/**/*.{ts,tsx}'],
+    ignores: [modIsland],
     languageOptions: {
       ecmaVersion: 2020,
       globals: globals.node,
@@ -82,10 +88,10 @@ export default defineConfig([
     },
   },
   {
-    // Mod sources (a package's plugin/ folder): the same style, without the
-    // type-aware rules — their type gate is `tsc -p tsconfig.mods.json`, and
-    // type-aware linting would load the 15k-line vendored claude-code.d.ts
-    // into the linter's program.
+    // Mod sources (a re-rooted package: hooks/, tests/, and the island inside
+    // src/): the same style, without the type-aware rules — their type gate is
+    // `tsc -p tsconfig.mods.json`, and type-aware linting would load the
+    // 15k-line vendored claude-code.d.ts into the linter's program.
     extends: [
       js.configs['recommended'],
       nodePlugin.configs['flat/recommended-module'],
@@ -101,7 +107,7 @@ export default defineConfig([
       perfectionist.configs['recommended-natural'],
       eslintConfigPrettier,
     ],
-    files: ['packages/*/plugin/**/*.{ts,tsx}'],
+    files: ['packages/*/hooks/**/*.{ts,tsx}', 'packages/*/tests/**/*.{ts,tsx}', modIsland],
     languageOptions: {
       ecmaVersion: 2020,
       globals: globals.node,

@@ -46,7 +46,7 @@
     },
     {
       "name": "tokens",
-      "source": "./packages/tokens/plugin",
+      "source": "./packages/tokens",
       "category": "productivity",
       "description": "Per-model token usage and cache hit rate from local transcripts."
     },

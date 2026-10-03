@@ -4,8 +4,10 @@ A Claude Code plugin marketplace: `readability` and `omlx` (local MCP servers) p
 `enhansome` (hosted registry MCP server), `rm`, `md`, `zai` (zero-token hook
 plugins), `tokens` (a mod: live status line + pane), `statusline` (status line +
 agent panel), and `todo` (work tracking) — nine independently-installable plugins
-in one repo. Each plugin lives at `packages/<name>/plugin/` inside its package
-home; seven homes publish npm code (`@v1nvn/*`), while `enhansome` points its
+in one repo. Each plugin lives inside its package home — `tokens`'s plugin root
+is the package home itself; the other eight sit at `packages/<name>/plugin/`
+until they port to that shape. Seven homes publish npm code (`@v1nvn/*`), while
+`enhansome` points its
 `.mcp.json` at the deployed server and `todo` is manifest + skills, no package.
 
 ## Philosophy
@@ -42,29 +44,33 @@ name or shape wins.
 
 ## Layout
 
-- **Every plugin lives at `packages/<name>/plugin/`; there is no `plugins/` directory.**
-  One yarn workspace at the root (`"workspaces": ["packages/*"]`); each package with
-  npm code builds with vite and publishes to `@v1nvn/*`. A home without a
-  `package.json` (`enhansome`, `todo`) holds only its `plugin/` folder. A plugin
-  folder holds the manifest, `.md` surfaces — skills (a `SKILL.md` at the root or
+- **A plugin's root is its package home; there is no `plugins/` directory.** `tokens`
+  (the one mod) is re-rooted: its plugin root is `packages/tokens/` itself — manifest
+  at `.claude-plugin/`, hooks module at `hooks/register.tsx`, island in `src/`, engine
+  tests at `tests/`, state contract at `types/`. The other eight keep a `plugin/`
+  subfolder until they port to the same shape; a plugin folder (or the re-rooted
+  home) holds the manifest, `.md` surfaces — skills (a `SKILL.md` at the root or
   under `skills/<name>/`) when the model executes the body, a `commands/` shell when
   a `UserPromptExpansion` hook intercepts the invocation (the body is the no-hooks
-  fallback, and model auto-invocation would bypass the hook) — a hooks/mcp config,
-  and, for a mod, the engine-loaded sources and `tests/`. Every
+  fallback, and model auto-invocation would bypass the hook) — and a hooks/mcp
+  config. One yarn workspace at the root (`"workspaces": ["packages/*"]`); each
+  package with npm code builds with vite and publishes to `@v1nvn/*`. A home without
+  a `package.json` (`enhansome`, `todo`) holds only its `plugin/` folder. Every
   `npx -y @v1nvn/*` line in the repo, config or `.md` surface, is version-pinned to
   the train by `set-version.mjs` (an unpinned npx resolves "latest" through the npx
   cache and runs a stale CLI). One synced artifact remains:
   `packages/statusline/plugin/render.mjs`, a committed build artifact the root
   `yarn build` syncs from the package dist.
-- **A mod's sources are the plugin folder — `.ts`/`.tsx` the engine loads directly,
-  no bundler, no artifact.** A hooks module imports only plugin-relative files and
+- **A mod's sources are its package home — `.ts`/`.tsx` the engine loads directly,
+  no bundler, no artifact** (module at `hooks/`, island in `src/`, engine tests at
+  `tests/`). A hooks module imports only plugin-relative files and
   the bare `claude-code` (types + state helpers) — never an npm package — so the
   engine island is self-contained; shared pure code lives in the island and the
   packages import it from there. Types come from the vendored
   `types/claude-code.d.ts` (engine-written, version-stamped on its first line) via
   `tsconfig.mods.json`; regenerate it from `.claude-plugin/types/` after an engine
-  update. `claude plugin validate <plugin dir>` and `claude plugin test <plugin
-  dir>` are the mod's gates; read `references/mods.md` before writing one.
+  update. `claude plugin validate <plugin root>` and `claude plugin test <plugin
+  root>` are the mod's gates; read `references/mods.md` before writing one.
 - **Scripts resolve binaries only from deps the workspace declares.** Each package
   declares the tools its scripts invoke (`vite`, `vitest`); the root declares the
   root-run tools (eslint stack, prettier, typescript).

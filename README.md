@@ -132,9 +132,10 @@ gone: a blank line at the next paint.
 
 ## Layout
 
-Every plugin lives at `packages/<name>/plugin/` inside its package home; there is
-no `plugins/` directory. Seven homes publish npm code; `enhansome` and `todo`
-are plugin-only homes.
+A plugin's root is its package home; there is no `plugins/` directory. `tokens`
+(the one mod) is re-rooted — its plugin root is `packages/tokens/` itself; the
+other eight keep a `plugin/` subfolder until they port to that shape. Seven
+homes publish npm code; `enhansome` and `todo` are plugin-only homes.
 
 ```
 .claude-plugin/marketplace.json     Claude marketplace manifest; sources point into the package homes
@@ -144,14 +145,14 @@ packages/                           one yarn workspace — every plugin's home
   core/                             @v1nvn/agentic-core — last-reply + text formatting, shared by the tools
   zai/  rm/  md/                   the tool CLIs (zai-usage, rm-send, md-send)
     plugin/                          hooks.json (pinned npx) + plugin.json + commands/
-  tokens/                            tokens-report CLI + the tokens mod
-    plugin/                          register.tsx + aggregate/format/text.ts — .ts the engine
-                                     loads directly — + types/ (state contract) + tests/
+  tokens/                            tokens-report CLI + the tokens mod — the plugin root itself:
+                                     .claude-plugin/ + hooks/register.tsx + tests/ + types/
+                                     (state contract), island aggregate/format/text.ts in src/
   statusline/                        the configure CLI + renderer — pure TS (@v1nvn/statusline)
     plugin/                          SKILL.md (see statusline above) + render.mjs (committed artifact)
   enhansome/  todo/                 package-less homes — plugin/ only (todo: skills/, no code)
 types/claude-code.d.ts              vendored mod API declarations, engine-written per version
-tsconfig.mods.json                  type-checks every plugin/ folder against the vendored types
+tsconfig.mods.json                  type-checks every mod package against the vendored types
 ```
 
 Versions ride one lockstep train: `.claude-plugin/marketplace.json` is the source, and

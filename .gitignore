@@ -35,4 +35,5 @@ tmp/
 *.tgz
 
 # engine-laid mod typings (regenerate on every --plugin-dir load)
-packages/*/plugin/tsconfig.json
+packages/*/tsconfig.json
+packages/*/.claude-plugin/types/

@@ -17,6 +17,7 @@ function discover(patterns) {
 const MIRRORS = discover([
   'packages/*/package.json',
   'packages/*/plugin/.claude-plugin/plugin.json',
+  'packages/*/.claude-plugin/plugin.json',
 ]);
 
 // Plugin configs invoke the published bins via npx; every @v1nvn/<pkg>@<version>
@@ -25,6 +26,7 @@ const MIRRORS = discover([
 const PINNED_CONFIGS = discover([
   'packages/*/plugin/.mcp.json',
   'packages/*/plugin/hooks/hooks.json',
+  'packages/*/hooks/hooks.json',
 ]);
 
 // Skill bodies, hook-fallback command shells, and READMEs teach
