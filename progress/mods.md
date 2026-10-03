@@ -8,20 +8,21 @@ installed copy. Tokens first.
 
 ## Current state
 
-Units 1, 4 and 5 are landed: the tokens mod is in the tree, rooted at its
-package home (G1b), text formatting at one home (the island, imported by
-zai and rm through `@v1nvn/tokens/text`) — all six gates green (`1b6c2c2`
-on `feat/tokens-mod`, PR #11). Inside a mod home `*.test.ts` belongs to the
-engine runner, so the vitest suite is `test/*.spec.ts`. Unit 2 (release) is
-the owner's; unit 3 verifies after it; the port of the other eight plugins
-is parked in TODO.md on unit 3. The consult page holding the unruled
-adoptions (G2 zai line, G3 todo pane/band, G4 `/lab` pane, G5 rm/md) is at
-/tmp/agentic-mods-rulings/index.html.
+Units 1, 4, 5 and 6 are landed — nothing is left to build: the tokens mod
+is in the tree, rooted at its package home (G1b), text formatting at one
+home (the island, imported by zai and rm through `@v1nvn/tokens/text`), the
+degenerate asserts re-homed. All six gates green at `70d30ba` on
+`feat/tokens-mod` (PR #11, ready to merge). Inside a mod home `*.test.ts`
+belongs to the engine runner, so the vitest suite is `test/*.spec.ts`.
+Unit 2 (release) is the owner's; unit 3 verifies after it; the port of the
+other eight plugins is parked in TODO.md on unit 3. The consult page
+holding the unruled adoptions (G2 zai line, G3 todo pane/band, G4 `/lab`
+pane, G5 rm/md) is at /tmp/agentic-mods-rulings/index.html.
 
 ## Next step
 
-Run unit 6 (re-home the degenerate asserts); then owner merges PR #11,
-releases the train (unit 2); unit 3 runs after the release.
+Owner: merge PR #11 and release the train (unit 2); unit 3 runs after the
+release.
 
 ## Steps
 
@@ -32,7 +33,7 @@ releases the train (unit 2); unit 3 runs after the release.
 | 2   | Release the train                     | owner |           | version bumped; release workflow green; npm packages published                                                                                                                                                                 |
 | 3   | Live verify from an install           |       | checklist | marketplace install of `tokens@agentic` loads the mod in a fresh session: status line under the prompt, `/tokens` opens and draws the pane, `/tokens:usage` is gone                                                            |
 | 5   | Wire the text copy to the island      |       |  | `packages/core/src/text-format.ts` deleted; the island's `packages/tokens/src/text.ts` is the one home, imported through the workspace dep by the consumer (zai directly, or core re-exporting — whichever the importer graph says); repo grep finds no importer of the old path; six gates green (zai's 37 vitest included) — landed `1b6c2c2`, blind review clean |
-| 6   | Re-home the degenerate asserts        | sonnet |  | `packages/tokens/test/text.spec.ts` exists, importing `../src/text.js`, carrying every degenerate assert from the deleted core test (missing → '—', blank bars, `▏` sliver, round-up, overlong pads, meter clamps; the `it`-block shape is the builder's); tokens vitest green in 3 files; no other suite touched |
+| 6   | Re-home the degenerate asserts        | sonnet |  | `packages/tokens/test/text.spec.ts` exists, importing `../src/text.js`, carrying every degenerate assert from the deleted core test (missing → '—', blank bars, `▏` sliver, round-up, overlong pads, meter clamps; the `it`-block shape is the builder's); tokens vitest green in 3 files; no other suite touched — landed `70d30ba`, review clean (byte-level assert fidelity) |
 
 ## Plan
 
