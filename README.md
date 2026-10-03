@@ -13,11 +13,11 @@ at the hosted registry server, and `todo` is manifest + skills, no package.
 | **rm**          | Beam the last reply to a reMarkable as EPUB.                                                                                           | `/rm:send`                                            |
 | **md**          | Send the last reply to a Markdown-Viewer as a `#share=` URL — editable or read-only.                                                   | `/md:edit`, `/md:view`                                |
 | **zai**         | Query GLM Coding Plan quota and usage.                                                                                                 | `/zai:usage`                                          |
-| **tokens**      | Per-model token usage and cache hit rate from local transcripts.                                                                       | `/tokens:usage`                                       |
+| **tokens**      | Live token usage — a status line under the prompt plus the full report as a pane.                                                      | `/tokens`                                             |
 | **statusline**  | Pick a theme for the status line + agent panel, or revert the setup.                                                                   | `/lab`                                                |
 | **todo**        | Work tracking — the rules plus six verbs over `TODO.md`, `progress/`, `references/`, `archive/`. Every repo carries data only.         | `/todo:run <plan>`, or a what's-next ask              |
 
-`rm`, `md`, `zai`, and `tokens` run zero-token: a `UserPromptExpansion` hook intercepts the command before it reaches the model.
+`rm`, `md`, and `zai` run zero-token: a `UserPromptExpansion` hook intercepts the command before it reaches the model. `tokens` is zero-token the mod way — a function-hook module draws its status line and pane, surfaces the model never reads.
 
 ## Prerequisites
 
@@ -144,11 +144,14 @@ packages/                           one yarn workspace — every plugin's home
   core/                             @v1nvn/agentic-core — last-reply + text formatting, shared by the tools
   zai/  rm/  md/                   the tool CLIs (zai-usage, rm-send, md-send)
     plugin/                          hooks.json (pinned npx) + plugin.json + commands/
-  tokens/                            the tokens-report CLI
-    plugin/                          hooks.json (pinned npx) + plugin.json + commands/
+  tokens/                            tokens-report CLI + the tokens mod
+    plugin/                          register.tsx + aggregate/format/text.ts — .ts the engine
+                                     loads directly — + types/ (state contract) + tests/
   statusline/                        the configure CLI + renderer — pure TS (@v1nvn/statusline)
     plugin/                          SKILL.md (see statusline above) + render.mjs (committed artifact)
   enhansome/  todo/                 package-less homes — plugin/ only (todo: skills/, no code)
+types/claude-code.d.ts              vendored mod API declarations, engine-written per version
+tsconfig.mods.json                  type-checks every plugin/ folder against the vendored types
 ```
 
 Versions ride one lockstep train: `.claude-plugin/marketplace.json` is the source, and

@@ -34,3 +34,5 @@ tmp/
 *.swp
 *.tgz
 
+# engine-laid mod typings (regenerate on every --plugin-dir load)
+packages/*/plugin/tsconfig.json

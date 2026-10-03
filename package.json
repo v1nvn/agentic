@@ -8,7 +8,7 @@
   "scripts": {
     "build": "yarn workspaces foreach --all --topological run build && cp packages/statusline/dist/render.mjs packages/statusline/plugin/render.mjs",
     "test": "yarn workspaces foreach --all run test",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.mods.json",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier . --write",

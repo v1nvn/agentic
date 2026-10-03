@@ -1,11 +1,15 @@
 /**
  * Plain-text token-usage renderer.
  *
- * Rendered for a monospace terminal / hook-block `reason`, so it must NOT rely on
+ * Rendered for a monospace terminal — the pane — so it must NOT rely on
  * markdown. Alignment comes from fixed-width columns and unicode block glyphs.
- * Input is the aggregate JSON produced by scan.ts.
+ * Input is the ScanResult produced in register.tsx; the type comes from
+ * aggregate.ts.
  */
 
+import type { DayRow, ModelRow, ScanResult } from './aggregate.js';
+
+import { hitRate, sumRows, totalTokens } from './aggregate.js';
 import {
   barField,
   fmtNum,
@@ -17,33 +21,14 @@ import {
   rule,
   RULE_WIDTH,
   ymd,
-} from '@v1nvn/agentic-core';
-
-import type { DayRow, ModelRow, ScanResult, UsageAcc } from './scan.js';
-
-/** cacheRead / modeled context; input_tokens is uncached input only. */
-export function hitRate({
-  input = 0,
-  cacheRead = 0,
-  cacheCreation = 0,
-}: Partial<UsageAcc> = {}): number {
-  const denom = input + cacheRead + cacheCreation;
-  return denom > 0 ? (cacheRead / denom) * 100 : 0;
-}
-
-function totalTokens(a: UsageAcc): number {
-  return (
-    (a.input || 0) +
-    (a.output || 0) +
-    (a.cacheRead || 0) +
-    (a.cacheCreation || 0)
-  );
-}
+} from './text.js';
 
 /** '2026-08-15' → 'Aug 15'. */
 function dayLabel(day: string): string {
-  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(day);
-  return m ? `${MONTHS[+m[2] - 1]} ${m[3]}` : day;
+  const [, , month, date] = /^(\d{4})-(\d{2})-(\d{2})$/.exec(day) ?? [];
+  return month !== undefined && date !== undefined
+    ? `${MONTHS[+month - 1] ?? day} ${date}`
+    : day;
 }
 
 function fmtClock(date: Date): string {
@@ -58,17 +43,7 @@ export function render(
 
   const allRows: ModelRow[] = scanResult.last24;
   const rows = allRows.filter(r => totalTokens(r) > 0); // <synthetic> etc. carry no tokens
-  const sum = rows.reduce<UsageAcc>(
-    (a, r) => {
-      a.input += r.input;
-      a.output += r.output;
-      a.cacheRead += r.cacheRead;
-      a.cacheCreation += r.cacheCreation;
-      a.calls += r.calls;
-      return a;
-    },
-    { input: 0, output: 0, cacheRead: 0, cacheCreation: 0, calls: 0 },
-  );
+  const sum = sumRows(rows);
   const pctHit = Math.round(hitRate(sum));
 
   const left = ' Token usage · transcripts';
@@ -101,11 +76,9 @@ export function render(
   // bucketed as a full day).
   let days: DayRow[] = scanResult.days;
   const firstDay = ymd(new Date(now.getTime() - 7 * 24 * 3600 * 1000));
-  if (
-    days.length &&
-    days[0].day === firstDay &&
-    firstDay !== days[days.length - 1].day
-  ) {
+  const first = days.at(0);
+  const last = days.at(-1);
+  if (first && last && first.day === firstDay && firstDay !== last.day) {
     days = days.slice(1);
   }
   out.push('');

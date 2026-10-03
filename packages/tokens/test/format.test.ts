@@ -1,20 +1,56 @@
 import { describe, expect, it } from 'vitest';
-import { hitRate, render } from '../src/format.js';
-import type { ScanResult } from '../src/scan.js';
+import { hitRate } from '../plugin/hooks/aggregate.js';
+import type { ScanResult } from '../plugin/hooks/aggregate.js';
+import { render } from '../plugin/hooks/format.js';
 
 const now = new Date(2026, 7, 15, 9, 41); // Aug 15 2026 09:41 local
 
 const scan: ScanResult = {
   now: '2026-08-15T04:41:00.000Z',
   last24: [
-    { model: 'glm-5.3', input: 51, output: 4, cacheRead: 40448, cacheCreation: 0, calls: 3 },
-    { model: 'claude-opus-5', input: 5685, output: 28, cacheRead: 40256, cacheCreation: 1200, calls: 4 },
-    { model: '<synthetic>', input: 0, output: 0, cacheRead: 0, cacheCreation: 0, calls: 2 },
+    {
+      model: 'glm-5.3',
+      input: 51,
+      output: 4,
+      cacheRead: 40448,
+      cacheCreation: 0,
+      calls: 3,
+    },
+    {
+      model: 'claude-opus-5',
+      input: 5685,
+      output: 28,
+      cacheRead: 40256,
+      cacheCreation: 1200,
+      calls: 4,
+    },
+    {
+      model: '<synthetic>',
+      input: 0,
+      output: 0,
+      cacheRead: 0,
+      cacheCreation: 0,
+      calls: 2,
+    },
   ],
   models: [],
   days: [
-    { day: '2026-08-14', input: 1200, output: 300, cacheRead: 8000, cacheCreation: 500, calls: 9 },
-    { day: '2026-08-15', input: 5736, output: 32, cacheRead: 80704, cacheCreation: 1200, calls: 7 },
+    {
+      day: '2026-08-14',
+      input: 1200,
+      output: 300,
+      cacheRead: 8000,
+      cacheCreation: 500,
+      calls: 9,
+    },
+    {
+      day: '2026-08-15',
+      input: 5736,
+      output: 32,
+      cacheRead: 80704,
+      cacheCreation: 1200,
+      calls: 7,
+    },
   ],
 };
 
@@ -60,14 +96,19 @@ describe('tokens report render', () => {
   });
 
   it('renders a placeholder for an empty scan', () => {
-    const empty = render({ now: scan.now, last24: [], models: [], days: [] }, { now });
+    const empty = render(
+      { now: scan.now, last24: [], models: [], days: [] },
+      { now },
+    );
     expect(empty).toContain('(no usage recorded in the last 24 hours)');
   });
 });
 
 describe('hitRate units', () => {
   it('counts cacheCreation in the denominator', () => {
-    expect(hitRate({ input: 0, cacheRead: 100, cacheCreation: 100 })).toBeCloseTo(50, 9);
+    expect(
+      hitRate({ input: 0, cacheRead: 100, cacheCreation: 100 }),
+    ).toBeCloseTo(50, 9);
   });
 
   it('scores uncached-only usage as 0%', () => {
