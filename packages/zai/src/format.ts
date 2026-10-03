@@ -19,7 +19,7 @@ import {
   padR,
   rule,
   RULE_WIDTH,
-} from '@v1nvn/agentic-core';
+} from '@v1nvn/tokens/text';
 
 // Lower-half block eighths for vertical bars (1/8 .. 7/8); a full cell uses '█'.
 const VBLOCKS = '▁▂▃▄▅▆▇';

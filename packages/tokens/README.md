@@ -62,14 +62,14 @@ and re-vendor `types/claude-code.d.ts` (repo root) from the engine-laid
 
 ## Modules
 
-| File                 | Role                                                            |
-| -------------------- | --------------------------------------------------------------- |
-| `src/index.ts`       | bin entry (`tokens-report`) — dispatch, exit codes              |
-| `src/aggregate.ts`   | the one usage math: JSONL line → per-model/per-day accumulation |
-| `src/scan.ts`        | the CLI's transcript walk (node-fs)                             |
-| `hooks/register.tsx` | the mod: `$.fs` walk, status line, `/tokens` pane               |
-| `src/format.ts`      | the report both doors print                                     |
-| `src/text.ts`        | fixed-width report primitives                                   |
+| File                 | Role                                                                         |
+| -------------------- | ---------------------------------------------------------------------------- |
+| `src/index.ts`       | bin entry (`tokens-report`) — dispatch, exit codes                           |
+| `src/aggregate.ts`   | the one usage math: JSONL line → per-model/per-day accumulation              |
+| `src/scan.ts`        | the CLI's transcript walk (node-fs)                                          |
+| `hooks/register.tsx` | the mod: `$.fs` walk, status line, `/tokens` pane                            |
+| `src/format.ts`      | the report both doors print                                                  |
+| `src/text.ts`        | fixed-width report primitives — the one home, shared as `@v1nvn/tokens/text` |
 
 ## Contracts
 

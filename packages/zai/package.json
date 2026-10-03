@@ -38,6 +38,7 @@
   },
   "dependencies": {
     "@v1nvn/agentic-core": "workspace:^",
+    "@v1nvn/tokens": "workspace:^",
     "commander": "^15.0.0"
   },
   "devDependencies": {

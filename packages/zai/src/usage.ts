@@ -4,7 +4,7 @@
  * renders the plain-text report.
  */
 
-import { pad2 } from '@v1nvn/agentic-core';
+import { pad2 } from '@v1nvn/tokens/text';
 
 import type { ZaiModelUsage, ZaiQuota, ZaiToolUsage } from './format.js';
 import type { ResolvedConfig } from './resolve.js';
