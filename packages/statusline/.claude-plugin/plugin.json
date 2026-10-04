@@ -1,7 +1,7 @@
 {
   "name": "statusline",
   "description": "Status line and agent-panel rows from a component library of pickable designs — the statusline CLI writes keys that spawn a resolver in the plugin data dir, which imports the renderer shipped in the plugin",
-  "version": "0.33.1",
+  "version": "0.34.0",
   "author": {
     "name": "v1nvn",
     "email": "v1n@outlook.com"
