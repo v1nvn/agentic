@@ -133,9 +133,10 @@ gone: a blank line at the next paint.
 ## Layout
 
 A plugin's root is its package home; there is no `plugins/` directory. `tokens`
-(the one mod) is re-rooted — its plugin root is `packages/tokens/` itself; the
-other eight keep a `plugin/` subfolder until they port to that shape. Seven
-homes publish npm code; `enhansome` and `todo` are plugin-only homes.
+(the one mod) is re-rooted — its plugin root is `packages/tokens/` itself, and
+the package-less `enhansome` and `todo` follow that shape; the other six keep
+a `plugin/` subfolder until they port to that shape. Seven homes publish npm
+code.
 
 ```
 .claude-plugin/marketplace.json     Claude marketplace manifest; sources point into the package homes
@@ -152,7 +153,8 @@ packages/                           one yarn workspace — every plugin's home
                                      bin/report.mjs (standalone build the mod execs, committed)
   statusline/                        the configure CLI + renderer — pure TS (@v1nvn/statusline)
     plugin/                          SKILL.md (see statusline above) + render.mjs (committed artifact)
-  enhansome/  todo/                 package-less homes — plugin/ only (todo: skills/, no code)
+  enhansome/  todo/                 package-less homes — the plugin root itself:
+                                    .claude-plugin/ + .mcp.json, todo: .claude-plugin/ + skills/ + README.md
 types/claude-code.d.ts              vendored mod API declarations, engine-written per version
 tsconfig.mods.json                  type-checks every mod package against the vendored types
 ```
