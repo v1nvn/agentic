@@ -52,7 +52,7 @@
     },
     {
       "name": "statusline",
-      "source": "./packages/statusline/plugin",
+      "source": "./packages/statusline",
       "category": "productivity",
       "description": "Render the status line and agent-panel rows from a component library of pickable designs."
     },

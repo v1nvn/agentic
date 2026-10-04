@@ -107,9 +107,8 @@ repo
     src/  test/  dist/                dist/ holds index.js and render.mjs
     assets/payloads/  p1–p4.json          preview fixtures, main surface
     assets/ticks/     multi.json          preview fixtures, agent panel
-    plugin/
-      SKILL.md                            the /lab skill — model-taught entry point
-      render.mjs                          the renderer — committed build artifact, synced by `yarn build`
+    SKILL.md                          the /lab skill — model-taught entry point
+    render.mjs                        the renderer — committed build artifact, synced by `yarn build`
 
 machine, after `claude plugin install statusline@agentic`
   ~/.claude/plugins/cache/agentic/statusline/<version>/   the installed plugin — its render.mjs paints
@@ -132,10 +131,8 @@ gone: a blank line at the next paint.
 
 ## Layout
 
-A plugin's root is its package home; there is no `plugins/` directory. `tokens`
-(the one mod) is re-rooted — its plugin root is `packages/tokens/` itself, and
-`enhansome`, `todo`, `readability`, and `omlx` follow that shape; `statusline`
-keeps a `plugin/` subfolder until it ports to that shape. Seven homes publish
+A plugin's root is its package home; there is no `plugins/` directory — all
+nine plugins root at `packages/<name>/` itself. Seven homes publish
 npm code.
 
 ```
@@ -151,8 +148,8 @@ packages/                           one yarn workspace — every plugin's home
                                      (state contract), island aggregate/format/text.ts in src/
                                      (text.ts is the one fixed-width home, via @v1nvn/tokens/text),
                                      bin/report.mjs (standalone build the mod execs, committed)
-  statusline/                        the configure CLI + renderer — pure TS (@v1nvn/statusline)
-    plugin/                          SKILL.md (see statusline above) + render.mjs (committed artifact)
+  statusline/                        the configure CLI + renderer, pure TS (@v1nvn/statusline) — the plugin root itself:
+                                     .claude-plugin/ + SKILL.md (see statusline above) + render.mjs (committed artifact)
   enhansome/  todo/                 package-less homes — the plugin root itself:
                                     .claude-plugin/ + .mcp.json, todo: .claude-plugin/ + skills/ + README.md
 types/claude-code.d.ts              vendored mod API declarations, engine-written per version
