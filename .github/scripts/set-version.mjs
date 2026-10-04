@@ -16,7 +16,6 @@ function discover(patterns) {
 
 const MIRRORS = discover([
   'packages/*/package.json',
-  'packages/*/plugin/.claude-plugin/plugin.json',
   'packages/*/.claude-plugin/plugin.json',
 ]);
 
@@ -25,7 +24,6 @@ const MIRRORS = discover([
 // nothing from npm and carries no pin.
 const PINNED_CONFIGS = discover([
   'packages/*/.mcp.json',
-  'packages/*/plugin/hooks/hooks.json',
   'packages/*/hooks/hooks.json',
 ]);
 

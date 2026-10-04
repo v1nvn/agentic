@@ -21,7 +21,7 @@ jobs:
       - name: Validate plugin + marketplace manifests
         run: |
           claude plugin validate .claude-plugin/marketplace.json
-          for m in packages/*/plugin/.claude-plugin/plugin.json packages/*/.claude-plugin/plugin.json; do
+          for m in packages/*/.claude-plugin/plugin.json; do
             claude plugin validate "$m"
           done
       - name: Check package versions ride the repo version

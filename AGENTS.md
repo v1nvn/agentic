@@ -4,9 +4,8 @@ A Claude Code plugin marketplace: `readability` and `omlx` (local MCP servers) p
 `enhansome` (hosted registry MCP server), `rm`, `md`, `zai` (zero-token hook
 plugins), `tokens` (a mod: the `/tokens` usage pane), `statusline` (status line +
 agent panel), and `todo` (work tracking) — nine independently-installable plugins
-in one repo. Each plugin lives inside its package home — `tokens`'s plugin root
-is the package home itself; the other eight sit at `packages/<name>/plugin/`
-until they port to that shape. Seven homes publish npm code (`@v1nvn/*`), while
+in one repo. Each plugin's root is its package home, `packages/<name>/` itself.
+Seven homes publish npm code (`@v1nvn/*`), while
 `enhansome` points its
 `.mcp.json` at the deployed server and `todo` is manifest + skills, no package.
 
@@ -44,24 +43,23 @@ name or shape wins.
 
 ## Layout
 
-- **A plugin's root is its package home; there is no `plugins/` directory.** `tokens`
-  (the one mod) is re-rooted: its plugin root is `packages/tokens/` itself — manifest
-  at `.claude-plugin/`, hooks module at `hooks/register.tsx`, island in `src/`, engine
-  tests at `tests/`, state contract at `types/`. The other eight keep a `plugin/`
-  subfolder until they port to the same shape; a plugin folder (or the re-rooted
-  home) holds the manifest, `.md` surfaces — skills (a `SKILL.md` at the root or
-  under `skills/<name>/`) when the model executes the body, a `commands/` shell when
-  a `UserPromptExpansion` hook intercepts the invocation (the body is the no-hooks
-  fallback, and model auto-invocation would bypass the hook) — and a hooks/mcp
-  config. One yarn workspace at the root (`"workspaces": ["packages/*"]`); each
-  package with npm code builds with vite and publishes to `@v1nvn/*`. A home without
-  a `package.json` (`enhansome`, `todo`) holds only its `plugin/` folder. Every
-  `npx -y @v1nvn/*` line in the repo, config or `.md` surface, is version-pinned to
-  the train by `set-version.mjs` (an unpinned npx resolves "latest" through the npx
-  cache and runs a stale CLI). Two synced artifacts:
-  `packages/statusline/plugin/render.mjs` and `packages/tokens/bin/report.mjs` —
-  committed builds the root `yarn build` syncs from the package dist, for code a
-  surface execs or imports from the installed plugin folder.
+- **A plugin's root is its package home; there is no `plugins/` directory.** A
+  plugin root holds the manifest, `.md` surfaces — skills (a `SKILL.md` at the
+  root or under `skills/<name>/`) when the model executes the body, a
+  `commands/` shell when a `UserPromptExpansion` hook intercepts the invocation
+  (the body is the no-hooks fallback, and model auto-invocation would bypass
+  the hook) — and a hooks/mcp config; `tokens` (the one mod) adds a hooks
+  module at `hooks/register.tsx`, island in `src/`, engine tests at `tests/`,
+  state contract at `types/`. One yarn workspace at the root
+  (`"workspaces": ["packages/*"]`); each package with npm code builds with
+  vite and publishes to `@v1nvn/*`. A home without a `package.json`
+  (`enhansome`, `todo`) holds only its plugin surfaces. Every
+  `npx -y @v1nvn/*` line in the repo, config or `.md` surface, is
+  version-pinned to the train by `set-version.mjs` (an unpinned npx resolves
+  "latest" through the npx cache and runs a stale CLI). Two synced artifacts:
+  `packages/statusline/render.mjs` and `packages/tokens/bin/report.mjs` —
+  committed builds the root `yarn build` syncs from the package dist, for code
+  a surface execs or imports from the installed plugin folder.
 - **A mod's sources are its package home — `.ts`/`.tsx` the engine loads directly,
   no bundler, no artifact** (module at `hooks/`, island in `src/`, engine tests at
   `tests/`). A hooks module imports only plugin-relative files and
@@ -117,7 +115,7 @@ name or shape wins.
   text, never round-trip its serializer.
 - **Green tests aren't proof of behaviour** — exercise a server change live
   through its dev server (`omlx-dev` / `readability-dev`, hot-reloaded by
-  `yarn dev`, wired in `.mcp.json`).
+  `yarn dev`, wired in `dev.mcp.json` via `claude --mcp-config`).
 
 ## Prompt surfaces
 
