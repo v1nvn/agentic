@@ -22,7 +22,7 @@ pane, G5 rm/md) is at /tmp/agentic-mods-rulings/index.html.
 ## Next step
 
 Run unit 3: live verify from a marketplace install in a fresh session
-(status line under the prompt, `/tokens` opens and draws the pane,
+(`/tokens` opens and draws the pane, nothing draws or execs until then,
 `/tokens:usage` gone).
 
 ## Steps
@@ -32,7 +32,7 @@ Run unit 3: live verify from a marketplace install in a fresh session
 | 1   | Re-land the tokens mod from the shelf |       | checklist | `git checkout wip/tokens-mod-full -- <mod paths>`; gates green (typecheck both tsconfigs, lint, 15 vitest, `claude plugin validate`, `claude plugin test` 2/2); READMEs + CLAUDE.md mod bits and `references/mods.md` restored — landed `12bc584` on `feat/tokens-mod`, all six gates green |
 | 4   | Re-root tokens to the package home (G1b) |       |  | `plugin/` gone from `packages/tokens`: manifest at `packages/tokens/.claude-plugin/`, module at `hooks/register.tsx`, island in `src/`, engine tests at `tests/`, contract types at `types/`; marketplace `source: "./packages/tokens"`; six gates green re-pointed (`set-version --check`, typecheck, lint, `yarn test`, `claude plugin validate packages/tokens`, `test:mods` → `packages/tokens` 2/2); CLAUDE.md layout law and READMEs name the shape — landed `f2df47a` on `feat/tokens-mod`, all six gates green; review round added the engine-laid `types/` gitignore line and dropped the false core-re-export clause |
 | 2   | Release the train                     | owner |           | version bumped; release workflow green; npm packages published — v0.32.0 (run 37101380103 green, `0c69f38` on main, GitHub release v0.32.0)
-| 3   | Live verify from an install           |       | checklist | marketplace install of `tokens@agentic` loads the mod in a fresh session: status line under the prompt, `/tokens` opens and draws the pane, `/tokens:usage` is gone                                                            |
+| 3   | Live verify from an install           |       | checklist | marketplace install of `tokens@agentic` loads the mod in a fresh session: `/tokens` opens and draws the pane, nothing draws and nothing execs until then, `/tokens:usage` is gone                                              |
 | 5   | Wire the text copy to the island      |       |  | `packages/core/src/text-format.ts` deleted; the island's `packages/tokens/src/text.ts` is the one home, imported through the workspace dep by the consumer (zai directly, or core re-exporting — whichever the importer graph says); repo grep finds no importer of the old path; six gates green (zai's 37 vitest included) — landed `1b6c2c2`, blind review clean |
 | 6   | Re-home the degenerate asserts        | sonnet |  | `packages/tokens/test/text.spec.ts` exists, importing `../src/text.js`, carrying every degenerate assert from the deleted core test (missing → '—', blank bars, `▏` sliver, round-up, overlong pads, meter clamps; the `it`-block shape is the builder's); tokens vitest green in 3 files; no other suite touched — landed `70d30ba`, review clean (byte-level assert fidelity) |
 
@@ -121,7 +121,10 @@ Run unit 3: live verify from a marketplace install in a fresh session
   and bare `claude-code`), so the island is the only possible single home.
 - `claude-code` is not an npm dep — the npm name is an unrelated package; the
   dep is the vendored engine declaration file plus `tsconfig.mods.json`.
-- Mod surfaces stay zero-token: the status line and pane are engine-drawn and
-  never model-read; `command.run` answers `{}` (its `text` would be
+- Mod surfaces stay zero-token: the pane is engine-drawn and never
+  model-read; `command.run` answers `{}` (its `text` would be
   model-read); the `UserPromptExpansion` door retires with the mod — `/tokens`
   replaces `/tokens:usage` (`usage` collides with a built-in command).
+- The mod draws the pane only (owner, 2026-10-04): no status line — the
+  `$.ui.status` call, its startup exec and its numbers are gone; the clock
+  execs only while the pane is open (`$.ui.panes()` guards it).

@@ -1,7 +1,7 @@
 /**
  * Plain-text rendering primitives for the fixed-width reports. Output targets
- * a monospace terminal — the status line and the pane — so everything here is
- * fixed-width: padding, block-glyph bars, and compact number formatting.
+ * a monospace terminal — the pane — so everything here is fixed-width:
+ * padding, block-glyph bars, and compact number formatting.
  */
 
 export const MONTHS = [
@@ -25,6 +25,18 @@ export const RULE_WIDTH = 68;
 
 export function rule(): string {
   return '─'.repeat(RULE_WIDTH);
+}
+
+/** '2026-08-15' → 'Aug 15'. */
+export function dayLabel(day: string): string {
+  const [, , month, date] = /^(\d{4})-(\d{2})-(\d{2})$/.exec(day) ?? [];
+  return month !== undefined && date !== undefined
+    ? `${MONTHS[+month - 1] ?? day} ${date}`
+    : day;
+}
+
+export function fmtClock(date: Date): string {
+  return `${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
 }
 
 export function pad2(n: number): string {

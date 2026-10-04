@@ -13,11 +13,11 @@ at the hosted registry server, and `todo` is manifest + skills, no package.
 | **rm**          | Beam the last reply to a reMarkable as EPUB.                                                                                           | `/rm:send`                                            |
 | **md**          | Send the last reply to a Markdown-Viewer as a `#share=` URL — editable or read-only.                                                   | `/md:edit`, `/md:view`                                |
 | **zai**         | Query GLM Coding Plan quota and usage.                                                                                                 | `/zai:usage`                                          |
-| **tokens**      | Live token usage — a status line under the prompt plus the full report as a pane.                                                      | `/tokens`                                             |
+| **tokens**      | Live token usage — the full report as a pane.                                                      | `/tokens`                                             |
 | **statusline**  | Pick a theme for the status line + agent panel, or revert the setup.                                                                   | `/lab`                                                |
 | **todo**        | Work tracking — the rules plus six verbs over `TODO.md`, `progress/`, `references/`, `archive/`. Every repo carries data only.         | `/todo:run <plan>`, or a what's-next ask              |
 
-`rm`, `md`, and `zai` run zero-token: a `UserPromptExpansion` hook intercepts the command before it reaches the model. `tokens` is zero-token the mod way — a function-hook module draws its status line and pane, surfaces the model never reads.
+`rm`, `md`, and `zai` run zero-token: a `UserPromptExpansion` hook intercepts the command before it reaches the model. `tokens` is zero-token the mod way — a function-hook module draws its pane, a surface the model never reads.
 
 ## Prerequisites
 

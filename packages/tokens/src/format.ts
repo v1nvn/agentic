@@ -1,39 +1,27 @@
 /**
- * Plain-text token-usage renderer.
- *
- * Rendered for a monospace terminal — the pane — so it must NOT rely on
- * markdown. Alignment comes from fixed-width columns and unicode block glyphs.
- * Input is the ScanResult produced in register.tsx; the type comes from
- * aggregate.ts.
+ * Plain-text token-usage renderer — the CLI's surface (`npx tokens-report`).
+ * Rendered for a monospace terminal, so it must NOT rely on markdown.
+ * Alignment comes from fixed-width columns and unicode block glyphs. Input is
+ * the ScanResult produced by the aggregator; the math lives in aggregate.ts,
+ * the primitives in text.ts. The mod's pane draws the same scan as an
+ * element tree in hooks/register.tsx.
  */
 
 import type { DayRow, ModelRow, ScanResult } from './aggregate.js';
 
-import { hitRate, sumRows, totalTokens } from './aggregate.js';
+import { hitRate, last7, sumRows, totalTokens } from './aggregate.js';
 import {
   barField,
+  dayLabel,
+  fmtClock,
   fmtNum,
   fmtTokens,
-  MONTHS,
-  pad2,
   padL,
   padR,
   rule,
   RULE_WIDTH,
   ymd,
 } from './text.js';
-
-/** '2026-08-15' → 'Aug 15'. */
-function dayLabel(day: string): string {
-  const [, , month, date] = /^(\d{4})-(\d{2})-(\d{2})$/.exec(day) ?? [];
-  return month !== undefined && date !== undefined
-    ? `${MONTHS[+month - 1] ?? day} ${date}`
-    : day;
-}
-
-function fmtClock(date: Date): string {
-  return `${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
-}
 
 export function render(
   scanResult: ScanResult,
@@ -71,16 +59,7 @@ export function render(
     );
   }
 
-  // The bucket holding the window-start day covers only part of that calendar
-  // day — drop it (unless the window began at midnight, which scan would have
-  // bucketed as a full day).
-  let days: DayRow[] = scanResult.days;
-  const firstDay = ymd(new Date(now.getTime() - 7 * 24 * 3600 * 1000));
-  const first = days.at(0);
-  const last = days.at(-1);
-  if (first && last && first.day === firstDay && firstDay !== last.day) {
-    days = days.slice(1);
-  }
+  const days: DayRow[] = last7(scanResult, now);
   out.push('');
   out.push(' Daily · last 7 days ' + '─'.repeat(Math.max(0, RULE_WIDTH - 21)));
   const maxDay = Math.max(0, ...days.map(totalTokens));

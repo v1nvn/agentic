@@ -2986,8 +2986,8 @@ new Command();
 //#region src/text.ts
 /**
 * Plain-text rendering primitives for the fixed-width reports. Output targets
-* a monospace terminal — the status line and the pane — so everything here is
-* fixed-width: padding, block-glyph bars, and compact number formatting.
+* a monospace terminal — the pane — so everything here is fixed-width:
+* padding, block-glyph bars, and compact number formatting.
 */
 var MONTHS = [
 	"Jan",
@@ -3015,6 +3015,14 @@ var EIGHTHS = [
 ];
 function rule() {
 	return "─".repeat(68);
+}
+/** '2026-08-15' → 'Aug 15'. */
+function dayLabel(day) {
+	const [, , month, date] = /^(\d{4})-(\d{2})-(\d{2})$/.exec(day) ?? [];
+	return month !== void 0 && date !== void 0 ? `${MONTHS[+month - 1] ?? day} ${date}` : day;
+}
+function fmtClock(date) {
+	return `${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
 }
 function pad2(n) {
 	return String(n).padStart(2, "0");
@@ -3085,6 +3093,19 @@ function sumRows(rows) {
 		sum.calls += r.calls;
 	}
 	return sum;
+}
+/**
+* The day buckets fully inside the 7-day window ending at `now`. The bucket
+* holding the window-start day covers only part of that calendar day — drop
+* it (unless the window began at midnight, which scan bucketed as a full
+* day).
+*/
+function last7(scanResult, now) {
+	const { days } = scanResult;
+	const firstDay = ymd(/* @__PURE__ */ new Date(now.getTime() - 6048e5));
+	const first = days.at(0);
+	const last = days.at(-1);
+	return first && last && first.day === firstDay && firstDay !== last.day ? days.slice(1) : days;
 }
 function zero() {
 	return {
@@ -3162,14 +3183,6 @@ function createAggregator(now = /* @__PURE__ */ new Date()) {
 }
 //#endregion
 //#region src/format.ts
-/** '2026-08-15' → 'Aug 15'. */
-function dayLabel(day) {
-	const [, , month, date] = /^(\d{4})-(\d{2})-(\d{2})$/.exec(day) ?? [];
-	return month !== void 0 && date !== void 0 ? `${MONTHS[+month - 1] ?? day} ${date}` : day;
-}
-function fmtClock(date) {
-	return `${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
-}
 function render(scanResult, { now = /* @__PURE__ */ new Date() } = {}) {
 	const out = [];
 	const rows = scanResult.last24.filter((r) => totalTokens(r) > 0);
@@ -3190,11 +3203,7 @@ function render(scanResult, { now = /* @__PURE__ */ new Date() } = {}) {
 		const pct = Math.round(hitRate(r));
 		out.push(`   ${padR(r.model, 14)}${padL(fmtTokens(r.input), 8)} in · ${padL(fmtTokens(r.output), 8)} out · ${padL(fmtTokens(r.cacheRead), 8)} read · ${padL(fmtTokens(r.cacheCreation), 8)} created  ${padL(`${pct}%`, 4)} ${barField(pct, 100, 14)}`);
 	}
-	let days = scanResult.days;
-	const firstDay = ymd(/* @__PURE__ */ new Date(now.getTime() - 6048e5));
-	const first = days.at(0);
-	const last = days.at(-1);
-	if (first && last && first.day === firstDay && firstDay !== last.day) days = days.slice(1);
+	const days = last7(scanResult, now);
 	out.push("");
 	out.push(" Daily · last 7 days " + "─".repeat(Math.max(0, 47)));
 	const maxDay = Math.max(0, ...days.map(totalTokens));

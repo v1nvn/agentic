@@ -12,10 +12,9 @@ User-facing docs: [root README](../../README.md).
 
 ## Quickstart
 
-In Claude Code, the plugin is the way in — a mod draws two surfaces the model
-never reads: a status line under the prompt carrying the rolling 24h slice,
-and `/tokens` opening the full report as a pane (refreshed on open and every
-5 minutes).
+In Claude Code, the plugin is the way in — a mod draws one surface the model
+never reads: `/tokens` opens the full report as a pane (refreshed on open and
+every 5 minutes while it shows; nothing draws and nothing execs until then).
 
 ```sh
 claude plugin marketplace add v1nvn/agentic
@@ -67,7 +66,7 @@ and re-vendor `types/claude-code.d.ts` (repo root) from the engine-laid
 | `src/index.ts`       | bin entry (`tokens-report`) — dispatch, exit codes                           |
 | `src/aggregate.ts`   | the one usage math: JSONL line → per-model/per-day accumulation              |
 | `src/scan.ts`        | the CLI's transcript walk (node-fs)                                          |
-| `hooks/register.tsx` | the mod: execs the CLI, draws the status line and the `/tokens` pane         |
+| `hooks/register.tsx` | the mod: execs the CLI, draws the `/tokens` pane                              |
 | `src/format.ts`      | the report both doors print                                                  |
 | `src/text.ts`        | fixed-width report primitives — the one home, shared as `@v1nvn/tokens/text` |
 | `bin/report.mjs`     | the standalone build the mod execs — committed, synced by `yarn build`       |
@@ -79,5 +78,5 @@ and re-vendor `types/claude-code.d.ts` (repo root) from the engine-laid
   is one `node <plugin root>/bin/report.mjs --json` exec through the session's
   Bash tool — the same scan `npx tokens-report` runs. First `/tokens` may ask
   to allow that command once; allow and it is remembered.
-- The mod's surfaces (status line, pane) are drawn by the engine and never
-  enter the model's context; the CLI prints the same report bare.
+- The mod's surface (the pane) is drawn by the engine and never enters the
+  model's context; the CLI prints the same report bare.

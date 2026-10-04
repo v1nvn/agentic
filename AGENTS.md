@@ -2,7 +2,7 @@
 
 A Claude Code plugin marketplace: `readability` and `omlx` (local MCP servers) plus
 `enhansome` (hosted registry MCP server), `rm`, `md`, `zai` (zero-token hook
-plugins), `tokens` (a mod: live status line + pane), `statusline` (status line +
+plugins), `tokens` (a mod: the `/tokens` usage pane), `statusline` (status line +
 agent panel), and `todo` (work tracking) — nine independently-installable plugins
 in one repo. Each plugin lives inside its package home — `tokens`'s plugin root
 is the package home itself; the other eight sit at `packages/<name>/plugin/`

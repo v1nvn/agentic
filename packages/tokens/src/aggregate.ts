@@ -79,6 +79,22 @@ export function sumRows(rows: readonly UsageAcc[]): UsageAcc {
   return sum;
 }
 
+/**
+ * The day buckets fully inside the 7-day window ending at `now`. The bucket
+ * holding the window-start day covers only part of that calendar day — drop
+ * it (unless the window began at midnight, which scan bucketed as a full
+ * day).
+ */
+export function last7(scanResult: ScanResult, now: Date): DayRow[] {
+  const { days } = scanResult;
+  const firstDay = ymd(new Date(now.getTime() - 7 * 24 * 3600 * 1000));
+  const first = days.at(0);
+  const last = days.at(-1);
+  return first && last && first.day === firstDay && firstDay !== last.day
+    ? days.slice(1)
+    : days;
+}
+
 function zero(): UsageAcc {
   return { input: 0, output: 0, cacheRead: 0, cacheCreation: 0, calls: 0 };
 }
