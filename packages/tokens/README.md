@@ -3,8 +3,8 @@
 The home of the tokens plugin — and its plugin root: the `tokens-report` CLI and
 the mod's island share `src/`, the hooks module sits at `hooks/register.tsx`
 (`.ts`/`.tsx` the engine loads directly, no build), with engine tests at
-`tests/` and the state contract at `types/`. Both read the
-same local session transcripts — per-model token usage and cache hit rate for
+`tests/` and the state contract at `types/`. One scan of the local session
+transcripts feeds both — per-model token usage and cache hit rate for
 the last 24 hours, plus daily totals for the last 7 days — and neither spends
 model tokens to tell you what the model cost.
 
@@ -67,12 +67,17 @@ and re-vendor `types/claude-code.d.ts` (repo root) from the engine-laid
 | `src/index.ts`       | bin entry (`tokens-report`) — dispatch, exit codes                           |
 | `src/aggregate.ts`   | the one usage math: JSONL line → per-model/per-day accumulation              |
 | `src/scan.ts`        | the CLI's transcript walk (node-fs)                                          |
-| `hooks/register.tsx` | the mod: `$.fs` walk, status line, `/tokens` pane                            |
+| `hooks/register.tsx` | the mod: execs the CLI, draws the status line and the `/tokens` pane         |
 | `src/format.ts`      | the report both doors print                                                  |
 | `src/text.ts`        | fixed-width report primitives — the one home, shared as `@v1nvn/tokens/text` |
+| `bin/report.mjs`     | the standalone build the mod execs — committed, synced by `yarn build`       |
 
 ## Contracts
 
 - Reads transcripts only; writes nothing.
+- The island never reads transcripts (`$.fs.read` caps at 4 MiB); every number
+  is one `node <plugin root>/bin/report.mjs --json` exec through the session's
+  Bash tool — the same scan `npx tokens-report` runs. First `/tokens` may ask
+  to allow that command once; allow and it is remembered.
 - The mod's surfaces (status line, pane) are drawn by the engine and never
   enter the model's context; the CLI prints the same report bare.
