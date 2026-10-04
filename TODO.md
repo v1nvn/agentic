@@ -12,11 +12,7 @@
   `preview` renders at a fixed 200 columns; chat panes are narrower, so a sketch wraps. Wanted: a preview width the picker can match to the pane.
 - **Statusline — unify the main and panel render engines** · LOW · [packages/statusline] → progress/render-engines.md
 
-## tokens
-
-- **Mods — tokens e2e first** · HIGH · [packages/tokens] → progress/mods.md
-
 ## Parked
 
-- **Port the eight plugins to the package-home root** · MEDIUM · [packages] — revisit when the mods thread's unit 3 verifies live
-  Wanted: every plugin's root is its package home (the G1b shape tokens lands in), `plugin/` folders gone — marketplace sources, manifests, hooks paths and the CLAUDE.md layout law move with them.
+- **Unruled mod adoptions (G2–G5)** — revisit when the owner rules one
+  The mods consult (G2 zai line, G3 todo pane/band, G4 `/lab` pane, G5 rm/md mods) was never ruled; each becomes work only on that ruling. The page is at /tmp/agentic-mods-rulings/index.html and the plan is archived at archive/mods.md.
