@@ -22,7 +22,7 @@
     },
     {
       "name": "enhansome",
-      "source": "./packages/enhansome/plugin",
+      "source": "./packages/enhansome",
       "category": "development",
       "description": "Search the enhansome registry forest — curated registries and the repos they carry."
     },
@@ -58,7 +58,7 @@
     },
     {
       "name": "todo",
-      "source": "./packages/todo/plugin",
+      "source": "./packages/todo",
       "category": "productivity",
       "description": "Work tracking — the rules plus six verbs (init, new, run, status, audit, handoff) over TODO.md, progress/, references/, archive/."
     }
