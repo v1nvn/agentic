@@ -6,7 +6,7 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "yarn workspaces foreach --all --topological run build && cp packages/statusline/dist/render.mjs packages/statusline/plugin/render.mjs",
+    "build": "yarn workspaces foreach --all --topological run build && cp packages/statusline/dist/render.mjs packages/statusline/plugin/render.mjs && cp packages/tokens/dist/report.mjs packages/tokens/bin/report.mjs",
     "test": "yarn workspaces foreach --all run test",
     "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.mods.json",
     "lint": "eslint .",
