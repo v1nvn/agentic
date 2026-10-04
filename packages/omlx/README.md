@@ -57,6 +57,6 @@ install configures this client without any env vars.
 yarn install
 yarn test               # unit tests, fetch mocked
 yarn test:live          # end-to-end against the real server (RUN_LIVE=1)
-yarn dev                # hot-reloading MCP server, wired as omlx-dev
+yarn dev                # hot-reloading MCP server; wire a session with claude --mcp-config dev.mcp.json (omlx-dev)
 yarn typecheck && yarn lint:fix   # from the repo root
 ```
