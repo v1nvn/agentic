@@ -108,7 +108,9 @@ test('/tokens execs the shipped CLI into the pane; startup draws and execs nothi
   expect(world.opens).toEqual(['tokens-usage']);
 
   const ui = await $.ui.mount({ ...PANE, surface: 'terminal' });
-  expect(await ui.find({ type: 'Text', text: /Token usage · transcripts/ })).toBeDefined();
+  expect(
+    await ui.find({ type: 'Text', text: /Token usage · transcripts/ }),
+  ).toBeDefined();
   expect(await ui.find({ type: 'Text', text: /glm-5\.3/ })).toBeDefined();
   await ui.unmount();
 });
