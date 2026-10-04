@@ -100,6 +100,25 @@ name or shape wins.
   and a test pins the cap per server. Instructions carry routing (which tool when); each
   tool's description and schema carry its contract.
 
+## MCP servers (omlx, readability)
+
+- **A server documents itself to clients on introspection.** Every tool carries
+  a title and a routing description; every zod field — nested included —
+  carries `.describe()`; `.describe(...).default(...)` in that order survives
+  the SDK's JSON-schema conversion. The README stays in sync with the schemas.
+- **omlx is a thin HTTP wrapper** — curation, defaults, routing descriptions;
+  no inference logic. It talks to `OMLX_URL` (loopback) on `/v1/*` and
+  `/health` alone; the admin API mutates server state and is never called from
+  here. One fetch client; error mapping lives there once, not per tool.
+- **readability layers one way** — `pipeline/` → `policy/` → `tools/`; a
+  helper lives in the lowest layer that uses it, and a lower layer keeps a
+  local structural type rather than importing upward for one. A library
+  replacing hand-rolled parsing is a boundary finder: slice the original
+  text, never round-trip its serializer.
+- **Green tests aren't proof of behaviour** — exercise a server change live
+  through its dev server (`omlx-dev` / `readability-dev`, hot-reloaded by
+  `yarn dev`, wired in `.mcp.json`).
+
 ## Prompt surfaces
 
 Every skill, command body, tool description, and sampling prompt is read by the model at run

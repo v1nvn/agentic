@@ -19,7 +19,7 @@ read by eye.
 
 | Check           | Rule                                                                                                                                                                      |
 | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `name`          | kebab-case, ≤ 64 chars, matches the invocation name the README and CLAUDE.md use                                                                                          |
+| `name`          | kebab-case, ≤ 64 chars, matches the invocation name the README and AGENTS.md use                                                                                          |
 | `description`   | ≤ 1024 chars; aim well under 100–200 words                                                                                                                                |
 | Keys            | Claude Code keys are valid here: `when_to_use`, `argument-hint`, `disable-model-invocation`. `quick_validate.py` rejects them — it targets claude.ai uploads, not plugins |
 | `<` `>`         | Allowed in descriptions here (`<url>`, `<slug>`); `quick_validate.py` bans them for claude.ai uploads only                                                                |
