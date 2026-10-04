@@ -134,7 +134,7 @@ gone: a blank line at the next paint.
 
 A plugin's root is its package home; there is no `plugins/` directory. `tokens`
 (the one mod) is re-rooted — its plugin root is `packages/tokens/` itself, and
-the package-less `enhansome` and `todo` follow that shape; the other six keep
+the package-less `enhansome` and `todo` follow that shape; the other three keep
 a `plugin/` subfolder until they port to that shape. Seven homes publish npm
 code.
 
@@ -144,8 +144,8 @@ packages/                           one yarn workspace — every plugin's home
   readability/  omlx/               the two MCP servers (@v1nvn/readability-mcp, @v1nvn/omlx-mcp)
     plugin/                          .mcp.json (pinned npx) + plugin.json (+ skills/)
   core/                             @v1nvn/agentic-core — last-reply + CLI/hook plumbing, shared by the tools
-  zai/  rm/  md/                   the tool CLIs (zai-usage, rm-send, md-send)
-    plugin/                          hooks.json (pinned npx) + plugin.json + commands/
+  zai/  rm/  md/                   the tool CLIs (zai-usage, rm-send, md-send) — the plugin root itself:
+                                     .claude-plugin/ + hooks/hooks.json (pinned npx) + commands/
   tokens/                            tokens-report CLI + the tokens mod — the plugin root itself:
                                      .claude-plugin/ + hooks/register.tsx + tests/ + types/
                                      (state contract), island aggregate/format/text.ts in src/
