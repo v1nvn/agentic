@@ -14,16 +14,16 @@ change.
 
 ## Current state
 
-Units 1–2 landed. `enhansome` and `todo` are ported (`5ea57c4`: pure R100
-renames, sources re-pointed, both validates green, ten gates green, review
-clean); six homes remain on the `plugin/` subfolder. Unit 2's review caught a
-latent plan gap — no `packages/*/.mcp.json` glob in set-version — folded into
-row 4. The dev-wiring ruling (unit 4) and the statusline finding stand as
-ruled.
+Units 1–3 landed. `enhansome`, `todo` (`5ea57c4`) and `rm`, `md`, `zai`
+(`87d019c`) are ported — pure R100 renames both units, reviews clean (unit 3:
+zero findings). Three homes remain on the `plugin/` subfolder: `readability`,
+`omlx` (unit 4, which now also replaces set-version's
+`packages/*/plugin/.mcp.json` glob) and `statusline` (unit 5). The dev-wiring
+ruling and the statusline finding stand as ruled.
 
 ## Next step
 
-Unit 3 — port the command-hook homes (`rm`, `md`, `zai`).
+Unit 4 — port the MCP-server homes (`readability`, `omlx`).
 
 ## Steps
 
@@ -31,7 +31,7 @@ Unit 3 — port the command-hook homes (`rm`, `md`, `zai`).
 | --- | --- | --- | --- | --- |
 | 1 | Harden the plan | | | this file carries one row per port group plus the shared-law unit, each with testable close criteria and a per-unit reading list; the enforcement inventory (`plugin/` dir count zero, no `plugin/` path left in config or md surfaces, protected gate list), gate lines, PR grouping and stop rules are written; the live probe is run and its verdict recorded (`claude plugin validate` on a re-rooted /tmp proxy of a manifest-only plugin and of one with npm code) — committed docs-only, landed `6059b0d`; review clean (3 low: commit state, unit 4 dead-glob leg strengthened with an ls-files count, installed-copy growth recorded) |
 | 2 | Port the manifest-only homes — enhansome, todo | sonnet | | `packages/enhansome/` holds `.claude-plugin/` + `.mcp.json` and `packages/todo/` holds `.claude-plugin/` + `skills/` + `README.md` directly at the home root; `ls -d packages/enhansome/plugin packages/todo/plugin` finds nothing; marketplace sources read `./packages/enhansome` and `./packages/todo`; `claude plugin validate packages/enhansome` and `packages/todo` pass; `set-version --check` green (the new-shape globs already exist — no script edit this unit); root README's tree names both homes with no `plugin/` line — landed `5ea57c4`: 11 R100 renames, both sources re-pointed, both validates green, all ten gates green; review clean (one latent gap promoted into row 4: no `packages/*/.mcp.json` glob exists in set-version) |
-| 3 | Port the command-hook homes — rm, md, zai | sonnet | | each home holds `.claude-plugin/` + `commands/` + `hooks/` at its root and no `plugin/` dir; the moved files are byte-identical (`git diff -M` shows pure renames — hooks.json and commands carry no relative paths); the three marketplace sources re-point; set-version's MD_SURFACES re-point to `packages/rm/commands/send.md`, `packages/md/commands/edit.md`, `packages/md/commands/view.md`, `packages/zai/commands/usage.md` with `--check` green; `claude plugin validate` passes on all three homes |
+| 3 | Port the command-hook homes — rm, md, zai | sonnet | | each home holds `.claude-plugin/` + `commands/` + `hooks/` at its root and no `plugin/` dir; the moved files are byte-identical (`git diff -M` shows pure renames — hooks.json and commands carry no relative paths); the three marketplace sources re-point; set-version's MD_SURFACES re-point to `packages/rm/commands/send.md`, `packages/md/commands/edit.md`, `packages/md/commands/view.md`, `packages/zai/commands/usage.md` with `--check` green; `claude plugin validate` passes on all three homes — landed `87d019c`: 10 R100 renames + 10 edited lines (3 sources, 4 MD_SURFACES, README), eleven gates green, review zero findings (live-glob check confirms the moved manifests and hooks.json are matched by the existing `packages/*/.claude-plugin/plugin.json` and `packages/*/hooks/hooks.json` patterns) |
 | 4 | Port the MCP-server homes — readability, omlx | sonnet | | each home holds `.claude-plugin/` + `.mcp.json` (the pinned-npx plugin config) at its root; the dev wiring moves verbatim to `packages/<pkg>/dev.mcp.json` (Plan ruling); the two marketplace sources re-point; `claude plugin validate` passes on both homes; set-version PINNED_CONFIGS replaces `packages/*/plugin/.mcp.json` with `packages/*/.mcp.json` (no such glob exists today — the readability/omlx pins would leave `--check` enforcement silently; found in unit 2's review), the new pattern present exactly once in the script, `--check` green, and `git ls-files 'packages/*/.mcp.json'` finds exactly the two shipped configs (a dead glob passes `--check` silently; the dev wiring at `dev.mcp.json` is not matched); omlx README's dev line names `claude --mcp-config dev.mcp.json` (readability's README documents no dev wiring — nothing to edit); stop if the dev loop needs more than the one flag |
 | 5 | Port statusline | sonnet | | `packages/statusline/` holds `.claude-plugin/` + `SKILL.md` + `render.mjs` at its root, no `plugin/` dir, and nothing under `src/` changes; root `package.json`'s build cp re-points to `packages/statusline/render.mjs`; `yarn build` green and `git diff --exit-code packages/statusline/render.mjs` clean with test.yml's guard re-pointed to the same path; the marketplace source re-points; set-version's MD_SURFACES SKILL.md path re-points with `--check` green; `claude plugin validate packages/statusline` passes; statusline README's artifact line and root README's statusline tree lines re-point |
 | 6 | Close the law — one shape, dead globs out | | | `ls -d packages/*/plugin` finds nothing; the enforcement greps (Plan) hit zero; AGENTS.md states the one shape (the "other eight keep a `plugin/` subfolder" clauses gone, the synced-artifact path re-pointed, the dev-loop mention names `dev.mcp.json`); references/mods.md's "keep `plugin/` until they port" parenthetical gone; set-version's MIRRORS/PINNED_CONFIGS carry no `packages/*/plugin/` pattern and build.yml + release.yml validate loops carry only `packages/*/.claude-plugin/plugin.json`; the full gate green — `--check`, typecheck, lint, test, build + render guard, validate on the marketplace and all nine homes, `test:mods` 2/2, build-skills |
