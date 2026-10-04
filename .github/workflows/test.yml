@@ -25,5 +25,5 @@ jobs:
       - run: yarn install --immutable
       - run: yarn typecheck
       - run: yarn build
-      - run: git diff --exit-code packages/statusline/plugin/render.mjs
+      - run: git diff --exit-code packages/statusline/render.mjs
       - run: yarn test
