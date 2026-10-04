@@ -24,7 +24,7 @@ const MIRRORS = discover([
 // pin must ride the train with everything else. A hosted HTTP config invokes
 // nothing from npm and carries no pin.
 const PINNED_CONFIGS = discover([
-  'packages/*/plugin/.mcp.json',
+  'packages/*/.mcp.json',
   'packages/*/plugin/hooks/hooks.json',
   'packages/*/hooks/hooks.json',
 ]);

@@ -134,15 +134,15 @@ gone: a blank line at the next paint.
 
 A plugin's root is its package home; there is no `plugins/` directory. `tokens`
 (the one mod) is re-rooted — its plugin root is `packages/tokens/` itself, and
-the package-less `enhansome` and `todo` follow that shape; the other three keep
-a `plugin/` subfolder until they port to that shape. Seven homes publish npm
-code.
+`enhansome`, `todo`, `readability`, and `omlx` follow that shape; `statusline`
+keeps a `plugin/` subfolder until it ports to that shape. Seven homes publish
+npm code.
 
 ```
 .claude-plugin/marketplace.json     Claude marketplace manifest; sources point into the package homes
 packages/                           one yarn workspace — every plugin's home
-  readability/  omlx/               the two MCP servers (@v1nvn/readability-mcp, @v1nvn/omlx-mcp)
-    plugin/                          .mcp.json (pinned npx) + plugin.json (+ skills/)
+  readability/  omlx/               the two MCP servers (@v1nvn/readability-mcp, @v1nvn/omlx-mcp) — the plugin root itself:
+                                     .claude-plugin/ + .mcp.json (pinned npx) + dev.mcp.json (dev wiring) (+ skills/)
   core/                             @v1nvn/agentic-core — last-reply + CLI/hook plumbing, shared by the tools
   zai/  rm/  md/                   the tool CLIs (zai-usage, rm-send, md-send) — the plugin root itself:
                                      .claude-plugin/ + hooks/hooks.json (pinned npx) + commands/

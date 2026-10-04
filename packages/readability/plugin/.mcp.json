@@ -1,8 +1,0 @@
-{
-  "mcpServers": {
-    "readability": {
-      "command": "npx",
-      "args": ["-y", "@v1nvn/readability-mcp@0.33.1"]
-    }
-  }
-}

@@ -10,13 +10,13 @@
   "plugins": [
     {
       "name": "readability",
-      "source": "./packages/readability/plugin",
+      "source": "./packages/readability",
       "category": "development",
       "description": "Read a live URL to clean Markdown via the readability MCP server."
     },
     {
       "name": "omlx",
-      "source": "./packages/omlx/plugin",
+      "source": "./packages/omlx",
       "category": "development",
       "description": "Delegate bulk work to a local omlx inference server."
     },
