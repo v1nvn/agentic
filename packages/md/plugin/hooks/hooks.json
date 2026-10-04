@@ -8,7 +8,7 @@
           {
             "type": "command",
             "command": "npx",
-            "args": ["-y", "@v1nvn/md@0.33.0", "--hook"]
+            "args": ["-y", "@v1nvn/md@0.33.1", "--hook"]
           }
         ]
       },
@@ -18,7 +18,7 @@
           {
             "type": "command",
             "command": "npx",
-            "args": ["-y", "@v1nvn/md@0.33.0", "--hook", "--view"]
+            "args": ["-y", "@v1nvn/md@0.33.1", "--hook", "--view"]
           }
         ]
       }
