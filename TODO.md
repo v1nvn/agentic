@@ -1,5 +1,9 @@
 # TODO — open-work index
 
+## Next
+
+1. **Rules plugin — base set + AGENTS.md lifecycle** · HIGH · [packages] → progress/rules-plugin.md
+
 ## readability
 
 - **Site-matched extraction presets + real-world corpus** · HIGH · [packages/readability] → progress/presets-corpus.md
