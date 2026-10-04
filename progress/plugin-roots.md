@@ -14,17 +14,15 @@ change.
 
 ## Current state
 
-Units 1–5 landed — every plugin roots at its package home (`enhansome`+`todo`
-`5ea57c4`, `rm`+`md`+`zai` `87d019c`, `readability`+`omlx` `f57be0e`,
-`statusline` `35618f6`). `packages/*/plugin` is extinct repo-wide; reviews
-clean throughout (units 3–5 zero findings). Remaining: the law close (unit 6)
-— AGENTS.md's transitional clauses, the dead globs in set-version and the CI
-validate loops, references/mods.md's parenthetical.
+All six units landed. Every plugin roots at its package home; the layout law
+states the one shape; the dead globs are gone; the enforcement greps read
+0/0/0 and the full gate is green (validate on the marketplace and all nine
+homes). Reviews clean throughout — units 3–6 zero findings. The thread
+closes on this state; the PR rides `feat/plugin-roots`.
 
 ## Next step
 
-Unit 6 — close the law: one shape, dead globs out, full gate, then the PR and
-thread close.
+None — thread closed.
 
 ## Steps
 
@@ -35,7 +33,7 @@ thread close.
 | 3 | Port the command-hook homes — rm, md, zai | sonnet | | each home holds `.claude-plugin/` + `commands/` + `hooks/` at its root and no `plugin/` dir; the moved files are byte-identical (`git diff -M` shows pure renames — hooks.json and commands carry no relative paths); the three marketplace sources re-point; set-version's MD_SURFACES re-point to `packages/rm/commands/send.md`, `packages/md/commands/edit.md`, `packages/md/commands/view.md`, `packages/zai/commands/usage.md` with `--check` green; `claude plugin validate` passes on all three homes — landed `87d019c`: 10 R100 renames + 10 edited lines (3 sources, 4 MD_SURFACES, README), eleven gates green, review zero findings (live-glob check confirms the moved manifests and hooks.json are matched by the existing `packages/*/.claude-plugin/plugin.json` and `packages/*/hooks/hooks.json` patterns) |
 | 4 | Port the MCP-server homes — readability, omlx | sonnet | | each home holds `.claude-plugin/` + `.mcp.json` (the pinned-npx plugin config) at its root; the dev wiring moves verbatim to `packages/<pkg>/dev.mcp.json` (Plan ruling); the two marketplace sources re-point; `claude plugin validate` passes on both homes; set-version PINNED_CONFIGS replaces `packages/*/plugin/.mcp.json` with `packages/*/.mcp.json` (no such glob exists today — the readability/omlx pins would leave `--check` enforcement silently; found in unit 2's review), the new pattern present exactly once in the script, `--check` green, and `git ls-files 'packages/*/.mcp.json'` finds exactly the two shipped configs (a dead glob passes `--check` silently; the dev wiring at `dev.mcp.json` is not matched); omlx README's dev line names `claude --mcp-config dev.mcp.json` (readability's README documents no dev wiring — nothing to edit); stop if the dev loop needs more than the one flag — landed `f57be0e`: 3 R100 renames + the two path-crossing config pairs (byte-identity proven against `git show HEAD:`), one PINNED_CONFIGS pattern replaced, ten gates green, review zero findings. Letter correction recorded: `git ls-files 'packages/*/.mcp.json'` finds THREE shipped configs (enhansome's unit-2 config joins — pin-free, zero enforcement delta), dev excluded; the row's "exactly the two" miscounted |
 | 5 | Port statusline | sonnet | | `packages/statusline/` holds `.claude-plugin/` + `SKILL.md` + `render.mjs` at its root, no `plugin/` dir, and nothing under `src/` changes; root `package.json`'s build cp re-points to `packages/statusline/render.mjs`; `yarn build` green and `git diff --exit-code packages/statusline/render.mjs` clean with test.yml's guard re-pointed to the same path; the marketplace source re-points; set-version's MD_SURFACES SKILL.md path re-points with `--check` green; `claude plugin validate packages/statusline` passes; statusline README's artifact line and root README's statusline tree lines re-point — landed `35618f6`: 3 R100 renames (render.mjs byte-identical, build guard clean post-build), ten gates green, review zero findings (guard re-proven independently) |
-| 6 | Close the law — one shape, dead globs out | | | `ls -d packages/*/plugin` finds nothing; the enforcement greps (Plan) hit zero; AGENTS.md states the one shape (the "other eight keep a `plugin/` subfolder" clauses gone, the synced-artifact path re-pointed, the dev-loop mention names `dev.mcp.json`); references/mods.md's "keep `plugin/` until they port" parenthetical gone; set-version's MIRRORS/PINNED_CONFIGS carry no `packages/*/plugin/` pattern and build.yml + release.yml validate loops carry only `packages/*/.claude-plugin/plugin.json`; the full gate green — `--check`, typecheck, lint, test, build + render guard, validate on the marketplace and all nine homes, `test:mods` 3/3, build-skills |
+| 6 | Close the law — one shape, dead globs out | | | `ls -d packages/*/plugin` finds nothing; the enforcement greps (Plan) hit zero; AGENTS.md states the one shape (the "other eight keep a `plugin/` subfolder" clauses gone, the synced-artifact path re-pointed, the dev-loop mention names `dev.mcp.json`); references/mods.md's "keep `plugin/` until they port" parenthetical gone; set-version's MIRRORS/PINNED_CONFIGS carry no `packages/*/plugin/` pattern and build.yml + release.yml validate loops carry only `packages/*/.claude-plugin/plugin.json`; the full gate green — `--check`, typecheck, lint, test, build + render guard, validate on the marketplace and all nine homes, `test:mods` 3/3, build-skills — landed `28b9a30`: five files 23+/28−, full gate green (validate on the marketplace + all nine homes), greps 0/0/0, review zero findings (letter correction: the surviving `packages/*/hooks/hooks.json` glob matches FOUR homes — tokens carries its own hooks.json — not three; pre-existing glob, unchanged) |
 
 ## Plan
 
