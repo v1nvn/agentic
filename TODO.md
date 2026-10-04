@@ -1,5 +1,9 @@
 # TODO — open-work index
 
+## packages
+
+- **Port the eight plugins to the package-home root** · MEDIUM · [packages] → progress/plugin-roots.md
+
 ## readability
 
 - **Site-matched extraction presets + real-world corpus** · HIGH · [packages/readability] → progress/presets-corpus.md
