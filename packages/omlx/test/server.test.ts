@@ -100,7 +100,7 @@ describe('tools/list', () => {
   it('carries the server identity', async () => {
     conn = await connect();
     const info = conn.client.getServerVersion();
-    expect(info).toMatchObject({ name: 'omlx-mcp', title: 'omlx MCP' });
+    expect(info).toMatchObject({ name: 'omlx', title: 'omlx MCP' });
     expect(conn.client.getInstructions()).toContain('ask_structured');
   });
 });

@@ -16,7 +16,7 @@ export interface OmlxConfig {
 export interface ServerConfig extends OmlxConfig {
   readonly description: string;
   readonly instructions: string;
-  readonly name: 'omlx-mcp';
+  readonly name: 'omlx';
   readonly title: string;
   readonly version: string;
 }
@@ -104,7 +104,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): ServerConfig {
     ),
     model: env.OMLX_MODEL ?? DEFAULT_MODEL,
     timeoutMs: parseTimeoutMs(env.OMLX_TIMEOUT_MS),
-    name: 'omlx-mcp',
+    name: 'omlx',
     version: pkg.version,
     title: SERVER_TITLE,
     description: SERVER_DESCRIPTION,

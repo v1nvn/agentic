@@ -57,9 +57,9 @@ describe('preset-cache resolvePresetsDir', () => {
 
   it('falls back to XDG, then the platform cache root', () => {
     const xdg = resolvePresetsDir({ XDG_CACHE_HOME: '/xdg' } as NodeJS.ProcessEnv);
-    expect(xdg).toBe(join('/xdg', 'readability-mcp', 'presets'));
+    expect(xdg).toBe(join('/xdg', 'readability', 'presets'));
     const fallback = resolvePresetsDir({} as NodeJS.ProcessEnv);
-    expect(fallback).toMatch(/readability-mcp[/\\]presets$/);
+    expect(fallback).toMatch(/readability[/\\]presets$/);
   });
 });
 

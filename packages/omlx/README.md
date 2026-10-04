@@ -1,11 +1,11 @@
-# omlx-mcp
+# omlx
 
 MCP server that delegates work to a local [omlx](https://github.com/jundot/omlx)
 inference server — one-shot prompts, schema-constrained extraction, and model
 status. Free, private, unlimited; no quota, nothing leaves the machine.
 
 ```sh
-npx @v1nvn/omlx-mcp@0.34.0            # stdio MCP server, talks to 127.0.0.1:6659
+npx @v1nvn/omlx@0.34.0            # stdio MCP server, talks to 127.0.0.1:6659
 omlx serve              # the inference server, if it is not already up
 ```
 

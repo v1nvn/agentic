@@ -1,5 +1,5 @@
 {
-  "name": "@v1nvn/omlx-mcp",
+  "name": "@v1nvn/omlx",
   "version": "0.34.0",
   "description": "MCP server exposing a local omlx inference server (chat, structured output, model status) so coding agents can delegate bulk work to a local model.",
   "type": "module",

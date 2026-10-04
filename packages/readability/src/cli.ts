@@ -27,7 +27,7 @@ function parseMaxChars(value: string): number {
 }
 
 export function buildProgram(): Command {
-  return new Command('readability-mcp extract')
+  return new Command('readability extract')
     .argument('[file]', 'HTML file; stdin when omitted')
     .addOption(
       new Option('--format <fmt>', 'output format')

@@ -100,7 +100,7 @@ describe('loadConfig', () => {
 
   it('carries server identity for introspection', () => {
     const config = loadConfig({ OMLX_SETTINGS: MISSING_SETTINGS });
-    expect(config.name).toBe('omlx-mcp');
+    expect(config.name).toBe('omlx');
     expect(config.title.length).toBeGreaterThan(0);
     expect(config.description.length).toBeGreaterThan(0);
     expect(config.instructions.length).toBeGreaterThan(0);

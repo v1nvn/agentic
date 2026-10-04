@@ -22,7 +22,7 @@ import { describeError } from './errors.js';
 import { logger } from './logger.js';
 import { addPreset, normalizeSiteKey } from './policy/presets.js';
 
-export const PRESETS_DIR_ENV = 'READABILITY_MCP_PRESETS_DIR';
+export const PRESETS_DIR_ENV = 'READABILITY_PRESETS_DIR';
 
 export const MAX_PRESET_FILES = 64;
 
@@ -65,7 +65,7 @@ export function resolvePresetsDir(
       homedir(),
       process.platform === 'darwin' ? 'Library/Caches' : '.cache',
     );
-  return join(root, 'readability-mcp', 'presets');
+  return join(root, 'readability', 'presets');
 }
 
 // A preset that cannot load is a warning, never a boot failure — the pipeline

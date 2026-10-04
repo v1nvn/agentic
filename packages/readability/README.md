@@ -1,4 +1,4 @@
-# readability-mcp
+# readability
 
 Turn **already-rendered HTML** (captured post-JavaScript from a browser or [chrome-devtools MCP](https://github.com/anthropic/claude-code-chrome-devtools)) into clean, LLM-friendly **Markdown + metadata**, using [Mozilla Readability](https://github.com/mozilla/readability), [Turndown](https://github.com/mixmark-io/turndown), and [DOMPurify](https://github.com/cure53/DOMPurify).
 
@@ -10,9 +10,9 @@ User-facing docs: [root README](../../README.md).
 ## Install
 
 ```bash
-npm install @v1nvn/readability-mcp@0.34.0
+npm install @v1nvn/readability@0.34.0
 # or run on demand:
-npx @v1nvn/readability-mcp@0.34.0
+npx @v1nvn/readability@0.34.0
 ```
 
 Requires Node >= 22. Build from source:
@@ -26,7 +26,7 @@ node dist/index.js # starts the stdio MCP server
 
 ### Smithery
 
-A `smithery.yaml` (stdio runtime) is included for [Smithery](https://smithery.ai) deployment. It pins the `stdio` startCommand (this server ships `StdioServerTransport` only — the HTTP container runtime cannot launch it) and surfaces `READABILITY_MCP_LOG_LEVEL` as the one config knob.
+A `smithery.yaml` (stdio runtime) is included for [Smithery](https://smithery.ai) deployment. It pins the `stdio` startCommand (this server ships `StdioServerTransport` only — the HTTP container runtime cannot launch it) and surfaces `READABILITY_LOG_LEVEL` as the one config knob.
 
 ## The chrome-devtools handoff
 
@@ -42,7 +42,7 @@ mcp__chrome -
     filePath: '/tmp/page.html',
   });
 
-// 2. Point readability-mcp at that file.
+// 2. Point readability at that file.
 //    `baseUrl` is OPTIONAL context (origin for absolutizing relative links) — never fetched.
 mcp__readability__extract({ localPath: '/tmp/page.html', baseUrl: pageUrl });
 ```
@@ -58,7 +58,7 @@ Add to your MCP client config (Claude Code, Claude Desktop, etc.):
   "mcpServers": {
     "readability": {
       "command": "npx",
-      "args": ["-y", "@v1nvn/readability-mcp@0.34.0"],
+      "args": ["-y", "@v1nvn/readability@0.34.0"],
     },
   },
 }
@@ -119,7 +119,7 @@ Presets load at server start from a local cache directory — one `<site>.json` 
 
 | Aspect        | Behavior                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Directory     | `$READABILITY_MCP_PRESETS_DIR`; else `$XDG_CACHE_HOME/readability-mcp/presets`; else `~/Library/Caches/readability-mcp/presets` (macOS) / `~/.cache/readability-mcp/presets`. Setting the variable to an empty string disables preset loading.                                                                                                                                                                                           |
+| Directory     | `$READABILITY_PRESETS_DIR`; else `$XDG_CACHE_HOME/readability/presets`; else `~/Library/Caches/readability/presets` (macOS) / `~/.cache/readability/presets`. Setting the variable to an empty string disables preset loading.                                                                                                                                                                                           |
 | Bound         | 64 files; beyond that the oldest by mtime are deleted at load — enforced when loading and again when `suggest_preset` writes.                                                                                                                                                                                                                                                                                                            |
 | Invalid files | Unreadable JSON, a wrong shape (no `detectors`, empty `scope`), or a non-hostname `site` is skipped with a warning; the remaining files still load.                                                                                                                                                                                                                                                                                      |
 | Staleness     | No clock-based expiry — detectors are re-checked against every page, so a preset survives until the site redesigns.                                                                                                                                                                                                                                                                                                                      |
@@ -308,21 +308,21 @@ A full rendered SPA can be several MB as a string, and MCP tool args travel over
 
 ## CLI
 
-`readability-mcp` also runs as a one-shot CLI for extracting from a local HTML file or stdin, with no MCP server in the loop:
+`readability` also runs as a one-shot CLI for extracting from a local HTML file or stdin, with no MCP server in the loop:
 
 ```bash
-readability-mcp extract [file.html] [--format md|json|html] [--max-chars N]
+readability extract [file.html] [--format md|json|html] [--max-chars N]
 ```
 
-- `extract` is the only subcommand; everything after it is parsed as options. With no args at all (`readability-mcp`), the stdio MCP server starts instead.
+- `extract` is the only subcommand; everything after it is parsed as options. With no args at all (`readability`), the stdio MCP server starts instead.
 - `file.html` is read from disk; when no file is given, HTML is read from **stdin**.
 - `--format`: `md` (default, markdown) | `json` (the `structuredContent` object, pretty-printed) | `html` (the post-pipeline HTML). Internally `json` reuses the markdown pipeline and serializes the structured object on the way out.
 - `--max-chars N` mirrors `extract`'s `maxChars` — truncate the payload at a block boundary, never inside a fenced code block.
 
 ```bash
-curl -s https://example.com | readability-mcp extract --format md
-readability-mcp extract page.html --format json --max-chars 20000
-cat saved.html | readability-mcp extract
+curl -s https://example.com | readability extract --format md
+readability extract page.html --format json --max-chars 20000
+cat saved.html | readability extract
 ```
 
 ## Development

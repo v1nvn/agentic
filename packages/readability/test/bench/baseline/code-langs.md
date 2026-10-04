@@ -17,7 +17,7 @@ const greet = (name) => {
 Shell snippets use the same wrapper convention with a `highlight-source-shell` suffix, which maps to a shell fence tag.
 
 ```shell
-npm install --save-exact readability-mcp
+npm install --save-exact readability
 ```
 
 ## Sandpack-style inline blocks

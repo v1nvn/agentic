@@ -13,13 +13,13 @@
   },
   "code-langs": {
     "inputNodes": 45,
-    "markdownChars": 2406,
-    "tokenEstimate": 602,
+    "markdownChars": 2402,
+    "tokenEstimate": 601,
     "removedNodes": 18,
     "images": 0,
     "tables": 0,
     "links": 0,
-    "compressionRatio": 53.47,
+    "compressionRatio": 53.38,
     "fallbackUsed": false,
     "readerable": true
   },

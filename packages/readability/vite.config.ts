@@ -12,7 +12,7 @@ export default defineConfig({
     ssr: 'src/index.ts',
     rollupOptions: {
       // `bin` (dist/index.js) is exec'd by the kernel; without a shebang the OS runs
-      // it under /bin/sh and `npx readability-mcp` dies parsing `import`.
+      // it under /bin/sh and `npx readability` dies parsing `import`.
       output: {
         banner: chunk => (chunk.isEntry ? '#!/usr/bin/env node' : ''),
       },

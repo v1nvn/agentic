@@ -1,5 +1,5 @@
 {
-  "name": "@v1nvn/readability-mcp",
+  "name": "@v1nvn/readability",
   "version": "0.34.0",
   "description": "MCP server that turns rendered (post-JS) HTML into clean Markdown + metadata via Readability, Turndown, and DOMPurify.",
   "type": "module",

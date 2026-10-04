@@ -138,7 +138,7 @@ npm code.
 ```
 .claude-plugin/marketplace.json     Claude marketplace manifest; sources point into the package homes
 packages/                           one yarn workspace — every plugin's home
-  readability/  omlx/               the two MCP servers (@v1nvn/readability-mcp, @v1nvn/omlx-mcp) — the plugin root itself:
+  readability/  omlx/               the two MCP servers (@v1nvn/readability, @v1nvn/omlx) — the plugin root itself:
                                      .claude-plugin/ + .mcp.json (pinned npx) + dev.mcp.json (dev wiring) (+ skills/)
   core/                             @v1nvn/agentic-core — last-reply + CLI/hook plumbing, shared by the tools
   zai/  rm/  md/                   the tool CLIs (zai-usage, rm-send, md-send) — the plugin root itself:

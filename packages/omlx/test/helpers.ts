@@ -6,7 +6,7 @@ import { vi } from 'vitest';
 import type { Mock } from 'vitest';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
-export const MISSING_SETTINGS = join(tmpdir(), 'omlx-mcp-no-such-settings.json');
+export const MISSING_SETTINGS = join(tmpdir(), 'omlx-no-such-settings.json');
 
 export function textOf(result: CallToolResult): string {
   const first = result.content[0];
