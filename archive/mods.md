@@ -8,22 +8,15 @@ installed copy. Tokens first.
 
 ## Current state
 
-Units 1, 4, 5 and 6 are landed and unit 2 is done: PR #11 merged (rebase,
-linear) and v0.32.0 released — run 37101380103 green, `0c69f38` on main.
-The tokens mod is in the tree, rooted at its package home (G1b), text
-formatting at one home (the island, imported by zai and rm through
-`@v1nvn/tokens/text`), the degenerate asserts re-homed. Inside a mod home
-`*.test.ts` belongs to the engine runner, so the vitest suite is
-`test/*.spec.ts`. Unit 3 (live verify from an install) is next; the port of
-the other eight plugins is parked in TODO.md on unit 3. The consult page
-holding the unruled adoptions (G2 zai line, G3 todo pane/band, G4 `/lab`
-pane, G5 rm/md) is at /tmp/agentic-mods-rulings/index.html.
+All six units landed. tokens ships end to end: the mod re-rooted at its
+package home (G1b), released on the train (v0.32.0 → v0.33.1, pane-only),
+text formatting one-homed at the island, degenerate asserts re-homed, e2e
+owner-verified live from a marketplace install. Thread closed; the
+eight-plugin port opens as its own thread (progress/plugin-roots.md).
 
 ## Next step
 
-Run unit 3: live verify from a marketplace install in a fresh session
-(`/tokens` opens and draws the pane, nothing draws or execs until then,
-`/tokens:usage` gone).
+None — thread closed.
 
 ## Steps
 
@@ -32,7 +25,7 @@ Run unit 3: live verify from a marketplace install in a fresh session
 | 1   | Re-land the tokens mod from the shelf |       | checklist | `git checkout wip/tokens-mod-full -- <mod paths>`; gates green (typecheck both tsconfigs, lint, 15 vitest, `claude plugin validate`, `claude plugin test` 2/2); READMEs + CLAUDE.md mod bits and `references/mods.md` restored — landed `12bc584` on `feat/tokens-mod`, all six gates green |
 | 4   | Re-root tokens to the package home (G1b) |       |  | `plugin/` gone from `packages/tokens`: manifest at `packages/tokens/.claude-plugin/`, module at `hooks/register.tsx`, island in `src/`, engine tests at `tests/`, contract types at `types/`; marketplace `source: "./packages/tokens"`; six gates green re-pointed (`set-version --check`, typecheck, lint, `yarn test`, `claude plugin validate packages/tokens`, `test:mods` → `packages/tokens` 2/2); CLAUDE.md layout law and READMEs name the shape — landed `f2df47a` on `feat/tokens-mod`, all six gates green; review round added the engine-laid `types/` gitignore line and dropped the false core-re-export clause |
 | 2   | Release the train                     | owner |           | version bumped; release workflow green; npm packages published — v0.32.0 (run 37101380103 green, `0c69f38` on main, GitHub release v0.32.0)
-| 3   | Live verify from an install           |       | checklist | marketplace install of `tokens@agentic` loads the mod in a fresh session: `/tokens` opens and draws the pane, nothing draws and nothing execs until then, `/tokens:usage` is gone                                              |
+| 3   | Live verify from an install           |       | checklist | marketplace install of `tokens@agentic` loads the mod in a fresh session: `/tokens` opens and draws the pane, nothing draws and nothing execs until then, `/tokens:usage` is gone — owner-verified live in a fresh session on the installed copy; cache 0.33.0 confirmed the package-home shape with no `commands/` dir, `usage.md` absent from every release ≥ 0.32 |
 | 5   | Wire the text copy to the island      |       |  | `packages/core/src/text-format.ts` deleted; the island's `packages/tokens/src/text.ts` is the one home, imported through the workspace dep by the consumer (zai directly, or core re-exporting — whichever the importer graph says); repo grep finds no importer of the old path; six gates green (zai's 37 vitest included) — landed `1b6c2c2`, blind review clean |
 | 6   | Re-home the degenerate asserts        | sonnet |  | `packages/tokens/test/text.spec.ts` exists, importing `../src/text.js`, carrying every degenerate assert from the deleted core test (missing → '—', blank bars, `▏` sliver, round-up, overlong pads, meter clamps; the `it`-block shape is the builder's); tokens vitest green in 3 files; no other suite touched — landed `70d30ba`, review clean (byte-level assert fidelity) |
 
