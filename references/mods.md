@@ -43,8 +43,7 @@ fresh install needs.
 
 ## This repo's shape
 
-- The mod's home is the package root — `packages/<name>/` itself (`tokens` is
-  the first; the older plugins keep `plugin/` until they port) — sources
+- The mod's home is the package root — `packages/<name>/` itself — sources
   committed as `.ts`; the one synced artifact is the exec'd CLI,
   `bin/report.mjs`. The marketplace `source`
   points there. The engine's test runner collects every `*.test.ts` under that
