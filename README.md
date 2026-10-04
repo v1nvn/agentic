@@ -148,7 +148,8 @@ packages/                           one yarn workspace — every plugin's home
   tokens/                            tokens-report CLI + the tokens mod — the plugin root itself:
                                      .claude-plugin/ + hooks/register.tsx + tests/ + types/
                                      (state contract), island aggregate/format/text.ts in src/
-                                     (text.ts is the one fixed-width home, via @v1nvn/tokens/text)
+                                     (text.ts is the one fixed-width home, via @v1nvn/tokens/text),
+                                     bin/report.mjs (standalone build the mod execs, committed)
   statusline/                        the configure CLI + renderer — pure TS (@v1nvn/statusline)
     plugin/                          SKILL.md (see statusline above) + render.mjs (committed artifact)
   enhansome/  todo/                 package-less homes — plugin/ only (todo: skills/, no code)

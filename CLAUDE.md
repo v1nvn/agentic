@@ -58,9 +58,10 @@ name or shape wins.
   a `package.json` (`enhansome`, `todo`) holds only its `plugin/` folder. Every
   `npx -y @v1nvn/*` line in the repo, config or `.md` surface, is version-pinned to
   the train by `set-version.mjs` (an unpinned npx resolves "latest" through the npx
-  cache and runs a stale CLI). One synced artifact remains:
-  `packages/statusline/plugin/render.mjs`, a committed build artifact the root
-  `yarn build` syncs from the package dist.
+  cache and runs a stale CLI). Two synced artifacts:
+  `packages/statusline/plugin/render.mjs` and `packages/tokens/bin/report.mjs` —
+  committed builds the root `yarn build` syncs from the package dist, for code a
+  surface execs or imports from the installed plugin folder.
 - **A mod's sources are its package home — `.ts`/`.tsx` the engine loads directly,
   no bundler, no artifact** (module at `hooks/`, island in `src/`, engine tests at
   `tests/`). A hooks module imports only plugin-relative files and
@@ -89,6 +90,10 @@ name or shape wins.
 
 ## Invariants
 
+- **Islands draw, processes compute.** Every real-compute surface is a real process — an npx
+  hook command, an MCP server, the statusline resolver, or a mod exec'ing its plugin's shipped
+  CLI through the session's Bash tool. A mod island never bulk-reads through `$.fs`
+  (`$.fs.read` rejects over 4 MiB, no range form).
 - **The readability server never fetches URLs.** Only the host shell's `curl` does. The server
   reads HTML from a file path; the page bytes never enter the model context.
 - **MCP server `instructions` stay ≤ 2048 chars** — Claude Code truncates the rest silently,

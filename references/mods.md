@@ -32,11 +32,21 @@ packages import it from there — the reverse direction is impossible. Imports
 use explicit `.js` extensions so the same file type-checks under `nodenext`
 (packages) and `bundler` (`tsconfig.mods.json`).
 
+The corollary — islands draw, processes compute: `$.fs.read` rejects over
+4 MiB with no range form, so an island never bulk-reads. Real data comes from
+one `$.tool.call({ tool: 'Bash', command: ... })` exec of the plugin's shipped
+CLI — a standalone `bin/*.mjs` build (every dependency inlined,
+`ssr.noExternal: true`), committed in the plugin folder and synced by
+`yarn build`, the way `statusline` ships `render.mjs`. The exec rides the
+permission path: the plugin's README carries the one `Bash(...)` allow rule a
+fresh install needs.
+
 ## This repo's shape
 
 - The mod's home is the package root — `packages/<name>/` itself (`tokens` is
   the first; the older plugins keep `plugin/` until they port) — sources
-  committed as `.ts`, no artifact, no sync step. The marketplace `source`
+  committed as `.ts`; the one synced artifact is the exec'd CLI,
+  `bin/report.mjs`. The marketplace `source`
   points there. The engine's test runner collects every `*.test.ts` under that
   root, so inside a mod home the name belongs to engine tests — the package's
   vitest suite names its files `*.spec.ts`.
@@ -81,11 +91,12 @@ use explicit `.js` extensions so the same file type-checks under `nodenext`
 | command     | `$.command.register` in `session.start` + `on('command.run', { command })`; return `{}` to print nothing (a pane's command answers nothing — `text` would be model-read)                                                 |
 | timers      | `$.clock.every(ms, fn)` from `session.start`; the handle lives until the module reloads                                                                                                                                  |
 
-A pane report draws through one `<Markdown text={...} />` carrying the same
-plain-text body the CLI prints — `Markdown` takes `text` as a prop (children
-do not type-check), in a fenced block for monospace alignment. Size to
-`e.props.bodyColumns`; a fixed-width report keeps its own width. State a
-drawing reads belongs in `$.state` (module
+A pane report draws through one `<Text>{...}</Text>` carrying the same
+plain-text body the CLI prints — `Text` draws the string verbatim, so a
+fixed-width report keeps its alignment with no markdown chrome (a fenced
+`<Markdown>` block renders as a code box and reads as a foreign panel).
+Size to `e.props.bodyColumns`; a fixed-width report keeps its own width.
+State a drawing reads belongs in `$.state` (module
 variables die on reload): `atom(...)` at module top, `read($, atom)` in the
 render hook (subscribes the instance), `update($, atom, fn)` from events.
 
