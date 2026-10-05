@@ -2,8 +2,9 @@
 
 ## Next
 
-1. **Rules plugin — base set + AGENTS.md lifecycle** · HIGH · [packages] → progress/rules-plugin.md
-2. **Mods port — release and live-verify the four commands** · HIGH · [packages]
+1. **zai pane — one report renderer, two surfaces** · HIGH · [packages/zai, packages/tokens] → progress/zai-pane.md
+2. **Rules plugin — base set + AGENTS.md lifecycle** · HIGH · [packages] → progress/rules-plugin.md
+3. **Mods port — release and live-verify the four commands** · HIGH · [packages]
    Merge the mods-port PR, release the train, then verify `/rm-send`, `/md-edit`, `/md-view`, `/zai-usage` from a fresh install — the thread record is archive/mods-port.md.
 
 ## readability
