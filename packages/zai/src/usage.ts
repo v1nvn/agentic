@@ -1,15 +1,17 @@
 /**
- * Usage query. Fetches model usage, tool usage, and quota limits from the GLM
- * Coding Plan monitor API of the resolved base URL (paths are fixed) and
- * renders the plain-text report.
+ * Usage query: the three GLM monitor endpoints of the resolved base URL,
+ * assembled into the report input.
  */
 
 import { pad2 } from '@v1nvn/tokens/text';
 
-import type { ZaiModelUsage, ZaiQuota, ZaiToolUsage } from './format.js';
+import type {
+  RenderInput,
+  ZaiModelUsage,
+  ZaiQuota,
+  ZaiToolUsage,
+} from './format.js';
 import type { ResolvedConfig } from './resolve.js';
-
-import { render } from './format.js';
 
 interface RawLimit {
   currentValue?: number;
@@ -123,7 +125,9 @@ async function fetchJson(
   return json.data ?? json;
 }
 
-export async function fetchReport(config: ResolvedConfig): Promise<string> {
+export async function fetchReport(
+  config: ResolvedConfig,
+): Promise<RenderInput> {
   const platform = config.url.includes('bigmodel') ? 'ZHIPU' : 'ZAI';
 
   const query = queryParams();
@@ -147,12 +151,12 @@ export async function fetchReport(config: ResolvedConfig): Promise<string> {
         config.token,
       ),
     ]);
-    return render({
+    return {
       platform,
       model: model as ZaiModelUsage,
       tool: tool as ZaiToolUsage,
       quota: processQuotaLimit(quotaRaw as RawQuota),
-    });
+    };
   } catch (e) {
     throw new Error(`Request failed: ${(e as Error).message}`, { cause: e });
   }

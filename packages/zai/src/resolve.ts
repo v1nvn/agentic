@@ -8,6 +8,7 @@ const GLM_HOSTS = new Set(['api.z.ai', 'dev.bigmodel.cn', 'open.bigmodel.cn']);
 export interface ParsedArgs {
   readonly authToken: string | undefined;
   readonly baseUrl: string | undefined;
+  readonly json: boolean;
 }
 
 export interface ResolvedConfig {
@@ -64,7 +65,10 @@ export function buildProgram(): Command {
     .addOption(
       new Option('--auth-token <token>', 'API key').env('ZAI_AUTH_TOKEN'),
     )
-    .addOption(new Option('--base-url <url>', 'base URL').env('ZAI_BASE_URL'));
+    .addOption(new Option('--base-url <url>', 'base URL').env('ZAI_BASE_URL'))
+    .addOption(
+      new Option('--json', 'print the report lines as JSON for the zai mod'),
+    );
 }
 
 export function parseArgs(args: readonly string[]): ParsedArgs | undefined {
@@ -72,13 +76,15 @@ export function parseArgs(args: readonly string[]): ParsedArgs | undefined {
   if (program === undefined) {
     return undefined;
   }
-  const { authToken, baseUrl } = program.opts<{
+  const { authToken, baseUrl, json } = program.opts<{
     authToken: string | undefined;
     baseUrl: string | undefined;
+    json?: boolean;
   }>();
   return {
     authToken: authToken || undefined,
     baseUrl: baseUrl || undefined,
+    json: json === true,
   };
 }
 

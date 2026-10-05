@@ -31,6 +31,7 @@ describe('parseArgs', () => {
     expect(parseArgs(['--base-url', 'https://x', '--auth-token', 't'])).toEqual({
       authToken: 't',
       baseUrl: 'https://x',
+      json: false,
     });
   });
 
@@ -38,13 +39,19 @@ describe('parseArgs', () => {
     expect(parseArgs(['--auth-token=t', '--base-url=https://x'])).toEqual({
       authToken: 't',
       baseUrl: 'https://x',
+      json: false,
     });
+  });
+
+  it('parses --json', () => {
+    expect(parseArgs(['--json'])!.json).toBe(true);
   });
 
   it('accepts no args', () => {
     expect(parseArgs([])).toEqual({
       authToken: undefined,
       baseUrl: undefined,
+      json: false,
     });
   });
 

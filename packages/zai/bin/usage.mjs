@@ -23,6 +23,398 @@ function printUsageAndExit(program) {
 }
 Number.MAX_SAFE_INTEGER;
 //#endregion
+//#region ../tokens/dist/text.js
+/**
+* Plain-text rendering primitives for the fixed-width reports. Output targets
+* a monospace terminal — the pane — so everything here is fixed-width:
+* padding, block-glyph bars, and compact number formatting.
+*/
+var MONTHS = [
+	"Jan",
+	"Feb",
+	"Mar",
+	"Apr",
+	"May",
+	"Jun",
+	"Jul",
+	"Aug",
+	"Sep",
+	"Oct",
+	"Nov",
+	"Dec"
+];
+var EIGHTHS = [
+	"",
+	"▏",
+	"▎",
+	"▍",
+	"▌",
+	"▋",
+	"▊",
+	"▉"
+];
+function rule() {
+	return "─".repeat(68);
+}
+function pad2(n) {
+	return String(n).padStart(2, "0");
+}
+function fmtTokens(n) {
+	if (n == null || Number.isNaN(n)) return "—";
+	if (n >= 1e9) return (n / 1e9).toFixed(1) + "B";
+	if (n >= 1e6) return (n / 1e6).toFixed(1) + "M";
+	if (n >= 1e3) return (n / 1e3).toFixed(1) + "K";
+	return String(n);
+}
+function fmtNum(n) {
+	return (n || 0).toLocaleString("en-US");
+}
+function padR(s, n) {
+	return s.length >= n ? s : s + " ".repeat(n - s.length);
+}
+function padL(s, n) {
+	return s.length >= n ? s : " ".repeat(n - s.length) + s;
+}
+/** Fixed-width bar field (width cols): █ blocks + an eighth-fraction + trailing spaces. */
+function barField(v, max, width) {
+	if (!v || v <= 0 || max <= 0) return " ".repeat(width);
+	const scaled = v / max * width;
+	let full = Math.floor(scaled);
+	let fi = Math.round((scaled - full) * 8);
+	if (fi === 8) {
+		full += 1;
+		fi = 0;
+	}
+	if (full === 0 && fi === 0) fi = 1;
+	let s = "█".repeat(Math.min(full, width));
+	if (full < width && fi > 0) s += EIGHTHS[fi] ?? "";
+	if (s.length < width) s += " ".repeat(width - s.length);
+	return s.slice(0, width);
+}
+/** Filled/empty meter: █ for used, ░ for remaining. */
+function meter(pct, width) {
+	let filled = Math.round((pct || 0) / 100 * width);
+	filled = Math.max(0, Math.min(width, filled));
+	return "█".repeat(filled) + "░".repeat(width - filled);
+}
+//#endregion
+//#region src/format.ts
+/**
+* Usage-report line model: `reportLines` lays the report out once as ink-tagged
+* segments (the pane draws those), and `render` joins them into the CLI's
+* monospace terminal / hook-block `reason` bytes — no markdown; alignment comes
+* from fixed-width columns and unicode block glyphs. Input is the parsed `data`
+* of the three ZAI/ZHIPU monitor endpoints (model-usage, tool-usage,
+* quota/limit — the last already passed through processQuotaLimit).
+*/
+var VBLOCKS = "▁▂▃▄▅▆▇";
+function parseSlot(s) {
+	const m = /^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})/.exec(s ?? "");
+	if (!m) return null;
+	return {
+		h: +m[4],
+		day: `${MONTHS[+m[2] - 1]} ${m[3]}`,
+		time: `${m[4]}:${m[5]}`
+	};
+}
+/**
+* Re-express a naive "YYYY-MM-DD HH:MM" string from one UTC offset to another.
+* Offsets are minutes east of UTC (Beijing = 480, IST = 330). Pure — does not
+* depend on the runtime timezone, so it is deterministic under test.
+*/
+function shiftSlot(s, fromOffsetMin, toOffsetMin) {
+	const m = /^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})/.exec(s);
+	if (!m) return null;
+	const utcMs = Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]) - fromOffsetMin * 6e4;
+	const dt = new Date(utcMs + toOffsetMin * 6e4);
+	return {
+		h: dt.getUTCHours(),
+		day: `${MONTHS[dt.getUTCMonth()]} ${pad2(dt.getUTCDate())}`,
+		time: `${pad2(dt.getUTCHours())}:${pad2(dt.getUTCMinutes())}`
+	};
+}
+function friendlyTool(code) {
+	switch ((code ?? "").toLowerCase()) {
+		case "search-prime": return "web search";
+		case "web-reader": return "web read";
+		default: return code || "other";
+	}
+}
+function idleRuns(tok) {
+	const runs = [];
+	let i = 0;
+	while (i < tok.length) if ((tok[i] || 0) === 0) {
+		let j = i;
+		while (j < tok.length && (tok[j] || 0) === 0) j++;
+		runs.push({
+			i,
+			j: j - 1,
+			len: j - i
+		});
+		i = j;
+	} else i++;
+	return runs;
+}
+function idleLabel(run, x, slotFn) {
+	const a = slotFn(x[run.i]);
+	const b = slotFn(x[run.j]);
+	if (!a || !b) return `idle (${run.len}h)`;
+	return `idle ${`${a.day} ${a.time}`} → ${a.day === b.day ? b.time : `${b.day} ${b.time}`} (${run.len}h)`;
+}
+function isPeakBucket(s) {
+	const m = /^(\d{4})-(\d{2})-(\d{2}) (\d{2}):/.exec(s ?? "");
+	if (!m) return false;
+	const wd = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3])).getUTCDay();
+	return wd >= 1 && wd <= 5 && +m[4] >= 14 && +m[4] <= 17;
+}
+/** Local-time start/end of the 14:00–18:00 Beijing peak window (e.g. 11:30 / 15:30). */
+function localPeakWindow(apiOffsetMin, toOffsetMin) {
+	const a = shiftSlot("2000-01-03 14:00", apiOffsetMin, toOffsetMin);
+	const b = shiftSlot("2000-01-03 18:00", apiOffsetMin, toOffsetMin);
+	if (!a || !b) return null;
+	return {
+		start: a.time,
+		end: b.time
+	};
+}
+/**
+* Vertical bar chart of hourly tokens. Returns an array of plain-text lines
+* (without the section header), or null if there are fewer than 2 buckets.
+*
+* Bars are scaled to `maxTok` across `ROWS` rows; the topmost filled cell of a
+* bar uses a fractional lower-block glyph (▁▂▃▄▅▆▇) for sub-row height. The
+* y-axis labels only the peak (top) and 0 (baseline); the header window and the
+* caller's peak annotation carry the exact values.
+*/
+function hourlyVerticalChart({ x, tok, nh, maxTok, peakIdx, slotFn }) {
+	const ROWS = 6;
+	if (nh < 2 || maxTok <= 0) return null;
+	const lines = [];
+	const maxLab = fmtTokens(maxTok);
+	const L = maxLab.length;
+	const AXIS = 1 + L + 1;
+	const P0 = AXIS + 2;
+	const PW = 68 - P0;
+	const slot = Math.max(1, Math.floor(PW / nh));
+	const barW = slot >= 2 ? slot - 1 : 1;
+	function barLeft(i) {
+		return P0 + i * slot;
+	}
+	function barCenter(i) {
+		return barLeft(i) + Math.floor(barW / 2);
+	}
+	const usedCols = nh * slot;
+	function blank() {
+		return Array(68).fill(" ");
+	}
+	function glyph(i, r) {
+		const v = tok[i] || 0;
+		if (v <= 0) return " ";
+		const fill = v / maxTok * ROWS - r;
+		if (fill >= 1) return "█";
+		if (fill > 0) {
+			let e = Math.round(fill * 8);
+			if (e < 1) e = 1;
+			if (e > 7) e = 7;
+			return VBLOCKS[e - 1];
+		}
+		return " ";
+	}
+	for (let r = 5; r >= 0; r--) {
+		const line = blank();
+		line[AXIS] = r === 5 ? "┤" : "│";
+		if (r === 5) for (let k = 0; k < L; k++) line[AXIS - 1 - L + k] = maxLab[k];
+		for (let i = 0; i < nh; i++) {
+			const g = glyph(i, r);
+			if (g !== " ") for (let c = 0; c < barW; c++) line[barLeft(i) + c] = g;
+		}
+		lines.push(line.join("").trimEnd());
+	}
+	function slotOf(i) {
+		return slotFn(x[i]);
+	}
+	function isTick(i) {
+		if (i === 0 || i === nh - 1) return true;
+		const s = slotOf(i);
+		return !!s && s.h % 6 === 0;
+	}
+	const base = blank();
+	base[AXIS - 2] = "0";
+	base[AXIS] = "└";
+	for (let c = AXIS + 1; c < P0 + usedCols; c++) base[c] = "─";
+	for (let i = 0; i < nh; i++) if (isTick(i)) base[barCenter(i)] = "┬";
+	lines.push(base.join("").trimEnd());
+	const hr = blank();
+	let last = -10;
+	for (let i = 0; i < nh; i++) {
+		if (!isTick(i)) continue;
+		const col = barCenter(i);
+		if (col - last < 3) continue;
+		const s = slotOf(i);
+		const txt = s ? pad2(s.h) : "  ";
+		hr[col] = txt[0];
+		hr[col + 1] = txt[1];
+		last = col;
+	}
+	lines.push(hr.join("").trimEnd());
+	const day = blank();
+	let lastDay = null;
+	last = -10;
+	for (let i = 0; i < nh; i++) {
+		if (!isTick(i)) continue;
+		const s = slotOf(i);
+		if (!s || s.day === lastDay) continue;
+		const col = barCenter(i);
+		if (col - last >= s.day.length && col + s.day.length <= 68) {
+			for (let k = 0; k < s.day.length; k++) day[col + k] = s.day[k];
+			lastDay = s.day;
+			last = col + s.day.length;
+		}
+	}
+	if (day.some((c) => c !== " ")) lines.push(day.join("").trimEnd());
+	const mark = blank();
+	for (let i = 0; i < nh; i++) if (isPeakBucket(x[i])) mark[barCenter(i)] = "↑";
+	if (peakIdx >= 0) mark[barCenter(peakIdx)] = "◂";
+	if (mark.some((c) => c !== " ")) lines.push(mark.join("").trimEnd());
+	return lines;
+}
+function plain(text) {
+	return { text };
+}
+function dim(text) {
+	return {
+		text,
+		ink: "dim"
+	};
+}
+function bold(text) {
+	return {
+		text,
+		ink: "bold"
+	};
+}
+function reportLines({ platform, model, tool, quota, apiOffsetMin = 480, localOffsetMin, now = /* @__PURE__ */ new Date() }) {
+	const out = [];
+	const toOffset = localOffsetMin != null ? localOffsetMin : -(/* @__PURE__ */ new Date()).getTimezoneOffset();
+	function convertSlot(s) {
+		return shiftSlot(s, apiOffsetMin, toOffset) ?? parseSlot(s);
+	}
+	const x = model.x_time ?? [];
+	const tok = model.tokensUsage ?? [];
+	const calls = model.modelCallCount ?? [];
+	const nh = x.length;
+	const tu = model.totalUsage ?? {};
+	const total = tu.totalTokensUsage != null ? tu.totalTokensUsage : tok.reduce((a, b) => a + (b || 0), 0);
+	const totalCalls = tu.totalModelCallCount != null ? tu.totalModelCallCount : calls.reduce((a, b) => a + (b || 0), 0);
+	let peakIdx = -1;
+	let peakTok = 0;
+	for (let i = 0; i < tok.length; i++) if (tok[i] > peakTok) {
+		peakTok = tok[i];
+		peakIdx = i;
+	}
+	const peakCalls = peakIdx >= 0 ? calls[peakIdx] || 0 : 0;
+	const pctPeak = total > 0 ? peakTok / total * 100 : 0;
+	const peakSlot = peakIdx >= 0 ? convertSlot(x[peakIdx]) : null;
+	const level = quota.level ? quota.level.charAt(0).toUpperCase() + quota.level.slice(1) : "";
+	const left = ` GLM Coding Plan${level ? " · " + level : ""}`;
+	const firstSlot = convertSlot(x[0]);
+	const lastSlot = convertSlot(x[nh - 1]);
+	const win = firstSlot && lastSlot ? `${firstSlot.day} ${firstSlot.time} → ${lastSlot.day} ${lastSlot.time} · ${nh}h` : platform;
+	out.push([plain(rule())]);
+	out.push([bold(left), dim(padL(win, 68 - left.length))]);
+	out.push([plain(rule())]);
+	const lead = [plain(` ${fmtTokens(total)} tokens across ${fmtNum(totalCalls)} model calls`)];
+	if (peakIdx >= 0 && peakSlot) lead.push(plain(" — "), bold(`${Math.round(pctPeak)}%`), plain(` of it in a single hour (${peakSlot.day} ${peakSlot.time}, ${fmtTokens(peakTok)} tokens / ${fmtNum(peakCalls)} calls)`));
+	lead.push(plain("."));
+	out.push([]);
+	out.push(lead);
+	const activeHours = tok.filter((t) => t > 0).length;
+	const longest = idleRuns(tok).filter((r) => r.len >= 2).sort((a, b) => b.len - a.len).at(0);
+	const tt = tool.totalUsage ?? {};
+	const searchN = tt.totalNetworkSearchCount || 0;
+	const readN = tt.totalWebReadMcpCount || 0;
+	const zreadN = tt.totalZreadMcpCount || 0;
+	const toolTotal = tt.totalSearchMcpCount != null ? tt.totalSearchMcpCount : searchN + readN + zreadN;
+	let peakWinActive = 0;
+	let peakWinTokens = 0;
+	for (let k = 0; k < nh; k++) if (isPeakBucket(x[k]) && tok[k] > 0) {
+		peakWinActive++;
+		peakWinTokens += tok[k];
+	}
+	const peakWinPct = total > 0 ? peakWinTokens / total * 100 : 0;
+	const peakWin = localPeakWindow(apiOffsetMin, toOffset);
+	out.push([]);
+	out.push([plain(` Peak     ${padR(peakSlot ? peakSlot.day + " " + peakSlot.time : "—", 15)}${padL(fmtTokens(peakTok), 7)} tokens · ${padL(fmtNum(peakCalls), 5)} calls`)]);
+	out.push([plain(` Active   ${padR(`${activeHours} / ${nh} hours`, 15)}${longest ? idleLabel(longest, x, convertSlot) : "no idle gaps"}`)]);
+	out.push([plain(` Tools    ${padR(`${toolTotal} calls`, 15)}${searchN} searches · ${readN} reads${zreadN ? ` · ${zreadN} zread` : ""}`)]);
+	if (peakWin) out.push([
+		plain(` Peak hrs Mon–Fri ${peakWin.start}–${peakWin.end} · GLM-5.2 3× · ${peakWinActive}h active · ${fmtTokens(peakWinTokens)} (`),
+		bold(`${Math.round(peakWinPct)}%`),
+		plain(")")
+	]);
+	out.push([]);
+	out.push([dim(" Hourly tokens · ↑ peak hour " + "─".repeat(Math.max(0, 39)))]);
+	const chartLines = hourlyVerticalChart({
+		x,
+		tok,
+		nh,
+		maxTok: peakTok || 1,
+		peakIdx,
+		slotFn: convertSlot
+	});
+	if (chartLines) {
+		out.push(...chartLines.map((l) => [plain(l)]));
+		if (peakIdx >= 0 && peakSlot) out.push([plain(`   ◂ peak  ${peakSlot.day} ${peakSlot.time}  ${fmtTokens(peakTok)} tokens · ${fmtNum(peakCalls)} calls`)]);
+	} else out.push([plain("   (not enough hourly data to chart)")]);
+	out.push([]);
+	out.push([dim(" Model mix " + "─".repeat(Math.max(0, 57)))]);
+	const mixSrc = model.modelSummaryList ?? model.modelDataList ?? [];
+	const denom = mixSrc.reduce((a, m) => a + (m.totalTokens ?? 0), 0) || 1;
+	const mixSorted = [...mixSrc].sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+	for (const m of mixSorted) {
+		const pct = (m.totalTokens ?? 0) / denom * 100;
+		out.push([
+			plain(`   ${padR(m.modelName || "?", 11)}${padL(fmtTokens(m.totalTokens), 8)}  `),
+			bold(padL(pct.toFixed(1) + "%", 6)),
+			plain(`  ${barField(pct, 100, 20)}`)
+		]);
+	}
+	out.push([]);
+	out.push([dim(" Limits " + "─".repeat(Math.max(0, 60)))]);
+	const bj = new Date(now.getTime() + apiOffsetMin * 6e4);
+	const bjDay = bj.getUTCDay();
+	const elapsedMin = bjDay >= 1 && bjDay <= 5 ? Math.max(0, Math.min(240, (bj.getUTCHours() - 14) * 60 + bj.getUTCMinutes())) : 0;
+	if (peakWin) out.push([dim(`   ${padR("Peak", 16)}`), plain(`${padL(peakWin.start, 5)}  ${meter(Math.round(elapsedMin / 240 * 100), 22)}  ${peakWin.end}`)]);
+	const limits = quota.limits ?? [];
+	const mcp = limits.find((l) => /mcp/i.test(l.type ?? ""));
+	const tok5 = limits.find((l) => /token/i.test(l.type ?? ""));
+	if (tok5) {
+		const reset = new Date(tok5.nextResetTime ?? "").toLocaleTimeString("en-IN");
+		out.push([
+			dim(`   ${padR("Tokens · 5h", 16)}`),
+			bold(padL(`${tok5.percentage || 0}%`, 5)),
+			plain(`  ${meter(tok5.percentage, 22)}  ${reset}`)
+		]);
+	}
+	if (tok5 && mcp) out.push([]);
+	if (mcp) {
+		const reset = new Date(mcp.nextResetTime ?? "").toLocaleString("en-IN");
+		out.push([
+			dim(`   ${padR("MCP · this month", 16)}`),
+			bold(padL(`${mcp.percentage || 0}%`, 5)),
+			plain(`  ${meter(mcp.percentage, 22)}  ${reset}`)
+		]);
+		const parts = (mcp.usageDetails ?? []).map((d) => `${friendlyTool(d.modelCode)} ${fmtNum(d.usage)}`).join("  ");
+		if (parts) out.push([plain(`   ${fmtNum(mcp.currentUsage)}M / ${fmtNum(mcp.totol)}M · ${parts}`)]);
+	}
+	out.push([]);
+	out.push([plain(rule())]);
+	return out;
+}
+function render(input) {
+	return reportLines(input).map((line) => line.map((seg) => seg.text).join("")).join("\n");
+}
+//#endregion
 //#region ../../node_modules/commander/lib/error.js
 /**
 * CommanderError class
@@ -3020,15 +3412,16 @@ function resolveBaseUrl(flag, env) {
 	};
 }
 function buildProgram() {
-	return new Command().name("zai-usage").addOption(new Option("--auth-token <token>", "API key").env("ZAI_AUTH_TOKEN")).addOption(new Option("--base-url <url>", "base URL").env("ZAI_BASE_URL"));
+	return new Command().name("zai-usage").addOption(new Option("--auth-token <token>", "API key").env("ZAI_AUTH_TOKEN")).addOption(new Option("--base-url <url>", "base URL").env("ZAI_BASE_URL")).addOption(new Option("--json", "print the report lines as JSON for the zai mod"));
 }
 function parseArgs(args) {
 	const program = parseQuietly(buildProgram(), args);
 	if (program === void 0) return;
-	const { authToken, baseUrl } = program.opts();
+	const { authToken, baseUrl, json } = program.opts();
 	return {
 		authToken: authToken || void 0,
-		baseUrl: baseUrl || void 0
+		baseUrl: baseUrl || void 0,
+		json: json === true
 	};
 }
 function resolveConfig(env, parsed) {
@@ -3041,403 +3434,10 @@ function resolveConfig(env, parsed) {
 	};
 }
 //#endregion
-//#region ../tokens/dist/text.js
-/**
-* Plain-text rendering primitives for the fixed-width reports. Output targets
-* a monospace terminal — the pane — so everything here is fixed-width:
-* padding, block-glyph bars, and compact number formatting.
-*/
-var MONTHS = [
-	"Jan",
-	"Feb",
-	"Mar",
-	"Apr",
-	"May",
-	"Jun",
-	"Jul",
-	"Aug",
-	"Sep",
-	"Oct",
-	"Nov",
-	"Dec"
-];
-var EIGHTHS = [
-	"",
-	"▏",
-	"▎",
-	"▍",
-	"▌",
-	"▋",
-	"▊",
-	"▉"
-];
-function rule() {
-	return "─".repeat(68);
-}
-function pad2(n) {
-	return String(n).padStart(2, "0");
-}
-function fmtTokens(n) {
-	if (n == null || Number.isNaN(n)) return "—";
-	if (n >= 1e9) return (n / 1e9).toFixed(1) + "B";
-	if (n >= 1e6) return (n / 1e6).toFixed(1) + "M";
-	if (n >= 1e3) return (n / 1e3).toFixed(1) + "K";
-	return String(n);
-}
-function fmtNum(n) {
-	return (n || 0).toLocaleString("en-US");
-}
-function padR(s, n) {
-	return s.length >= n ? s : s + " ".repeat(n - s.length);
-}
-function padL(s, n) {
-	return s.length >= n ? s : " ".repeat(n - s.length) + s;
-}
-/** Fixed-width bar field (width cols): █ blocks + an eighth-fraction + trailing spaces. */
-function barField(v, max, width) {
-	if (!v || v <= 0 || max <= 0) return " ".repeat(width);
-	const scaled = v / max * width;
-	let full = Math.floor(scaled);
-	let fi = Math.round((scaled - full) * 8);
-	if (fi === 8) {
-		full += 1;
-		fi = 0;
-	}
-	if (full === 0 && fi === 0) fi = 1;
-	let s = "█".repeat(Math.min(full, width));
-	if (full < width && fi > 0) s += EIGHTHS[fi] ?? "";
-	if (s.length < width) s += " ".repeat(width - s.length);
-	return s.slice(0, width);
-}
-/** Filled/empty meter: █ for used, ░ for remaining. */
-function meter(pct, width) {
-	let filled = Math.round((pct || 0) / 100 * width);
-	filled = Math.max(0, Math.min(width, filled));
-	return "█".repeat(filled) + "░".repeat(width - filled);
-}
-//#endregion
-//#region src/format.ts
-/**
-* Usage-report line model: `reportLines` lays the report out once as ink-tagged
-* segments (the pane draws those), and `render` joins them into the CLI's
-* monospace terminal / hook-block `reason` bytes — no markdown; alignment comes
-* from fixed-width columns and unicode block glyphs. Input is the parsed `data`
-* of the three ZAI/ZHIPU monitor endpoints (model-usage, tool-usage,
-* quota/limit — the last already passed through processQuotaLimit).
-*/
-var VBLOCKS = "▁▂▃▄▅▆▇";
-function parseSlot(s) {
-	const m = /^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})/.exec(s ?? "");
-	if (!m) return null;
-	return {
-		h: +m[4],
-		day: `${MONTHS[+m[2] - 1]} ${m[3]}`,
-		time: `${m[4]}:${m[5]}`
-	};
-}
-/**
-* Re-express a naive "YYYY-MM-DD HH:MM" string from one UTC offset to another.
-* Offsets are minutes east of UTC (Beijing = 480, IST = 330). Pure — does not
-* depend on the runtime timezone, so it is deterministic under test.
-*/
-function shiftSlot(s, fromOffsetMin, toOffsetMin) {
-	const m = /^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})/.exec(s);
-	if (!m) return null;
-	const utcMs = Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]) - fromOffsetMin * 6e4;
-	const dt = new Date(utcMs + toOffsetMin * 6e4);
-	return {
-		h: dt.getUTCHours(),
-		day: `${MONTHS[dt.getUTCMonth()]} ${pad2(dt.getUTCDate())}`,
-		time: `${pad2(dt.getUTCHours())}:${pad2(dt.getUTCMinutes())}`
-	};
-}
-function friendlyTool(code) {
-	switch ((code ?? "").toLowerCase()) {
-		case "search-prime": return "web search";
-		case "web-reader": return "web read";
-		default: return code || "other";
-	}
-}
-function idleRuns(tok) {
-	const runs = [];
-	let i = 0;
-	while (i < tok.length) if ((tok[i] || 0) === 0) {
-		let j = i;
-		while (j < tok.length && (tok[j] || 0) === 0) j++;
-		runs.push({
-			i,
-			j: j - 1,
-			len: j - i
-		});
-		i = j;
-	} else i++;
-	return runs;
-}
-function idleLabel(run, x, slotFn) {
-	const a = slotFn(x[run.i]);
-	const b = slotFn(x[run.j]);
-	if (!a || !b) return `idle (${run.len}h)`;
-	return `idle ${`${a.day} ${a.time}`} → ${a.day === b.day ? b.time : `${b.day} ${b.time}`} (${run.len}h)`;
-}
-function isPeakBucket(s) {
-	const m = /^(\d{4})-(\d{2})-(\d{2}) (\d{2}):/.exec(s ?? "");
-	if (!m) return false;
-	const wd = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3])).getUTCDay();
-	return wd >= 1 && wd <= 5 && +m[4] >= 14 && +m[4] <= 17;
-}
-/** Local-time start/end of the 14:00–18:00 Beijing peak window (e.g. 11:30 / 15:30). */
-function localPeakWindow(apiOffsetMin, toOffsetMin) {
-	const a = shiftSlot("2000-01-03 14:00", apiOffsetMin, toOffsetMin);
-	const b = shiftSlot("2000-01-03 18:00", apiOffsetMin, toOffsetMin);
-	if (!a || !b) return null;
-	return {
-		start: a.time,
-		end: b.time
-	};
-}
-/**
-* Vertical bar chart of hourly tokens. Returns an array of plain-text lines
-* (without the section header), or null if there are fewer than 2 buckets.
-*
-* Bars are scaled to `maxTok` across `ROWS` rows; the topmost filled cell of a
-* bar uses a fractional lower-block glyph (▁▂▃▄▅▆▇) for sub-row height. The
-* y-axis labels only the peak (top) and 0 (baseline); the header window and the
-* caller's peak annotation carry the exact values.
-*/
-function hourlyVerticalChart({ x, tok, nh, maxTok, peakIdx, slotFn }) {
-	const ROWS = 6;
-	if (nh < 2 || maxTok <= 0) return null;
-	const lines = [];
-	const maxLab = fmtTokens(maxTok);
-	const L = maxLab.length;
-	const AXIS = 1 + L + 1;
-	const P0 = AXIS + 2;
-	const PW = 68 - P0;
-	const slot = Math.max(1, Math.floor(PW / nh));
-	const barW = slot >= 2 ? slot - 1 : 1;
-	function barLeft(i) {
-		return P0 + i * slot;
-	}
-	function barCenter(i) {
-		return barLeft(i) + Math.floor(barW / 2);
-	}
-	const usedCols = nh * slot;
-	function blank() {
-		return Array(68).fill(" ");
-	}
-	function glyph(i, r) {
-		const v = tok[i] || 0;
-		if (v <= 0) return " ";
-		const fill = v / maxTok * ROWS - r;
-		if (fill >= 1) return "█";
-		if (fill > 0) {
-			let e = Math.round(fill * 8);
-			if (e < 1) e = 1;
-			if (e > 7) e = 7;
-			return VBLOCKS[e - 1];
-		}
-		return " ";
-	}
-	for (let r = 5; r >= 0; r--) {
-		const line = blank();
-		line[AXIS] = r === 5 ? "┤" : "│";
-		if (r === 5) for (let k = 0; k < L; k++) line[AXIS - 1 - L + k] = maxLab[k];
-		for (let i = 0; i < nh; i++) {
-			const g = glyph(i, r);
-			if (g !== " ") for (let c = 0; c < barW; c++) line[barLeft(i) + c] = g;
-		}
-		lines.push(line.join("").trimEnd());
-	}
-	function slotOf(i) {
-		return slotFn(x[i]);
-	}
-	function isTick(i) {
-		if (i === 0 || i === nh - 1) return true;
-		const s = slotOf(i);
-		return !!s && s.h % 6 === 0;
-	}
-	const base = blank();
-	base[AXIS - 2] = "0";
-	base[AXIS] = "└";
-	for (let c = AXIS + 1; c < P0 + usedCols; c++) base[c] = "─";
-	for (let i = 0; i < nh; i++) if (isTick(i)) base[barCenter(i)] = "┬";
-	lines.push(base.join("").trimEnd());
-	const hr = blank();
-	let last = -10;
-	for (let i = 0; i < nh; i++) {
-		if (!isTick(i)) continue;
-		const col = barCenter(i);
-		if (col - last < 3) continue;
-		const s = slotOf(i);
-		const txt = s ? pad2(s.h) : "  ";
-		hr[col] = txt[0];
-		hr[col + 1] = txt[1];
-		last = col;
-	}
-	lines.push(hr.join("").trimEnd());
-	const day = blank();
-	let lastDay = null;
-	last = -10;
-	for (let i = 0; i < nh; i++) {
-		if (!isTick(i)) continue;
-		const s = slotOf(i);
-		if (!s || s.day === lastDay) continue;
-		const col = barCenter(i);
-		if (col - last >= s.day.length && col + s.day.length <= 68) {
-			for (let k = 0; k < s.day.length; k++) day[col + k] = s.day[k];
-			lastDay = s.day;
-			last = col + s.day.length;
-		}
-	}
-	if (day.some((c) => c !== " ")) lines.push(day.join("").trimEnd());
-	const mark = blank();
-	for (let i = 0; i < nh; i++) if (isPeakBucket(x[i])) mark[barCenter(i)] = "↑";
-	if (peakIdx >= 0) mark[barCenter(peakIdx)] = "◂";
-	if (mark.some((c) => c !== " ")) lines.push(mark.join("").trimEnd());
-	return lines;
-}
-function plain(text) {
-	return { text };
-}
-function dim(text) {
-	return {
-		text,
-		ink: "dim"
-	};
-}
-function bold(text) {
-	return {
-		text,
-		ink: "bold"
-	};
-}
-function reportLines({ platform, model, tool, quota, apiOffsetMin = 480, localOffsetMin, now = /* @__PURE__ */ new Date() }) {
-	const out = [];
-	const toOffset = localOffsetMin != null ? localOffsetMin : -(/* @__PURE__ */ new Date()).getTimezoneOffset();
-	function convertSlot(s) {
-		return shiftSlot(s, apiOffsetMin, toOffset) ?? parseSlot(s);
-	}
-	const x = model.x_time ?? [];
-	const tok = model.tokensUsage ?? [];
-	const calls = model.modelCallCount ?? [];
-	const nh = x.length;
-	const tu = model.totalUsage ?? {};
-	const total = tu.totalTokensUsage != null ? tu.totalTokensUsage : tok.reduce((a, b) => a + (b || 0), 0);
-	const totalCalls = tu.totalModelCallCount != null ? tu.totalModelCallCount : calls.reduce((a, b) => a + (b || 0), 0);
-	let peakIdx = -1;
-	let peakTok = 0;
-	for (let i = 0; i < tok.length; i++) if (tok[i] > peakTok) {
-		peakTok = tok[i];
-		peakIdx = i;
-	}
-	const peakCalls = peakIdx >= 0 ? calls[peakIdx] || 0 : 0;
-	const pctPeak = total > 0 ? peakTok / total * 100 : 0;
-	const peakSlot = peakIdx >= 0 ? convertSlot(x[peakIdx]) : null;
-	const level = quota.level ? quota.level.charAt(0).toUpperCase() + quota.level.slice(1) : "";
-	const left = ` GLM Coding Plan${level ? " · " + level : ""}`;
-	const firstSlot = convertSlot(x[0]);
-	const lastSlot = convertSlot(x[nh - 1]);
-	const win = firstSlot && lastSlot ? `${firstSlot.day} ${firstSlot.time} → ${lastSlot.day} ${lastSlot.time} · ${nh}h` : platform;
-	out.push([plain(rule())]);
-	out.push([bold(left), dim(padL(win, 68 - left.length))]);
-	out.push([plain(rule())]);
-	const lead = [plain(` ${fmtTokens(total)} tokens across ${fmtNum(totalCalls)} model calls`)];
-	if (peakIdx >= 0 && peakSlot) lead.push(plain(" — "), bold(`${Math.round(pctPeak)}%`), plain(` of it in a single hour (${peakSlot.day} ${peakSlot.time}, ${fmtTokens(peakTok)} tokens / ${fmtNum(peakCalls)} calls)`));
-	lead.push(plain("."));
-	out.push([]);
-	out.push(lead);
-	const activeHours = tok.filter((t) => t > 0).length;
-	const longest = idleRuns(tok).filter((r) => r.len >= 2).sort((a, b) => b.len - a.len).at(0);
-	const tt = tool.totalUsage ?? {};
-	const searchN = tt.totalNetworkSearchCount || 0;
-	const readN = tt.totalWebReadMcpCount || 0;
-	const zreadN = tt.totalZreadMcpCount || 0;
-	const toolTotal = tt.totalSearchMcpCount != null ? tt.totalSearchMcpCount : searchN + readN + zreadN;
-	let peakWinActive = 0;
-	let peakWinTokens = 0;
-	for (let k = 0; k < nh; k++) if (isPeakBucket(x[k]) && tok[k] > 0) {
-		peakWinActive++;
-		peakWinTokens += tok[k];
-	}
-	const peakWinPct = total > 0 ? peakWinTokens / total * 100 : 0;
-	const peakWin = localPeakWindow(apiOffsetMin, toOffset);
-	out.push([]);
-	out.push([plain(` Peak     ${padR(peakSlot ? peakSlot.day + " " + peakSlot.time : "—", 15)}${padL(fmtTokens(peakTok), 7)} tokens · ${padL(fmtNum(peakCalls), 5)} calls`)]);
-	out.push([plain(` Active   ${padR(`${activeHours} / ${nh} hours`, 15)}${longest ? idleLabel(longest, x, convertSlot) : "no idle gaps"}`)]);
-	out.push([plain(` Tools    ${padR(`${toolTotal} calls`, 15)}${searchN} searches · ${readN} reads${zreadN ? ` · ${zreadN} zread` : ""}`)]);
-	if (peakWin) out.push([
-		plain(` Peak hrs Mon–Fri ${peakWin.start}–${peakWin.end} · GLM-5.2 3× · ${peakWinActive}h active · ${fmtTokens(peakWinTokens)} (`),
-		bold(`${Math.round(peakWinPct)}%`),
-		plain(")")
-	]);
-	out.push([]);
-	out.push([dim(" Hourly tokens · ↑ peak hour " + "─".repeat(Math.max(0, 39)))]);
-	const chartLines = hourlyVerticalChart({
-		x,
-		tok,
-		nh,
-		maxTok: peakTok || 1,
-		peakIdx,
-		slotFn: convertSlot
-	});
-	if (chartLines) {
-		out.push(...chartLines.map((l) => [plain(l)]));
-		if (peakIdx >= 0 && peakSlot) out.push([plain(`   ◂ peak  ${peakSlot.day} ${peakSlot.time}  ${fmtTokens(peakTok)} tokens · ${fmtNum(peakCalls)} calls`)]);
-	} else out.push([plain("   (not enough hourly data to chart)")]);
-	out.push([]);
-	out.push([dim(" Model mix " + "─".repeat(Math.max(0, 57)))]);
-	const mixSrc = model.modelSummaryList ?? model.modelDataList ?? [];
-	const denom = mixSrc.reduce((a, m) => a + (m.totalTokens ?? 0), 0) || 1;
-	const mixSorted = [...mixSrc].sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
-	for (const m of mixSorted) {
-		const pct = (m.totalTokens ?? 0) / denom * 100;
-		out.push([
-			plain(`   ${padR(m.modelName || "?", 11)}${padL(fmtTokens(m.totalTokens), 8)}  `),
-			bold(padL(pct.toFixed(1) + "%", 6)),
-			plain(`  ${barField(pct, 100, 20)}`)
-		]);
-	}
-	out.push([]);
-	out.push([dim(" Limits " + "─".repeat(Math.max(0, 60)))]);
-	const bj = new Date(now.getTime() + apiOffsetMin * 6e4);
-	const bjDay = bj.getUTCDay();
-	const elapsedMin = bjDay >= 1 && bjDay <= 5 ? Math.max(0, Math.min(240, (bj.getUTCHours() - 14) * 60 + bj.getUTCMinutes())) : 0;
-	if (peakWin) out.push([dim(`   ${padR("Peak", 16)}`), plain(`${padL(peakWin.start, 5)}  ${meter(Math.round(elapsedMin / 240 * 100), 22)}  ${peakWin.end}`)]);
-	const limits = quota.limits ?? [];
-	const mcp = limits.find((l) => /mcp/i.test(l.type ?? ""));
-	const tok5 = limits.find((l) => /token/i.test(l.type ?? ""));
-	if (tok5) {
-		const reset = new Date(tok5.nextResetTime ?? "").toLocaleTimeString("en-IN");
-		out.push([
-			dim(`   ${padR("Tokens · 5h", 16)}`),
-			bold(padL(`${tok5.percentage || 0}%`, 5)),
-			plain(`  ${meter(tok5.percentage, 22)}  ${reset}`)
-		]);
-	}
-	if (tok5 && mcp) out.push([]);
-	if (mcp) {
-		const reset = new Date(mcp.nextResetTime ?? "").toLocaleString("en-IN");
-		out.push([
-			dim(`   ${padR("MCP · this month", 16)}`),
-			bold(padL(`${mcp.percentage || 0}%`, 5)),
-			plain(`  ${meter(mcp.percentage, 22)}  ${reset}`)
-		]);
-		const parts = (mcp.usageDetails ?? []).map((d) => `${friendlyTool(d.modelCode)} ${fmtNum(d.usage)}`).join("  ");
-		if (parts) out.push([plain(`   ${fmtNum(mcp.currentUsage)}M / ${fmtNum(mcp.totol)}M · ${parts}`)]);
-	}
-	out.push([]);
-	out.push([plain(rule())]);
-	return out;
-}
-function render(input) {
-	return reportLines(input).map((line) => line.map((seg) => seg.text).join("")).join("\n");
-}
-//#endregion
 //#region src/usage.ts
 /**
-* Usage query. Fetches model usage, tool usage, and quota limits from the GLM
-* Coding Plan monitor API of the resolved base URL (paths are fixed) and
-* renders the plain-text report.
+* Usage query: the three GLM monitor endpoints of the resolved base URL,
+* assembled into the report input.
 */
 function queryParams(now = /* @__PURE__ */ new Date()) {
 	const startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1, now.getHours(), 0, 0, 0);
@@ -3493,12 +3493,12 @@ async function fetchReport(config) {
 			fetchJson(`${config.url}/api/monitor/usage/tool-usage`, "Tool usage", config.token, query),
 			fetchJson(`${config.url}/api/monitor/usage/quota/limit`, "Quota limit", config.token)
 		]);
-		return render({
+		return {
 			platform,
 			model,
 			tool,
 			quota: processQuotaLimit(quotaRaw)
-		});
+		};
 	} catch (e) {
 		throw new Error(`Request failed: ${e.message}`, { cause: e });
 	}
@@ -3507,7 +3507,8 @@ async function fetchReport(config) {
 //#region src/index.ts
 var parsed = parseArgs(process.argv.slice(2)) ?? printUsageAndExit(buildProgram());
 try {
-	console.log(await fetchReport(resolveConfig(process.env, parsed)));
+	const input = await fetchReport(resolveConfig(process.env, parsed));
+	console.log(parsed.json ? JSON.stringify({ lines: reportLines(input) }) : render(input));
 } catch (e) {
 	console.error(e.message);
 	process.exit(1);

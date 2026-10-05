@@ -29,7 +29,7 @@ npx -y @v1nvn/zai@0.36.0
 
 | Invocation | Does |
 |---|---|
-| `/zai-usage` | the account's usage report, as dim transcript rows |
+| `/zai-usage` | the account's usage report, as a pane |
 | `npx -y @v1nvn/zai@0.36.0` | the same report, printed bare |
 | `npx -y @v1nvn/zai@0.36.0 --auth-token TOKEN` | same, key on the command line (visible in `ps`) |
 | `npx -y @v1nvn/zai@0.36.0 --auth-token=TOKEN` | `=` form — zsh quoting-safe |
@@ -82,8 +82,8 @@ and re-vendor `types/claude-code.d.ts` (repo root) from the engine-laid
 ## Contracts
 
 - One job: print the report, exit 0. Nothing is written anywhere.
-- `/zai-usage` is one `node <plugin root>/bin/usage.mjs` exec through the
-  session's Bash tool — the same query `npx zai-usage` runs, awaited as-is. The
-  one allow rule it needs is `Bash(node <plugin root>/bin/usage.mjs)`; the
-  first run asks for it once, then it is remembered. Its report is dim
-  transcript rows the model never reads.
+- `/zai-usage` is one `node <plugin root>/bin/usage.mjs --json` exec through
+  the session's Bash tool — the same query `npx zai-usage` runs, awaited
+  as-is. The one allow rule it needs is
+  `Bash(node <plugin root>/bin/usage.mjs --json)`; the first run asks for it
+  once, then it is remembered. Its report is a pane the model never reads.
