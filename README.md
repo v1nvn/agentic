@@ -14,7 +14,7 @@ at the hosted registry server, and `todo` is manifest + skills, no package.
 | **md**          | Send the last reply to a Markdown-Viewer as a `#share=` URL — editable or read-only.                                                   | `/md:edit`, `/md:view`                                |
 | **zai**         | Query GLM Coding Plan quota and usage.                                                                                                 | `/zai:usage`                                          |
 | **tokens**      | Live token usage — the full report as a pane.                                                      | `/tokens-usage`                                       |
-| **statusline**  | Pick a theme for the status line + agent panel, or revert the setup.                                                                   | `/lab`                                                |
+| **statusline**  | Pick a theme for the status line + agent panel, or revert the setup.                                                                   | `/statusline:lab`                                                |
 | **todo**        | Work tracking — the rules plus six verbs over `TODO.md`, `progress/`, `references/`, `archive/`. Every repo carries data only.         | `/todo:run <plan>`, or a what's-next ask              |
 
 `rm`, `md`, and `zai` run zero-token: a `UserPromptExpansion` hook intercepts the command before it reaches the model. `tokens` is zero-token the mod way — a function-hook module draws its pane, a surface the model never reads.
@@ -54,7 +54,7 @@ the browser.
 
 ## statusline
 
-Five commands drive both surfaces. In Claude Code, `/lab` sketches the themes
+Five commands drive both surfaces. In Claude Code, `/statusline:lab` sketches the themes
 as plain renders and offers the picker in chat — the agent writes the pick.
 In a terminal outside Claude Code, the wizard is the guide:
 
@@ -97,7 +97,7 @@ data. The theme name rides the key — `status` and `catalog` read it from
 there, and swaps keep the name. `status` checks the install: node, the
 renderer the install record resolves, both keys, config drift, the theme,
 backup, captures — one row per fact plus a verdict, every action row naming
-its fix. `/lab` inside a session runs the same commands.
+its fix. `/statusline:lab` inside a session runs the same commands.
 
 Repo and machine:
 
@@ -107,7 +107,7 @@ repo
     src/  test/  dist/                dist/ holds index.js and render.mjs
     assets/payloads/  p1–p4.json          preview fixtures, main surface
     assets/ticks/     multi.json          preview fixtures, agent panel
-    SKILL.md                          the /lab skill — model-taught entry point
+    SKILL.md                          the /statusline:lab skill — model-taught entry point
     render.mjs                        the renderer — committed build artifact, synced by `yarn build`
 
 machine, after `claude plugin install statusline@agentic`
@@ -120,7 +120,7 @@ machine, after `claude plugin install statusline@agentic`
 ```
 
 Install: `claude plugin marketplace add v1nvn/agentic`, then
-`claude plugin install statusline@agentic`, then `/lab` in a session — or
+`claude plugin install statusline@agentic`, then `/statusline:lab` in a session — or
 `npx -y @v1nvn/statusline@0.35.0 configure` in a terminal, where the wizard
 previews both surfaces at 80/120/200 columns and saves.
 

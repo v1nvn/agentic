@@ -17,7 +17,7 @@ claude plugin marketplace add v1nvn/agentic
 claude plugin install statusline@agentic
 ```
 
-In Claude Code — type `/lab`: the agent sketches the themes as plain renders,
+In Claude Code — type `/statusline:lab`: the agent sketches the themes as plain renders,
 offers the picker in chat, and writes the pick.
 
 In a terminal outside Claude Code — the wizard, the terminal guide:
@@ -32,7 +32,7 @@ to the themes · `w` width · enter saves · `q` cancels.
 
 ## Usage
 
-One CLI, both ways: `/lab` inside a session runs these same commands; `npx`
+One CLI, both ways: `/statusline:lab` inside a session runs these same commands; `npx`
 runs them in a terminal. Every subcommand takes `--home <dir>` to operate on
 another home instead of `$HOME`.
 
