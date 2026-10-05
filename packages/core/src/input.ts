@@ -1,6 +1,6 @@
 import { readFileSync, statSync } from 'node:fs';
 
-export function readAll(stream: NodeJS.ReadableStream): Promise<string> {
+function readAll(stream: NodeJS.ReadableStream): Promise<string> {
   return new Promise((resolve, reject) => {
     let data = '';
     stream.setEncoding('utf8');

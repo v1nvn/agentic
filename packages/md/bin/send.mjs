@@ -8,6 +8,21 @@ import process$1 from "node:process";
 import { stripVTControlCharacters } from "node:util";
 import { deflateSync } from "node:zlib";
 //#region ../core/dist/index.js
+function parseQuietly(program, args, recover) {
+	try {
+		program.allowExcessArguments(false).exitOverride().configureOutput({
+			writeOut: () => void 0,
+			writeErr: () => void 0
+		}).parse([...args], { from: "user" });
+		return program;
+	} catch (err) {
+		return recover?.(err);
+	}
+}
+function printUsageAndExit(program) {
+	console.error(program.helpInformation());
+	process.exit(1);
+}
 function readAll(stream) {
 	return new Promise((resolve, reject) => {
 		let data = "";
@@ -35,21 +50,6 @@ function isFile(path) {
 	} catch {
 		return false;
 	}
-}
-function parseQuietly(program, args, recover) {
-	try {
-		program.allowExcessArguments(false).exitOverride().configureOutput({
-			writeOut: () => void 0,
-			writeErr: () => void 0
-		}).parse([...args], { from: "user" });
-		return program;
-	} catch (err) {
-		return recover?.(err);
-	}
-}
-function printUsageAndExit(program) {
-	console.error(program.helpInformation());
-	process.exit(1);
 }
 function textBlocks(entry) {
 	const content = entry.message?.content;

@@ -1,7 +1,7 @@
 # @v1nvn/agentic-core
 
-The shared runtime of the `@v1nvn` agent tools: transcript reading, CLI and
-hook plumbing, logging, and the MCP server lifecycle helpers. A library — no
+The shared runtime of the `@v1nvn` agent tools: transcript reading, CLI
+plumbing, logging, and the MCP server lifecycle helpers. A library — no
 bin, not directly runnable; every other package consumes it as a workspace
 dependency.
 
@@ -14,7 +14,6 @@ User-facing docs: [root README](../../README.md).
 | `src/last-reply.ts` | finds the previous assistant reply across local Claude Code transcripts |
 | `src/input.ts`      | stdin and markdown-file input with the CLI error contracts              |
 | `src/cli.ts`        | quiet commander parsing and usage/exit helpers shared by the tool bins  |
-| `src/hook.ts`       | the `UserPromptExpansion` hook plumbing the zero-token plugins ride     |
 | `src/logger.ts`     | level-filtered stderr logger for the MCP servers                        |
 | `src/shutdown.ts`   | close-then-exit signal handling for the server entrypoints              |
 | `src/dev.ts`        | the hot-reload watcher wiring the servers' `yarn dev` harnesses share   |

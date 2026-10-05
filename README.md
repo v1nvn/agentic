@@ -140,7 +140,7 @@ npm code.
 packages/                           one yarn workspace — every plugin's home
   readability/  omlx/               the two MCP servers (@v1nvn/readability, @v1nvn/omlx) — the plugin root itself:
                                      .claude-plugin/ + .mcp.json (pinned npx) + dev.mcp.json (dev wiring) (+ skills/)
-  core/                             @v1nvn/agentic-core — last-reply + CLI/hook plumbing, shared by the tools
+  core/                             @v1nvn/agentic-core — last-reply + CLI plumbing, shared by the tools
   rm/  md/  zai/                    the tool CLIs (rm-send, md-send, zai-usage) + their mods — the plugin root itself:
                                      .claude-plugin/ + hooks/register.ts + tests/ + bin/*.mjs
                                      (standalone build the mod execs, committed)
