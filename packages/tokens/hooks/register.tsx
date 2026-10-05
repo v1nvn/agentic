@@ -1,5 +1,5 @@
 /**
- * The tokens mod: /tokens opens the usage report as a pane — the only
+ * The tokens mod: /tokens-usage opens the usage report as a pane — the only
  * surface, drawn only while it shows. Islands draw, processes compute — the
  * island never reads transcripts ($.fs.read caps at 4 MiB); every number is
  * one exec of the shipped CLI (bin/report.mjs --json) through the session's
@@ -161,7 +161,7 @@ function draw(
 export function register(on: On): void {
   on('session.start', async ($, e, next) => {
     await $.command.register({
-      name: 'tokens',
+      name: 'tokens-usage',
       description:
         'Token usage — per-model 24h mix and 7-day dailies, as a pane',
     });
@@ -169,7 +169,7 @@ export function register(on: On): void {
     return next(e);
   });
 
-  on('command.run', { command: 'tokens' }, async $ => {
+  on('command.run', { command: 'tokens-usage' }, async $ => {
     const s = await refresh($);
     await $.ui.open({ id: PANE, title: 'Token usage', rows: paneRows(s) });
     return {};
