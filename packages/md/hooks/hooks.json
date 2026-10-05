@@ -1,27 +1,4 @@
 {
   "description": "Zero-token send of the last reply to the Markdown-Viewer",
-  "hooks": {
-    "UserPromptExpansion": [
-      {
-        "matcher": "^md:edit$",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "npx",
-            "args": ["-y", "@v1nvn/md@0.35.1", "--hook"]
-          }
-        ]
-      },
-      {
-        "matcher": "^md:view$",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "npx",
-            "args": ["-y", "@v1nvn/md@0.35.1", "--hook", "--view"]
-          }
-        ]
-      }
-    ]
-  }
+  "modules": ["./register.ts"]
 }
