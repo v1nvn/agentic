@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { render } from '../src/format.js';
 import type { ZaiModelUsage, ZaiQuota, ZaiToolUsage } from '../src/format.js';
 
-// Sample data pasted from a real blocked-hook output.
+// Sample data pasted from a real monitor-API response.
 const x_time = [
   '2026-07-16 09:00', '2026-07-16 10:00', '2026-07-16 11:00', '2026-07-16 12:00',
   '2026-07-16 13:00', '2026-07-16 14:00', '2026-07-16 15:00', '2026-07-16 16:00',

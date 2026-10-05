@@ -7,7 +7,7 @@
     "zai-usage": "dist/index.js"
   },
   "scripts": {
-    "build": "vite build",
+    "build": "vite build && vite build --mode usage",
     "test": "vitest run",
     "test:watch": "vitest"
   },

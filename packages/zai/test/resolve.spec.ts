@@ -31,7 +31,6 @@ describe('parseArgs', () => {
     expect(parseArgs(['--base-url', 'https://x', '--auth-token', 't'])).toEqual({
       authToken: 't',
       baseUrl: 'https://x',
-      hook: false,
     });
   });
 
@@ -39,15 +38,6 @@ describe('parseArgs', () => {
     expect(parseArgs(['--auth-token=t', '--base-url=https://x'])).toEqual({
       authToken: 't',
       baseUrl: 'https://x',
-      hook: false,
-    });
-  });
-
-  it('parses --hook', () => {
-    expect(parseArgs(['--hook'])).toEqual({
-      authToken: undefined,
-      baseUrl: undefined,
-      hook: true,
     });
   });
 
@@ -55,7 +45,6 @@ describe('parseArgs', () => {
     expect(parseArgs([])).toEqual({
       authToken: undefined,
       baseUrl: undefined,
-      hook: false,
     });
   });
 
@@ -209,7 +198,7 @@ describe('resolveConfig', () => {
 
   it('rejects a flag-like base-url value at resolve', () => {
     expect(() =>
-      resolveConfig(env({}), args(['--base-url', '--hook'])),
+      resolveConfig(env({}), args(['--base-url', '--auth-token'])),
     ).toThrow(/invalid base URL/);
   });
 });
@@ -219,7 +208,6 @@ describe('buildProgram help', () => {
     const help = buildProgram().helpInformation();
     expect(help).toContain('--auth-token');
     expect(help).toContain('--base-url');
-    expect(help).toContain('--hook');
     expect(help).toContain('ZAI_AUTH_TOKEN');
     expect(help).toContain('ZAI_BASE_URL');
   });

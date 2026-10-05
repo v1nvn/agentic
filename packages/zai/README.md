@@ -1,14 +1,18 @@
 # @v1nvn/zai
 
-The CLI behind the zai plugin: it reports GLM Coding Plan quota and usage for
-the current account, straight to the terminal — no model tokens, no browser.
+The home of the zai plugin — and its plugin root: the `zai-usage` CLI in `src/`,
+the mod's hooks module at `hooks/register.ts` (`.ts`/`.tsx` the engine loads
+directly, no build), engine tests at `tests/`. It reports GLM Coding Plan quota
+and usage for the current account — models, tools, limits — straight to the
+terminal; no browser, nothing written.
 
 User-facing docs: [root README](../../README.md).
 
 ## Quickstart
 
-In Claude Code, the plugin is the way in — `/zai:usage` runs this CLI through
-a `UserPromptExpansion` hook with zero model tokens:
+In Claude Code, the plugin is the way in — a mod serves the one surface the
+model never reads: `/zai-usage` execs the shipped CLI and shows its report as
+dim transcript rows (nothing execs until the command runs).
 
 ```sh
 claude plugin marketplace add v1nvn/agentic
@@ -25,7 +29,8 @@ npx -y @v1nvn/zai@0.35.1
 
 | Invocation | Does |
 |---|---|
-| `npx -y @v1nvn/zai@0.35.1` | usage report — models, quota window, remaining balance |
+| `/zai-usage` | the account's usage report, as dim transcript rows |
+| `npx -y @v1nvn/zai@0.35.1` | the same report, printed bare |
 | `npx -y @v1nvn/zai@0.35.1 --auth-token TOKEN` | same, key on the command line (visible in `ps`) |
 | `npx -y @v1nvn/zai@0.35.1 --auth-token=TOKEN` | `=` form — zsh quoting-safe |
 | `npx -y @v1nvn/zai@0.35.1 --base-url URL` | another GLM endpoint (default `api.z.ai`) |
@@ -42,8 +47,8 @@ Each setting takes the first source that provides it:
 to a GLM Coding Plan. Claude Code routed elsewhere (plain Anthropic, another
 proxy) is not a zai configuration; set `ZAI_AUTH_TOKEN`. Bigmodel accounts
 point the base URL at their host; the monitor paths are identical
-(`ZAI_BASE_URL=https://open.bigmodel.cn`). The hook reads the same env from
-the Claude Code process; flags are a CLI affordance — `hooks.json` is static.
+(`ZAI_BASE_URL=https://open.bigmodel.cn`). The mod's exec runs inside the
+session's shell, so it inherits the same environment `npx zai-usage` reads.
 
 The API labels every bucket in Beijing time (UTC+8); the report shifts each
 timestamp to your local zone for display.
@@ -51,10 +56,17 @@ timestamp to your local zone for display.
 ## Develop
 
 ```sh
-yarn workspace @v1nvn/zai build
-yarn workspace @v1nvn/zai test
-yarn lint && yarn typecheck       # from the repo root
+yarn workspace @v1nvn/zai test       # the CLI side (vitest)
+claude plugin validate packages/zai  # the mod, as the engine reads it
+claude plugin test packages/zai      # the mod, through the engine
+yarn lint && yarn typecheck         # from the repo root (typecheck
+                                    #   covers tsconfig.mods.json too)
 ```
+
+The mod API is early access and moves between Claude Code releases — a build
+that refuses the module loads nothing, so validate after every engine update
+and re-vendor `types/claude-code.d.ts` (repo root) from the engine-laid
+`.claude-plugin/types/` when it changes. Read `references/mods.md` first.
 
 ## Modules
 
@@ -64,9 +76,14 @@ yarn lint && yarn typecheck       # from the repo root
 | `src/usage.ts` | the GLM API call and the report it builds |
 | `src/resolve.ts` | auth-token resolution chain |
 | `src/format.ts` | the printed table |
+| `hooks/register.ts` | the mod: registers `/zai-usage`, execs the CLI, shows its report |
+| `bin/usage.mjs` | the standalone build the mod execs — committed, synced by `yarn build` |
 
 ## Contracts
 
 - One job: print the report, exit 0. Nothing is written anywhere.
-- The hook path and the terminal path run the same bin — the hook only
-  feeds it the session's transcript context.
+- `/zai-usage` is one `node <plugin root>/bin/usage.mjs` exec through the
+  session's Bash tool — the same query `npx zai-usage` runs, awaited as-is. The
+  one allow rule it needs is `Bash(node <plugin root>/bin/usage.mjs)`; the
+  first run asks for it once, then it is remembered. Its report is dim
+  transcript rows the model never reads.

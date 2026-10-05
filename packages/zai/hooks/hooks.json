@@ -1,17 +1,4 @@
 {
   "description": "Zero-token usage query for GLM Coding Plan",
-  "hooks": {
-    "UserPromptExpansion": [
-      {
-        "matcher": "^zai:usage$",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "npx",
-            "args": ["-y", "@v1nvn/zai@0.35.1", "--hook"]
-          }
-        ]
-      }
-    ]
-  }
+  "modules": ["./register.ts"]
 }
