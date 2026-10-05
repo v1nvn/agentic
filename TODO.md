@@ -3,6 +3,7 @@
 ## Next
 
 1. **Rules plugin — base set + AGENTS.md lifecycle** · HIGH · [packages] → progress/rules-plugin.md
+2. **Mods port — rm, md, zai as mod commands, tokens first** · HIGH · [packages] → progress/mods-port.md
 
 ## readability
 
@@ -12,9 +13,8 @@
 
 - **Statusline — preview width flag** · LOW
   `preview` renders at a fixed 200 columns; chat panes are narrower, so a sketch wraps. Wanted: a preview width the picker can match to the pane.
-- **Statusline — unify the main and panel render engines** · LOW · [packages/statusline] → progress/render-engines.md
 
-## Parked
+## Out of scope
 
-- **Unruled mod adoptions (G2–G5)** — revisit when the owner rules one
-  The mods consult (G2 zai line, G3 todo pane/band, G4 `/lab` pane, G5 rm/md mods) was never ruled; each becomes work only on that ruling. The page is at /tmp/agentic-mods-rulings/index.html and the plan is archived at archive/mods.md.
+- **zai quota status line** — the always-on clock exec cut from tokens stands as the precedent
+- **readability / omlx / enhansome as mods** — model-facing by design; mods are the zero-token UI door
