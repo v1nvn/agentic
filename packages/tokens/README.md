@@ -24,7 +24,7 @@ claude plugin install tokens@agentic
 In a terminal, bare:
 
 ```sh
-npx -y @v1nvn/tokens@0.36.0
+npx -y @v1nvn/tokens@0.36.1
 ```
 
 ## Usage
@@ -32,7 +32,7 @@ npx -y @v1nvn/tokens@0.36.0
 | Invocation                    | Does                                                                                                          |
 | ----------------------------- | ------------------------------------------------------------------------------------------------------------- |
 | `/tokens-usage`               | the full report, as a pane                                                                                    |
-| `npx -y @v1nvn/tokens@0.36.0` | per-model table: input/output/cache-write/cache-read tokens, cache hit rate, 24 h window + 7-day daily totals |
+| `npx -y @v1nvn/tokens@0.36.1` | per-model table: input/output/cache-write/cache-read tokens, cache hit rate, 24 h window + 7-day daily totals |
 
 Works for every profile writing to `~/.claude/projects` — default `claude`,
 `claudez`, headless `claude -p` runs alike. Files older than the 7-day window
