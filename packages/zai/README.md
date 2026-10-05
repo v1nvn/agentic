@@ -1,7 +1,7 @@
 # @v1nvn/zai
 
 The home of the zai plugin — and its plugin root: the `zai-usage` CLI in `src/`,
-the mod's hooks module at `hooks/register.ts` (`.ts`/`.tsx` the engine loads
+the mod's hooks module at `hooks/register.tsx` (`.ts`/`.tsx` the engine loads
 directly, no build), engine tests at `tests/`. It reports GLM Coding Plan quota
 and usage for the current account — models, tools, limits — straight to the
 terminal; no browser, nothing written.
@@ -11,8 +11,8 @@ User-facing docs: [root README](../../README.md).
 ## Quickstart
 
 In Claude Code, the plugin is the way in — a mod serves the one surface the
-model never reads: `/zai-usage` execs the shipped CLI and shows its report as
-dim transcript rows (nothing execs until the command runs).
+model never reads: `/zai-usage` execs the shipped CLI and opens its report as
+a pane (nothing execs until the command runs).
 
 ```sh
 claude plugin marketplace add v1nvn/agentic
@@ -76,7 +76,7 @@ and re-vendor `types/claude-code.d.ts` (repo root) from the engine-laid
 | `src/usage.ts` | the GLM API call and the report it builds |
 | `src/resolve.ts` | auth-token resolution chain |
 | `src/format.ts` | the printed table |
-| `hooks/register.ts` | the mod: registers `/zai-usage`, execs the CLI, shows its report |
+| `hooks/register.tsx` | the mod: registers `/zai-usage`, execs the CLI, opens its report as a pane |
 | `bin/usage.mjs` | the standalone build the mod execs — committed, synced by `yarn build` |
 
 ## Contracts
