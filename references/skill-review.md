@@ -1,6 +1,6 @@
 # Skill review
 
-Every `SKILL.md` and `commands/*.md` under `plugins/` is reviewed against Anthropic's
+Every `SKILL.md` under `packages/*/` is reviewed against Anthropic's
 skill-creator guidance plus this repo's own rules. Read the upstream, never install it:
 
 ```sh
@@ -45,8 +45,8 @@ read by eye.
   carries its _because_.
 - No instruction vague enough to read two ways; every external call has a failure branch.
 - Code the model would rewrite on every run is bundled under `scripts/`.
-- Speak only to the running model. A note for the maintainer — how a hook intercepts the
-  command, why a version is pinned — is deleted from the surface.
+- Speak only to the running model. A note for the maintainer — why a version is pinned —
+  is deleted from the surface.
 - Shell state does not survive between Bash calls: a value one step prints and a later step
   reuses is named explicitly for the model to substitute.
 - Temp paths are unique per run (`mktemp -d`), never a fixed `/tmp/<name>` that parallel
