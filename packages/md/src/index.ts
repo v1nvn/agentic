@@ -1,11 +1,9 @@
 import {
-  hookOrPrint,
   lastReply,
   parseQuietly,
   printUsageAndExit,
   readMarkdownFile,
   readStdin,
-  replyTarget,
 } from '@v1nvn/agentic-core';
 import { Command } from 'commander';
 
@@ -15,16 +13,12 @@ const program = new Command()
   .name('md-send')
   .description('Send a Markdown reply to the Markdown-Viewer as a #share= URL')
   .argument('[file]', 'Markdown file, - for stdin; the last reply when omitted')
-  .option('--view', 'open the viewer read-only, without the edit pane')
-  .option('--hook', 'emit a UserPromptExpansion block instead of printing');
+  .option('--view', 'open the viewer read-only, without the edit pane');
 
 const parsed =
   parseQuietly(program, process.argv.slice(2)) ?? printUsageAndExit(program);
 const arg = parsed.args.at(0);
-const { hook, view } = parsed.opts<{
-  hook: boolean | undefined;
-  view: boolean | undefined;
-}>();
+const { view } = parsed.opts<{ view: boolean | undefined }>();
 
 function readMarkdown(): Promise<string> | string {
   if (arg === '-') {
@@ -36,9 +30,11 @@ function readMarkdown(): Promise<string> | string {
   return readMarkdownFile(arg);
 }
 
-await hookOrPrint(hook ?? false, 'send failed', async event =>
-  mdSend(
-    event === undefined ? await readMarkdown() : lastReply(replyTarget(event)),
-    view ?? false,
-  ),
-);
+try {
+  console.log(mdSend(await readMarkdown(), view ?? false));
+} catch (e) {
+  console.error((e as Error).message);
+  // CLIs report failure through the exit code; the rule targets libraries.
+  // eslint-disable-next-line n/no-process-exit
+  process.exit(1);
+}
