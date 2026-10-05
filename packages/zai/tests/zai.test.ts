@@ -13,8 +13,14 @@ const LINES: Line[] = [
     },
   ],
   [
-    { text: ' GLM Coding Plan · Max', ink: 'bold' },
-    { text: '              Oct 04 10:00 → Oct 04 11:00 · 2h', ink: 'dim' },
+    {
+      text: ' GLM Coding Plan · Max',
+      ink: 'bold',
+    },
+    {
+      text: '              Oct 04 10:00 → Oct 04 11:00 · 2h',
+      ink: 'dim',
+    },
   ],
   [
     {
@@ -23,20 +29,54 @@ const LINES: Line[] = [
   ],
   [],
   [
-    { text: ' 420.0K tokens across 6 model calls' },
-    { text: ' — ' },
-    { text: '71%', ink: 'bold' },
-    { text: ' of it in a single hour (Oct 04 11:00, 300.0K tokens / 4 calls)' },
-    { text: '.' },
+    {
+      text: ' 420.0K tokens across 6 model calls',
+    },
+    {
+      text: ' — ',
+    },
+  ],
+  [
+    {
+      text: '71%',
+      ink: 'bold',
+    },
+    {
+      text: ' of it in a single hour',
+    },
+  ],
+  [
+    {
+      text: ' (Oct 04 11:00, 300.0K tokens / 4 calls).',
+    },
   ],
   [],
-  [{ text: ' Peak     Oct 04 11:00    300.0K tokens ·     4 calls' }],
-  [{ text: ' Active   2 / 2 hours    no idle gaps' }],
-  [{ text: ' Tools    8 calls        3 searches · 5 reads' }],
   [
-    { text: ' Peak hrs Mon–Fri 14:00–18:00 · GLM-5.2 3× · 0h active · 0 (' },
-    { text: '0%', ink: 'bold' },
-    { text: ')' },
+    {
+      text: ' Peak     Oct 04 11:00    300.0K tokens ·     4 calls',
+    },
+  ],
+  [
+    {
+      text: ' Active   2 / 2 hours    no idle gaps',
+    },
+  ],
+  [
+    {
+      text: ' Tools    8 calls        3 searches · 5 reads',
+    },
+  ],
+  [
+    {
+      text: ' Peak hrs Mon–Fri 14:00–18:00 · GLM-5.2 3× · 0h active · 0 (',
+    },
+    {
+      text: '0%',
+      ink: 'bold',
+    },
+    {
+      text: ')',
+    },
   ],
   [],
   [
@@ -80,10 +120,26 @@ const LINES: Line[] = [
       text: '      0 └───────────────┬────────────────────────────┬──────────────',
     },
   ],
-  [{ text: '                        10                           11' }],
-  [{ text: '                        Oct 04' }],
-  [{ text: '                                                     ◂' }],
-  [{ text: '   ◂ peak  Oct 04 11:00  300.0K tokens · 4 calls' }],
+  [
+    {
+      text: '                        10                           11',
+    },
+  ],
+  [
+    {
+      text: '                        Oct 04',
+    },
+  ],
+  [
+    {
+      text: '                                                     ◂',
+    },
+  ],
+  [
+    {
+      text: '   ◂ peak  Oct 04 11:00  300.0K tokens · 4 calls',
+    },
+  ],
   [],
   [
     {
@@ -92,9 +148,16 @@ const LINES: Line[] = [
     },
   ],
   [
-    { text: '   GLM-5.2      420.0K  ' },
-    { text: '100.0%', ink: 'bold' },
-    { text: '  ████████████████████' },
+    {
+      text: '   GLM-5.2      420.0K  ',
+    },
+    {
+      text: '100.0%',
+      ink: 'bold',
+    },
+    {
+      text: '  ████████████████████',
+    },
   ],
   [],
   [
@@ -104,21 +167,46 @@ const LINES: Line[] = [
     },
   ],
   [
-    { text: '   Peak            ', ink: 'dim' },
-    { text: '14:00  ░░░░░░░░░░░░░░░░░░░░░░  18:00' },
+    {
+      text: '   Peak            ',
+      ink: 'dim',
+    },
+    {
+      text: '14:00  ░░░░░░░░░░░░░░░░░░░░░░  18:00',
+    },
   ],
   [
-    { text: '   Tokens · 5h     ', ink: 'dim' },
-    { text: '  42%', ink: 'bold' },
-    { text: '  █████████░░░░░░░░░░░░░  Invalid Date' },
+    {
+      text: '   Tokens · 5h     ',
+      ink: 'dim',
+    },
+    {
+      text: '  42%',
+      ink: 'bold',
+    },
+    {
+      text: '  █████████░░░░░░░░░░░░░  12:30:00 pm',
+    },
   ],
   [],
   [
-    { text: '   MCP · this month', ink: 'dim' },
-    { text: '  30%', ink: 'bold' },
-    { text: '  ███████░░░░░░░░░░░░░░░  Invalid Date' },
+    {
+      text: '   MCP · this month',
+      ink: 'dim',
+    },
+    {
+      text: '  30%',
+      ink: 'bold',
+    },
+    {
+      text: '  ███████░░░░░░░░░░░░░░░  Invalid Date',
+    },
   ],
-  [{ text: '   308M / 1,000M · web search 223' }],
+  [
+    {
+      text: '   308M / 1,000M · web search 223',
+    },
+  ],
   [],
   [
     {

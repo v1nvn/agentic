@@ -441,23 +441,24 @@ export function reportLines({
   out.push([bold(left), dim(padL(win, RULE_WIDTH - left.length))]);
   out.push([plain(rule())]);
 
-  const lead: Line = [
-    plain(
-      ` ${fmtTokens(total)} tokens across ${fmtNum(totalCalls)} model calls`,
-    ),
-  ];
-  if (peakIdx >= 0 && peakSlot) {
-    lead.push(
-      plain(' — '),
-      bold(`${Math.round(pctPeak)}%`),
-      plain(
-        ` of it in a single hour (${peakSlot.day} ${peakSlot.time}, ${fmtTokens(peakTok)} tokens / ${fmtNum(peakCalls)} calls)`,
-      ),
-    );
-  }
-  lead.push(plain('.'));
+  const head = plain(
+    ` ${fmtTokens(total)} tokens across ${fmtNum(totalCalls)} model calls`,
+  );
   out.push([]);
-  out.push(lead);
+  if (peakIdx >= 0 && peakSlot) {
+    out.push([head, plain(' — ')]);
+    out.push([
+      bold(`${Math.round(pctPeak)}%`),
+      plain(' of it in a single hour'),
+    ]);
+    out.push([
+      plain(
+        ` (${peakSlot.day} ${peakSlot.time}, ${fmtTokens(peakTok)} tokens / ${fmtNum(peakCalls)} calls).`,
+      ),
+    ]);
+  } else {
+    out.push([head, plain('.')]);
+  }
 
   const activeHours = tok.filter(t => t > 0).length;
   const longest = idleRuns(tok)
