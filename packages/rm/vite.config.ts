@@ -1,10 +1,9 @@
 import { configDefaults, defineConfig } from 'vitest/config';
 
-// One config, two build modes, both run by `yarn build`. The send pass emits
-// the standalone artifact the plugin folder carries — the mod execs it
-// through the session's Bash tool, where no node_modules exists, so it
-// inlines every dependency. The CLI builds the default way: external deps,
-// installed beside it by npx.
+// The send pass emits the standalone artifact the plugin folder carries —
+// the mod execs it through the session's Bash tool, where no node_modules
+// exists, so it inlines every dependency. The CLI builds the default way:
+// external deps, installed beside it by npx.
 export default defineConfig(({ mode }) => {
   if (mode === 'send') {
     return {

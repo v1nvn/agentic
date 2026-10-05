@@ -5,6 +5,10 @@ import type { Engine } from 'claude-code/testing';
 
 const SENT = 'Sent: A_heading.epub → remarkable:/home/root/books';
 
+/** The unreachable-device shape: pandoc made the EPUB, ssh could not resolve the host. */
+const SSH_FAILED =
+  'ssh failed: ssh: Could not resolve hostname remarkable: nodename nor servname provided, or not known';
+
 type World = {
   commands: string[];
   logs: string[];
@@ -12,7 +16,10 @@ type World = {
   registered: string[];
 };
 
-function stubWorld(on: On, answer: 'refuse' | 'sent' = 'sent'): World {
+function stubWorld(
+  on: On,
+  answer: 'device-down' | 'refuse' | 'sent' = 'sent',
+): World {
   const world: World = {
     commands: [],
     logs: [],
@@ -36,6 +43,15 @@ function stubWorld(on: On, answer: 'refuse' | 'sent' = 'sent'): World {
     world.commands.push(String(e.command));
     if (answer === 'refuse') {
       return { deny: 'permission denied by the user' };
+    }
+    if (answer === 'device-down') {
+      return {
+        result: {
+          stdout: '',
+          stderr: SSH_FAILED,
+          interrupted: false,
+        },
+      };
     }
     return {
       result: {
@@ -98,4 +114,13 @@ test('a refused exec reports the refusal, answers nothing, no crash', async ($, 
     expect.stringMatching(/^node .*\/bin\/send\.mjs$/),
   ]);
   expect(world.logs).toEqual(['permission denied by the user']);
+});
+
+test('a failed beam reports its failing stage, not the bare fallback', async ($, on) => {
+  const world = stubWorld(on, 'device-down');
+  await startSession($);
+
+  const answer = await runSend($);
+  expect(answer.text).toBeUndefined();
+  expect(world.logs).toEqual([SSH_FAILED]);
 });
