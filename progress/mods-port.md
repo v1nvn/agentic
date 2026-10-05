@@ -37,7 +37,7 @@ Decided (owner, the consult this thread came from):
 
 ## Next step
 
-Unit 4: port rm. Units 4–7 run as one sitting, strictly serial.
+Unit 5: port md. Units 5–7 run as one sitting, strictly serial.
 
 ## Steps
 
@@ -46,7 +46,7 @@ Unit 4: port rm. Units 4–7 run as one sitting, strictly serial.
 | 1 | Rename the tokens command | | | `packages/tokens/hooks/register.tsx` registers `tokens-usage` and its `command.run` matcher follows; engine tests and all gates green; tokens README names `/tokens-usage`; AGENTS.md carries the naming law — landed `55f7bb4` (also corrected the manifest's dead "a status line" claim), all gates green |
 | 2 | Release the train | owner | | version bumped, release workflow green, `@v1nvn/tokens` published with the rename — v0.35.1, run 37268136788 green, confirmed on npm |
 | 3 | Live verify the name e2e | owner | checklist | fresh marketplace install in a fresh session: `/tokens-usage` typeaheads, runs, opens the pane; `/tokens` is gone — verified live on v0.35.1 (plugin update + reload, fresh session) |
-| 4 | Port rm | | | hooks module registers `rm-send`; `command.run` execs the home's `bin/` build and reports through a ui surface, answering `{}`; `commands/` gone; the CLI's `--hook` option gone; `bin/` a committed inlined build synced by `yarn build`; engine tests at `tests/`; `test:mods` runs rm; README carries the one `Bash(...)` allow rule; `set-version` MD_SURFACES drops the dead `commands/*.md`, `--check` green; gates green |
+| 4 | Port rm | | | hooks module registers `rm-send`; `command.run` execs the home's `bin/` build and reports through a ui surface, answering `{}`; `commands/` gone; the CLI's `--hook` option gone; `bin/` a committed inlined build synced by `yarn build`; engine tests at `tests/`; `test:mods` runs rm; README carries the one `Bash(...)` allow rule; `set-version` MD_SURFACES drops the dead `commands/*.md`, `--check` green; gates green — landed `37b28f2` + fix `b2dbc9e`: module at `hooks/register.ts` (no JSX, no pane), `bin/send.mjs` synced byte-identical, blind review clean (the CLI-fails seam crossed in the fix round), rm 4/4 in `test:mods`; the vitest suite renamed `test/*.spec.ts` per the mod-home naming law; unit-1's missed `tokens/hooks/hooks.json` line fixed beside it (`0956772`) |
 | 5 | Port md | | | as unit 4, two commands: `md-view`, `md-edit` |
 | 6 | Port zai | | | as unit 4, one command: `zai-usage` |
 | 7 | Delete the machinery, close the law | | | core's hook emit path (`hook.ts`, `emitHookBlock`, `readHookEvent`, `hookOrPrint`'s hook branch) deleted; `git grep UserPromptExpansion` outside `archive/` hits zero; AGENTS.md's layout law states the mod-command shape where the `commands/` shell clause stood; the synced-artifact law names every mod home's `bin/`; gates green |
@@ -69,7 +69,7 @@ Unit 4: port rm. Units 4–7 run as one sitting, strictly serial.
   - Island rule: a module imports only plugin-relative files and bare
     `claude-code`.
   - Every registered name matches `<plugin>-<action>` (the naming law).
-  - `git grep -n UserPromptExpansion -- . ':(exclude)archive'` → 0 at close.
+  - `git grep -n UserPromptExpansion -- . ':(exclude)archive' ':(exclude)types' ':(exclude)progress'` → 0 at close (the vendored `types/claude-code.d.ts` is the engine's own contract; `progress/` quotes the plan).
 - One PR per run segment, one commit per unit: units 1–3 rode #13 through the
   owner's release gate; units 4–7 ride `feat/mods-port` off v0.35.1 main, one
   PR opened at the end. The clerk runs the inventory's two greps and
