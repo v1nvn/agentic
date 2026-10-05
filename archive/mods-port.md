@@ -12,10 +12,12 @@ is AGENTS.md law.
 
 ## Current state
 
-Ruled, nothing built. This thread repurposes the render-engines thread (its
-question rides the open questions below) and supersedes the parked G2–G5
-consult: G5 is this thread, G2's line is out of scope, G3 and G4 are the open
-questions below.
+Closed — all seven units landed. tokens renamed and owner-verified live
+(v0.35.1); rm, md and zai ship mod commands (`/rm-send`, `/md-edit`,
+`/md-view`, `/zai-usage`); core's UserPromptExpansion machinery deleted; the
+naming law and the mod-command layout law are AGENTS.md law. Owed beyond the
+thread: the release that carries the ports and the owner's live verify, plus
+the three unruled calls — all minted in TODO.md at close.
 
 The frame it rests on: a plugin has three doors — model-facing (MCP, skills),
 human-facing UI (mods, zero-token), settings-key processes — and the engine's
@@ -37,19 +39,19 @@ Decided (owner, the consult this thread came from):
 
 ## Next step
 
-Unit 7: delete the machinery, close the law — the run's last unit.
+None — thread closed.
 
 ## Steps
 
 | id | unit | model | review | close criteria |
 | --- | --- | --- | --- | --- |
-| 1 | Rename the tokens command | | | `packages/tokens/hooks/register.tsx` registers `tokens-usage` and its `command.run` matcher follows; engine tests and all gates green; tokens README names `/tokens-usage`; AGENTS.md carries the naming law — landed `55f7bb4` (also corrected the manifest's dead "a status line" claim), all gates green |
+| 1 | Rename the tokens command | | | `packages/tokens/hooks/register.tsx` registers `tokens-usage` and its `command.run` matcher follows; engine tests and all gates green; tokens README names `/tokens-usage`; AGENTS.md carries the naming law — landed `630743e` (also corrected the manifest's dead "a status line" claim), all gates green |
 | 2 | Release the train | owner | | version bumped, release workflow green, `@v1nvn/tokens` published with the rename — v0.35.1, run 37268136788 green, confirmed on npm |
 | 3 | Live verify the name e2e | owner | checklist | fresh marketplace install in a fresh session: `/tokens-usage` typeaheads, runs, opens the pane; `/tokens` is gone — verified live on v0.35.1 (plugin update + reload, fresh session) |
-| 4 | Port rm | | | hooks module registers `rm-send`; `command.run` execs the home's `bin/` build and reports through a ui surface, answering `{}`; `commands/` gone; the CLI's `--hook` option gone; `bin/` a committed inlined build synced by `yarn build`; engine tests at `tests/`; `test:mods` runs rm; README carries the one `Bash(...)` allow rule; `set-version` MD_SURFACES drops the dead `commands/*.md`, `--check` green; gates green — landed `37b28f2` + fix `b2dbc9e`: module at `hooks/register.ts` (no JSX, no pane), `bin/send.mjs` synced byte-identical, blind review clean (the CLI-fails seam crossed in the fix round), rm 4/4 in `test:mods`; the vitest suite renamed `test/*.spec.ts` per the mod-home naming law; unit-1's missed `tokens/hooks/hooks.json` line fixed beside it (`0956772`) |
-| 5 | Port md | | | as unit 4, two commands: `md-view`, `md-edit` — landed `f6cdcec` + comment fix `0a4f71d`: both commands pinned as distinct exec lines (plain / `--view`, `$`-anchored), failure seam crossed with the real no-transcript stderr, blind review clean, md 5/5 in `test:mods`; the README allow rule takes the prefix form (one rule, two exec lines) |
-| 6 | Port zai | | | as unit 4, one command: `zai-usage` — landed `0069a57`: exec line pinned, failure seam crossed with the real no-key stderr (byte-identical to the CLI's), the REPORT fixture proven real-renderer output by the reviewer, blind review clean, zai 4/4 in `test:mods`; exact-form allow rule (one exec line) |
-| 7 | Delete the machinery, close the law | | | core's hook emit path (`hook.ts`, `emitHookBlock`, `readHookEvent`, `hookOrPrint`'s hook branch) deleted; `git grep UserPromptExpansion` outside `archive/` hits zero; AGENTS.md's layout law states the mod-command shape where the `commands/` shell clause stood; the synced-artifact law names every mod home's `bin/`; gates green |
+| 4 | Port rm | | | hooks module registers `rm-send`; `command.run` execs the home's `bin/` build and reports through a ui surface, answering `{}`; `commands/` gone; the CLI's `--hook` option gone; `bin/` a committed inlined build synced by `yarn build`; engine tests at `tests/`; `test:mods` runs rm; README carries the one `Bash(...)` allow rule; `set-version` MD_SURFACES drops the dead `commands/*.md`, `--check` green; gates green — landed `5981508` + fix `6a1833a`: module at `hooks/register.ts` (no JSX, no pane), `bin/send.mjs` synced byte-identical, blind review clean (the CLI-fails seam crossed in the fix round), rm 4/4 in `test:mods`; the vitest suite renamed `test/*.spec.ts` per the mod-home naming law; unit-1's missed `tokens/hooks/hooks.json` line fixed beside it (`352f655`) |
+| 5 | Port md | | | as unit 4, two commands: `md-view`, `md-edit` — landed `a2d24c4` + comment fix `df4604b`: both commands pinned as distinct exec lines (plain / `--view`, `$`-anchored), failure seam crossed with the real no-transcript stderr, blind review clean, md 5/5 in `test:mods`; the README allow rule takes the prefix form (one rule, two exec lines) |
+| 6 | Port zai | | | as unit 4, one command: `zai-usage` — landed `95127e1`: exec line pinned, failure seam crossed with the real no-key stderr (byte-identical to the CLI's), the REPORT fixture proven real-renderer output by the reviewer, blind review clean, zai 4/4 in `test:mods`; exact-form allow rule (one exec line) |
+| 7 | Delete the machinery, close the law | | | core's hook emit path (`hook.ts`, `emitHookBlock`, `readHookEvent`, `hookOrPrint`'s hook branch) deleted; `git grep UserPromptExpansion` outside `archive/` hits zero; AGENTS.md's layout law states the mod-command shape where the `commands/` shell clause stood; the synced-artifact law names every mod home's `bin/`; gates green — landed `5c9beca` + prose fix `604e295`: whole functions died (zero live callers; `isFile` kept its one caller, private; `readAll` un-exported), the end-state grep reads zero, the law names the four mods and all five synced artifacts, blind review clean after four dead-door prose strikes |
 
 ## Plan
 
