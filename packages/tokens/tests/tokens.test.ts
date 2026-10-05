@@ -49,7 +49,7 @@ type World = {
 function stubWorld(on: On, answer: 'report' | 'throw' = 'report'): World {
   const world: World = { commands: [], opens: [] };
   const openIds = new Set<string>();
-  on('command.register', () => ({ value: { command: 'tokens' } }));
+  on('command.register', () => ({ value: { command: 'tokens-usage' } }));
   on('session.start', () => ({ cwd: '/work' }));
   on('ui.open', ($, e) => {
     world.opens.push(e.id);
@@ -89,7 +89,7 @@ async function startSession($: Engine): Promise<void> {
   });
 }
 
-test('/tokens execs the shipped CLI into the pane; startup draws and execs nothing', async ($, on) => {
+test('/tokens-usage execs the shipped CLI into the pane; startup draws and execs nothing', async ($, on) => {
   mock.clock(on);
   const world = stubWorld(on);
 
@@ -97,7 +97,7 @@ test('/tokens execs the shipped CLI into the pane; startup draws and execs nothi
   expect(world.commands).toEqual([]);
 
   await $.command.run({
-    command: 'tokens',
+    command: 'tokens-usage',
     args: '',
     origin: { kind: 'composer' },
     presentation: { isFullscreen: false, columns: 100 },
@@ -124,7 +124,7 @@ test('the clock refreshes the pane only while it is open', async ($, on) => {
   expect(world.commands).toEqual([]);
 
   await $.command.run({
-    command: 'tokens',
+    command: 'tokens-usage',
     args: '',
     origin: { kind: 'composer' },
     presentation: { isFullscreen: false, columns: 100 },
@@ -143,7 +143,7 @@ test('a refused or empty exec leaves the empty state, no crash', async ($, on) =
   expect(world.commands).toEqual([]);
 
   await $.command.run({
-    command: 'tokens',
+    command: 'tokens-usage',
     args: '',
     origin: { kind: 'composer' },
     presentation: { isFullscreen: false, columns: 100 },

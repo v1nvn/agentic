@@ -2,7 +2,7 @@
 
 A Claude Code plugin marketplace: `readability` and `omlx` (local MCP servers) plus
 `enhansome` (hosted registry MCP server), `rm`, `md`, `zai` (zero-token hook
-plugins), `tokens` (a mod: the `/tokens` usage pane), `statusline` (status line +
+plugins), `tokens` (a mod: the `/tokens-usage` pane), `statusline` (status line +
 agent panel), and `todo` (work tracking) — nine independently-installable plugins
 in one repo. Each plugin's root is its package home, `packages/<name>/` itself.
 Seven homes publish npm code (`@v1nvn/*`), while
@@ -70,6 +70,9 @@ name or shape wins.
   `tsconfig.mods.json`; regenerate it from `.claude-plugin/types/` after an engine
   update. `claude plugin validate <plugin root>` and `claude plugin test <plugin
   root>` are the mod's gates; read `references/mods.md` before writing one.
+- **A mod command's name is `<plugin>-<action>`, hyphenated** — the registered
+  name is the whole invocation (`/tokens-usage`, `/rm-send`), so the name carries
+  its own scope and never collides with a bare-word built-in.
 - **Scripts resolve binaries only from deps the workspace declares.** Each package
   declares the tools its scripts invoke (`vite`, `vitest`); the root declares the
   root-run tools (eslint stack, prettier, typescript).

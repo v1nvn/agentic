@@ -13,7 +13,7 @@ User-facing docs: [root README](../../README.md).
 ## Quickstart
 
 In Claude Code, the plugin is the way in — a mod draws one surface the model
-never reads: `/tokens` opens the full report as a pane (refreshed on open and
+never reads: `/tokens-usage` opens the full report as a pane (refreshed on open and
 every 5 minutes while it shows; nothing draws and nothing execs until then).
 
 ```sh
