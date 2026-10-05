@@ -12,7 +12,7 @@ import type {
   ToolCallResult,
 } from 'claude-code';
 
-/** The line a run shows: the CLI's stdout verbatim, else its stderr, the refusal's reason, or the share's failure label. */
+/** The line a run shows: the refusal's reason, the CLI's stdout, else its stderr or the share's failure label. */
 function lineOf(call: ToolCallResult): string {
   if (call.deny !== undefined) {
     return call.deny;
