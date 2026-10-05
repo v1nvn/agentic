@@ -3183,7 +3183,22 @@ function createAggregator(now = /* @__PURE__ */ new Date()) {
 }
 //#endregion
 //#region src/format.ts
-function render(scanResult, { now = /* @__PURE__ */ new Date() } = {}) {
+function plain(text) {
+	return { text };
+}
+function dim(text) {
+	return {
+		text,
+		ink: "dim"
+	};
+}
+function bold(text) {
+	return {
+		text,
+		ink: "bold"
+	};
+}
+function reportLines(scanResult, { now = /* @__PURE__ */ new Date() } = {}) {
 	const out = [];
 	const rows = scanResult.last24.filter((r) => totalTokens(r) > 0);
 	const sum = sumRows(rows);
@@ -3191,31 +3206,50 @@ function render(scanResult, { now = /* @__PURE__ */ new Date() } = {}) {
 	const left = " Token usage · transcripts";
 	const winStart = /* @__PURE__ */ new Date(now.getTime() - 864e5);
 	const win = `${dayLabel(ymd(winStart))} ${fmtClock(winStart)} → ${dayLabel(ymd(now))} ${fmtClock(now)} · 24h`;
-	out.push(rule());
-	out.push(left + padL(win, 42));
-	out.push(rule());
-	out.push("");
-	out.push(` ${fmtTokens(totalTokens(sum))} tokens across ${fmtNum(sum.calls)} model calls — ${pctHit}% cache hit rate.`);
-	out.push("");
-	out.push(" Model mix · last 24h " + "─".repeat(Math.max(0, 46)));
-	if (rows.length === 0) out.push("   (no usage recorded in the last 24 hours)");
+	out.push([plain(rule())]);
+	out.push([bold(left), dim(padL(win, 42))]);
+	out.push([plain(rule())]);
+	out.push([]);
+	out.push([
+		plain(` ${fmtTokens(totalTokens(sum))} tokens across ${fmtNum(sum.calls)} model calls — `),
+		bold(`${pctHit}%`),
+		plain(" cache hit rate.")
+	]);
+	out.push([]);
+	out.push([dim(" Model mix · last 24h " + "─".repeat(Math.max(0, 46)))]);
+	if (rows.length === 0) out.push([plain("   (no usage recorded in the last 24 hours)")]);
 	for (const r of rows) {
 		const pct = Math.round(hitRate(r));
-		out.push(`   ${padR(r.model, 14)}${padL(fmtTokens(r.input), 8)} in · ${padL(fmtTokens(r.output), 8)} out · ${padL(fmtTokens(r.cacheRead), 8)} read · ${padL(fmtTokens(r.cacheCreation), 8)} created  ${padL(`${pct}%`, 4)} ${barField(pct, 100, 14)}`);
+		out.push([
+			plain(`   ${padR(r.model, 14)}${padL(fmtTokens(r.input), 8)} `),
+			dim("in"),
+			plain(` · ${padL(fmtTokens(r.output), 8)} `),
+			dim("out"),
+			plain(` · ${padL(fmtTokens(r.cacheRead), 8)} `),
+			dim("read"),
+			plain(` · ${padL(fmtTokens(r.cacheCreation), 8)} `),
+			dim("created"),
+			plain("  "),
+			bold(padL(`${pct}%`, 4)),
+			plain(` ${barField(pct, 100, 14)}`)
+		]);
 	}
 	const days = last7(scanResult, now);
-	out.push("");
-	out.push(" Daily · last 7 days " + "─".repeat(Math.max(0, 47)));
+	out.push([]);
+	out.push([dim(" Daily · last 7 days " + "─".repeat(Math.max(0, 47)))]);
 	const maxDay = Math.max(0, ...days.map(totalTokens));
 	for (const d of [...days].reverse()) {
 		const pct = Math.round(hitRate(d));
-		out.push(`   ${dayLabel(d.day)}  ${padL(fmtTokens(totalTokens(d)), 8)}  ${barField(totalTokens(d), maxDay, 24)}  ${padL(`${pct}%`, 4)}`);
+		out.push([plain(`   ${dayLabel(d.day)}  ${padL(fmtTokens(totalTokens(d)), 8)}  ${barField(totalTokens(d), maxDay, 24)}  `), bold(padL(`${pct}%`, 4))]);
 	}
-	if (days.length === 0) out.push("   (no usage recorded in the last 7 days)");
-	out.push("");
-	out.push(` Covers every profile writing to ~/.claude/projects — hit rate = read / (in + read + created).`);
-	out.push(rule());
-	return out.join("\n");
+	if (days.length === 0) out.push([plain("   (no usage recorded in the last 7 days)")]);
+	out.push([]);
+	out.push([dim(" Covers every profile writing to ~/.claude/projects — hit rate = read / (in + read + created).")]);
+	out.push([plain(rule())]);
+	return out;
+}
+function render(scanResult, { now = /* @__PURE__ */ new Date() } = {}) {
+	return reportLines(scanResult, { now }).map((line) => line.map((seg) => seg.text).join("")).join("\n");
 }
 //#endregion
 //#region src/scan.ts
