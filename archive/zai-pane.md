@@ -10,14 +10,16 @@ docs carry the new surface in the same change.
 
 ## Current state
 
-Rulings complete (owner, this sitting — consult at /tmp/zai-pane-rulings):
-structured elements with the double renderer de-duped in both homes (G1b +
-note), no refresh clock (G2a), the model-mix row converges on the CLI's split
-row with CLI bytes pinned (frontend-design pass picked a). Nothing built.
+Closed — four units plus the ruled lead-line fold landed through PR #15
+(`b6088f6`, `1532b54` + `2780501`, `2691f86`, `7a890e1` + `a9d4bd1`,
+`fe28a64`): both panes draw their CLI reports as inked lines from one
+`reportLines` per home, both byte-pins held through every commit, the lead
+line keeps the report's 68 columns. Owner live-verify of both panes is owed
+post-release-train (the mods-port Next entry carries it).
 
 ## Next step
 
-Run unit 1.
+None — thread closed and merged.
 
 ## Steps
 
