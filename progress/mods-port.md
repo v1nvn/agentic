@@ -37,7 +37,7 @@ Decided (owner, the consult this thread came from):
 
 ## Next step
 
-Unit 5: port md. Units 5–7 run as one sitting, strictly serial.
+Unit 6: port zai. Units 6–7 run as one sitting, strictly serial.
 
 ## Steps
 
@@ -47,7 +47,7 @@ Unit 5: port md. Units 5–7 run as one sitting, strictly serial.
 | 2 | Release the train | owner | | version bumped, release workflow green, `@v1nvn/tokens` published with the rename — v0.35.1, run 37268136788 green, confirmed on npm |
 | 3 | Live verify the name e2e | owner | checklist | fresh marketplace install in a fresh session: `/tokens-usage` typeaheads, runs, opens the pane; `/tokens` is gone — verified live on v0.35.1 (plugin update + reload, fresh session) |
 | 4 | Port rm | | | hooks module registers `rm-send`; `command.run` execs the home's `bin/` build and reports through a ui surface, answering `{}`; `commands/` gone; the CLI's `--hook` option gone; `bin/` a committed inlined build synced by `yarn build`; engine tests at `tests/`; `test:mods` runs rm; README carries the one `Bash(...)` allow rule; `set-version` MD_SURFACES drops the dead `commands/*.md`, `--check` green; gates green — landed `37b28f2` + fix `b2dbc9e`: module at `hooks/register.ts` (no JSX, no pane), `bin/send.mjs` synced byte-identical, blind review clean (the CLI-fails seam crossed in the fix round), rm 4/4 in `test:mods`; the vitest suite renamed `test/*.spec.ts` per the mod-home naming law; unit-1's missed `tokens/hooks/hooks.json` line fixed beside it (`0956772`) |
-| 5 | Port md | | | as unit 4, two commands: `md-view`, `md-edit` |
+| 5 | Port md | | | as unit 4, two commands: `md-view`, `md-edit` — landed `f6cdcec` + comment fix `0a4f71d`: both commands pinned as distinct exec lines (plain / `--view`, `$`-anchored), failure seam crossed with the real no-transcript stderr, blind review clean, md 5/5 in `test:mods`; the README allow rule takes the prefix form (one rule, two exec lines) |
 | 6 | Port zai | | | as unit 4, one command: `zai-usage` |
 | 7 | Delete the machinery, close the law | | | core's hook emit path (`hook.ts`, `emitHookBlock`, `readHookEvent`, `hookOrPrint`'s hook branch) deleted; `git grep UserPromptExpansion` outside `archive/` hits zero; AGENTS.md's layout law states the mod-command shape where the `commands/` shell clause stood; the synced-artifact law names every mod home's `bin/`; gates green |
 
