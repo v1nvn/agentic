@@ -6,13 +6,13 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "yarn workspaces foreach --all --topological run build && cp packages/statusline/dist/render.mjs packages/statusline/render.mjs && cp packages/tokens/dist/report.mjs packages/tokens/bin/report.mjs && cp packages/rm/dist/send.mjs packages/rm/bin/send.mjs && cp packages/md/dist/send.mjs packages/md/bin/send.mjs",
+    "build": "yarn workspaces foreach --all --topological run build && cp packages/statusline/dist/render.mjs packages/statusline/render.mjs && cp packages/tokens/dist/report.mjs packages/tokens/bin/report.mjs && cp packages/rm/dist/send.mjs packages/rm/bin/send.mjs && cp packages/md/dist/send.mjs packages/md/bin/send.mjs && cp packages/zai/dist/usage.mjs packages/zai/bin/usage.mjs",
     "test": "yarn workspaces foreach --all run test",
     "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.mods.json",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier . --write",
-    "test:mods": "claude plugin test packages/tokens && claude plugin test packages/rm && claude plugin test packages/md"
+    "test:mods": "claude plugin test packages/tokens && claude plugin test packages/rm && claude plugin test packages/md && claude plugin test packages/zai"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

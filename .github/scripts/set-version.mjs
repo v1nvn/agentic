@@ -37,7 +37,6 @@ const PINNED_CONFIGS = discover([
 const MD_SURFACES = [
   'README.md',
   'packages/statusline/SKILL.md',
-  'packages/zai/commands/usage.md',
   'packages/zai/README.md',
   'packages/tokens/README.md',
   'packages/rm/README.md',

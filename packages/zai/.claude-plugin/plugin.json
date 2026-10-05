@@ -1,6 +1,6 @@
 {
   "name": "zai",
-  "description": "Query quota and usage statistics for GLM Coding Plan",
+  "description": "Query quota and usage statistics for GLM Coding Plan — zero-token /zai-usage.",
   "version": "0.35.1",
   "author": {
     "name": "v1nvn",
