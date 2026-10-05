@@ -37,16 +37,15 @@ Decided (owner, the consult this thread came from):
 
 ## Next step
 
-Unit 2 (owner): release the train; then unit 3, the live verify of
-`/tokens-usage` from a fresh install. The run resumes at unit 4 only after
-the owner verifies.
+Unit 3 (owner): live verify `/tokens-usage` from a fresh install. The run
+resumes at unit 4 only after the owner verifies.
 
 ## Steps
 
 | id | unit | model | review | close criteria |
 | --- | --- | --- | --- | --- |
 | 1 | Rename the tokens command | | | `packages/tokens/hooks/register.tsx` registers `tokens-usage` and its `command.run` matcher follows; engine tests and all gates green; tokens README names `/tokens-usage`; AGENTS.md carries the naming law — landed `55f7bb4` (also corrected the manifest's dead "a status line" claim), all gates green |
-| 2 | Release the train | owner | | version bumped, release workflow green, `@v1nvn/tokens` published with the rename |
+| 2 | Release the train | owner | | version bumped, release workflow green, `@v1nvn/tokens` published with the rename — v0.35.1, run 37268136788 green, confirmed on npm |
 | 3 | Live verify the name e2e | owner | checklist | fresh marketplace install in a fresh session: `/tokens-usage` typeaheads, runs, opens the pane; `/tokens` is gone |
 | 4 | Port rm | | | hooks module registers `rm-send`; `command.run` execs the home's `bin/` build and reports through a ui surface, answering `{}`; `commands/` gone; the CLI's `--hook` option gone; `bin/` a committed inlined build synced by `yarn build`; engine tests at `tests/`; `test:mods` runs rm; README carries the one `Bash(...)` allow rule; `set-version` MD_SURFACES drops the dead `commands/*.md`, `--check` green; gates green |
 | 5 | Port md | | | as unit 4, two commands: `md-view`, `md-edit` |
