@@ -2,14 +2,14 @@ import { expect, mock, test } from 'claude-code/testing';
 
 import type { ScanResult } from '../src/aggregate.js';
 
+import { reportLines } from '../src/format.js';
 import { ymd } from '../src/text.js';
 
-import type { On } from 'claude-code';
+import type { CommandRunResult, On } from 'claude-code';
 import type { Engine } from 'claude-code/testing';
 
 const REFRESH_MS = 5 * 60 * 1000;
 
-/** One model call in the 24h window — 970 read / (30 in + 970 read) = 97% hit; 30+10+970 = 1.0K. */
 const ROW = {
   model: 'glm-5.3',
   input: 30,
@@ -26,6 +26,8 @@ const report: ScanResult = {
   last24: [ROW],
 };
 
+const LINES = reportLines(report, { now: new Date(report.now) });
+
 const PANE = {
   plugin: 'tokens',
   component: 'Pane',
@@ -34,25 +36,31 @@ const PANE = {
   props: {
     title: 'Token usage',
     isFocused: true,
-    bodyColumns: 60,
+    bodyColumns: 72,
     placement: 'inline',
     scroll: { offset: 0, bodyRows: 20 },
     view: {},
   },
 } as const;
 
+type Answer = { mode: 'refuse' | 'report' | 'stderr' };
 type World = {
   commands: string[];
-  opens: string[];
+  logs: string[];
+  opens: { id: string; rows: number }[];
 };
 
-function stubWorld(on: On, answer: 'report' | 'throw' = 'report'): World {
-  const world: World = { commands: [], opens: [] };
+function stubWorld(on: On, answer: Answer = { mode: 'report' }): World {
+  const world: World = { commands: [], logs: [], opens: [] };
   const openIds = new Set<string>();
   on('command.register', () => ({ value: { command: 'tokens-usage' } }));
   on('session.start', () => ({ cwd: '/work' }));
+  on('ui.log', ($, e) => {
+    world.logs.push(e.text);
+    return { value: undefined };
+  });
   on('ui.open', ($, e) => {
-    world.opens.push(e.id);
+    world.opens.push({ id: e.id, rows: e.rows ?? 0 });
     openIds.add(e.id);
     return { value: { isPlaced: true } };
   });
@@ -67,8 +75,17 @@ function stubWorld(on: On, answer: 'report' | 'throw' = 'report'): World {
   }));
   on('tool.call', { tool: 'Bash' }, ($, e) => {
     world.commands.push(String(e.command));
-    if (answer === 'throw') {
-      throw new Error('permission denied by the user');
+    if (answer.mode === 'refuse') {
+      return { deny: 'permission denied by the user' };
+    }
+    if (answer.mode === 'stderr') {
+      return {
+        result: {
+          stdout: '',
+          stderr: 'no transcripts directory at /work',
+          interrupted: false,
+        },
+      };
     }
     return {
       result: {
@@ -89,6 +106,15 @@ async function startSession($: Engine): Promise<void> {
   });
 }
 
+async function runUsage($: Engine): Promise<CommandRunResult> {
+  return $.command.run({
+    command: 'tokens-usage',
+    args: '',
+    origin: { kind: 'composer' },
+    presentation: { isFullscreen: false, columns: 100 },
+  });
+}
+
 test('/tokens-usage execs the shipped CLI into the pane; startup draws and execs nothing', async ($, on) => {
   mock.clock(on);
   const world = stubWorld(on);
@@ -96,60 +122,67 @@ test('/tokens-usage execs the shipped CLI into the pane; startup draws and execs
   await startSession($);
   expect(world.commands).toEqual([]);
 
-  await $.command.run({
-    command: 'tokens-usage',
-    args: '',
-    origin: { kind: 'composer' },
-    presentation: { isFullscreen: false, columns: 100 },
-  });
+  const answer = await runUsage($);
+  expect(answer.text).toBeUndefined();
   expect(world.commands).toEqual([
     expect.stringMatching(/^node .*\/bin\/report\.mjs --json$/),
   ]);
-  expect(world.opens).toEqual(['tokens-usage']);
+  expect(world.opens).toEqual([{ id: 'tokens-usage', rows: LINES.length + 2 }]);
 
   const ui = await $.ui.mount({ ...PANE, surface: 'terminal' });
   expect(
     await ui.find({ type: 'Text', text: /Token usage · transcripts/ }),
   ).toBeDefined();
   expect(await ui.find({ type: 'Text', text: /glm-5\.3/ })).toBeDefined();
+  expect(await ui.find({ type: 'Text', text: /^read$/ })).toBeDefined();
+  expect(
+    await ui.find({ type: 'Text', text: /Covers every profile/ }),
+  ).toBeDefined();
   await ui.unmount();
 });
 
-test('the clock refreshes the pane only while it is open', async ($, on) => {
+test('the clock refreshes the pane only while it is open; a failed rescan keeps the last good state', async ($, on) => {
   const clock = mock.clock(on);
-  const world = stubWorld(on);
+  const answer: Answer = { mode: 'report' };
+  const world = stubWorld(on, answer);
 
   await startSession($);
   await clock.advance(REFRESH_MS);
   expect(world.commands).toEqual([]);
 
-  await $.command.run({
-    command: 'tokens-usage',
-    args: '',
-    origin: { kind: 'composer' },
-    presentation: { isFullscreen: false, columns: 100 },
-  });
+  await runUsage($);
   expect(world.commands).toHaveLength(1);
 
   await clock.advance(REFRESH_MS);
   expect(world.commands).toHaveLength(2);
+
+  answer.mode = 'refuse';
+  await clock.advance(REFRESH_MS);
+  expect(world.commands).toHaveLength(3);
+  expect(world.logs).toEqual([]);
+
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' });
+  expect(await ui.find({ type: 'Text', text: /glm-5\.3/ })).toBeDefined();
+  await ui.unmount();
 });
 
-test('a refused or empty exec leaves the empty state, no crash', async ($, on) => {
+test('a refused exec logs the reason, opens no pane, answers nothing', async ($, on) => {
   mock.clock(on);
-  const world = stubWorld(on, 'throw');
+  const world = stubWorld(on, { mode: 'refuse' });
 
   await startSession($);
-  expect(world.commands).toEqual([]);
+  const answer = await runUsage($);
+  expect(answer.text).toBeUndefined();
+  expect(world.logs).toEqual(['permission denied by the user']);
+  expect(world.opens).toEqual([]);
+});
 
-  await $.command.run({
-    command: 'tokens-usage',
-    args: '',
-    origin: { kind: 'composer' },
-    presentation: { isFullscreen: false, columns: 100 },
-  });
-  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' });
-  const drawn = await ui.find({ type: 'Text' });
-  expect(JSON.stringify(drawn)).toContain('no usage report');
-  await ui.unmount();
+test('a failed exec logs its stderr reason, opens no pane', async ($, on) => {
+  mock.clock(on);
+  const world = stubWorld(on, { mode: 'stderr' });
+
+  await startSession($);
+  await runUsage($);
+  expect(world.logs).toEqual(['no transcripts directory at /work']);
+  expect(world.opens).toEqual([]);
 });
