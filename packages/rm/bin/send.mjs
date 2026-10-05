@@ -7,18 +7,6 @@ import childProcess, { spawnSync } from "node:child_process";
 import process$1 from "node:process";
 import { stripVTControlCharacters } from "node:util";
 //#region ../core/dist/index.js
-/** A markdown file's contents, with the CLI's no-such-file error. */
-function readMarkdownFile(path) {
-	if (!statSync(path, { throwIfNoEntry: false })?.isFile()) throw new Error(`no such file: ${path}`);
-	return readFileSync(path, "utf8");
-}
-function isFile(path) {
-	try {
-		return statSync(path).isFile();
-	} catch {
-		return false;
-	}
-}
 function parseQuietly(program, args, recover) {
 	try {
 		program.allowExcessArguments(false).exitOverride().configureOutput({
@@ -33,6 +21,18 @@ function parseQuietly(program, args, recover) {
 function printUsageAndExit(program) {
 	console.error(program.helpInformation());
 	process.exit(1);
+}
+/** A markdown file's contents, with the CLI's no-such-file error. */
+function readMarkdownFile(path) {
+	if (!statSync(path, { throwIfNoEntry: false })?.isFile()) throw new Error(`no such file: ${path}`);
+	return readFileSync(path, "utf8");
+}
+function isFile(path) {
+	try {
+		return statSync(path).isFile();
+	} catch {
+		return false;
+	}
 }
 function textBlocks(entry) {
 	const content = entry.message?.content;

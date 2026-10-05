@@ -47,19 +47,19 @@ name or shape wins.
 
 - **A plugin's root is its package home; there is no `plugins/` directory.** A
   plugin root holds the manifest, `.md` surfaces — skills (a `SKILL.md` at the
-  root or under `skills/<name>/`) when the model executes the body, a
-  `commands/` shell when a `UserPromptExpansion` hook intercepts the invocation
-  (the body is the no-hooks fallback, and model auto-invocation would bypass
-  the hook) — and a hooks/mcp config; `tokens` (the one mod) adds a hooks
-  module at `hooks/register.tsx`, island in `src/`, engine tests at `tests/`,
-  state contract at `types/`. One yarn workspace at the root
+  root or under `skills/<name>/`) when the model executes the body — and a
+  hooks/mcp config. Four homes are mods (`rm`, `md`, `zai`, `tokens`): a hooks
+  module registers the home's commands, each `command.run` exec'ing the home's
+  shipped CLI and answering `{}`. One yarn workspace at the root
   (`"workspaces": ["packages/*"]`); each package with npm code builds with
   vite and publishes to `@v1nvn/*`. A home without a `package.json`
   (`enhansome`, `todo`) holds only its plugin surfaces. Every
   `npx -y @v1nvn/*` line in the repo, config or `.md` surface, is
   version-pinned to the train by `set-version.mjs` (an unpinned npx resolves
-  "latest" through the npx cache and runs a stale CLI). Two synced artifacts:
-  `packages/statusline/render.mjs` and `packages/tokens/bin/report.mjs` —
+  "latest" through the npx cache and runs a stale CLI). Synced artifacts —
+  `packages/statusline/render.mjs` and every mod home's `bin/`
+  (`packages/rm/bin/send.mjs`, `packages/md/bin/send.mjs`,
+  `packages/zai/bin/usage.mjs`, `packages/tokens/bin/report.mjs`) — are
   committed builds the root `yarn build` syncs from the package dist, for code
   a surface execs or imports from the installed plugin folder.
 - **A mod's sources are its package home — `.ts`/`.tsx` the engine loads directly,
@@ -149,4 +149,4 @@ time, so it speaks only to that model.
   manual bootstrap a never-published package name needs. Read before cutting a release or
   adding a package.
 - **`references/skill-review.md`** — the skill and command review checklist, upstream rules
-  adapted to this repo. Read before creating or changing any `SKILL.md` or `commands/*.md`.
+  adapted to this repo. Read before creating or changing any `SKILL.md`.
