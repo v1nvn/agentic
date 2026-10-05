@@ -1,4 +1,4 @@
 {
   "description": "Zero-token usage query for GLM Coding Plan",
-  "modules": ["./register.ts"]
+  "modules": ["./register.tsx"]
 }

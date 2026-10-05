@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import { render } from '../src/format.js';
 import { fetchReport } from '../src/usage.js';
 
 const config = { token: 'bad-key', url: 'https://api.z.ai' };
@@ -36,7 +37,7 @@ describe('fetchReport', () => {
 
   it('unwraps the data field of a success envelope', async () => {
     stubFetch({ code: 200, msg: 'success', success: true, data: {} });
-    const report = await fetchReport(config);
+    const report = render(await fetchReport(config));
     expect(report).toContain('tokens across');
   });
 });
