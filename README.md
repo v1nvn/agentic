@@ -144,6 +144,7 @@ packages/                           one yarn workspace — every plugin's home
   rm/  md/  zai/                    the tool CLIs (rm-send, md-send, zai-usage) + their mods — the plugin root itself:
                                      .claude-plugin/ + hooks/register.ts(x) + tests/ + bin/*.mjs
                                      (standalone build the mod execs, committed)
+                                     zai also types/ (state contract)
   tokens/                            tokens-report CLI + the tokens mod — the plugin root itself:
                                      .claude-plugin/ + hooks/register.tsx + tests/ + types/
                                      (state contract), island aggregate/format/text.ts in src/
