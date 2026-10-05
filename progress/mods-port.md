@@ -37,8 +37,7 @@ Decided (owner, the consult this thread came from):
 
 ## Next step
 
-Unit 3 (owner): live verify `/tokens-usage` from a fresh install. The run
-resumes at unit 4 only after the owner verifies.
+Unit 4: port rm. Units 4–7 run as one sitting, strictly serial.
 
 ## Steps
 
@@ -46,7 +45,7 @@ resumes at unit 4 only after the owner verifies.
 | --- | --- | --- | --- | --- |
 | 1 | Rename the tokens command | | | `packages/tokens/hooks/register.tsx` registers `tokens-usage` and its `command.run` matcher follows; engine tests and all gates green; tokens README names `/tokens-usage`; AGENTS.md carries the naming law — landed `55f7bb4` (also corrected the manifest's dead "a status line" claim), all gates green |
 | 2 | Release the train | owner | | version bumped, release workflow green, `@v1nvn/tokens` published with the rename — v0.35.1, run 37268136788 green, confirmed on npm |
-| 3 | Live verify the name e2e | owner | checklist | fresh marketplace install in a fresh session: `/tokens-usage` typeaheads, runs, opens the pane; `/tokens` is gone |
+| 3 | Live verify the name e2e | owner | checklist | fresh marketplace install in a fresh session: `/tokens-usage` typeaheads, runs, opens the pane; `/tokens` is gone — verified live on v0.35.1 (plugin update + reload, fresh session) |
 | 4 | Port rm | | | hooks module registers `rm-send`; `command.run` execs the home's `bin/` build and reports through a ui surface, answering `{}`; `commands/` gone; the CLI's `--hook` option gone; `bin/` a committed inlined build synced by `yarn build`; engine tests at `tests/`; `test:mods` runs rm; README carries the one `Bash(...)` allow rule; `set-version` MD_SURFACES drops the dead `commands/*.md`, `--check` green; gates green |
 | 5 | Port md | | | as unit 4, two commands: `md-view`, `md-edit` |
 | 6 | Port zai | | | as unit 4, one command: `zai-usage` |
@@ -71,8 +70,11 @@ resumes at unit 4 only after the owner verifies.
     `claude-code`.
   - Every registered name matches `<plugin>-<action>` (the naming law).
   - `git grep -n UserPromptExpansion -- . ':(exclude)archive'` → 0 at close.
-- One PR for the thread, one commit per unit. Units 2–3 are owner units — the
-  run stops after unit 1 lands until the owner verifies.
+- One PR per run segment, one commit per unit: units 1–3 rode #13 through the
+  owner's release gate; units 4–7 ride `feat/mods-port` off v0.35.1 main, one
+  PR opened at the end. The clerk runs the inventory's two greps and
+  `set-version --check` verbatim after every commit — each is a one-liner, no
+  gate script minted.
 - Stop rules: the engine refuses a hyphenated name (legal per
   `CommandSpec.name`; stop if it refuses anyway); a port needs an npm import
   in the module; a port cannot keep `command.run` answering `{}`; a port
@@ -99,7 +101,10 @@ resumes at unit 4 only after the owner verifies.
   what the island execs); what dies is the `--hook` emit path, the matchers,
   the fallback bodies. The exec door is `node ${$.plugin.root}/bin/<cli>.mjs`
   — the tokens pattern — riding the permission path, one `Bash(...)` allow
-  rule per plugin.
+  rule per plugin. The command reports the CLI's stdout verbatim through
+  `$.ui.log` — a dim transcript line, never model-read — the nearest surface
+  to the hook block it replaces; md's two commands differ by the `--view`
+  flag the CLI already carries.
 - Naming (owner): hyphenated full names beat both one-worders (`/zai` — the
   leaf loses scope) and argument forms (`/md edit`) — one rule, zero names
   relearned (`:` → `-`), collisions structurally impossible.
