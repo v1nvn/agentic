@@ -1,4 +1,4 @@
 {
-  "description": "Zero-token send of the last reply to the Markdown-Viewer",
+  "description": "Zero-token share: /md-edit and /md-view send the last reply to the Markdown-Viewer, editable or read-only",
   "modules": ["./register.ts"]
 }

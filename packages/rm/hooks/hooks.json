@@ -1,4 +1,4 @@
 {
-  "description": "Zero-token beam of the last reply to the reMarkable",
+  "description": "Zero-token beam: /rm-send sends the last reply to the reMarkable as EPUB",
   "modules": ["./register.ts"]
 }

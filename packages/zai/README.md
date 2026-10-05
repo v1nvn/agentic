@@ -73,9 +73,9 @@ and re-vendor `types/claude-code.d.ts` (repo root) from the engine-laid
 | File | Role |
 |---|---|
 | `src/index.ts` | bin entry (`zai-usage`) — dispatch, exit codes |
-| `src/usage.ts` | the GLM API call and the report it builds |
+| `src/usage.ts` | the GLM API call and the report input it assembles |
 | `src/resolve.ts` | auth-token resolution chain |
-| `src/format.ts` | the printed table |
+| `src/format.ts` | the report's lines — printed by the CLI, drawn by the pane |
 | `hooks/register.tsx` | the mod: registers `/zai-usage`, execs the CLI, opens its report as a pane |
 | `bin/usage.mjs` | the standalone build the mod execs — committed, synced by `yarn build` |
 

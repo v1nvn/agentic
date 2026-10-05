@@ -1,4 +1,4 @@
 {
-  "description": "Zero-token usage query for GLM Coding Plan",
+  "description": "GLM Coding Plan usage: /zai-usage opens the report as a pane",
   "modules": ["./register.tsx"]
 }

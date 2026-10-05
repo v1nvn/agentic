@@ -31,6 +31,7 @@ npx -y @v1nvn/tokens@0.36.0
 
 | Invocation                    | Does                                                                                                          |
 | ----------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `/tokens-usage`               | the full report, as a pane                                                                                    |
 | `npx -y @v1nvn/tokens@0.36.0` | per-model table: input/output/cache-write/cache-read tokens, cache hit rate, 24 h window + 7-day daily totals |
 
 Works for every profile writing to `~/.claude/projects` — default `claude`,
@@ -66,8 +67,8 @@ and re-vendor `types/claude-code.d.ts` (repo root) from the engine-laid
 | `src/index.ts`       | bin entry (`tokens-report`) — dispatch, exit codes                           |
 | `src/aggregate.ts`   | the one usage math: JSONL line → per-model/per-day accumulation              |
 | `src/scan.ts`        | the CLI's transcript walk (node-fs)                                          |
-| `hooks/register.tsx` | the mod: execs the CLI, draws the `/tokens` pane                              |
-| `src/format.ts`      | the report both doors print                                                  |
+| `hooks/register.tsx` | the mod: execs the CLI, draws the `/tokens-usage` pane                       |
+| `src/format.ts`      | the report both doors render                                                 |
 | `src/text.ts`        | fixed-width report primitives — the one home, shared as `@v1nvn/tokens/text` |
 | `bin/report.mjs`     | the standalone build the mod execs — committed, synced by `yarn build`       |
 
@@ -76,7 +77,7 @@ and re-vendor `types/claude-code.d.ts` (repo root) from the engine-laid
 - Reads transcripts only; writes nothing.
 - The island never reads transcripts (`$.fs.read` caps at 4 MiB); every number
   is one `node <plugin root>/bin/report.mjs --json` exec through the session's
-  Bash tool — the same scan `npx tokens-report` runs. First `/tokens` may ask
-  to allow that command once; allow and it is remembered.
+  Bash tool — the same scan `npx tokens-report` runs. First `/tokens-usage`
+  may ask to allow that command once; allow and it is remembered.
 - The mod's surface (the pane) is drawn by the engine and never enters the
   model's context; the CLI prints the same report bare.
