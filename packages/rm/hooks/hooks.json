@@ -1,17 +1,4 @@
 {
   "description": "Zero-token beam of the last reply to the reMarkable",
-  "hooks": {
-    "UserPromptExpansion": [
-      {
-        "matcher": "^rm:send$",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "npx",
-            "args": ["-y", "@v1nvn/rm@0.35.1", "--hook"]
-          }
-        ]
-      }
-    ]
-  }
+  "modules": ["./register.ts"]
 }

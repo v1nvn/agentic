@@ -1,8 +1,9 @@
 # agentic — rules
 
 A Claude Code plugin marketplace: `readability` and `omlx` (local MCP servers) plus
-`enhansome` (hosted registry MCP server), `rm`, `md`, `zai` (zero-token hook
-plugins), `tokens` (a mod: the `/tokens-usage` pane), `statusline` (status line +
+`enhansome` (hosted registry MCP server), `md`, `zai` (zero-token hook plugins),
+`rm`, `tokens` (mods: `/rm-send` beams, `/tokens-usage` opens the pane),
+`statusline` (status line +
 agent panel), and `todo` (work tracking) — nine independently-installable plugins
 in one repo. Each plugin's root is its package home, `packages/<name>/` itself.
 Seven homes publish npm code (`@v1nvn/*`), while

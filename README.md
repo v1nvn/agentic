@@ -10,14 +10,14 @@ at the hosted registry server, and `todo` is manifest + skills, no package.
 | **readability** | Read a URL to clean Markdown via the readability MCP server. The host shell fetches with `curl`; the server never touches the network. | paste a URL, or "read this"                           |
 | **omlx**        | Delegate bulk work — commit messages, docstrings, summarization, extraction, image description — to a local omlx inference server.     | the agent routes on its own, or "ask the local model" |
 | **enhansome**   | Search the enhansome registry forest — curated registries and the repos they carry — via the hosted MCP server.                        | the agent routes on its own, or "search the registry" |
-| **rm**          | Beam the last reply to a reMarkable as EPUB.                                                                                           | `/rm:send`                                            |
+| **rm**          | Beam the last reply to a reMarkable as EPUB.                                                                                           | `/rm-send`                                            |
 | **md**          | Send the last reply to a Markdown-Viewer as a `#share=` URL — editable or read-only.                                                   | `/md:edit`, `/md:view`                                |
 | **zai**         | Query GLM Coding Plan quota and usage.                                                                                                 | `/zai:usage`                                          |
 | **tokens**      | Live token usage — the full report as a pane.                                                      | `/tokens-usage`                                       |
 | **statusline**  | Pick a theme for the status line + agent panel, or revert the setup.                                                                   | `/statusline:lab`                                                |
 | **todo**        | Work tracking — the rules plus six verbs over `TODO.md`, `progress/`, `references/`, `archive/`. Every repo carries data only.         | `/todo:run <plan>`, or a what's-next ask              |
 
-`rm`, `md`, and `zai` run zero-token: a `UserPromptExpansion` hook intercepts the command before it reaches the model. `tokens` is zero-token the mod way — a function-hook module draws its pane, a surface the model never reads.
+`md` and `zai` run zero-token: a `UserPromptExpansion` hook intercepts the command before it reaches the model. `rm` and `tokens` are zero-token the mod way — a function-hook module serves the command, a surface the model never reads.
 
 ## Prerequisites
 
@@ -141,8 +141,11 @@ packages/                           one yarn workspace — every plugin's home
   readability/  omlx/               the two MCP servers (@v1nvn/readability, @v1nvn/omlx) — the plugin root itself:
                                      .claude-plugin/ + .mcp.json (pinned npx) + dev.mcp.json (dev wiring) (+ skills/)
   core/                             @v1nvn/agentic-core — last-reply + CLI/hook plumbing, shared by the tools
-  zai/  rm/  md/                   the tool CLIs (zai-usage, rm-send, md-send) — the plugin root itself:
+  zai/  md/                         the tool CLIs (zai-usage, md-send) — the plugin root itself:
                                      .claude-plugin/ + hooks/hooks.json (pinned npx) + commands/
+  rm/                                rm-send CLI + the rm mod — the plugin root itself:
+                                     .claude-plugin/ + hooks/register.ts + tests/ + bin/send.mjs
+                                     (standalone build the mod execs, committed)
   tokens/                            tokens-report CLI + the tokens mod — the plugin root itself:
                                      .claude-plugin/ + hooks/register.tsx + tests/ + types/
                                      (state contract), island aggregate/format/text.ts in src/
