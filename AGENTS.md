@@ -2,8 +2,8 @@
 
 A Claude Code plugin marketplace: `readability` and `omlx` (local MCP servers) plus
 `enhansome` (hosted registry MCP server), `rm`, `md`, `zai`,
-`tokens` (mods: `/rm-send` beams, `/md-edit` and `/md-view` share, `/zai-usage`
-reports, `/tokens-usage` opens the pane),
+`tokens` (mods: `/rm-send` beams, `/md-edit` and `/md-view` share,
+`/zai-usage` and `/tokens-usage` open the usage panes),
 `statusline` (status line +
 agent panel), and `todo` (work tracking) — nine independently-installable plugins
 in one repo. Each plugin's root is its package home, `packages/<name>/` itself.
@@ -63,11 +63,11 @@ name or shape wins.
   committed builds the root `yarn build` syncs from the package dist, for code
   a surface execs or imports from the installed plugin folder.
 - **A mod's sources are its package home — `.ts`/`.tsx` the engine loads directly,
-  no bundler, no artifact** (module at `hooks/`, island in `src/`, engine tests at
-  `tests/`). A hooks module imports only plugin-relative files and
-  the bare `claude-code` (types + state helpers) — never an npm package — so the
-  engine island is self-contained; shared pure code lives in the island and the
-  packages import it from there. Types come from the vendored
+  no bundler, no artifact** (module at `hooks/`, island in `src/` or the hooks
+  module, engine tests at `tests/`). A hooks module imports only plugin-relative
+  files and the bare `claude-code` (types + state helpers) — never an npm
+  package — so the engine island is self-contained; shared pure code lives in
+  the island and the packages import it from there. Types come from the vendored
   `types/claude-code.d.ts` (engine-written, version-stamped on its first line) via
   `tsconfig.mods.json`; regenerate it from `.claude-plugin/types/` after an engine
   update. `claude plugin validate <plugin root>` and `claude plugin test <plugin
