@@ -92,9 +92,8 @@ name or shape wins.
 
 ## Invariants
 
-- **Islands draw, processes compute.** Every real-compute surface is a real process — an npx
-  hook command, an MCP server, the statusline resolver, or a mod exec'ing its plugin's shipped
-  CLI through the session's Bash tool. A mod island never bulk-reads through `$.fs`
+- **Islands draw, processes compute.** Every real-compute surface is a real process —
+  an MCP server, the statusline resolver, or a mod exec'ing its plugin's shipped CLI through the session's Bash tool. A mod island never bulk-reads through `$.fs`
   (`$.fs.read` rejects over 4 MiB, no range form).
 - **The readability server never fetches URLs.** Only the host shell's `curl` does. The server
   reads HTML from a file path; the page bytes never enter the model context.
@@ -123,7 +122,7 @@ name or shape wins.
 
 ## Prompt surfaces
 
-Every skill, command body, tool description, and sampling prompt is read by the model at run
+Every skill, tool description, and sampling prompt is read by the model at run
 time, so it speaks only to that model.
 
 - **Maintainer rules live here, not in a surface.** A rule the running model cannot act on

@@ -27,7 +27,7 @@ const PINNED_CONFIGS = discover([
   'packages/*/hooks/hooks.json',
 ]);
 
-// Skill bodies, hook-fallback command shells, and READMEs teach
+// Skill bodies and READMEs teach
 // `npx -y @v1nvn/<pkg>` invocations. An unpinned one resolves "latest"
 // through the npx cache and can run a stale CLI against a fresh plugin —
 // every registry invocation in an .md surface rides the train too, and a pin
