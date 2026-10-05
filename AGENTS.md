@@ -75,9 +75,8 @@ name or shape wins.
   root-run tools (eslint stack, prettier, typescript).
 - **Nine independent plugins, one marketplace.** Never collapse them into a
   mega-plugin; each installs and runs on its own.
-- **statusline ships exactly one skill** — root `SKILL.md`, invoked by its
-  bare short name `/lab` (the menu lists it namespaced as
-  `statusline:lab`; the plugin prefix is irremovable), folding
+- **statusline ships exactly one skill** — root `SKILL.md`, invoked as
+  `/statusline:lab` (the plugin prefix is irremovable), folding
   show (`catalog`) · set (`configure`) · revert (`restore`) · check (`status`).
   Never add a second; its invocation name must stay off Claude Code's built-in
   `/statusline` — the plugin's own name is a namespace, not a command.
