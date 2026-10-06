@@ -13,10 +13,11 @@ User-facing docs: [root README](../../README.md).
 | ------------------- | ----------------------------------------------------------------------- |
 | `src/last-reply.ts` | finds the previous assistant reply across local Claude Code transcripts |
 | `src/input.ts`      | stdin and markdown-file input with the CLI error contracts              |
-| `src/cli.ts`        | quiet commander parsing and usage/exit helpers shared by the tool bins  |
+| `src/cli.ts`        | quiet commander parsing, usage/exit, and the runMain failure tail       |
 | `src/logger.ts`     | level-filtered stderr logger for the MCP servers                        |
 | `src/shutdown.ts`   | close-then-exit signal handling for the server entrypoints              |
 | `src/dev.ts`        | the hot-reload watcher wiring the servers' `yarn dev` harnesses share   |
+| `src/vite.ts`       | the modVite two-mode build behind every mod home's `vite.config.ts`     |
 | `src/index.ts`      | the public entry — re-exports the modules above                         |
 
 ## Develop
@@ -31,6 +32,8 @@ yarn lint && yarn typecheck       # from the repo root
 
 - No tool-specific logic lives here — a concern lands in core only when two
   or more tools need it.
+- The `./vite` export is dev-only, loaded by the homes' `vite.config.ts` —
+  never by the shipped CLIs, which import `.` alone.
 - `last-reply` reads transcripts only; it never writes.
 - The logger and shutdown/dev helpers write to stderr only — stdout carries
   the MCP transport on the servers.
