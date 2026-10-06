@@ -24,6 +24,9 @@ const YELLOW = '\x1b[33m';
 const BOLD = '\x1b[1m';
 const GRAY = '\x1b[38;2;68;71;90m';
 const MARK = '\x1b[1;97m';
+const TRACK_GREEN = '\x1b[48;5;28m';
+const TRACK_YELLOW = '\x1b[48;5;94m';
+const TRACK_RED = '\x1b[48;5;88m';
 
 const SHORT_AT = 15;
 const PART = ['▏', '▎', '▍', '▌', '▋', '▊', '▉', '█'];
@@ -295,6 +298,12 @@ function prBadge({ row }: SegmentInput): string {
   return `${BLUE}#${row.prn}${RESET} ${col}${mark} ${row.prs}${RESET}`;
 }
 
+// The background under the dotted track: some terminals draw no shade
+// glyphs, so the strip must not depend on them.
+function trackFor(pct: number): string {
+  return pct >= 90 ? TRACK_RED : pct >= 70 ? TRACK_YELLOW : TRACK_GREEN;
+}
+
 function barFlatAt(input: SegmentInput, w: number): string {
   const pct = input.row.pct;
   let f = trunc((pct * w) / 100);
@@ -305,7 +314,7 @@ function barFlatAt(input: SegmentInput, w: number): string {
     f = 1;
   }
   const col = pct >= 90 ? RED : pct >= 70 ? YELLOW : GREEN;
-  return `${col}${'█'.repeat(f)}${'░'.repeat(w - f)}${RESET}`;
+  return `${col}${'█'.repeat(f)}${trackFor(pct)}${'░'.repeat(w - f)}${RESET}`;
 }
 
 function barFlat(input: SegmentInput): string {

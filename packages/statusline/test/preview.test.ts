@@ -239,7 +239,7 @@ describe('renderPreview: both surfaces from one resolution', () => {
     expect(panel).toContain('42%');
     expect(panel).toContain('1m');
     expect(panel).not.toContain('m30s');
-    expect(panel).toContain('████░░░░░░');
+    expect(panel).toContain('████\u001b[48;5;28m░░░░░░');
     expect(panel).not.toContain(SAMPLE_MODEL);
   });
 

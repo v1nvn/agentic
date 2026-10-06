@@ -1,5 +1,5 @@
-{"id":"row-explore","content":"Explore │ \u001b[36mSonnet [1m] high\u001b[0m │ \u001b[33m████░░\u001b[0m 71% 142k"}
-{"id":"row-tests","content":"Tests │ \u001b[36mOpus medium\u001b[0m │ \u001b[32m░░░░░░░░░░\u001b[0m 5% 9k"}
+{"id":"row-explore","content":"Explore │ \u001b[36mSonnet [1m] high\u001b[0m │ \u001b[33m████\u001b[48;5;94m░░\u001b[0m 71% 142k"}
+{"id":"row-tests","content":"Tests │ \u001b[36mOpus medium\u001b[0m │ \u001b[32m\u001b[48;5;28m░░░░░░░░░░\u001b[0m 5% 9k"}
 {"id":"row-review","content":"Review │ \u001b[36mHaiku low\u001b[0m │ 0m"}
-{"id":"row-fork","content":"Fork │ \u001b[36mSonnet\u001b[0m │ \u001b[31m█████████░\u001b[0m 95% 950.0k/1M"}
+{"id":"row-fork","content":"Fork │ \u001b[36mSonnet\u001b[0m │ \u001b[31m█████████\u001b[48;5;88m░\u001b[0m 95% 950.0k/1M"}
 {"id":"row-idle","content":"Idle"}

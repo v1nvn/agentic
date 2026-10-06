@@ -95,6 +95,9 @@ name or shape wins.
 - **Islands draw, processes compute.** Every real-compute surface is a real process —
   an MCP server, the statusline resolver, or a mod exec'ing its plugin's shipped CLI through the session's Bash tool. A mod island never bulk-reads through `$.fs`
   (`$.fs.read` rejects over 4 MiB, no range form).
+- **Shade glyphs draw as nothing on the owner's terminal** — `░` `▒` `▓` and kin
+  never render, so a terminal surface never depends on them for anything that must
+  be seen: solid blocks or background colors carry it.
 - **The readability server never fetches URLs.** Only the host shell's `curl` does. The server
   reads HTML from a file path; the page bytes never enter the model context.
 - **MCP server `instructions` stay ≤ 2048 chars** — Claude Code truncates the rest silently,
