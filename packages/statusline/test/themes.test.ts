@@ -261,9 +261,9 @@ describe('the entry resolves --theme at paint', () => {
     );
   });
 
-  it('the panel key spelling --theme=lean paints the lean panel', () => {
+  it('the subagent key spelling --subagent --theme=lean paints the lean panel', () => {
     const painted = runPaint(
-      ['panel', '--theme=lean', `--now=${DEFAULT_NOW}`],
+      ['--subagent', '--theme=lean', `--now=${DEFAULT_NOW}`],
       tickPayload,
     );
 

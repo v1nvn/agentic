@@ -15,7 +15,7 @@ import { configure } from '../src/configure.js';
 import {
   capturePath,
   mainKeyValue,
-  panelKeyValue,
+  subagentKeyValue,
   renderMjsPath,
 } from '../src/resolve.js';
 import {
@@ -64,7 +64,7 @@ describe('configure on a scratch home (rulings 1 and 4)', () => {
       mainKeyValue(null, '{model bar}', ['--model=block', '--bar=gauge']),
     );
     expect(settingsCommand(home, 'subagentStatusLine')).toBe(
-      panelKeyValue(null, []),
+      subagentKeyValue(null, []),
     );
 
     const written = Object.keys(snapshotTree(join(home, '.claude'))).sort();
@@ -86,7 +86,7 @@ describe('configure on a scratch home (rulings 1 and 4)', () => {
     configure({ home, theme: 'quiet' });
 
     expect(settingsCommand(home, 'subagentStatusLine')).toBe(
-      panelKeyValue('quiet', []),
+      subagentKeyValue('quiet', []),
     );
   });
 });
@@ -104,7 +104,7 @@ describe('a theme write through the real node renderer', () => {
     const mainKey = settingsCommand(home, 'statusLine');
     const panelKey = settingsCommand(home, 'subagentStatusLine');
     expect(mainKey).toBe(mainKeyValue('lean', null, []));
-    expect(panelKey).toBe(panelKeyValue('lean', []));
+    expect(panelKey).toBe(subagentKeyValue('lean', []));
 
     const line = runKey(mainKey, home, payload, [`--now=${DEFAULT_NOW}`]);
 

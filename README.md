@@ -73,14 +73,14 @@ npx -y @v1nvn/statusline@0.36.1 status                             # rows + verd
 (`render.mjs`) into the plugin data dir — the whole write footprint.
 Each value is one inline shell command: `node` on that data-dir resolver, the
 decisions as flags — `--theme` first, then one `--<item>=<alt>` per pick that
-differs from the theme's own, `--layout` only when passed; the panel key adds
-the `panel` positional. The resolver reads Claude Code's install record
+differs from the theme's own, `--layout` only when passed; the subagent key
+adds `--subagent`, the one valueless flag. The resolver reads Claude Code's install record
 (`installed_plugins.json`) and imports the newest installed plugin's
 `render.mjs`, so a plugin update repaints with no rerun. Raw:
 
 ```sh
 node "$HOME/.claude/plugins/data/statusline-agentic/render.mjs" --theme=lean --bar=gauge || true
-node "$HOME/.claude/plugins/data/statusline-agentic/render.mjs" panel --theme=lean || true
+node "$HOME/.claude/plugins/data/statusline-agentic/render.mjs" --subagent --theme=lean || true
 ```
 
 The layout — brace clusters of item ids — rides as `--layout` only when

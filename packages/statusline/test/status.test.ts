@@ -8,7 +8,7 @@ import { configure, type ConfigureOptions } from '../src/configure.js';
 import {
   backupPath,
   mainKeyValue,
-  panelKeyValue,
+  subagentKeyValue,
   renderMjsPath,
 } from '../src/resolve.js';
 import { nodeOnPath, status } from '../src/status.js';
@@ -84,7 +84,7 @@ describe('status: config drift (contract 5)', () => {
       home,
       `{
   "statusLine": ${JSON.stringify({ command: mainKeyValue(null, '{model flux}', ['--model=neon', '--flux=pulse']), type: 'command' })},
-  "subagentStatusLine": ${JSON.stringify({ command: panelKeyValue(null, []), type: 'command' })}
+  "subagentStatusLine": ${JSON.stringify({ command: subagentKeyValue(null, []), type: 'command' })}
 }
 `,
     );
@@ -112,7 +112,7 @@ describe('status: variants-only drift (contract 5)', () => {
       home,
       `{
   "statusLine": ${JSON.stringify({ command: mainKeyValue(null, '{model effort}', ['--model=neon', '--effort=dim']), type: 'command' })},
-  "subagentStatusLine": ${JSON.stringify({ command: panelKeyValue(null, []), type: 'command' })}
+  "subagentStatusLine": ${JSON.stringify({ command: subagentKeyValue(null, []), type: 'command' })}
 }
 `,
     );
@@ -345,7 +345,7 @@ describe('status: fix lines run (contract 5 seam)', () => {
     writeSettings(
       absentHome,
       `{
-  "subagentStatusLine": ${JSON.stringify({ command: panelKeyValue(null, []), type: 'command' })}
+  "subagentStatusLine": ${JSON.stringify({ command: subagentKeyValue(null, []), type: 'command' })}
 }
 `,
     );
@@ -355,7 +355,7 @@ describe('status: fix lines run (contract 5 seam)', () => {
       foreignHome,
       `{
   "statusLine": { "type": "command", "command": "./old-main.sh" },
-  "subagentStatusLine": ${JSON.stringify({ command: panelKeyValue(null, []), type: 'command' })}
+  "subagentStatusLine": ${JSON.stringify({ command: subagentKeyValue(null, []), type: 'command' })}
 }
 `,
     );
@@ -365,7 +365,7 @@ describe('status: fix lines run (contract 5 seam)', () => {
       variantDriftHome,
       `{
   "statusLine": ${JSON.stringify({ command: mainKeyValue(null, '{model effort}', ['--model=neon', '--effort=dim']), type: 'command' })},
-  "subagentStatusLine": ${JSON.stringify({ command: panelKeyValue(null, []), type: 'command' })}
+  "subagentStatusLine": ${JSON.stringify({ command: subagentKeyValue(null, []), type: 'command' })}
 }
 `,
     );
@@ -375,7 +375,7 @@ describe('status: fix lines run (contract 5 seam)', () => {
       itemDriftHome,
       `{
   "statusLine": ${JSON.stringify({ command: mainKeyValue(null, '{model flux}', ['--model=neon', '--flux=pulse']), type: 'command' })},
-  "subagentStatusLine": ${JSON.stringify({ command: panelKeyValue(null, []), type: 'command' })}
+  "subagentStatusLine": ${JSON.stringify({ command: subagentKeyValue(null, []), type: 'command' })}
 }
 `,
     );
@@ -385,7 +385,7 @@ describe('status: fix lines run (contract 5 seam)', () => {
       themedDriftHome,
       `{
   "statusLine": ${JSON.stringify({ command: mainKeyValue('lean', null, ['--bar=wat']), type: 'command' })},
-  "subagentStatusLine": ${JSON.stringify({ command: panelKeyValue('lean', []), type: 'command' })}
+  "subagentStatusLine": ${JSON.stringify({ command: subagentKeyValue('lean', []), type: 'command' })}
 }
 `,
     );
@@ -518,7 +518,7 @@ describe('status: the theme row (t4)', () => {
       home,
       `{
   "statusLine": ${JSON.stringify({ command: mainKeyValue('lean', null, ['--bar=wat']), type: 'command' })},
-  "subagentStatusLine": ${JSON.stringify({ command: panelKeyValue('lean', []), type: 'command' })}
+  "subagentStatusLine": ${JSON.stringify({ command: subagentKeyValue('lean', []), type: 'command' })}
 }
 `,
     );
@@ -570,7 +570,7 @@ describe('status: the panel row carries its theme (t4)', () => {
       home,
       `{
   "statusLine": ${JSON.stringify({ command: mainKeyValue('quiet', null, []), type: 'command' })},
-  "subagentStatusLine": ${JSON.stringify({ command: panelKeyValue('quiet', []), type: 'command' })}
+  "subagentStatusLine": ${JSON.stringify({ command: subagentKeyValue('quiet', []), type: 'command' })}
 }
 `,
     );

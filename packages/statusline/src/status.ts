@@ -16,7 +16,7 @@ import { resolveInstall } from './render/install-record.js';
 import { layoutItemsOf } from './render/layout.js';
 import {
   capturePath,
-  parsePanelCommand,
+  parseSubagentCommand,
   readKeyConfig,
   renderMjsPath,
   type ScriptConfig,
@@ -229,7 +229,7 @@ export function status(options: StatusOptions): StatusResult {
   const subagent = keyState('subagentStatusLine', members.subagentStatusLine);
   const config = readKeyConfig(options.home);
   const theme = config.theme ?? 'classic';
-  const panelConfig = parsePanelCommand(
+  const subagentConfig = parseSubagentCommand(
     memberCommand(members.subagentStatusLine),
   );
   const findings = main.kind === 'ours' ? driftFindings(config) : [];
@@ -242,7 +242,7 @@ export function status(options: StatusOptions): StatusResult {
       : `node: on PATH (${node})`,
     rendererRow(renderer, theme),
     keyRow('statusLine', main, configDetail(config)),
-    keyRow('subagentStatusLine', subagent, panelDetail(panelConfig)),
+    keyRow('subagentStatusLine', subagent, panelDetail(subagentConfig)),
     ...(main.kind === 'ours'
       ? [configRow(findings, theme), ...themeRow(config)]
       : []),

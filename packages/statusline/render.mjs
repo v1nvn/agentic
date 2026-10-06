@@ -257,9 +257,13 @@ function parseArgv(argv) {
 	let theme;
 	let layout;
 	let now;
-	for (const positional of parsed.positionals) if (positional === "panel") mode = "panel";
-	else warn$1(warnings, `statusline: unexpected argument '${positional}', ignored`);
+	for (const positional of parsed.positionals) warn$1(warnings, `statusline: unexpected argument '${positional}', ignored`);
 	for (const [name, value] of Object.entries(parsed.values)) {
+		if (name === "subagent") {
+			if (value === true) mode = "subagent";
+			else warn$1(warnings, "statusline: --subagent takes no value, ignored");
+			continue;
+		}
 		if (typeof value !== "string") {
 			warn$1(warnings, `statusline: --${name} needs a value, ignored`);
 			continue;
@@ -1430,7 +1434,7 @@ async function main() {
 	const noColor = (env.NO_COLOR ?? "") !== "";
 	const now = argv.now ?? Math.floor(Date.now() / 1e3);
 	const paint = resolvePaint(argv);
-	if (argv.mode === "panel") {
+	if (argv.mode === "subagent") {
 		capturePayload(home, "tick", payload);
 		process.stdout.write(renderPanel({
 			now,

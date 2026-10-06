@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 // render.mjs entry, node:util parseArgs — never commander, never
 // @v1nvn/agentic-core; the entry shares only the registry data with the CLI):
 //   parseArgv(argv: readonly string[]): {
-//     mode: 'line' | 'panel';      // the `panel` positional, else line
+//     mode: 'line' | 'subagent';   // the --subagent flag, else line
 //     picks: Record<string, string>; // accepted --<item>=<alt> overrides
 //     warnings: string[];          // the entry prints these to stderr
 //     theme?: string;              // --theme=<name>, passed through unresolved
@@ -17,9 +17,10 @@ import { describe, expect, it } from 'vitest';
 // src/render/index.js): a non-registry --name is an unknown flag (warning +
 // ignored), a registry item with an unregistered alternative warns and drops
 // the override — the item's default applies downstream (the check_config
-// rule). Non-numeric --now, a valueless flag, and an unknown positional
-// warn and are ignored. Warning texts are unpinned; these tests assert the
-// count and that a warning names its flag.
+// rule). --subagent is the one valueless flag; a valueless --theme, a valued
+// --subagent, a non-numeric --now, and an unknown positional warn and are
+// ignored. Warning texts are unpinned; these tests assert the count and that
+// a warning names its flag.
 import { parseArgv } from '../src/render/argv.js';
 
 describe('parseArgv known grammar', () => {
@@ -60,14 +61,14 @@ describe('parseArgv known grammar', () => {
     });
   });
 
-  it('the panel positional selects panel mode and keeps flags', () => {
-    expect(parseArgv(['panel'])).toEqual({
-      mode: 'panel',
+  it('the --subagent flag selects subagent mode and keeps flags', () => {
+    expect(parseArgv(['--subagent'])).toEqual({
+      mode: 'subagent',
       picks: {},
       warnings: [],
     });
-    expect(parseArgv(['panel', '--theme=lean', '--bar=gauge'])).toEqual({
-      mode: 'panel',
+    expect(parseArgv(['--theme=lean', '--subagent', '--bar=gauge'])).toEqual({
+      mode: 'subagent',
       picks: { bar: 'gauge' },
       warnings: [],
       theme: 'lean',
@@ -104,6 +105,13 @@ describe('parseArgv unknown names and values', () => {
     expect('theme' in out).toBe(false);
     expect(out.mode).toBe('line');
     expect(out.warnings).toHaveLength(1);
+  });
+
+  it('a valued --subagent warns and stays line mode', () => {
+    const out = parseArgv(['--subagent=panel']);
+    expect(out.mode).toBe('line');
+    expect(out.warnings).toHaveLength(1);
+    expect(out.warnings[0]).toContain('subagent');
   });
 
   it('an unknown positional warns and stays line mode', () => {

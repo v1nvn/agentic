@@ -42,7 +42,7 @@ async function main(): Promise<void> {
   const noColor = (env.NO_COLOR ?? '') !== '';
   const now = argv.now ?? Math.floor(Date.now() / 1000);
   const paint = resolvePaint(argv);
-  if (argv.mode === 'panel') {
+  if (argv.mode === 'subagent') {
     capturePayload(home, 'tick', payload);
     process.stdout.write(
       renderPanel({ now, payload, picks: paint.picks, noColor }),

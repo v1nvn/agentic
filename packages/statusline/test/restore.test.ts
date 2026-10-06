@@ -10,7 +10,7 @@ import {
   backupPath,
   capturePath,
   mainKeyValue,
-  panelKeyValue,
+  subagentKeyValue,
   renderMjsPath,
 } from '../src/resolve.js';
 import {
@@ -104,7 +104,7 @@ describe('restore: createdFile endgame (contract 4)', () => {
       `{
   "model": "opus-4",
   "statusLine": ${JSON.stringify({ command: mainKeyValue(null, '{model}', ['--model=block']), type: 'command' })},
-  "subagentStatusLine": ${JSON.stringify({ command: panelKeyValue(null, []), type: 'command' })}
+  "subagentStatusLine": ${JSON.stringify({ command: subagentKeyValue(null, []), type: 'command' })}
 }
 `,
     );
@@ -124,7 +124,7 @@ describe('restore: refusal on a foreign current value (contract 4)', () => {
     const edited = `{
   "model": "opus-4",
   "statusLine": { "type": "command", "command": "./newer.sh" },
-  "subagentStatusLine": ${JSON.stringify({ command: panelKeyValue(null, []), type: 'command' })}
+  "subagentStatusLine": ${JSON.stringify({ command: subagentKeyValue(null, []), type: 'command' })}
 }
 `;
     writeSettings(home, edited);

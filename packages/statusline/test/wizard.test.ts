@@ -14,7 +14,7 @@ import {
 } from '../src/payloads.js';
 import { DATA_DIR } from '../src/render/capture.js';
 import { ITEMS } from '../src/render/index.js';
-import { mainKeyValue, panelKeyValue } from '../src/resolve.js';
+import { mainKeyValue, subagentKeyValue } from '../src/resolve.js';
 import { type ThemeName } from '../src/themes.js';
 import {
   createWizard,
@@ -349,7 +349,7 @@ describe('wizard: a theme pick saved', () => {
       `${RENDER_MJS} --theme=quiet || true`,
     );
     expect(settingsCommand(wizardHome, 'subagentStatusLine')).toBe(
-      panelKeyValue('quiet', []),
+      subagentKeyValue('quiet', []),
     );
     expect(readFileSync(settingsPath(wizardHome), 'utf8')).toBe(
       readFileSync(settingsPath(referenceHome), 'utf8'),
@@ -365,7 +365,7 @@ describe('wizard: a theme pick saved', () => {
       mainKeyValue('lean', null, []),
     );
     expect(settingsCommand(home, 'subagentStatusLine')).toBe(
-      panelKeyValue('lean', []),
+      subagentKeyValue('lean', []),
     );
   });
 
@@ -382,7 +382,7 @@ describe('wizard: a theme pick saved', () => {
       mainKeyValue('lean', null, ['--bar=none']),
     );
     expect(settingsCommand(home, 'subagentStatusLine')).toBe(
-      panelKeyValue('lean', []),
+      subagentKeyValue('lean', []),
     );
   });
 
@@ -409,7 +409,7 @@ describe('wizard: a theme pick saved', () => {
       mainKeyValue('quiet', null, ['--style=plain']),
     );
     expect(settingsCommand(home, 'subagentStatusLine')).toBe(
-      panelKeyValue('quiet', ['--style=plain']),
+      subagentKeyValue('quiet', ['--style=plain']),
     );
   });
 

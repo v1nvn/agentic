@@ -5,10 +5,12 @@ import { specFor } from './items.js';
 // The render.mjs argv grammar — node:util parseArgs, never commander and
 // never @v1nvn/agentic-core; the CLI and the renderer share only the registry
 // data. Grammar only: theme and layout values pass through unresolved.
+// --subagent is the one valueless flag; the host's subagentStatusLine key
+// carries it, its absence is the session's line.
 
 export interface ArgvResult {
   readonly layout?: string;
-  readonly mode: 'line' | 'panel';
+  readonly mode: 'line' | 'subagent';
   readonly now?: number;
   readonly picks: Record<string, string>;
   readonly theme?: string;
@@ -32,23 +34,27 @@ export function parseArgv(argv: readonly string[]): ArgvResult {
   });
   const warnings: string[] = [];
   const picks: Record<string, string> = {};
-  let mode: 'line' | 'panel' = 'line';
+  let mode: 'line' | 'subagent' = 'line';
   let theme: string | undefined;
   let layout: string | undefined;
   let now: number | undefined;
 
   for (const positional of parsed.positionals) {
-    if (positional === 'panel') {
-      mode = 'panel';
-    } else {
-      warn(
-        warnings,
-        `statusline: unexpected argument '${positional}', ignored`,
-      );
-    }
+    warn(
+      warnings,
+      `statusline: unexpected argument '${positional}', ignored`,
+    );
   }
 
   for (const [name, value] of Object.entries(parsed.values)) {
+    if (name === 'subagent') {
+      if (value === true) {
+        mode = 'subagent';
+      } else {
+        warn(warnings, 'statusline: --subagent takes no value, ignored');
+      }
+      continue;
+    }
     if (typeof value !== 'string') {
       warn(warnings, `statusline: --${name} needs a value, ignored`);
       continue;

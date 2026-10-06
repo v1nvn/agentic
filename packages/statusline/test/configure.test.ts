@@ -14,7 +14,7 @@ import { parseArgs } from '../src/cli.js';
 import { configure, BUNDLED_RESOLVER } from '../src/configure.js';
 import { DATA_DIR } from '../src/render/capture.js';
 import { ITEMS } from '../src/render/index.js';
-import { mainKeyValue, panelKeyValue, renderMjsPath } from '../src/resolve.js';
+import { mainKeyValue, subagentKeyValue, renderMjsPath } from '../src/resolve.js';
 import {
   THEMES,
   createHomes,
@@ -129,7 +129,7 @@ describe('configure: writes (contract 3)', () => {
       ]),
     );
     expect(settingsCommand(home, 'subagentStatusLine')).toBe(
-      panelKeyValue(null, []),
+      subagentKeyValue(null, []),
     );
     expect(readdirSync(join(home, DATA_DIR)).sort(), 'data dir').toEqual([
       'backup.json',
@@ -201,7 +201,7 @@ describe('configure: --theme', () => {
       mainKeyValue('lean', null, []),
     );
     expect(settingsCommand(home, 'subagentStatusLine')).toBe(
-      panelKeyValue('lean', []),
+      subagentKeyValue('lean', []),
     );
   });
 
@@ -234,7 +234,7 @@ describe('configure: --theme', () => {
       mainKeyValue('quiet', null, []),
     );
     expect(settingsCommand(home, 'subagentStatusLine')).toBe(
-      panelKeyValue('quiet', []),
+      subagentKeyValue('quiet', []),
     );
   });
 
@@ -262,7 +262,7 @@ describe('configure: --theme', () => {
       mainKeyValue('lean', null, ['--style=bare']),
     );
     expect(settingsCommand(home, 'subagentStatusLine')).toBe(
-      panelKeyValue('lean', ['--style=bare']),
+      subagentKeyValue('lean', ['--style=bare']),
     );
   });
 
@@ -278,10 +278,10 @@ describe('configure: --theme', () => {
     configure({ home: themed, theme: 'quiet' });
 
     expect(settingsCommand(flagged, 'subagentStatusLine')).toBe(
-      panelKeyValue(null, ['--style=bare']),
+      subagentKeyValue(null, ['--style=bare']),
     );
     expect(settingsCommand(themed, 'subagentStatusLine')).toBe(
-      panelKeyValue('quiet', []),
+      subagentKeyValue('quiet', []),
     );
   });
 
@@ -310,7 +310,7 @@ describe('configure: --theme', () => {
       mainKeyValue('quiet', null, []),
     );
     expect(settingsCommand(home, 'subagentStatusLine')).toBe(
-      panelKeyValue('quiet', []),
+      subagentKeyValue('quiet', []),
     );
   });
 
@@ -406,7 +406,7 @@ describe('configure: settings refusal (E4 port)', () => {
       mainKeyValue(null, '{model}', ['--model=block']),
     );
     expect(settingsCommand(home, 'subagentStatusLine')).toBe(
-      panelKeyValue(null, []),
+      subagentKeyValue(null, []),
     );
     const settings = JSON.parse(readFileSync(settingsPath(home), 'utf8'));
     expect(settings.model).toBe('opus-4');

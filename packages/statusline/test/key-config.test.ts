@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import { configure } from '../src/configure.js';
 import { ITEMS } from '../src/render/index.js';
-import { mainKeyValue, panelKeyValue, readKeyConfig } from '../src/resolve.js';
+import { mainKeyValue, subagentKeyValue, readKeyConfig } from '../src/resolve.js';
 import {
   createHomes,
   settingsCommand,
@@ -15,13 +15,13 @@ import {
 // against. The program itself is the prefix; decisions ride argv as flags.
 const GOLDEN_MAIN = `node "$HOME/.claude/plugins/data/statusline-agentic/render.mjs" --layout='{model effort}' --model=block --effort=dim || true`;
 
-const GOLDEN_SUB = `node "$HOME/.claude/plugins/data/statusline-agentic/render.mjs" panel || true`;
+const GOLDEN_SUB = `node "$HOME/.claude/plugins/data/statusline-agentic/render.mjs" --subagent || true`;
 
 const GOLDEN_THEME = `node "$HOME/.claude/plugins/data/statusline-agentic/render.mjs" --theme=lean || true`;
 
 const GOLDEN_THEME_SWAP = `node "$HOME/.claude/plugins/data/statusline-agentic/render.mjs" --theme=lean --bar=gauge || true`;
 
-const GOLDEN_THEME_SUB = `node "$HOME/.claude/plugins/data/statusline-agentic/render.mjs" panel --theme=lean || true`;
+const GOLDEN_THEME_SUB = `node "$HOME/.claude/plugins/data/statusline-agentic/render.mjs" --subagent --theme=lean || true`;
 
 const homes = createHomes();
 
@@ -30,7 +30,7 @@ afterEach(() => {
 });
 
 describe('configure: golden key values (ruling 1)', () => {
-  it('writes the canonical main and panel key bytes', () => {
+  it('writes the canonical main and subagent key bytes', () => {
     const home = homes.newHome();
 
     configure({
@@ -52,7 +52,7 @@ describe('configure: golden key values (ruling 1)', () => {
     expect(
       mainKeyValue(null, '{model effort}', ['--model=block', '--effort=dim']),
     ).toBe(GOLDEN_MAIN);
-    expect(panelKeyValue(null, [])).toBe(GOLDEN_SUB);
+    expect(subagentKeyValue(null, [])).toBe(GOLDEN_SUB);
   });
 
   it('writes the Goal theme bytes — theme alone, and theme plus one swap', () => {
@@ -71,7 +71,7 @@ describe('configure: golden key values (ruling 1)', () => {
       GOLDEN_THEME_SUB,
     );
     expect(mainKeyValue('lean', null, ['--bar=gauge'])).toBe(GOLDEN_THEME_SWAP);
-    expect(panelKeyValue('lean', [])).toBe(GOLDEN_THEME_SUB);
+    expect(subagentKeyValue('lean', [])).toBe(GOLDEN_THEME_SUB);
   });
 });
 

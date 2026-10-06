@@ -2,9 +2,9 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import {
   isOurMainCommand,
-  isOurPanelCommand,
+  isOurSubagentCommand,
   mainKeyValue,
-  panelKeyValue,
+  subagentKeyValue,
   readKeyConfig,
 } from '../src/resolve.js';
 import { createHomes, writeSettings } from './fixtures.js';
@@ -141,8 +141,8 @@ describe('the ours predicate (contract 1)', () => {
     expect(isOurMainCommand(mainKeyValue('lean', null, []))).toBe(true);
   });
 
-  it('rejects foreign commands, the panel key, and anything but flags after the program', () => {
-    expect(isOurMainCommand(panelKeyValue(null, []))).toBe(false);
+  it('rejects foreign commands, the subagent key, and anything but flags after the program', () => {
+    expect(isOurMainCommand(subagentKeyValue(null, []))).toBe(false);
     expect(isOurMainCommand('./old-main.sh')).toBe(false);
     expect(
       isOurMainCommand(
@@ -151,13 +151,18 @@ describe('the ours predicate (contract 1)', () => {
     ).toBe(false);
   });
 
-  it('the panel matcher claims only the panel key', () => {
-    expect(isOurPanelCommand(panelKeyValue(null, []))).toBe(true);
-    expect(isOurPanelCommand(panelKeyValue(null, ['--style=bare']))).toBe(true);
-    expect(isOurPanelCommand(panelKeyValue('lean', []))).toBe(true);
-    expect(isOurPanelCommand(mainKeyValue(null, null, []))).toBe(false);
-    expect(isOurPanelCommand('node "$HOME/.claude/plugins/data/statusline-agentic/render.mjs" panel')).toBe(
+  it('the subagent matcher claims the flag wherever it sits', () => {
+    expect(isOurSubagentCommand(subagentKeyValue(null, []))).toBe(true);
+    expect(isOurSubagentCommand(subagentKeyValue(null, ['--style=bare']))).toBe(true);
+    expect(isOurSubagentCommand(subagentKeyValue('lean', []))).toBe(true);
+    expect(isOurSubagentCommand(mainKeyValue(null, null, []))).toBe(false);
+    expect(isOurSubagentCommand('node "$HOME/.claude/plugins/data/statusline-agentic/render.mjs" --subagent')).toBe(
       false,
     );
+    expect(
+      isOurSubagentCommand(
+        'node "$HOME/.claude/plugins/data/statusline-agentic/render.mjs" --theme=lean --subagent || true',
+      ),
+    ).toBe(true);
   });
 });

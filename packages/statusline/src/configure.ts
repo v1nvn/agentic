@@ -19,9 +19,9 @@ import { layoutItems } from './render/layout.js';
 import {
   backupPath,
   isOurMainCommand,
-  isOurPanelCommand,
+  isOurSubagentCommand,
   mainKeyValue,
-  panelKeyValue,
+  subagentKeyValue,
   renderMjsPath,
 } from './resolve.js';
 import { type Theme, THEME_NAMES, type ThemeName, THEMES } from './themes.js';
@@ -104,7 +104,7 @@ export function isOurMember(key: SettingsKey, value: unknown): boolean {
   }
   return key === 'statusLine'
     ? isOurMainCommand(command)
-    : isOurPanelCommand(command);
+    : isOurSubagentCommand(command);
 }
 
 interface SettingsPlan {
@@ -479,7 +479,7 @@ export function configure(options: ConfigureOptions): void {
     {
       statusLine: mainKeyValue(options.theme ?? null, layout, flags),
       // The panel consumes one decision — style.
-      subagentStatusLine: panelKeyValue(
+      subagentStatusLine: subagentKeyValue(
         options.theme ?? null,
         flags.filter(flag => flag.startsWith('--style=')),
       ),

@@ -25,7 +25,7 @@ export interface ScriptConfig {
 // CLI syncs, `$HOME` expanded by the host shell. Flags may follow in any
 // order — the assignments-hug-the-command rule died with the env wall.
 const RENDER_PROGRAM = `node "$HOME/${DATA_DIR.split(sep).join('/')}/render.mjs"`;
-const PANEL_PROGRAM = `${RENDER_PROGRAM} panel`;
+const SUBAGENT_FLAG = '--subagent';
 const KEY_SUFFIX = ' || true';
 
 // The one spelling of a settings key: program, --theme, a quoted --layout,
@@ -52,11 +52,11 @@ export function mainKeyValue(
   return keyValue(RENDER_PROGRAM, theme, layout, flags);
 }
 
-export function panelKeyValue(
+export function subagentKeyValue(
   theme: null | string,
   flags: readonly string[],
 ): string {
-  return keyValue(PANEL_PROGRAM, theme, null, flags);
+  return keyValue(`${RENDER_PROGRAM} ${SUBAGENT_FLAG}`, theme, null, flags);
 }
 
 // The flags span between program and suffix — null unless the command is
@@ -72,12 +72,21 @@ function commandMiddle(program: string, command: string): null | string {
   return middle === '' || middle.startsWith(' --') ? middle : null;
 }
 
-export function isOurMainCommand(command: string): boolean {
-  return commandMiddle(RENDER_PROGRAM, command) !== null;
+// The one spelling of the subagent selection: the bare flag, wherever it
+// sits between program and suffix. Both keys are ours when the program and
+// suffix match; the flag says whose line the key renders.
+function hasSubagentFlag(middle: string): boolean {
+  return new RegExp(`(?:^| )${SUBAGENT_FLAG}(?: |$)`).test(middle);
 }
 
-export function isOurPanelCommand(command: string): boolean {
-  return commandMiddle(PANEL_PROGRAM, command) !== null;
+export function isOurMainCommand(command: string): boolean {
+  const middle = commandMiddle(RENDER_PROGRAM, command);
+  return middle !== null && !hasSubagentFlag(middle);
+}
+
+export function isOurSubagentCommand(command: string): boolean {
+  const middle = commandMiddle(RENDER_PROGRAM, command);
+  return middle !== null && hasSubagentFlag(middle);
 }
 
 const NO_DECISIONS: ScriptConfig = { layout: null, values: {} };
@@ -136,9 +145,10 @@ export function readKeyConfig(home: string): ScriptConfig {
   return flags === null ? NO_DECISIONS : parseKeyFlags(flags);
 }
 
-// The panel key's decisions — the theme it carries, a style pick when one
+// The subagent key's decisions — the theme it carries, a style pick when one
 // rides. An absent or foreign member reads as no decisions.
-export function parsePanelCommand(command: null | string): ScriptConfig {
-  const flags = command === null ? null : commandMiddle(PANEL_PROGRAM, command);
+export function parseSubagentCommand(command: null | string): ScriptConfig {
+  const flags =
+    command === null ? null : commandMiddle(RENDER_PROGRAM, command);
   return flags === null ? NO_DECISIONS : parseKeyFlags(flags);
 }

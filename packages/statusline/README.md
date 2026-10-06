@@ -108,8 +108,9 @@ Node ≥ 22. One workspace dep: `@v1nvn/agentic-core` (usage/exit helpers).
   `node "$HOME/.claude/plugins/data/statusline-agentic/render.mjs" --theme=lean --bar=gauge || true`
   — the data-dir file is a resolver: it reads Claude Code's install record
   (`installed_plugins.json`) and imports the newest installed plugin's
-  `render.mjs` with argv and stdin intact; the panel key adds the `panel`
-  positional. Key spellings are pinned byte-exact by tests.
+  `render.mjs` with argv and stdin intact; the subagent key adds
+  `--subagent`, the one valueless flag. Key spellings are pinned byte-exact
+  by tests.
 - Decisions ride argv: `--theme` first, then one `--<item>=<alt>` per pick
   that differs from the theme's own, `--layout` only when passed. Ambient
   state stays env — `NO_COLOR`, `COLUMNS`, `HOME`.
