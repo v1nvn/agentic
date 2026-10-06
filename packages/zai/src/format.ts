@@ -9,6 +9,8 @@
 
 import {
   barField,
+  bold,
+  dim,
   fmtNum,
   fmtTokens,
   meter,
@@ -16,9 +18,13 @@ import {
   pad2,
   padL,
   padR,
+  plain,
+  renderLines,
   rule,
   RULE_WIDTH,
 } from '@v1nvn/tokens/text';
+
+import type { Line } from '@v1nvn/tokens/text';
 
 // Lower-half block eighths for vertical bars (1/8 .. 7/8); a full cell uses '█'.
 const VBLOCKS = '▁▂▃▄▅▆▇';
@@ -362,23 +368,6 @@ function hourlyVerticalChart({
   return lines;
 }
 
-export interface Segment {
-  ink?: 'bold' | 'dim';
-  text: string;
-}
-
-export type Line = Segment[];
-
-function plain(text: string): Segment {
-  return { text };
-}
-function dim(text: string): Segment {
-  return { text, ink: 'dim' };
-}
-function bold(text: string): Segment {
-  return { text, ink: 'bold' };
-}
-
 export function reportLines({
   platform,
   model,
@@ -622,7 +611,5 @@ export function reportLines({
 }
 
 export function render(input: RenderInput): string {
-  return reportLines(input)
-    .map(line => line.map(seg => seg.text).join(''))
-    .join('\n');
+  return renderLines(reportLines(input));
 }

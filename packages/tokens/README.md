@@ -69,7 +69,7 @@ and re-vendor `types/claude-code.d.ts` (repo root) from the engine-laid
 | `src/scan.ts`        | the CLI's transcript walk (node-fs)                                          |
 | `hooks/register.tsx` | the mod: execs the CLI, draws the `/tokens-usage` pane                       |
 | `src/format.ts`      | the report both doors render                                                 |
-| `src/text.ts`        | fixed-width report primitives — the one home, shared as `@v1nvn/tokens/text` |
+| `src/text.ts`        | line model + fixed-width primitives — the one home, shared as `@v1nvn/tokens/text` |
 | `bin/report.mjs`     | the standalone build the mod execs — committed, synced by `yarn build`       |
 
 ## Contracts

@@ -1,8 +1,26 @@
 /**
- * Plain-text rendering primitives for the fixed-width reports. Output targets
- * a monospace terminal — the pane — so everything here is fixed-width:
- * padding, block-glyph bars, and compact number formatting.
+ * The report line model and fixed-width primitives. Output targets a
+ * monospace terminal — the pane — so everything here is fixed-width:
+ * ink-tagged segments, padding, block-glyph bars, and compact number
+ * formatting.
  */
+
+export interface Segment {
+  ink?: 'bold' | 'dim';
+  text: string;
+}
+
+export type Line = Segment[];
+
+export function plain(text: string): Segment {
+  return { text };
+}
+export function dim(text: string): Segment {
+  return { text, ink: 'dim' };
+}
+export function bold(text: string): Segment {
+  return { text, ink: 'bold' };
+}
 
 export const MONTHS = [
   'Jan',
@@ -106,4 +124,8 @@ export function meter(pct: number | undefined, width: number): string {
   let filled = Math.round(((pct || 0) / 100) * width);
   filled = Math.max(0, Math.min(width, filled));
   return '█'.repeat(filled) + '░'.repeat(width - filled);
+}
+
+export function renderLines(lines: readonly Line[]): string {
+  return lines.map(line => line.map(seg => seg.text).join('')).join('\n');
 }

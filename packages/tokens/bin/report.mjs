@@ -2992,11 +2992,21 @@ function useColor() {
 new Command();
 //#endregion
 //#region src/text.ts
-/**
-* Plain-text rendering primitives for the fixed-width reports. Output targets
-* a monospace terminal — the pane — so everything here is fixed-width:
-* padding, block-glyph bars, and compact number formatting.
-*/
+function plain(text) {
+	return { text };
+}
+function dim(text) {
+	return {
+		text,
+		ink: "dim"
+	};
+}
+function bold(text) {
+	return {
+		text,
+		ink: "bold"
+	};
+}
 var MONTHS = [
 	"Jan",
 	"Feb",
@@ -3070,6 +3080,9 @@ function barField(v, max, width) {
 	if (full < width && fi > 0) s += EIGHTHS[fi] ?? "";
 	if (s.length < width) s += " ".repeat(width - s.length);
 	return s.slice(0, width);
+}
+function renderLines(lines) {
+	return lines.map((line) => line.map((seg) => seg.text).join("")).join("\n");
 }
 //#endregion
 //#region src/aggregate.ts
@@ -3191,21 +3204,6 @@ function createAggregator(now = /* @__PURE__ */ new Date()) {
 }
 //#endregion
 //#region src/format.ts
-function plain(text) {
-	return { text };
-}
-function dim(text) {
-	return {
-		text,
-		ink: "dim"
-	};
-}
-function bold(text) {
-	return {
-		text,
-		ink: "bold"
-	};
-}
 function reportLines(scanResult, { now = /* @__PURE__ */ new Date() } = {}) {
 	const out = [];
 	const rows = scanResult.last24.filter((r) => totalTokens(r) > 0);
@@ -3257,7 +3255,7 @@ function reportLines(scanResult, { now = /* @__PURE__ */ new Date() } = {}) {
 	return out;
 }
 function render(scanResult, { now = /* @__PURE__ */ new Date() } = {}) {
-	return reportLines(scanResult, { now }).map((line) => line.map((seg) => seg.text).join("")).join("\n");
+	return renderLines(reportLines(scanResult, { now }));
 }
 //#endregion
 //#region src/scan.ts

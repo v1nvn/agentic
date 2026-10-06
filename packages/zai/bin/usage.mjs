@@ -31,12 +31,22 @@ async function runMain(main) {
 }
 Number.MAX_SAFE_INTEGER;
 //#endregion
-//#region ../tokens/dist/assets/text-DrUFI-fH.js
-/**
-* Plain-text rendering primitives for the fixed-width reports. Output targets
-* a monospace terminal — the pane — so everything here is fixed-width:
-* padding, block-glyph bars, and compact number formatting.
-*/
+//#region ../tokens/dist/assets/text-D_R3UWAk.js
+function plain(text) {
+	return { text };
+}
+function dim(text) {
+	return {
+		text,
+		ink: "dim"
+	};
+}
+function bold(text) {
+	return {
+		text,
+		ink: "bold"
+	};
+}
 var MONTHS = [
 	"Jan",
 	"Feb",
@@ -105,16 +115,11 @@ function meter(pct, width) {
 	filled = Math.max(0, Math.min(width, filled));
 	return "█".repeat(filled) + "░".repeat(width - filled);
 }
+function renderLines(lines) {
+	return lines.map((line) => line.map((seg) => seg.text).join("")).join("\n");
+}
 //#endregion
 //#region src/format.ts
-/**
-* Usage-report line model: `reportLines` lays the report out once as ink-tagged
-* segments (the pane draws those), and `render` joins them into the CLI's
-* monospace terminal / hook-block `reason` bytes — no markdown; alignment comes
-* from fixed-width columns and unicode block glyphs. Input is the parsed `data`
-* of the three ZAI/ZHIPU monitor endpoints (model-usage, tool-usage,
-* quota/limit — the last already passed through processQuotaLimit).
-*/
 var VBLOCKS = "▁▂▃▄▅▆▇";
 function parseSlot(s) {
 	const m = /^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})/.exec(s ?? "");
@@ -286,21 +291,6 @@ function hourlyVerticalChart({ x, tok, nh, maxTok, peakIdx, slotFn }) {
 	if (mark.some((c) => c !== " ")) lines.push(mark.join("").trimEnd());
 	return lines;
 }
-function plain(text) {
-	return { text };
-}
-function dim(text) {
-	return {
-		text,
-		ink: "dim"
-	};
-}
-function bold(text) {
-	return {
-		text,
-		ink: "bold"
-	};
-}
 function reportLines({ platform, model, tool, quota, apiOffsetMin = 480, localOffsetMin, now = /* @__PURE__ */ new Date() }) {
 	const out = [];
 	const toOffset = localOffsetMin != null ? localOffsetMin : -(/* @__PURE__ */ new Date()).getTimezoneOffset();
@@ -422,7 +412,7 @@ function reportLines({ platform, model, tool, quota, apiOffsetMin = 480, localOf
 	return out;
 }
 function render(input) {
-	return reportLines(input).map((line) => line.map((seg) => seg.text).join("")).join("\n");
+	return renderLines(reportLines(input));
 }
 //#endregion
 //#region ../../node_modules/commander/lib/error.js

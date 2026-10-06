@@ -1,42 +1,30 @@
 /**
- * Token-usage report line model: `reportLines` lays the report out once as
+ * Token-usage report layout: `reportLines` lays the report out once as
  * ink-tagged segments (the mod's pane draws those), and `render` joins them
  * into the CLI's monospace terminal bytes. Input is the ScanResult from
- * aggregate.ts; the fixed-width primitives live in text.ts.
+ * aggregate.ts; the line model and fixed-width primitives live in text.ts.
  */
 
 import type { ScanResult } from './aggregate.js';
+import type { Line } from './text.js';
 
 import { hitRate, last7, sumRows, totalTokens } from './aggregate.js';
 import {
   barField,
+  bold,
   dayLabel,
+  dim,
   fmtClock,
   fmtNum,
   fmtTokens,
   padL,
   padR,
+  plain,
+  renderLines,
   rule,
   RULE_WIDTH,
   ymd,
 } from './text.js';
-
-export interface Segment {
-  ink?: 'bold' | 'dim';
-  text: string;
-}
-
-export type Line = Segment[];
-
-function plain(text: string): Segment {
-  return { text };
-}
-function dim(text: string): Segment {
-  return { text, ink: 'dim' };
-}
-function bold(text: string): Segment {
-  return { text, ink: 'bold' };
-}
 
 export function reportLines(
   scanResult: ScanResult,
@@ -121,7 +109,5 @@ export function render(
   scanResult: ScanResult,
   { now = new Date() } = {},
 ): string {
-  return reportLines(scanResult, { now })
-    .map(line => line.map(seg => seg.text).join(''))
-    .join('\n');
+  return renderLines(reportLines(scanResult, { now }));
 }

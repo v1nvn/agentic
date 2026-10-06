@@ -3,7 +3,7 @@
 import { atom, read, update } from 'claude-code';
 
 import type { ScanResult } from '../src/aggregate.js';
-import type { Line } from '../src/format.js';
+import type { Line } from '../src/text.js';
 
 import { reportLines } from '../src/format.js';
 
