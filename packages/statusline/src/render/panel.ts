@@ -13,9 +13,6 @@ const GREEN = '\x1b[32m';
 const RED = '\x1b[31m';
 const RESET = '\x1b[0m';
 const YELLOW = '\x1b[33m';
-const TRACK_GREEN = '\x1b[48;5;28m';
-const TRACK_YELLOW = '\x1b[48;5;94m';
-const TRACK_RED = '\x1b[48;5;88m';
 
 const MS_THRESHOLD = 200_000_000_000;
 
@@ -129,21 +126,14 @@ function extractFields(task: Record<string, unknown>): TaskFields {
   };
 }
 
-// The background under the dotted track: some terminals draw no shade
-// glyphs, so the strip must not depend on them.
-function trackFor(pct: number): string {
-  return pct >= 90 ? TRACK_RED : pct >= 70 ? TRACK_YELLOW : TRACK_GREEN;
-}
-
 function makeBar(pct: number, width: number): string {
   let f = Math.trunc((pct * width) / 100);
   if (f > width) {
     f = width;
   }
-  const track = trackFor(pct);
   let bar = '';
   for (let i = 0; i < width; i++) {
-    bar += i < f ? '█' : i === f ? `${track}░` : '░';
+    bar += i < f ? '█' : '░';
   }
   return bar;
 }

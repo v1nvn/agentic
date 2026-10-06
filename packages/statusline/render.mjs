@@ -570,9 +570,6 @@ var YELLOW$1 = "\x1B[33m";
 var BOLD = "\x1B[1m";
 var GRAY = "\x1B[38;2;68;71;90m";
 var MARK = "\x1B[1;97m";
-var TRACK_GREEN$1 = "\x1B[48;5;28m";
-var TRACK_YELLOW$1 = "\x1B[48;5;94m";
-var TRACK_RED$1 = "\x1B[48;5;88m";
 var SHORT_AT = 15;
 var PART = [
 	"▏",
@@ -766,15 +763,12 @@ function prBadge({ row }) {
 	}
 	return `${BLUE}#${row.prn}${RESET$1} ${col}${mark} ${row.prs}${RESET$1}`;
 }
-function trackFor$1(pct) {
-	return pct >= 90 ? TRACK_RED$1 : pct >= 70 ? TRACK_YELLOW$1 : TRACK_GREEN$1;
-}
 function barFlatAt(input, w) {
 	const pct = input.row.pct;
 	let f = trunc(pct * w / 100);
 	if (f > w) f = w;
 	if (pct > 0 && f === 0) f = 1;
-	return `${pct >= 90 ? RED$1 : pct >= 70 ? YELLOW$1 : GREEN$1}${"█".repeat(f)}${trackFor$1(pct)}${"░".repeat(w - f)}${RESET$1}`;
+	return `${pct >= 90 ? RED$1 : pct >= 70 ? YELLOW$1 : GREEN$1}${"█".repeat(f)}${"░".repeat(w - f)}${RESET$1}`;
 }
 function barFlat(input) {
 	return barFlatAt(input, 10);
@@ -1170,9 +1164,6 @@ var GREEN = "\x1B[32m";
 var RED = "\x1B[31m";
 var RESET = "\x1B[0m";
 var YELLOW = "\x1B[33m";
-var TRACK_GREEN = "\x1B[48;5;28m";
-var TRACK_YELLOW = "\x1B[48;5;94m";
-var TRACK_RED = "\x1B[48;5;88m";
 var MS_THRESHOLD = 2e11;
 var STEPS = [
 	["descd", 1],
@@ -1227,15 +1218,11 @@ function extractFields(task) {
 		tokens: cell(field(task, "tokenCount", 0))
 	};
 }
-function trackFor(pct) {
-	return pct >= 90 ? TRACK_RED : pct >= 70 ? TRACK_YELLOW : TRACK_GREEN;
-}
 function makeBar(pct, width) {
 	let f = Math.trunc(pct * width / 100);
 	if (f > width) f = width;
-	const track = trackFor(pct);
 	let bar = "";
-	for (let i = 0; i < width; i++) bar += i < f ? "█" : i === f ? `${track}░` : "░";
+	for (let i = 0; i < width; i++) bar += i < f ? "█" : "░";
 	return bar;
 }
 function duration(startText, now) {
