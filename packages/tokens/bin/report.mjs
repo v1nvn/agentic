@@ -22,6 +22,14 @@ function printUsageAndExit(program) {
 	console.error(program.helpInformation());
 	process.exit(1);
 }
+async function runMain(main) {
+	try {
+		await main();
+	} catch (e) {
+		console.error(e.message);
+		process.exit(1);
+	}
+}
 function claudeProjectsDir() {
 	const claudeDir = process.env.CLAUDE_DIR ?? join(homedir(), ".claude");
 	return join(claudeDir, "projects");
@@ -3277,13 +3285,10 @@ function scan({ projectsDir, now = /* @__PURE__ */ new Date() } = {}) {
 //#region src/index.ts
 var program = new Command().name("tokens-report").description("Per-model token usage and cache hit rate from local transcripts").option("--json", "print the ScanResult as JSON for the tokens mod");
 if (parseQuietly(program, process.argv.slice(2)) === void 0) printUsageAndExit(program);
-try {
+await runMain(() => {
 	const scanResult = scan();
 	console.log(program.opts().json ? JSON.stringify(scanResult) : render(scanResult));
-} catch (e) {
-	console.error(e.message);
-	process.exit(1);
-}
+});
 //#endregion
 export {};
 

@@ -4,6 +4,7 @@ import {
   printUsageAndExit,
   readMarkdownFile,
   readStdin,
+  runMain,
 } from '@v1nvn/agentic-core';
 import { Command } from 'commander';
 
@@ -30,11 +31,6 @@ function readMarkdown(): Promise<string> | string {
   return readMarkdownFile(arg);
 }
 
-try {
+await runMain(async () => {
   console.log(mdSend(await readMarkdown(), view ?? false));
-} catch (e) {
-  console.error((e as Error).message);
-  // CLIs report failure through the exit code; the rule targets libraries.
-  // eslint-disable-next-line n/no-process-exit
-  process.exit(1);
-}
+});

@@ -23,3 +23,14 @@ export function printUsageAndExit(program: Command): never {
   // eslint-disable-next-line n/no-process-exit
   process.exit(1);
 }
+
+export async function runMain(main: () => Promise<void> | void): Promise<void> {
+  try {
+    await main();
+  } catch (e) {
+    console.error((e as Error).message);
+    // CLIs report failure through the exit code; the rule targets libraries.
+    // eslint-disable-next-line n/no-process-exit
+    process.exit(1);
+  }
+}

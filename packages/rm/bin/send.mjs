@@ -22,6 +22,14 @@ function printUsageAndExit(program) {
 	console.error(program.helpInformation());
 	process.exit(1);
 }
+async function runMain(main) {
+	try {
+		await main();
+	} catch (e) {
+		console.error(e.message);
+		process.exit(1);
+	}
+}
 /** A markdown file's contents, with the CLI's no-such-file error. */
 function readMarkdownFile(path) {
 	if (!statSync(path, { throwIfNoEntry: false })?.isFile()) throw new Error(`no such file: ${path}`);
@@ -3037,7 +3045,7 @@ function useColor() {
 }
 new Command();
 //#endregion
-//#region ../tokens/dist/text.js
+//#region ../tokens/dist/assets/text-DrUFI-fH.js
 function pad2(n) {
 	return String(n).padStart(2, "0");
 }
@@ -3107,13 +3115,10 @@ function sendToRemarkable(markdown) {
 //#region src/index.ts
 var program = new Command().name("rm-send").description("Beam a Markdown reply to the reMarkable as EPUB").argument("[file]", "Markdown file; the last reply when omitted");
 var file = (parseQuietly(program, process.argv.slice(2)) ?? printUsageAndExit(program)).args.at(0);
-try {
+await runMain(() => {
 	const markdown = file === void 0 ? lastReply() : readMarkdownFile(file);
 	console.log(sendToRemarkable(markdown));
-} catch (e) {
-	console.error(e.message);
-	process.exit(1);
-}
+});
 //#endregion
 export {};
 

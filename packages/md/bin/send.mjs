@@ -23,6 +23,14 @@ function printUsageAndExit(program) {
 	console.error(program.helpInformation());
 	process.exit(1);
 }
+async function runMain(main) {
+	try {
+		await main();
+	} catch (e) {
+		console.error(e.message);
+		process.exit(1);
+	}
+}
 function readAll(stream) {
 	return new Promise((resolve, reject) => {
 		let data = "";
@@ -3126,12 +3134,9 @@ function readMarkdown() {
 	if (arg === void 0) return lastReply();
 	return readMarkdownFile(arg);
 }
-try {
+await runMain(async () => {
 	console.log(mdSend(await readMarkdown(), view ?? false));
-} catch (e) {
-	console.error(e.message);
-	process.exit(1);
-}
+});
 //#endregion
 export {};
 

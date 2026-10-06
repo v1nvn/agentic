@@ -21,9 +21,17 @@ function printUsageAndExit(program) {
 	console.error(program.helpInformation());
 	process.exit(1);
 }
+async function runMain(main) {
+	try {
+		await main();
+	} catch (e) {
+		console.error(e.message);
+		process.exit(1);
+	}
+}
 Number.MAX_SAFE_INTEGER;
 //#endregion
-//#region ../tokens/dist/text.js
+//#region ../tokens/dist/assets/text-DrUFI-fH.js
 /**
 * Plain-text rendering primitives for the fixed-width reports. Output targets
 * a monospace terminal — the pane — so everything here is fixed-width:
@@ -3508,13 +3516,10 @@ async function fetchReport(config) {
 //#endregion
 //#region src/index.ts
 var parsed = parseArgs(process.argv.slice(2)) ?? printUsageAndExit(buildProgram());
-try {
+await runMain(async () => {
 	const input = await fetchReport(resolveConfig(process.env, parsed));
 	console.log(parsed.json ? JSON.stringify({ lines: reportLines(input) }) : render(input));
-} catch (e) {
-	console.error(e.message);
-	process.exit(1);
-}
+});
 //#endregion
 export {};
 

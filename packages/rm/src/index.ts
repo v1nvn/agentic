@@ -3,6 +3,7 @@ import {
   parseQuietly,
   printUsageAndExit,
   readMarkdownFile,
+  runMain,
 } from '@v1nvn/agentic-core';
 import { Command } from 'commander';
 
@@ -17,12 +18,7 @@ const parsed =
   parseQuietly(program, process.argv.slice(2)) ?? printUsageAndExit(program);
 const file = parsed.args.at(0);
 
-try {
+await runMain(() => {
   const markdown = file === undefined ? lastReply() : readMarkdownFile(file);
   console.log(sendToRemarkable(markdown));
-} catch (e) {
-  console.error((e as Error).message);
-  // CLIs report failure through the exit code; the rule targets libraries.
-  // eslint-disable-next-line n/no-process-exit
-  process.exit(1);
-}
+});
