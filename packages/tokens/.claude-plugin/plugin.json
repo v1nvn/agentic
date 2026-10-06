@@ -1,7 +1,7 @@
 {
   "name": "tokens",
   "description": "Live token usage: the /tokens-usage pane, zero-token",
-  "version": "0.36.1",
+  "version": "0.37.0",
   "author": {
     "name": "v1nvn",
     "email": "v1n@outlook.com"

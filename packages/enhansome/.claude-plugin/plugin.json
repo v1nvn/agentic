@@ -1,6 +1,6 @@
 {
   "name": "enhansome",
-  "version": "0.36.1",
+  "version": "0.37.0",
   "description": "Search the enhansome registry forest — curated registries and the repos they carry — via the hosted MCP server.",
   "author": { "name": "v1nvn", "email": "v1n@outlook.com" }
 }

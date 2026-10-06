@@ -120,6 +120,14 @@ function renderLines(lines) {
 }
 //#endregion
 //#region src/format.ts
+/**
+* Usage-report line model: `reportLines` lays the report out once as ink-tagged
+* segments (the pane draws those), and `render` joins them into the CLI's
+* monospace terminal / hook-block `reason` bytes — no markdown; alignment comes
+* from fixed-width columns and unicode block glyphs. Input is the parsed `data`
+* of the three ZAI/ZHIPU monitor endpoints (model-usage, tool-usage,
+* quota/limit — the last already passed through processQuotaLimit).
+*/
 var VBLOCKS = "▁▂▃▄▅▆▇";
 function parseSlot(s) {
 	const m = /^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})/.exec(s ?? "");
