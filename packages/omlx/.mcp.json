@@ -2,7 +2,7 @@
   "mcpServers": {
     "omlx": {
       "command": "npx",
-      "args": ["-y", "@v1nvn/omlx@0.39.2"]
+      "args": ["-y", "@v1nvn/omlx@0.40.0"]
     }
   }
 }
