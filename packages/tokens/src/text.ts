@@ -6,7 +6,7 @@
  */
 
 export interface Segment {
-  ink?: 'bold' | 'dim';
+  ink?: 'bold' | 'dim' | 'green' | 'magenta';
   text: string;
 }
 
@@ -124,6 +124,20 @@ export function dotMeter(pct: number | undefined, width: number): string {
   let filled = Math.round(((pct || 0) / 100) * width);
   filled = Math.max(0, Math.min(width, filled));
   return '█'.repeat(filled) + '·'.repeat(width - filled);
+}
+
+/** Filled/empty meter as two segments, so each half carries its own ink. */
+export function meterSegs(
+  pct: number | undefined,
+  width: number,
+  filledInk: Segment['ink'] = 'green',
+): [Segment, Segment] {
+  let filled = Math.round(((pct || 0) / 100) * width);
+  filled = Math.max(0, Math.min(width, filled));
+  return [
+    { text: '█'.repeat(filled), ink: filledInk },
+    { text: '·'.repeat(width - filled), ink: 'dim' },
+  ];
 }
 
 const SPARK_LEVELS = ['▁', '▂', '▃', '▄', '▅', '▆', '▇', '█'];

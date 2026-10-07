@@ -55,19 +55,19 @@ describe('topLines', () => {
     const rows = body(state(() => ({ ...emptyTop(), measure: MEASURE }))).split(
       '\n',
     );
-    expect(rows[0]).toContain('session · glm-5.3[1m] · 2.1.287 · 1h52m');
+    expect(rows[0]).toContain(' glm-5.3[1m] · 2.1.287 · 1h52m');
     expect(rows[1]).toContain('git/agentic · terminal · 47 prompts · $4.13');
   });
 
   it('shows the context block with categories, eaters, and limits', () => {
     const text = body(state(() => ({ ...emptyTop(), measure: MEASURE })));
-    expect(text).toContain('124.1K / 200.0K  62%');
+    expect(text).toContain('124.1K / 200.0K  ·  62%');
     expect(text).toContain('compact at 156.0K');
     expect(text).toContain('messages 84.2K · tools 12.1K');
-    expect(text).toContain('free space 74.0K');
+    expect(text).toContain('free 74.0K');
     expect(text).not.toContain('deferred');
-    expect(text).toContain('mcp    chrome-devtools 4.2K · enhansome 2.1K');
-    expect(text).toContain('memory CLAUDE.md 2.6K');
+    expect(text).toContain('mcp     chrome-devtools 4.2K · enhansome 2.1K');
+    expect(text).toContain('memory  CLAUDE.md 2.6K');
     expect(text).toContain('5h');
     expect(text).toContain('week');
     expect(text).toContain('resets 2h12m');
@@ -98,7 +98,7 @@ describe('topLines', () => {
         },
       })),
     );
-    expect(text).toContain('running Read · hooks/register.tsx · 4s');
+    expect(text).toContain('Read    hooks/register.tsx · 4s');
     expect(text).not.toContain('child');
     expect(text).not.toContain('agents');
     expect(text).not.toContain('arrival');
@@ -131,7 +131,7 @@ describe('topLines', () => {
         { now: NOW },
       ),
     );
-    expect(text).toContain('agents 1 running');
+    expect(text).toContain('1 running');
     expect(text).toContain('Explore      running · 6m · audit the render');
     expect(text).toContain('21 tok/s');
   });
@@ -161,7 +161,7 @@ describe('topLines', () => {
     );
     expect(text).toContain('38 tok/s');
     expect(text).toContain('12 tok/s');
-    expect(text).toContain('cache hit 96%');
+    expect(text).toContain('cache    96%');
     expect(text).toContain('14.9K in · 2.1K out · 383.2K read');
     expect(text).toContain('first chunk 1s · turn 41s · end_turn');
   });

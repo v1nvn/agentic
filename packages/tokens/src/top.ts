@@ -6,19 +6,26 @@
  */
 
 import type { Line } from './text.js';
+import type { Segment } from './text.js';
 
 import {
   barField,
   bold,
   dim,
-  dotMeter,
   fmtTokens,
+  meterSegs,
   pad2,
   plain,
   sparkField,
 } from './text.js';
 
+function magenta(text: string): Segment {
+  return { text: ' ' + text, ink: 'magenta' };
+}
+
 export const TOP_WIDTH = 52;
+const LABEL = 9;
+const SPARK = 16;
 
 export interface TopRateLimit {
   kind: string;
@@ -177,6 +184,16 @@ function wrapJoin(items: string[], width: number): string[] {
   return rows;
 }
 
+function shortCat(name: string): string {
+  const short: Record<string, string> = {
+    'free space': 'free',
+    'mcp tools': 'mcp',
+    'memory files': 'memory',
+    'system prompt': 'system',
+  };
+  return short[name.toLowerCase()] ?? cut(name.toLowerCase(), 12);
+}
+
 function windowLabel(kind: string): string {
   if (kind === 'five_hour') {
     return '5h';
@@ -200,12 +217,11 @@ export function topLines(
     state.measure?.startedAt != null ? now - state.measure.startedAt : null;
 
   const head = [
-    ' session',
     session.model ?? '…',
     session.version ?? '',
     elapsed != null ? fmtDur(elapsed) : '',
   ].filter(Boolean);
-  out.push([bold(head.join(' · '))]);
+  out.push([bold(' ' + head.join(' · '))]);
   const sub = [
     shortCwd(session.cwd, 30),
     session.surfaces.join('+') || '…',
@@ -214,32 +230,46 @@ export function topLines(
   ].filter(Boolean);
   out.push([dim(' ' + sub.join(' · '))]);
 
+  const section = (name: string): void => {
+    out.push([]);
+    out.push([
+      dim(` ${name} ${'─'.repeat(Math.max(4, TOP_WIDTH - name.length - 3))}`),
+    ]);
+  };
+  const row = (label: string, rest: Line): void => {
+    out.push([plain(` ${label} `.padEnd(LABEL)), ...rest]);
+  };
+  const under = (rest: Line): void => {
+    out.push([plain(' '.repeat(LABEL)), ...rest]);
+  };
+
   const { flow } = state;
-  out.push([]);
-  out.push([
-    plain(' flow   out      '),
-    { text: sparkField(flow.outRing, 17), ink: 'dim' },
-    plain(`  ${Math.round(flow.outRate)} tok/s`),
+  section('flow');
+  row('out', [
+    { text: sparkField(flow.outRing, SPARK), ink: 'green' },
+    magenta(`${String(Math.round(flow.outRate)).padStart(3)} tok/s`),
   ]);
-  out.push([
-    plain('        thinking '),
-    { text: sparkField(flow.thinkRing, 17), ink: 'dim' },
-    plain(`  ${Math.round(flow.thinkRate)} tok/s`),
+  row('thinking', [
+    { text: sparkField(flow.thinkRing, SPARK), ink: 'green' },
+    magenta(`${String(Math.round(flow.thinkRate)).padStart(3)} tok/s`),
   ]);
   if (flow.hit != null) {
-    out.push([
-      plain(`        cache hit ${String(Math.round(flow.hit))}% `),
-      { text: dotMeter(flow.hit, 12), ink: 'dim' },
+    row('cache', [
+      plain(`${String(Math.round(flow.hit)).padStart(3)}%  `),
+      ...meterSegs(flow.hit, 12),
     ]);
   }
   if (flow.usage) {
-    out.push([
-      plain(
-        ` last   ${fmtTokens(flow.usage.input)} in · ${fmtTokens(flow.usage.output)} out · ${fmtTokens(flow.usage.cacheRead)} read`,
-      ),
-    ]);
+    row(
+      'last',
+      [
+        plain(
+          `${fmtTokens(flow.usage.input)} in · ${fmtTokens(flow.usage.output)} out · ${fmtTokens(flow.usage.cacheRead)} read`,
+        ),
+      ].slice(0, 1),
+    );
   } else {
-    out.push([dim(' last   (no response yet)')]);
+    row('last', [dim('(no response yet)')]);
   }
   const tail = [
     flow.firstChunkMs != null
@@ -249,12 +279,12 @@ export function topLines(
     flow.turnEnd,
   ].filter(Boolean);
   if (tail.length > 0) {
-    out.push([dim('        ' + tail.join(' · '))]);
+    under([dim(tail.join(' · '))]);
   }
 
   const m = state.measure;
   if (m) {
-    out.push([]);
+    section('context');
     const ctx = [
       m.tokens != null
         ? `${fmtTokens(m.tokens)} / ${fmtTokens(m.window)}`
@@ -262,44 +292,40 @@ export function topLines(
       m.percent != null ? `${Math.round(m.percent)}%` : null,
       m.compactAt != null ? `compact at ${fmtTokens(m.compactAt)}` : null,
     ].filter(Boolean);
-    out.push([plain(' context '), bold(ctx.join('  '))]);
+    out.push([bold(' ' + ctx.join('  ·  '))]);
     if (m.percent != null) {
-      out.push([
-        plain('  '),
-        { text: dotMeter(m.percent, TOP_WIDTH - 4), ink: 'bold' },
-      ]);
+      out.push([plain('  '), ...meterSegs(m.percent, TOP_WIDTH - 4)]);
     }
     const catItems = m.categories
       .filter(c => c.kind === 'used' || c.kind === 'free')
       .filter(c => c.tokens > 0)
-      .map(c => `${c.name.toLowerCase()} ${fmtTokens(c.tokens)}`);
-    for (const row of wrapJoin(catItems, TOP_WIDTH - 3)) {
-      out.push([dim(`   ${row}`)]);
+      .map(c => `${shortCat(c.name)} ${fmtTokens(c.tokens)}`);
+    for (const r of wrapJoin(catItems, TOP_WIDTH - 3)) {
+      out.push([dim(`  ${r}`)]);
     }
     if (m.mcp.length > 0) {
       const servers = m.mcp.map(x => `${x.server} ${fmtTokens(x.tokens)}`);
-      for (const row of wrapJoin(servers, TOP_WIDTH - 8)) {
-        out.push([plain(' mcp    '), dim(row)]);
-      }
+      wrapJoin(servers, TOP_WIDTH - LABEL - 1).forEach((r, i) => {
+        i === 0 ? row('mcp', [dim(r)]) : under([dim(r)]);
+      });
     }
     if (m.memory.length > 0) {
       const files = m.memory.map(
         x => `${x.path.split('/').pop()} ${fmtTokens(x.tokens)}`,
       );
-      for (const row of wrapJoin(files, TOP_WIDTH - 8)) {
-        out.push([plain(' memory '), dim(row)]);
-      }
+      wrapJoin(files, TOP_WIDTH - LABEL - 1).forEach((r, i) => {
+        i === 0 ? row('memory', [dim(r)]) : under([dim(r)]);
+      });
     }
 
     if (m.rateLimits.length > 0) {
-      out.push([]);
+      section('limits');
       for (const r of m.rateLimits) {
         const resets =
           r.resetsAt != null ? `  resets ${fmtDur(r.resetsAt - now)}` : '';
-        out.push([
-          plain(` ${windowLabel(r.kind)} `.padEnd(7)),
-          plain(`${String(Math.round(r.percentUsed)).padStart(3)}% `),
-          { text: barField(r.percentUsed, 100, 11), ink: 'dim' },
+        row(windowLabel(r.kind), [
+          plain(`${String(Math.round(r.percentUsed)).padStart(3)}%  `),
+          { text: barField(r.percentUsed, 100, 11), ink: 'green' },
           dim(resets),
         ]);
       }
@@ -308,75 +334,69 @@ export function topLines(
 
   const { running } = state;
   const agentRows = session.agents;
-  if (
-    running.calls.length + running.children.length > 0 ||
-    agentRows.length > 0
-  ) {
-    out.push([]);
-    for (const [i, c] of running.calls.entries()) {
-      const left = i === 0 ? ' running ' : '   ';
-      out.push([
-        plain(left),
-        bold(c.tool),
-        plain(c.label !== '' ? ` · ${cut(c.label, 28)}` : ''),
-        dim(` · ${fmtDur(now - c.at)}`),
-      ]);
+  if (running.calls.length + running.children.length > 0) {
+    section('running');
+    for (const c of running.calls) {
+      row(
+        cut(c.tool, LABEL - 2),
+        [
+          plain(c.label !== '' ? cut(c.label, 30) : ''),
+          dim(` · ${fmtDur(now - c.at)}`),
+        ].filter(seg => seg.text !== ''),
+      );
     }
     for (const c of running.children) {
-      out.push([
-        dim('   child'),
-        dim(` ${cut(c.argv, 30)} · ${fmtDur(now - c.at)}`),
-      ]);
+      row('child', [dim(`${cut(c.argv, 30)} · ${fmtDur(now - c.at)}`)]);
     }
-    if (agentRows.length > 0) {
-      const nRunning = agentRows.filter(a => a.status === 'running').length;
-      out.push([
-        plain(' agents '),
-        bold(`${nRunning} running`),
-        plain(
-          agentRows.length > nRunning
-            ? ` · ${agentRows.length - nRunning} idle`
-            : '',
-        ),
-      ]);
-      const rates = new Map(flow.agents.map(a => [a.id, a]));
-      for (const a of agentRows.slice(0, 6)) {
-        const name = cut(a.name ?? a.type, 12).padEnd(12);
-        const born = spawnAge(state, a.id, now);
-        const bits = [
-          a.status,
-          born != null ? fmtDur(born) : null,
-          a.description !== '' ? cut(a.description, 24) : null,
-        ].filter(Boolean);
-        out.push([plain(`   ${name}`), dim(` ${bits.join(' · ')}`)]);
-        const rate = rates.get(a.id);
-        if (rate && a.status === 'running') {
-          out.push([
-            dim('     └ '),
-            { text: sparkField(rate.ring, 5), ink: 'dim' },
-            dim(`  ${Math.round(rate.rate)} tok/s`),
-          ]);
-        }
+  }
+  if (agentRows.length > 0) {
+    section('agents');
+    const nRunning = agentRows.filter(a => a.status === 'running').length;
+    out.push([
+      plain(` ${nRunning} running`),
+      plain(
+        agentRows.length > nRunning
+          ? ` · ${agentRows.length - nRunning} idle`
+          : '',
+      ),
+    ]);
+    const rates = new Map(flow.agents.map(a => [a.id, a]));
+    for (const a of agentRows.slice(0, 6)) {
+      const name = cut(a.name ?? a.type, 12).padEnd(12);
+      const bits = [
+        a.status,
+        spawnAge(state, a.id, now) != null
+          ? fmtDur(spawnAge(state, a.id, now)!)
+          : null,
+        a.description !== '' ? cut(a.description, 24) : null,
+      ].filter(Boolean);
+      out.push([plain(` ${name}`), dim(` ${bits.join(' · ')}`)]);
+      const rate = rates.get(a.id);
+      if (rate && a.status === 'running') {
+        under([
+          dim('└ '),
+          { text: sparkField(rate.ring, 5), ink: 'green' },
+          magenta(`${Math.round(rate.rate)} tok/s`),
+        ]);
       }
     }
   }
 
   const { notices } = state;
   if (notices.arrival || notices.compact) {
-    out.push([]);
     if (notices.compact) {
       const c = notices.compact;
       const sizes =
         c.before != null && c.after != null
           ? `${fmtTokens(c.before)} → ${fmtTokens(c.after)}`
           : 'ran';
-      out.push([dim(` compacted ${sizes} · ${fmtDur(now - c.at)} ago`)]);
+      section('compacted');
+      out.push([dim(` ${sizes} · ${fmtDur(now - c.at)} ago`)]);
     }
     if (notices.arrival) {
       const a = notices.arrival;
-      out.push([
-        dim(` arrival ${a.source} · ${a.kind} · ${fmtDur(now - a.at)} ago`),
-      ]);
+      section('arrival');
+      out.push([dim(` ${a.source} · ${a.kind} · ${fmtDur(now - a.at)} ago`)]);
     }
   }
 

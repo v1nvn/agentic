@@ -8,11 +8,16 @@ import process$1 from "node:process";
 import { stripVTControlCharacters } from "node:util";
 //#region ../core/dist/index.js
 function parseQuietly(program, args, recover) {
-	try {
-		program.allowExcessArguments(false).exitOverride().configureOutput({
+	const quiet = (command) => {
+		command.allowExcessArguments(false).exitOverride().configureOutput({
 			writeOut: () => void 0,
 			writeErr: () => void 0
-		}).parse([...args], { from: "user" });
+		});
+		command.commands.forEach(quiet);
+	};
+	try {
+		quiet(program);
+		program.parse([...args], { from: "user" });
 		return program;
 	} catch (err) {
 		return recover?.(err);

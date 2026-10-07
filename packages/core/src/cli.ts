@@ -5,12 +5,19 @@ export function parseQuietly<T = never>(
   args: readonly string[],
   recover?: (err: unknown) => T | undefined,
 ): Command | T | undefined {
-  try {
-    program
+  const quiet = (command: Command): void => {
+    command
       .allowExcessArguments(false)
       .exitOverride()
-      .configureOutput({ writeOut: () => undefined, writeErr: () => undefined })
-      .parse([...args], { from: 'user' });
+      .configureOutput({
+        writeOut: () => undefined,
+        writeErr: () => undefined,
+      });
+    command.commands.forEach(quiet);
+  };
+  try {
+    quiet(program);
+    program.parse([...args], { from: 'user' });
     return program;
   } catch (err) {
     return recover?.(err);

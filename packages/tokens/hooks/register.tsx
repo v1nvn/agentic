@@ -195,20 +195,24 @@ async function topTick($: EngineInterface): Promise<void> {
 function draw(
   t: Pick<Elements['terminal'], 'Box' | 'Text'>,
   lines: readonly Line[],
+  { frame = true }: { frame?: boolean } = {},
 ): ReturnType<Elements['terminal']['Box']> {
   const { Box, Text } = t;
+  const isColor = (ink: Line[number]['ink']): boolean =>
+    ink === 'green' || ink === 'magenta';
   return (
     <Box
-      borderColor={ACCENT}
-      borderStyle="round"
+      borderColor={frame ? ACCENT : undefined}
+      borderStyle={frame ? 'round' : undefined}
       flexDirection="column"
-      paddingX={1}
+      paddingX={frame ? 1 : 0}
     >
       {lines.map((line, i) => (
         <Text key={`l${i}`} wrap="truncate-end">
           {line.map((seg, j) => (
             <Text
               bold={seg.ink === 'bold'}
+              color={isColor(seg.ink) ? seg.ink : undefined}
               dimColor={seg.ink === 'dim'}
               key={`s${j}`}
             >
@@ -293,7 +297,7 @@ export function register(on: On): void {
       },
       { now },
     );
-    return draw($.ui.resolve(e), lines);
+    return draw($.ui.resolve(e), lines, { frame: false });
   });
 
   on('session.measure', async ($, e, next) => {
