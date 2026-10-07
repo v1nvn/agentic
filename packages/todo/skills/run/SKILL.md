@@ -19,13 +19,15 @@ decide, and write the decision into the plan — inside the deviation law below.
 
 ## Deviations
 
-The run deviates from nothing the plan's text does not already name. Any pick outside
-that — mechanical or not — stops the run and is posted to the owner: no accept-and-note,
-never a ruling made alone. Scope changes, contract or semantic changes, anything
-unnamed → post it and wait — a small early deviation compounds into places the plan
-never chose. The mechanical test for what must stop: a deviation that forces a second
-deviation to land, touches a file the plan doesn't name, or mints or splits a unit — except a
-builder's split at the line ceiling (§Workers), which proceeds. A single mechanical pick inside
+The run deviates from nothing the plan's text does not already name. A pick outside
+that is written as a ruling — the options, a recommendation — and the run takes the
+recommendation and continues: the pick is said in one line as it is taken, written into
+the plan, and listed in the veto table; no pick is ruled silently. What stops the run
+and waits: a pick that touches money, names what a caller sees, forces a second
+deviation to land, touches a file the plan doesn't name, or mints or splits a unit —
+except a builder's split at the line ceiling (§Workers), which proceeds; a small early
+deviation compounds into places the plan never chose. A plan's `**Run:**` line moves
+the split: `ask: all` posts every pick, `standing-pick: all` takes even money and names. A single mechanical pick inside
 the plan's named scope proceeds and is written into the plan. A protected test or snapshot that
 moves only by a rename the plan names, with no assertion line and no snapshot value changed
 otherwise, is such a pick: the enforcement script proves it and it goes in the veto table. A
@@ -59,7 +61,7 @@ The plan names its models; this skill's defaults are the fallback.
   build. fable never builds: a builder's bill is cache
   fees on its own context, every gate past five minutes re-writes it, and fable's cache
   rates price the same build at multiples of opus's. A cell naming fable is out of shape
-  and hardening rewrites it to blank, posting the rewrite.
+  and hardening rewrites it to blank, said in one line and listed in the veto table.
 - A `review` column tiers the reviewer: `blind` (the default), `checklist` (`sonnet`,
   the unit's close criteria and the loop's checklist core), or `none` — which the plan
   must justify in the pre-flight picks and the final veto table.
@@ -73,7 +75,8 @@ The plan names its models; this skill's defaults are the fallback.
     re-runs gates over a whole diff idles past the cache at fable's rates, so the
     rest of the diff stays with the default reviewer;
   - **the rescue** — once a unit's fix rounds are burned on the default, the
-    orchestrator may re-dispatch it to fable once, posting the pick.
+    orchestrator may re-dispatch it to fable once, said in one line and
+    listed in the veto table.
     The plan marks a row's consults in a `consult` column (`design`, `split`, `review`,
     comma-separated); the orchestrator may also consult on a question the plan does not
     mark, one brief per question, logged in the veto table.
@@ -103,7 +106,10 @@ The plan names its models; this skill's defaults are the fallback.
      their dependents; a row that names none takes the repo's whole gate, and the whole
      gate runs at the group boundary either way. The full gate fires immediately before
      a commit that changes code it exercises, and the unit's scratch notes name every firing and
-     what it answered; a firing that answered nothing is a deviation. Iteration inside
+     what it answered; a firing that answered nothing is a deviation. A firing's log
+     answers every later question about it — re-running a suite to re-shape its output
+     is a firing that answered nothing, and a green full gate re-fires only for a
+     stated cause: a flake with the failure quoted, or changed code. Iteration inside
      a unit uses scoped commands only. Where builds are slow, ration every run to the
      narrowest scope that answers the question.
    - Any A/B ritual the plan names: record before, record after — both records go to
@@ -119,7 +125,10 @@ The plan names its models; this skill's defaults are the fallback.
    - A ritual command longer than a few minutes is started by the orchestrator in the
      background, and its exit notifies it: a subagent is not woken by its own background
      command, and a sleep loop past five minutes re-writes the poller's whole cache each
-     poll. No worker polls with `sleep`. A `sonnet` writes the ritual's script and
+     poll. No worker polls with `sleep`, and no worker backgrounds a command — what it
+     cannot wait out in the foreground belongs to the orchestrator. While a ritual holds a resource the gate needs,
+     each active brief names the gate the resource permits and defers one full-gate
+     firing to the ritual's end. A `sonnet` writes the ritual's script and
      reconciles its output. A unit held on an owner ruling runs its after pass on the
      held tree meanwhile; the ruling re-runs only the inputs its change touches. A ritual
      blocks only marking the PR ready for review — never a commit, a push or a dispatch.
@@ -131,7 +140,8 @@ The plan names its models; this skill's defaults are the fallback.
    then send it through §Deviations' test. A mechanical pick inside the plan's named
    scope is picked by the plan's own evidence and CLAUDE.md and written into the plan,
    listed in one short message (question, pick, reason) so the owner can interrupt,
-   and the run proceeds; anything else is posted, and the run waits. A question the
+   and the run proceeds; anything else follows §Deviations' ruling — taken and said in
+   one line, or posted to wait where it touches money or names what a caller sees. A question the
    plan dates to a unit ("ruled at 7") is raised when the run reaches that unit,
    never at pre-flight — the evidence it needs does not exist at launch.
 6. Preconditions before the first dispatch: tree clean on the plan's base (the default
@@ -221,11 +231,15 @@ The plan names its models; this skill's defaults are the fallback.
    docs the gate does not test — runs the repo's fast checks and the enforcement
    script only; the full gate does not re-fire for it. A third means the unit
    is wrong — the orchestrator reads the specific finding, not the diff, and may
-   take §Models' fable rescue from there.
+   take §Models' fable rescue from there. A fix round is verified by one re-review
+   scoped to that round's findings; a re-review opens no new question — what it finds
+   is a pick under §Deviations, or stops the run.
 6. Route a reported deviation through Deviations. A pick inside the plan's named
    scope: pick it by CLAUDE.md and the plan's own law, write it into the owning
    section, ripple-check later sections in the same edit, note it for the veto table,
-   continue the builder. Anything else stops the run and is posted to the owner. The
+   continue the builder. Anything else follows §Deviations' ruling — taken and said in
+   one line unless it touches money or names what a caller sees; those stop the run
+   and are posted to the owner. The
    reviewer is dispatched when the builder stops after its build, so every question the
    unit holds — the builder's and the reviewer's — goes to the owner in one message. A
    question that touches money or would mint a unit is posted only after a read-only
