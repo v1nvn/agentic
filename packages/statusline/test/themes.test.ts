@@ -147,11 +147,15 @@ function lineBytes(
   });
 }
 
-function panelBytes(picks: Readonly<Record<string, string>>): string {
+function panelBytes(
+  layout: string,
+  picks: Readonly<Record<string, string>>,
+): string {
   if (demo === undefined) {
     throw new Error('demo home not materialized');
   }
   return renderPanel({
+    layout,
     now: Number(DEFAULT_NOW),
     payload: tickPayload,
     picks,
@@ -205,7 +209,9 @@ describe('resolvePaint: precedence', () => {
     expect(lineBytes(resolved.layout, resolved.picks)).toBe(
       lineBytes(THEMES.rich.layout, table),
     );
-    expect(panelBytes(resolved.picks)).toBe(panelBytes(table));
+    expect(panelBytes(resolved.layout, resolved.picks)).toBe(
+      panelBytes(THEMES.rich.layout, table),
+    );
   });
 
   it('--layout beats the theme layout; the theme picks still hold', () => {
@@ -268,7 +274,9 @@ describe('the entry resolves --theme at paint', () => {
     );
 
     expect(painted.status).toBe(0);
-    expect(painted.stdout).toBe(panelBytes(THEMES.lean.variants));
+    expect(painted.stdout).toBe(
+      panelBytes(THEMES.lean.layout, THEMES.lean.variants),
+    );
   });
 
   it('an unknown theme on the key paints the default line', () => {

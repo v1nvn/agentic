@@ -1,22 +1,24 @@
-import { readdirSync } from 'node:fs';
+import { readdirSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
-// The panel door implemented in src/render/panel.ts (r2: the port of
-// plugins/statusline/runtime/subagent.sh, exact — its own vlen with jq
-// codepoint semantics, its own fit ladder, make_bar, fmt_k, the 24-char
-// description truncation, the ms-vs-s startTime heuristic — never unified
-// with the main engine):
-//   renderPanel({ payload, now, picks?, noColor? }): string
-// payload is the tick JSON text exactly as subagent.sh's stdin; the panel
-// owns the parse — width comes from the payload's own `columns` field
-// (absent -> 200, non-numeric -> 200, floor 20, available = columns - 1),
-// rows from tasks[] (a task without id renders no line). picks map
-// item -> alternative (only style is consumed), noColor is NO_COLOR. The
-// return is the emitted stdout: one jq -c JSON line per identified task,
-// '\n'-joined with a trailing '\n'. Every golden pins now = DEFAULT_NOW;
-// unlike the engine corpus there are no oracle cases — each panel golden
-// is exact stdout.
+// The panel door implemented in src/render/panel.ts — a second renderer by
+// ruling: its own vlen (jq codepoint semantics) and its own fit ladder, never
+// unified with the main engine. The row speaks the theme's grammar: the theme's
+// layout filtered to the six task items (state, model, effort, bar, tokens,
+// duration), forms from the shared segment registry, the task's label and
+// description leading.
+//   renderPanel({ layout?, payload, now, picks?, noColor? }): string
+// payload is the tick JSON text exactly as the key's stdin; the panel owns the
+// parse — width comes from the payload's own `columns` field (absent -> 200,
+// non-numeric -> 200, floor 20, available = columns - 1), rows from tasks[]
+// (a task without id renders no line). picks map item -> alternative (the task
+// items and style are consumed), noColor is NO_COLOR. The return is the emitted
+// stdout: one jq -c JSON line per identified task, '\n'-joined with a trailing
+// '\n'. Every golden pins now = DEFAULT_NOW; unlike the engine corpus there
+// are no oracle cases — each panel golden is exact stdout. REGEN_GOLDENS=1
+// rewrites the .ans files instead of comparing.
 import { renderPanel } from '../src/render/panel.js';
 import { DEFAULT_NOW, GOLDENS_DIR, golden, loadTick } from './runtime.js';
 
@@ -44,12 +46,17 @@ function row(tick: Loose, id: string): Loose {
 export const PANEL_CORPUS: readonly PanelCase[] = [
   { name: 'multi-default' },
   { name: 'multi-cols-80', columns: 80 },
-  { name: 'multi-cols-56', columns: 56 }, // explore DURD 55 ==
-  { name: 'multi-cols-45', columns: 45 }, // explore BARB=6 44 ==
-  { name: 'multi-cols-33', columns: 33 }, // explore BARB=0 32 ==, tests MODELD=1 32 ==
-  { name: 'multi-cols-28', columns: 28 }, // explore MODELD=2 27 ==, tests BARB=4 27 ==
-  { name: 'multi-cols-21', columns: 21 }, // tests 20 ==
-  { name: 'multi-cols-20', columns: 20 }, // fork floor 19 ==, explore overflows
+  { name: 'multi-cols-60', columns: 60 }, // explore desc dropped 59 ==
+  { name: 'multi-cols-52', columns: 52 }, // explore duration none 51 ==
+  { name: 'multi-cols-45', columns: 45 }, // explore tokens compact 44 ==
+  { name: 'multi-cols-41', columns: 41 }, // explore bar flat6 40 ==
+  { name: 'multi-cols-36', columns: 36 }, // explore model stripped 35 ==
+  { name: 'multi-cols-34', columns: 34 }, // explore bar flat4 33 ==
+  { name: 'multi-cols-29', columns: 29 }, // explore effort hidden 28 ==
+  { name: 'multi-cols-24', columns: 24 }, // explore tokens none 23 ==
+  { name: 'multi-cols-23', columns: 23 }, // explore bar percent 22 ==
+  { name: 'multi-cols-17', columns: 17 }, // explore bar none 16 ==
+  { name: 'multi-cols-20', columns: 20 }, // the floor: avail 19, every row fits bare
   { name: 'multi-cols-5', columns: 5 }, // below-floor clamp; bytes equal cols-20
   { name: 'multi-cols-40', columns: 40 },
   { name: 'multi-cols-junk', columns: 'junk' }, // non-numeric -> 200
@@ -131,6 +138,10 @@ describe('the src/render panel door', () => {
 describe('the panel golden corpus through the engine', () => {
   it.each(PANEL_CORPUS)('$name renders byte-identical', c => {
     const out = renderCase(c);
+    if (process.env.REGEN_GOLDENS === '1') {
+      writeFileSync(join(GOLDENS_DIR, `${c.name}.ans`), out);
+      return;
+    }
     expect(Buffer.from(out, 'utf8'), c.name).toEqual(golden(c.name));
   });
 });

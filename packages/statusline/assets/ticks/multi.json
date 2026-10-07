@@ -10,7 +10,8 @@
       "effort": "high",
       "contextWindowSize": 200000,
       "tokenCount": 142300,
-      "startTime": 1788862735
+      "startTime": 1788862735,
+      "status": "running"
     },
     {
       "id": "row-tests",
@@ -21,7 +22,8 @@
       "effort": "medium",
       "contextWindowSize": 180000,
       "tokenCount": 9000,
-      "startTime": 1788869875000
+      "startTime": 1788869875000,
+      "status": "running"
     },
     {
       "id": "row-review",
@@ -32,7 +34,8 @@
       "effort": "low",
       "contextWindowSize": 0,
       "tokenCount": 0,
-      "startTime": 1788869990
+      "startTime": 1788869990,
+      "status": "running"
     },
     {
       "id": "row-fork",
@@ -43,7 +46,8 @@
       "effort": "",
       "contextWindowSize": 1000000,
       "tokenCount": 950000,
-      "startTime": 0
+      "startTime": 0,
+      "status": "running"
     },
     {
       "id": "row-idle",
@@ -54,7 +58,8 @@
       "effort": "",
       "contextWindowSize": 0,
       "tokenCount": 0,
-      "startTime": 1788870001
+      "startTime": 1788870001,
+      "status": "running"
     },
     {
       "label": "NoId",
@@ -64,7 +69,8 @@
       "effort": "high",
       "contextWindowSize": 200000,
       "tokenCount": 1000,
-      "startTime": 1788869950
+      "startTime": 1788869950,
+      "status": "running"
     }
   ]
 }

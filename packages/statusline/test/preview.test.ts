@@ -239,7 +239,8 @@ describe('renderPreview: both surfaces from one resolution', () => {
     expect(panel).toContain('42%');
     expect(panel).toContain('1m');
     expect(panel).not.toContain('m30s');
-    expect(panel).toContain('████░░░░░░');
+    expect(panel).not.toContain('█');
+    expect(panel).toContain('84.0k/200k');
     expect(panel).not.toContain(SAMPLE_MODEL);
   });
 
@@ -306,7 +307,7 @@ describe('renderPreview: plain', () => {
     expect(panel).not.toContain(ESC);
     expect(line).toContain(' · ');
     expect(line).toContain('⚡86%');
-    expect(panel).toContain('████░░░░░░');
+    expect(panel).toContain('84.0k/200k');
   });
 
   it('renders colored when plain is unset and color is allowed', () => {
@@ -314,7 +315,7 @@ describe('renderPreview: plain', () => {
     withEnv('NO_COLOR', undefined, () => {
       const { line, panel } = renderPreview(leanSpec(home));
       expect(line).toContain(`${ESC}[36m${SAMPLE_MODEL}`);
-      expect(panel).toContain(`${ESC}[32m████`);
+      expect(panel).toContain(`${ESC}[36mSonnet [1m]`);
     });
   });
 
@@ -445,7 +446,7 @@ describe('preview: plain and the terminal', () => {
     expect(text).not.toContain(ESC);
     expect(text).toContain(' · ');
     expect(text).toContain('⚡94%');
-    expect(text).toContain('███████░░░');
+    expect(text).toContain('panel Explore');
   });
 
   it('renders colored by default on a TTY', () => {

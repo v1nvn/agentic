@@ -159,6 +159,7 @@ export function renderPreview(bag: PreviewRender): PreviewSurfaces {
   }).replace(/\n+$/, '');
   const panel = firstPanelRow(
     renderPanel({
+      layout: paint.layout,
       noColor: plain,
       now: Number(bag.now),
       payload: bag.tick,

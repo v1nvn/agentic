@@ -1,22 +1,52 @@
-import { fmtDuration, fmtK, fmtM } from './awk.js';
+import type { GitFacts } from './git.js';
+import type { FitStep } from './items.js';
+import type { Row } from './payload.js';
+
 import { stripModelSuffix, stripSgr, warn } from './engine.js';
-import { specFor } from './items.js';
+import {
+  DEFAULT_LAYOUT,
+  DEFAULT_PICKS,
+  RUNG_ORDERS,
+  specFor,
+} from './items.js';
 import { isRecord, jqText, orElse, tsvEscape } from './jq.js';
-import { styleSeparators } from './segments.js';
+import { renderSegment, styleSeparators } from './segments.js';
 
-// The agent panel, ported exact from the bash subagent renderer it replaced —
-// a second renderer by ruling: its vlen counts codepoints (jq `length`), not
+// The agent panel, ported from the bash subagent renderer it replaced — a
+// second renderer by ruling: its vlen counts codepoints (jq `length`), not
 // the main engine's bytes, and its fit ladder is its own. Never unify them.
-
-const CYAN = '\x1b[36m';
-const GREEN = '\x1b[32m';
-const RED = '\x1b[31m';
-const RESET = '\x1b[0m';
-const YELLOW = '\x1b[33m';
+// The row speaks the theme's grammar: the theme's layout filtered to what a
+// task carries, every form from the shared segment registry.
 
 const MS_THRESHOLD = 200_000_000_000;
 
+// The items a task has data for; the layout decides which of them render.
+const TASK_ITEMS = [
+  'state',
+  'model',
+  'effort',
+  'bar',
+  'tokens',
+  'duration',
+] as const;
+
+const PANEL_STEPS: readonly FitStep[] = [
+  ['desc', 'drop'],
+  ['duration', 'none'],
+  ['tokens', 'compact'],
+  ['bar', 'flat'],
+  ['bar', 'flat6'],
+  ['model', 'strip'],
+  ['bar', 'flat4'],
+  ['state', 'none'],
+  ['effort', 'hidden'],
+  ['tokens', 'none'],
+  ['bar', 'percent'],
+  ['bar', 'none'],
+];
+
 export interface PanelInput {
+  readonly layout?: string;
   readonly noColor?: boolean;
   readonly now: number;
   readonly payload: string;
@@ -32,35 +62,15 @@ interface TaskFields {
   readonly model: string;
   readonly name: string;
   readonly start: string;
-  readonly tokens: string;
-}
-
-interface RowFormats {
-  readonly ctx: string;
-  readonly dur: string;
-  readonly tickTok: string;
+  readonly status: string;
   readonly tokens: string;
 }
 
 interface FitState {
-  barb: number;
-  descd: number;
-  durd: number;
-  modeld: number;
-  statd: number;
+  desc: boolean;
+  model: string;
+  readonly working: Record<string, string>;
 }
-
-const STEPS: readonly (readonly [keyof FitState, number])[] = [
-  ['descd', 1],
-  ['durd', 1],
-  ['statd', 1],
-  ['barb', 6],
-  ['modeld', 1],
-  ['barb', 4],
-  ['barb', 0],
-  ['modeld', 2],
-  ['statd', 2],
-];
 
 function field(
   source: Record<string, unknown>,
@@ -85,24 +95,6 @@ function intValue(text: string): null | number {
   return /^-?\d+$/.test(text) ? Number(text) : null;
 }
 
-function stylePick(
-  picks: Readonly<Record<string, string>> | undefined,
-): string {
-  const spec = specFor('style');
-  if (spec === undefined) {
-    return 'plain';
-  }
-  const wanted = picks?.style ?? '';
-  const alt = wanted === '' ? spec.default : wanted;
-  if (!spec.alternatives.includes(alt)) {
-    warn(
-      `statusline: style=${alt} is not available, using style=${spec.default}`,
-    );
-    return spec.default;
-  }
-  return alt;
-}
-
 // Width rides the payload's own columns field: jq's `// 200` default, then
 // the bash string rule (non-digit -> 200), the floor 20, minus one.
 function availColumns(tick: unknown): number {
@@ -122,99 +114,111 @@ function extractFields(task: Record<string, unknown>): TaskFields {
     model: cell(field(task, 'model', '')),
     name: cell(field(task, 'name', '')),
     start: cell(field(task, 'startTime', 0)),
+    status: cell(field(task, 'status', '')),
     tokens: cell(field(task, 'tokenCount', 0)),
   };
 }
 
-function makeBar(pct: number, width: number): string {
-  let f = Math.trunc((pct * width) / 100);
-  if (f > width) {
-    f = width;
-  }
-  let bar = '';
-  for (let i = 0; i < width; i++) {
-    bar += i < f ? '█' : '░';
-  }
-  return bar;
-}
-
 // The startTime heuristic: milliseconds above the threshold become seconds
 // (truncated), and only a start at or before now yields a duration.
-function duration(startText: string, now: number): string {
+function durationMs(startText: string, now: number): number {
   const start = intValue(startText);
   if (start === null || start <= 0) {
-    return '';
+    return 0;
   }
   const seconds = start > MS_THRESHOLD ? Math.trunc(start / 1000) : start;
   const elapsed = Math.trunc(now) - seconds;
-  if (elapsed < 0) {
-    return '';
-  }
-  return fmtDuration(Math.trunc(elapsed / 60));
+  return elapsed < 0 ? 0 : elapsed * 1000;
 }
 
-function rowFormats(fields: TaskFields, now: number): RowFormats {
-  const tokens = intValue(fields.tokens) ?? 0;
-  const ctx = intValue(fields.ctx) ?? 0;
-  let ctxText = fields.ctx;
-  if (ctx >= 1_000_000) {
-    ctxText = fmtM(ctx);
-  } else if (ctx >= 1000) {
-    ctxText = fmtK(ctx, 0);
+// The stylePick rule for every honored item: an unnamed item takes its
+// default; a named alt off the item's list warns and falls to the default.
+function altFor(
+  item: string,
+  picks: Readonly<Record<string, string>> | undefined,
+): string {
+  const spec = specFor(item);
+  const fallback = DEFAULT_PICKS[item] ?? 'none';
+  if (spec === undefined) {
+    return fallback;
   }
+  const wanted = picks?.[item] ?? '';
+  const alt = wanted === '' ? fallback : wanted;
+  if (!spec.alternatives.includes(alt)) {
+    warn(
+      `statusline: ${item}=${alt} is not available, using ${item}=${fallback}`,
+    );
+    return fallback;
+  }
+  return alt;
+}
+
+// The task carries none of the main row's git, cache or cost facts; the task
+// items read none of those fields, so the row holds only their values.
+function makeInput(fields: TaskFields, now: number, model: string) {
+  const ctx = intValue(fields.ctx) ?? 0;
+  const tokens = intValue(fields.tokens) ?? 0;
+  const row = {
+    agent: fields.status.toUpperCase(),
+    ctxSize: ctx,
+    durationMs: durationMs(fields.start, now),
+    effort: fields.effort,
+    model,
+    pct: ctx > 0 ? Math.trunc((tokens * 100) / ctx) : 0,
+    styleName: '',
+    think: false,
+    tokens,
+    vim: '',
+    wt: '',
+  } as unknown as Row;
   return {
-    ctx: ctxText,
-    dur: duration(fields.start, now),
-    tickTok: tokens >= 1000 ? fmtK(tokens, 0) : String(tokens),
-    tokens: tokens >= 1000 ? fmtK(tokens, 1) : String(tokens),
+    git: {} as GitFacts,
+    home: '',
+    model,
+    now,
+    row,
   };
+}
+
+// A group's items the task speaks, in the layout's own order.
+function layoutGroups(layout: string): string[][] {
+  return (
+    layout.match(/\{[^}]*\}|\S+/g)?.map(group =>
+      group
+        .replace(/[{}]/g, '')
+        .split(/\s+/)
+        .filter(item => (TASK_ITEMS as readonly string[]).includes(item)),
+    ) ?? []
+  );
 }
 
 function renderRow(
   fields: TaskFields,
-  formats: RowFormats,
   state: FitState,
+  now: number,
+  layout: string,
+  join: string,
   sep: string,
 ): string {
-  let s = fields.label === '' ? fields.name : fields.label;
-  if (fields.desc !== '' && fields.desc !== fields.label && state.descd === 0) {
-    s += ` ${fields.desc}`;
-  }
-  if (fields.model !== '') {
-    let name = fields.model;
-    if (state.modeld >= 1) {
-      name = stripModelSuffix(name);
-    }
-    const effort = state.modeld >= 2 ? '' : fields.effort;
-    if (effort !== '') {
-      name += ` ${effort}`;
-    }
-    s += `${sep}${CYAN}${name}${RESET}`;
-  }
-  const ctx = intValue(fields.ctx);
-  if (ctx !== null && ctx > 0) {
-    const tokens = intValue(fields.tokens) ?? 0;
-    const pct = Math.trunc((tokens * 100) / ctx);
-    const barColor = pct >= 90 ? RED : pct >= 70 ? YELLOW : GREEN;
-    if (state.barb > 0) {
-      s += `${sep}${barColor}${makeBar(pct, state.barb)}${RESET} ${pct}%`;
-    } else {
-      s += `${sep}${barColor}${pct}%${RESET}`;
-    }
-    const stats =
-      state.statd === 1
-        ? formats.tickTok
-        : state.statd === 2
+  const name = fields.label === '' ? fields.name : fields.label;
+  const withDesc = fields.desc !== '' && fields.desc !== name && !state.desc;
+  const head = withDesc ? `${name} ${fields.desc}` : name;
+  const groups = [head];
+  const input = makeInput(fields, now, state.model);
+  const ctx = intValue(fields.ctx) ?? 0;
+  for (const items of layoutGroups(layout)) {
+    const segs = items
+      .map(item =>
+        ctx <= 0 && (item === 'bar' || item === 'tokens')
           ? ''
-          : `${formats.tokens}/${formats.ctx}`;
-    if (stats !== '') {
-      s += ` ${stats}`;
+          : renderSegment(item, state.working[item], input).trim(),
+      )
+      .filter(seg => seg !== '');
+    if (segs.length > 0) {
+      groups.push(segs.join(join));
     }
   }
-  if (formats.dur !== '' && state.durd === 0) {
-    s += `${sep}${formats.dur}`;
-  }
-  return s;
+  return groups.join(sep);
 }
 
 // The panel's own vlen: codepoints of the SGR-stripped row.
@@ -222,20 +226,45 @@ function vlen(text: string): number {
   return Array.from(stripSgr(text)).length;
 }
 
+function demote(state: FitState, item: string, target: string): void {
+  const order = RUNG_ORDERS[item];
+  if (order === undefined) {
+    return;
+  }
+  // An off-rung alt (gauge) sits before the first rung, so it demotes too.
+  const at = order.indexOf(state.working[item]);
+  if (order.slice(at + 1).includes(target)) {
+    state.working[item] = target;
+  }
+}
+
+function applyStep(state: FitState, step: FitStep): void {
+  if (step[0] === 'desc' && step[1] === 'drop') {
+    state.desc = true;
+  } else if (step[0] === 'model' && step[1] === 'strip') {
+    state.model = stripModelSuffix(state.model);
+  } else {
+    demote(state, step[0], step[1]);
+  }
+}
+
 function fitRow(
   fields: TaskFields,
-  formats: RowFormats,
+  working: Record<string, string>,
+  now: number,
+  layout: string,
+  join: string,
   sep: string,
   avail: number,
 ): string {
-  const state: FitState = { barb: 10, descd: 0, durd: 0, modeld: 0, statd: 0 };
-  let out = renderRow(fields, formats, state, sep);
+  const state: FitState = { desc: false, model: fields.model, working };
+  let out = renderRow(fields, state, now, layout, join, sep);
   if (vlen(out) <= avail) {
     return out;
   }
-  for (const [key, value] of STEPS) {
-    state[key] = value;
-    out = renderRow(fields, formats, state, sep);
+  for (const step of PANEL_STEPS) {
+    applyStep(state, step);
+    out = renderRow(fields, state, now, layout, join, sep);
     if (vlen(out) <= avail) {
       return out;
     }
@@ -250,7 +279,12 @@ function emitLine(id: string, content: string): string {
 export function renderPanel(input: PanelInput): string {
   const tick: unknown = JSON.parse(input.payload);
   const avail = availColumns(tick);
-  const sep = styleSeparators(stylePick(input.picks)).sep;
+  const layout = input.layout ?? DEFAULT_LAYOUT;
+  const { join, sep } = styleSeparators(altFor('style', input.picks));
+  const working: Record<string, string> = {};
+  for (const item of TASK_ITEMS) {
+    working[item] = altFor(item, input.picks);
+  }
   const tasks = isRecord(tick) && Array.isArray(tick.tasks) ? tick.tasks : [];
   let out = '';
   for (const task of tasks) {
@@ -261,8 +295,7 @@ export function renderPanel(input: PanelInput): string {
     if (fields.id === '') {
       continue;
     }
-    const formats = rowFormats(fields, input.now);
-    const row = fitRow(fields, formats, sep, avail);
+    const row = fitRow(fields, working, input.now, layout, join, sep, avail);
     const content = input.noColor === true ? stripSgr(row) : row;
     out += `${emitLine(fields.id, content)}\n`;
   }

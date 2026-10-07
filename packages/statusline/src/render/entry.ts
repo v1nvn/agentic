@@ -45,7 +45,13 @@ async function main(): Promise<void> {
   if (argv.mode === 'subagent') {
     capturePayload(home, 'tick', payload);
     process.stdout.write(
-      renderPanel({ now, payload, picks: paint.picks, noColor }),
+      renderPanel({
+        layout: paint.layout,
+        now,
+        payload,
+        picks: paint.picks,
+        noColor,
+      }),
     );
     return;
   }

@@ -1,4 +1,5 @@
-import { readdirSync, rmSync } from 'node:fs';
+import { join } from 'node:path';
+import { writeFileSync, readdirSync, rmSync } from 'node:fs';
 
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
@@ -454,6 +455,14 @@ describe('the src/render door', () => {
 describe('the golden corpus through the engine', () => {
   it.each(CORPUS)('$name renders byte-identical', c => {
     const out = renderCase(c);
+    if (process.env.REGEN_GOLDENS === '1') {
+      // An oracle golden holds the render without the oracle's own newline.
+      writeFileSync(
+        join(GOLDENS_DIR, `${c.name}.ans`),
+        c.oracle ? out.slice(0, -1) : out,
+      );
+      return;
+    }
     const want = c.oracle
       ? Buffer.concat([golden(c.name), Buffer.from('\n')])
       : golden(c.name);
