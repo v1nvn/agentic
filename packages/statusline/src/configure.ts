@@ -21,8 +21,8 @@ import {
   isOurMainCommand,
   isOurSubagentCommand,
   mainKeyValue,
-  subagentKeyValue,
   renderMjsPath,
+  subagentKeyValue,
 } from './resolve.js';
 import { type Theme, THEME_NAMES, type ThemeName, THEMES } from './themes.js';
 

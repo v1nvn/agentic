@@ -40,10 +40,7 @@ export function parseArgv(argv: readonly string[]): ArgvResult {
   let now: number | undefined;
 
   for (const positional of parsed.positionals) {
-    warn(
-      warnings,
-      `statusline: unexpected argument '${positional}', ignored`,
-    );
+    warn(warnings, `statusline: unexpected argument '${positional}', ignored`);
   }
 
   for (const [name, value] of Object.entries(parsed.values)) {
