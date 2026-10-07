@@ -10,27 +10,23 @@ on task items, and a corpus pin holds that forever.
 
 ## Current state
 
-Ruled and approved on live previews (owner, this sitting): panel honors the six
-per-task items — state, model, effort, bar, tokens, duration — through the picks
-it already receives; layout groups drive order and grouping; forms come from
-`renderSegment` (zen/pill/dim/percent/free/gauge grown onto the panel); the
-panel keeps its own vlen and fit ladder (ruling `packages/statusline/src/render/panel.ts`
-header). Items with no per-task data (cwd, git five, cache two, cost, lines,
-rate) never render; the tick carries none of them. Status pill = task `status`,
-uppercased. The engines stay separate — that closes the unify-or-drop question.
+Landed on main. The panel renders the theme's layout over the six task items
+with the shared segment registry; the drift pin holds theme-reach and
+per-alternative responsiveness; both READMEs state the grammar; verified live
+per theme through `render.mjs --subagent`. The engines stay separate — that
+rules the old unify-or-drop question: kept separate, theme unified.
 
 ## Next step
 
-Rewrite `renderPanel` on the layout grammar, wire `layout` through entry and
-preview, regenerate panel goldens.
+None — closed. Cut as v0.39.1.
 
 ## Steps
 
 | id | unit | model | review | close criteria |
 |----|------|-------|--------|----------------|
-| u1 | Panel renders the theme's layout; entry + preview wired | | | every theme's panel row matches the approved preview; `yarn test` green with regenerated goldens |
-| u2 | Drift pin | | | a corpus test proves each theme with task-item variants differs from the default row, and every honored alternative moves the row |
-| u3 | Docs + live verify | | | README and SKILL.md state the panel grammar; live `render.mjs --subagent --theme=X` checked per theme |
+| u1 | Panel renders the theme's layout; entry + preview wired | | | every theme's panel row matches the approved preview; `yarn test` green with regenerated goldens — 0e4d8a5 |
+| u2 | Drift pin | | | a corpus test proves each theme with task-item variants differs from the default row, and every honored alternative moves the row — 08f4f1e |
+| u3 | Docs + live verify | | | README and SKILL.md state the panel grammar; live `render.mjs --subagent --theme=X` checked per theme — 0c184c4 |
 
 ## Plan
 

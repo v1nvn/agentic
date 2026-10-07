@@ -12,7 +12,10 @@
 
 ## statusline
 
-- **The panel row renders the theme's layout** · HIGH · [packages/statusline] → progress/statusline-panel-theme.md
+- **Panel row — token-samples sparkline** · LOW · [packages/statusline]
+  The tick carries 16 token samples per task, rendered nowhere. Wanted: a sparkline item on the row.
+- **Panel row — per-task cache and cost** · LOW · [packages/statusline]
+  The tick carries neither; the only door today is a 3-hop transcript mine. Revisit when Claude Code ships them in the tick.
 - **Statusline — preview width flag** · LOW
   `preview` renders at a fixed 200 columns; chat panes are narrower, so a sketch wraps. Wanted: a preview width the picker can match to the pane.
 - **Statusline — preview width flag** · LOW
