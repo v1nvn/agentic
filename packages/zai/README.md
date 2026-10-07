@@ -22,7 +22,7 @@ claude plugin install zai@agentic
 In a terminal, bare:
 
 ```sh
-npx -y @v1nvn/zai@0.40.0 usage
+npx -y @v1nvn/zai@0.41.0 usage
 ```
 
 ## Usage
@@ -30,10 +30,10 @@ npx -y @v1nvn/zai@0.40.0 usage
 | Invocation | Does |
 |---|---|
 | `/zai-usage` | the account's usage report, as a pane |
-| `npx -y @v1nvn/zai@0.40.0 usage` | the same report, printed bare |
-| `npx -y @v1nvn/zai@0.40.0 usage --auth-token TOKEN` | same, key on the command line (visible in `ps`) |
-| `npx -y @v1nvn/zai@0.40.0 usage --auth-token=TOKEN` | `=` form — zsh quoting-safe |
-| `npx -y @v1nvn/zai@0.40.0 usage --base-url URL` | another GLM endpoint (default `api.z.ai`) |
+| `npx -y @v1nvn/zai@0.41.0 usage` | the same report, printed bare |
+| `npx -y @v1nvn/zai@0.41.0 usage --auth-token TOKEN` | same, key on the command line (visible in `ps`) |
+| `npx -y @v1nvn/zai@0.41.0 usage --auth-token=TOKEN` | `=` form — zsh quoting-safe |
+| `npx -y @v1nvn/zai@0.41.0 usage --base-url URL` | another GLM endpoint (default `api.z.ai`) |
 
 Each setting takes the first source that provides it:
 

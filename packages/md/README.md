@@ -23,9 +23,9 @@ claude plugin install md@agentic
 In a terminal, last reply or a named file:
 
 ```sh
-npx -y @v1nvn/md@0.40.0              # editable — both panes
-npx -y @v1nvn/md@0.40.0 --view       # read-only — preview pane only
-npx -y @v1nvn/md@0.40.0 reply.md
+npx -y @v1nvn/md@0.41.0              # editable — both panes
+npx -y @v1nvn/md@0.41.0 --view       # read-only — preview pane only
+npx -y @v1nvn/md@0.41.0 reply.md
 ```
 
 ## Usage
@@ -34,10 +34,10 @@ npx -y @v1nvn/md@0.40.0 reply.md
 |---|---|
 | `/md-edit` | the previous assistant reply → viewer, edit pane enabled, one dim status row |
 | `/md-view` | the same share read-only — preview pane only |
-| `npx -y @v1nvn/md@0.40.0` | the same share, printed bare |
-| `npx -y @v1nvn/md@0.40.0 --view` | read-only share |
-| `npx -y @v1nvn/md@0.40.0 reply.md` | that file instead of the last reply |
-| `npx -y @v1nvn/md@0.40.0 -` | Markdown from stdin |
+| `npx -y @v1nvn/md@0.41.0` | the same share, printed bare |
+| `npx -y @v1nvn/md@0.41.0 --view` | read-only share |
+| `npx -y @v1nvn/md@0.41.0 reply.md` | that file instead of the last reply |
+| `npx -y @v1nvn/md@0.41.0 -` | Markdown from stdin |
 
 `MD_VIEWER_URL` sets the viewer (default `https://md.v1n.space`); any set
 `MD_NO_OPEN` value (not just `1`) skips opening the browser.
