@@ -19,13 +19,15 @@ decide, and write the decision into the plan — inside the deviation law below.
 
 ## Deviations
 
-The run deviates from nothing the plan's text does not already name. Any pick outside
-that — mechanical or not — stops the run and is posted to the owner: no accept-and-note,
-never a ruling made alone. Scope changes, contract or semantic changes, anything
-unnamed → post it and wait — a small early deviation compounds into places the plan
-never chose. The mechanical test for what must stop: a deviation that forces a second
-deviation to land, touches a file the plan doesn't name, or mints or splits a unit — except a
-builder's split at the line ceiling (§Workers), which proceeds. A single mechanical pick inside
+The run deviates from nothing the plan's text does not already name. A pick outside
+that is written as a ruling — the options, a recommendation — and the run takes the
+recommendation and continues: the pick is said in one line as it is taken, written into
+the plan, and listed in the veto table; no pick is ruled silently. What stops the run
+and waits: a pick that touches money, names what a caller sees, forces a second
+deviation to land, touches a file the plan doesn't name, or mints or splits a unit —
+except a builder's split at the line ceiling (§Workers), which proceeds; a small early
+deviation compounds into places the plan never chose. A plan's `**Run:**` line moves
+the split: `ask: all` posts every pick, `standing-pick: all` takes even money and names. A single mechanical pick inside
 the plan's named scope proceeds and is written into the plan. A protected test or snapshot that
 moves only by a rename the plan names, with no assertion line and no snapshot value changed
 otherwise, is such a pick: the enforcement script proves it and it goes in the veto table. A
@@ -131,7 +133,8 @@ The plan names its models; this skill's defaults are the fallback.
    then send it through §Deviations' test. A mechanical pick inside the plan's named
    scope is picked by the plan's own evidence and CLAUDE.md and written into the plan,
    listed in one short message (question, pick, reason) so the owner can interrupt,
-   and the run proceeds; anything else is posted, and the run waits. A question the
+   and the run proceeds; anything else follows §Deviations' ruling — taken and said in
+   one line, or posted to wait where it touches money or names what a caller sees. A question the
    plan dates to a unit ("ruled at 7") is raised when the run reaches that unit,
    never at pre-flight — the evidence it needs does not exist at launch.
 6. Preconditions before the first dispatch: tree clean on the plan's base (the default
@@ -225,7 +228,9 @@ The plan names its models; this skill's defaults are the fallback.
 6. Route a reported deviation through Deviations. A pick inside the plan's named
    scope: pick it by CLAUDE.md and the plan's own law, write it into the owning
    section, ripple-check later sections in the same edit, note it for the veto table,
-   continue the builder. Anything else stops the run and is posted to the owner. The
+   continue the builder. Anything else follows §Deviations' ruling — taken and said in
+   one line unless it touches money or names what a caller sees; those stop the run
+   and are posted to the owner. The
    reviewer is dispatched when the builder stops after its build, so every question the
    unit holds — the builder's and the reviewer's — goes to the owner in one message. A
    question that touches money or would mint a unit is posted only after a read-only
