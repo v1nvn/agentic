@@ -1,23 +1,39 @@
 #!/usr/bin/env node
 // Time tree and violation candidates for a finished Claude Code session.
 //
-// Usage: node analyze.mjs <session.jsonl>
+// Usage: node analyze.mjs <session.jsonl> [gate-pattern]
 //
 // Prints markdown. Timestamp deltas are the measure: generation time is the gap
 // before an assistant message (thinking is encrypted); parallel tools overlap.
-import { readFileSync, readdirSync } from 'node:fs';
+// The gate pattern is the autopsied repo's suite command, passed by the caller;
+// this script carries no repo's words.
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
 
-const SUITE =
-  /(?:cargo\s+test\s+--workspace|make\s+test[\w-]*|cargo\s+test\s+[^|]*--workspace)/;
-const SLEEP = /\bsleep\s+(\d+)/;
+const SLEEP = /\bsleep\b/;
 const TOLLED = new Set(['attachment', 'meta', 'queue']);
 
 const ts = s => new Date(s).getTime();
 const mins = ms => ms / 60000;
 const fmt = ms =>
   ms >= 60000 ? `${mins(ms).toFixed(1)}m` : `${(ms / 1000).toFixed(0)}s`;
-const hhmm = ms => new Date(ms).toISOString().slice(11, 16);
+const hhmm = ms => {
+  const d = new Date(ms);
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+};
+const tok = t =>
+  t >= 1e6 ? `${(t / 1e6).toFixed(1)}M` : `${(t / 1e3).toFixed(1)}k`;
+
+function spanUnion(spans) {
+  let covered = -Infinity;
+  let total = 0;
+  for (const [s, e] of [...spans].sort((a, b) => a[0] - b[0])) {
+    if (e <= covered) continue;
+    total += e - Math.max(s, covered);
+    covered = e;
+  }
+  return total;
+}
 
 function load(path) {
   const events = [];
@@ -72,7 +88,8 @@ function median(values) {
   return s[Math.floor(s.length / 2)];
 }
 
-function main(transcript) {
+function main(transcript, suiteSrc) {
+  const SUITE = suiteSrc ? new RegExp(suiteSrc) : null;
   const ev = load(transcript);
   if (!ev.length) throw new Error(`no timestamped events in ${transcript}`);
   const end = ts(ev.at(-1).timestamp);
@@ -86,13 +103,6 @@ function main(transcript) {
     let j = i - 1;
     while (j >= 0 && TOLLED.has(kind(ev[j]))) j--;
     if (j >= 0) ownerWait += ts(e.timestamp) - ts(ev[j].timestamp);
-  }
-
-  let gen = 0;
-  for (const [i, e] of ev.entries()) {
-    if (i > 0 && ['tool_use', 'asst_text'].includes(kind(e))) {
-      gen += ts(e.timestamp) - ts(ev[i - 1].timestamp);
-    }
   }
 
   // Background spawns complete at their task notification; everything else
@@ -140,84 +150,104 @@ function main(transcript) {
     label: s.label,
   }));
 
+  // A gap before an assistant message that background work fully covered is
+  // orchestrator wait, not generation.
+  let gen = 0;
+  let wait = 0;
+  for (const [i, e] of ev.entries()) {
+    if (i === 0 || !['tool_use', 'asst_text'].includes(kind(e))) continue;
+    const prev = ts(ev[i - 1].timestamp);
+    const cur = ts(e.timestamp);
+    const clips = bg
+      .map(s => [Math.max(prev, s.start), Math.min(cur, s.end)])
+      .filter(([s, e2]) => e2 > s);
+    if (clips.length && spanUnion(clips) === cur - prev) wait += cur - prev;
+    else gen += cur - prev;
+  }
+
   const workers = [];
   const dir = join(
     dirname(transcript),
     basename(transcript).replace(/\.jsonl$/, ''),
     'subagents',
   );
-  for (const name of readdirSync(dir)
-    .filter(n => n.endsWith('.meta.json'))
-    .sort()) {
-    const meta = JSON.parse(readFileSync(join(dir, name), 'utf8'));
-    const wev = load(join(dir, name.replace(/\.meta\.json$/, '.jsonl')));
-    if (!wev.length) continue;
-    const w0 = ts(wev[0].timestamp);
-    const w1 = ts(wev.at(-1).timestamp);
-    let wgen = 0;
-    const gaps = [];
-    for (const [i, e] of wev.entries()) {
-      if (i > 0 && ['tool_use', 'asst_text'].includes(kind(e))) {
-        const g = ts(e.timestamp) - ts(wev[i - 1].timestamp);
-        wgen += g;
-        gaps.push(g);
-      }
-    }
-    const bashPending = new Map();
-    const usage = { input: 0, cacheRead: 0, cacheCreate: 0, output: 0 };
-    const bash = [];
-    let turns = 0;
-    for (const e of wev) {
-      const t = ts(e.timestamp);
-      if (e.type === 'assistant') {
-        turns++;
-        usage.input += e.message?.usage?.input_tokens ?? 0;
-        usage.cacheRead += e.message?.usage?.cache_read_input_tokens ?? 0;
-        usage.cacheCreate += e.message?.usage?.cache_creation_input_tokens ?? 0;
-        usage.output += e.message?.usage?.output_tokens ?? 0;
-      }
-      for (const b of blocks(e)) {
-        if (b?.type === 'tool_use' && b.name === 'Bash') {
-          bashPending.set(b.id, { t, cmd: String(b.input?.command ?? '') });
+  if (existsSync(dir)) {
+    for (const name of readdirSync(dir)
+      .filter(n => n.endsWith('.meta.json'))
+      .sort()) {
+      const wpath = join(dir, name.replace(/\.meta\.json$/, '.jsonl'));
+      if (!existsSync(wpath)) continue;
+      const meta = JSON.parse(readFileSync(join(dir, name), 'utf8'));
+      const wev = load(wpath);
+      if (!wev.length) continue;
+      const w0 = ts(wev[0].timestamp);
+      const w1 = ts(wev.at(-1).timestamp);
+      let wgen = 0;
+      const gaps = [];
+      for (const [i, e] of wev.entries()) {
+        if (i > 0 && ['tool_use', 'asst_text'].includes(kind(e))) {
+          const g = ts(e.timestamp) - ts(wev[i - 1].timestamp);
+          wgen += g;
+          gaps.push(g);
         }
       }
-      if (kind(e) === 'tool_result') {
+      const bashPending = new Map();
+      const usage = { input: 0, cacheRead: 0, cacheCreate: 0, output: 0 };
+      const bash = [];
+      let turns = 0;
+      for (const e of wev) {
+        const t = ts(e.timestamp);
+        if (e.type === 'assistant') {
+          turns++;
+          usage.input += e.message?.usage?.input_tokens ?? 0;
+          usage.cacheRead += e.message?.usage?.cache_read_input_tokens ?? 0;
+          usage.cacheCreate +=
+            e.message?.usage?.cache_creation_input_tokens ?? 0;
+          usage.output += e.message?.usage?.output_tokens ?? 0;
+        }
         for (const b of blocks(e)) {
-          const p = bashPending.get(b?.tool_use_id);
-          if (p) {
-            bash.push({ start: p.t, dur: t - p.t, cmd: p.cmd });
-            bashPending.delete(b.tool_use_id);
+          if (b?.type === 'tool_use' && b.name === 'Bash') {
+            bashPending.set(b.id, { t, cmd: String(b.input?.command ?? '') });
+          }
+        }
+        if (kind(e) === 'tool_result') {
+          for (const b of blocks(e)) {
+            const p = bashPending.get(b?.tool_use_id);
+            if (p) {
+              bash.push({ start: p.t, dur: t - p.t, cmd: p.cmd });
+              bashPending.delete(b.tool_use_id);
+            }
           }
         }
       }
+      workers.push({
+        desc: meta.description ?? '?',
+        model: meta.model ?? '?',
+        start: w0,
+        end: w1,
+        wall: w1 - w0,
+        gen: wgen,
+        turns,
+        gaps,
+        bash,
+        usage,
+      });
     }
-    workers.push({
-      desc: meta.description ?? '?',
-      model: meta.model ?? '?',
-      start: w0,
-      end: w1,
-      wall: w1 - w0,
-      gen: wgen,
-      turns,
-      gaps,
-      bash,
-      usage,
-    });
   }
 
   console.log('# postmortem\n');
   console.log(
-    `session ${basename(transcript)}  wall ${fmt(wall)}  owner wait ${fmt(ownerWait)}  orchestrator gen ${fmt(gen)}  foreground tools ${fmt(fgTools.get('tools') ?? 0)}\n`,
+    `session ${basename(transcript)}  wall ${fmt(wall)}  owner wait ${fmt(ownerWait)}  orchestrator gen ${fmt(gen)}  orchestrator wait ${fmt(wait)}  foreground tools ${fmt(fgTools.get('tools') ?? 0)}\n`,
   );
 
   console.log('## workers\n');
   console.log(
-    '| start-end | wall | gen | tools | model | turns | median gap | out tok | worker |',
+    '| start-end | wall | gen | tools | model | turns | median gap | out tok | cache rd | cache cr | worker |',
   );
-  console.log('|---|---|---|---|---|---|---|---|---|');
+  console.log('|---|---|---|---|---|---|---|---|---|---|---|');
   for (const w of [...workers].sort((a, b) => a.start - b.start)) {
     console.log(
-      `| ${hhmm(w.start)}-${hhmm(w.end)} | ${fmt(w.wall)} | ${fmt(w.gen)} | ${fmt(w.wall - w.gen)} | ${w.model} | ${w.turns} | ${(median(w.gaps) / 1000).toFixed(1)}s | ${(w.usage.output / 1000).toFixed(1)}k | ${w.desc} |`,
+      `| ${hhmm(w.start)}-${hhmm(w.end)} | ${fmt(w.wall)} | ${fmt(w.gen)} | ${fmt(w.wall - w.gen)} | ${w.model} | ${w.turns} | ${(median(w.gaps) / 1000).toFixed(1)}s | ${tok(w.usage.output)} | ${tok(w.usage.cacheRead)} | ${tok(w.usage.cacheCreate)} | ${w.desc} |`,
     );
   }
 
@@ -225,10 +255,10 @@ function main(transcript) {
   console.log('| start-end | duration | overlapped by workers | what |');
   console.log('|---|---|---|---|');
   for (const s of [...bg].sort((a, b) => a.start - b.start)) {
-    const overlap = workers.reduce(
-      (acc, w) =>
-        acc + Math.max(0, Math.min(s.end, w.end) - Math.max(s.start, w.start)),
-      0,
+    const overlap = spanUnion(
+      workers
+        .map(w => [Math.max(s.start, w.start), Math.min(s.end, w.end)])
+        .filter(([a, b]) => b > a),
     );
     console.log(
       `| ${hhmm(s.start)}-${hhmm(s.end)} | ${fmt(s.end - s.start)} | ${fmt(overlap)} | ${s.label} |`,
@@ -239,20 +269,11 @@ function main(transcript) {
   const cats = new Map();
   for (const w of workers) {
     for (const b of w.bash) {
-      const c = b.cmd.toLowerCase();
       const k = SLEEP.test(b.cmd)
         ? 'sleep (waiting)'
-        : SUITE.test(b.cmd)
-          ? 'full suite'
-          : /cargo\s+test\b/.test(c)
-            ? 'scoped cargo test'
-            : /cargo\s+(check|build)/.test(c)
-              ? 'cargo check/build'
-              : /cargo\s+lint|clippy/.test(c)
-                ? 'cargo lint'
-                : /cargo\s+fmt|cargo-sort|forbid|cargo\s+doc/.test(c)
-                  ? 'fmt/sort/forbid/doc'
-                  : 'other';
+        : SUITE?.test(b.cmd)
+          ? 'suite'
+          : 'other';
       const row = cats.get(k) ?? { n: 0, ms: 0 };
       cats.set(k, { n: row.n + 1, ms: row.ms + b.dur });
     }
@@ -271,15 +292,15 @@ function main(transcript) {
     return seg.split('|')[0].trim();
   };
   for (const w of workers) {
-    const suites = w.bash.filter(b => SUITE.test(b.cmd));
-    for (const b of w.bash) {
-      const m = b.cmd.match(SLEEP);
-      if (m && Number(m[1]) >= 5) {
-        flagged = true;
-        console.log(
-          `- sleep poll: ${w.desc} slept ${m[1]}s at ${hhmm(b.start)} — ${b.cmd.slice(0, 80)}`,
-        );
-      }
+    const suites = SUITE ? w.bash.filter(b => SUITE.test(b.cmd)) : [];
+    const sleeps = w.bash
+      .filter(b => SLEEP.test(b.cmd))
+      .sort((a, b) => a.start - b.start);
+    if (sleeps.length >= 2) {
+      flagged = true;
+      console.log(
+        `- sleep poll: ${w.desc} slept ${sleeps.length} times, ${fmt(sleeps.reduce((a, b) => a + b.dur, 0))} total — first at ${hhmm(sleeps[0].start)}: ${sleeps[0].cmd.slice(0, 60)}`,
+      );
     }
     if (/review/i.test(w.desc) && suites.length) {
       flagged = true;
@@ -296,15 +317,16 @@ function main(transcript) {
       );
     }
     for (const [key, runs] of clusters) {
-      const [first, second] = runs;
-      if (second && second.start - first.start < 300000) {
+      for (let i = 1; i < runs.length; i++) {
+        if (runs[i].start - runs[i - 1].start >= 300000) continue;
         flagged = true;
         console.log(
-          `- re-run to re-shape: ${w.desc} re-ran \`${key.slice(0, 60)}\` ${((second.start - first.start) / 1000).toFixed(0)}s after a green run at ${hhmm(first.start)}`,
+          `- re-run to re-shape: ${w.desc} re-ran \`${key.slice(0, 60)}\` ${((runs[i].start - runs[i - 1].start) / 1000).toFixed(0)}s after a green run at ${hhmm(runs[i - 1].start)}`,
         );
       }
     }
     for (const b of suites.filter(s => s.dur >= 60000)) {
+      flagged = true;
       console.log(
         `  suite firing: ${hhmm(b.start)} ${fmt(b.dur)} ${w.desc} — ${b.cmd.slice(0, 80)}`,
       );
@@ -335,13 +357,13 @@ function main(transcript) {
 
   if (!flagged) console.log('(none)');
   console.log(
-    '\nmeasure limits: thinking is encrypted (generation = gap before an assistant message); parallel tools overlap; owner wait folds attachments before a human message.',
+    '\nmeasure limits: thinking is encrypted (generation = gap before an assistant message); parallel tools overlap; owner wait folds attachments before a human message; a gap background work fully covered counts as orchestrator wait, partial coverage stays in gen.',
   );
 }
 
-const [file] = process.argv.slice(2);
+const [file, suiteSrc] = process.argv.slice(2);
 if (!file) {
-  console.error('usage: node analyze.mjs <session.jsonl>');
+  console.error('usage: node analyze.mjs <session.jsonl> [gate-pattern]');
   process.exit(1);
 }
-main(file);
+main(file, suiteSrc);

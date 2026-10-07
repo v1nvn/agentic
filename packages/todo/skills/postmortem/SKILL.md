@@ -17,7 +17,10 @@ The transcript is `~/.claude/projects/<slug>/<id>.jsonl`; its workers are
 
 ## Measure
 
-Run `node scripts/analyze.mjs <transcript>`; it prints markdown:
+Run `node scripts/analyze.mjs <transcript> <gate-pattern>`. The gate pattern is
+the autopsied repo's suite command — the gate line the run's plan pinned, else
+derived from the repo as a run derives it (`run/SKILL.md`, Open.4). It prints
+markdown:
 
 - the time tree: wall, owner wait, orchestrator generation, every worker's wall split
   into generation and tools, every background span with how much of it overlapped work;

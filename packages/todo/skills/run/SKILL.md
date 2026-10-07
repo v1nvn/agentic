@@ -61,7 +61,7 @@ The plan names its models; this skill's defaults are the fallback.
   build. fable never builds: a builder's bill is cache
   fees on its own context, every gate past five minutes re-writes it, and fable's cache
   rates price the same build at multiples of opus's. A cell naming fable is out of shape
-  and hardening rewrites it to blank, posting the rewrite.
+  and hardening rewrites it to blank, said in one line and listed in the veto table.
 - A `review` column tiers the reviewer: `blind` (the default), `checklist` (`sonnet`,
   the unit's close criteria and the loop's checklist core), or `none` — which the plan
   must justify in the pre-flight picks and the final veto table.
@@ -75,7 +75,8 @@ The plan names its models; this skill's defaults are the fallback.
     re-runs gates over a whole diff idles past the cache at fable's rates, so the
     rest of the diff stays with the default reviewer;
   - **the rescue** — once a unit's fix rounds are burned on the default, the
-    orchestrator may re-dispatch it to fable once, posting the pick.
+    orchestrator may re-dispatch it to fable once, said in one line and
+    listed in the veto table.
     The plan marks a row's consults in a `consult` column (`design`, `split`, `review`,
     comma-separated); the orchestrator may also consult on a question the plan does not
     mark, one brief per question, logged in the veto table.
@@ -126,8 +127,8 @@ The plan names its models; this skill's defaults are the fallback.
      command, and a sleep loop past five minutes re-writes the poller's whole cache each
      poll. No worker polls with `sleep`, and no worker backgrounds a command — what it
      cannot wait out in the foreground belongs to the orchestrator. While a ritual holds a resource the gate needs,
-   each active brief names the gate the resource permits and defers one full-gate
-   firing to the ritual's end. A `sonnet` writes the ritual's script and
+     each active brief names the gate the resource permits and defers one full-gate
+     firing to the ritual's end. A `sonnet` writes the ritual's script and
      reconciles its output. A unit held on an owner ruling runs its after pass on the
      held tree meanwhile; the ruling re-runs only the inputs its change touches. A ritual
      blocks only marking the PR ready for review — never a commit, a push or a dispatch.
