@@ -124,7 +124,8 @@ The plan names its models; this skill's defaults are the fallback.
    - A ritual command longer than a few minutes is started by the orchestrator in the
      background, and its exit notifies it: a subagent is not woken by its own background
      command, and a sleep loop past five minutes re-writes the poller's whole cache each
-     poll. No worker polls with `sleep`. While a ritual holds a resource the gate needs,
+     poll. No worker polls with `sleep`, and no worker backgrounds a command — what it
+     cannot wait out in the foreground belongs to the orchestrator. While a ritual holds a resource the gate needs,
    each active brief names the gate the resource permits and defers one full-gate
    firing to the ritual's end. A `sonnet` writes the ritual's script and
      reconciles its output. A unit held on an owner ruling runs its after pass on the
