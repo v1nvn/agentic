@@ -105,7 +105,10 @@ The plan names its models; this skill's defaults are the fallback.
      their dependents; a row that names none takes the repo's whole gate, and the whole
      gate runs at the group boundary either way. The full gate fires immediately before
      a commit that changes code it exercises, and the unit's scratch notes name every firing and
-     what it answered; a firing that answered nothing is a deviation. Iteration inside
+     what it answered; a firing that answered nothing is a deviation. A firing's log
+     answers every later question about it — re-running a suite to re-shape its output
+     is a firing that answered nothing, and a green full gate re-fires only for a
+     stated cause: a flake with the failure quoted, or changed code. Iteration inside
      a unit uses scoped commands only. Where builds are slow, ration every run to the
      narrowest scope that answers the question.
    - Any A/B ritual the plan names: record before, record after — both records go to
@@ -121,7 +124,9 @@ The plan names its models; this skill's defaults are the fallback.
    - A ritual command longer than a few minutes is started by the orchestrator in the
      background, and its exit notifies it: a subagent is not woken by its own background
      command, and a sleep loop past five minutes re-writes the poller's whole cache each
-     poll. No worker polls with `sleep`. A `sonnet` writes the ritual's script and
+     poll. No worker polls with `sleep`. While a ritual holds a resource the gate needs,
+   each active brief names the gate the resource permits and defers one full-gate
+   firing to the ritual's end. A `sonnet` writes the ritual's script and
      reconciles its output. A unit held on an owner ruling runs its after pass on the
      held tree meanwhile; the ruling re-runs only the inputs its change touches. A ritual
      blocks only marking the PR ready for review — never a commit, a push or a dispatch.
@@ -224,7 +229,9 @@ The plan names its models; this skill's defaults are the fallback.
    docs the gate does not test — runs the repo's fast checks and the enforcement
    script only; the full gate does not re-fire for it. A third means the unit
    is wrong — the orchestrator reads the specific finding, not the diff, and may
-   take §Models' fable rescue from there.
+   take §Models' fable rescue from there. A fix round is verified by one re-review
+   scoped to that round's findings; a re-review opens no new question — what it finds
+   is a pick under §Deviations, or stops the run.
 6. Route a reported deviation through Deviations. A pick inside the plan's named
    scope: pick it by CLAUDE.md and the plan's own law, write it into the owning
    section, ripple-check later sections in the same edit, note it for the veto table,
