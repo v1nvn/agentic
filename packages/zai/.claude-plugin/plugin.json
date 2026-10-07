@@ -1,7 +1,7 @@
 {
   "name": "zai",
   "description": "Query quota and usage statistics for GLM Coding Plan — zero-token /zai-usage.",
-  "version": "0.39.1",
+  "version": "0.39.2",
   "author": {
     "name": "v1nvn",
     "email": "v1n@outlook.com"

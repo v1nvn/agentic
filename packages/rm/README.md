@@ -22,8 +22,8 @@ claude plugin install rm@agentic
 In a terminal, last reply or a named file:
 
 ```sh
-npx -y @v1nvn/rm@0.39.1
-npx -y @v1nvn/rm@0.39.1 reply.md
+npx -y @v1nvn/rm@0.39.2
+npx -y @v1nvn/rm@0.39.2 reply.md
 ```
 
 ## Usage
@@ -31,8 +31,8 @@ npx -y @v1nvn/rm@0.39.1 reply.md
 | Invocation | Does |
 |---|---|
 | `/rm-send` | the previous assistant reply → EPUB on the device, one dim `Sent:` row |
-| `npx -y @v1nvn/rm@0.39.1` | the same beam, printed bare |
-| `npx -y @v1nvn/rm@0.39.1 reply.md` | that file instead of the last reply |
+| `npx -y @v1nvn/rm@0.39.2` | the same beam, printed bare |
+| `npx -y @v1nvn/rm@0.39.2 reply.md` | that file instead of the last reply |
 
 Needs `pandoc` locally and `ssh`/`scp` access to the device —
 `REMARKABLE_HOST`, default `remarkable`; the device directory is

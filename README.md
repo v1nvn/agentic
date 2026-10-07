@@ -41,10 +41,10 @@ Start Claude Code and run the command shown above for the plugin you installed.
 The four tool CLIs run outside Claude Code too:
 
 ```sh
-npx -y @v1nvn/zai@0.39.1        # GLM Coding Plan usage report
-npx -y @v1nvn/tokens@0.39.1     # token usage + cache hit rate from local transcripts
-npx -y @v1nvn/rm@0.39.1         # last reply → reMarkable (or a file: npx -y @v1nvn/rm@0.39.1 reply.md)
-npx -y @v1nvn/md@0.39.1         # last reply → Markdown-Viewer (--view for read-only; or a file: npx -y @v1nvn/md@0.39.1 reply.md)
+npx -y @v1nvn/zai@0.39.2        # GLM Coding Plan usage report
+npx -y @v1nvn/tokens@0.39.2     # token usage + cache hit rate from local transcripts
+npx -y @v1nvn/rm@0.39.2         # last reply → reMarkable (or a file: npx -y @v1nvn/rm@0.39.2 reply.md)
+npx -y @v1nvn/md@0.39.2         # last reply → Markdown-Viewer (--view for read-only; or a file: npx -y @v1nvn/md@0.39.2 reply.md)
 ```
 
 `rm` needs `pandoc` plus `ssh`/`scp` access to the device (`REMARKABLE_HOST`, default
@@ -59,13 +59,13 @@ as plain renders and offers the picker in chat — the agent writes the pick.
 In a terminal outside Claude Code, the wizard is the guide:
 
 ```sh
-npx -y @v1nvn/statusline@0.39.1 configure                          # the wizard — bare, on a TTY
-npx -y @v1nvn/statusline@0.39.1 configure --theme lean             # a theme write
-npx -y @v1nvn/statusline@0.39.1 configure --theme lean --bar gauge # a theme plus one swap
-npx -y @v1nvn/statusline@0.39.1 preview --theme rich --plain       # chat-safe sketch, nothing written
-npx -y @v1nvn/statusline@0.39.1 catalog                            # themes block, then one line per item
-npx -y @v1nvn/statusline@0.39.1 restore                            # both keys back to their pre-lab values
-npx -y @v1nvn/statusline@0.39.1 status                             # rows + verdict — exit 0 healthy, 1 needs action
+npx -y @v1nvn/statusline@0.39.2 configure                          # the wizard — bare, on a TTY
+npx -y @v1nvn/statusline@0.39.2 configure --theme lean             # a theme write
+npx -y @v1nvn/statusline@0.39.2 configure --theme lean --bar gauge # a theme plus one swap
+npx -y @v1nvn/statusline@0.39.2 preview --theme rich --plain       # chat-safe sketch, nothing written
+npx -y @v1nvn/statusline@0.39.2 catalog                            # themes block, then one line per item
+npx -y @v1nvn/statusline@0.39.2 restore                            # both keys back to their pre-lab values
+npx -y @v1nvn/statusline@0.39.2 status                             # rows + verdict — exit 0 healthy, 1 needs action
 ```
 
 `configure` is the sole writer: one run touches exactly the `statusLine` and
@@ -124,10 +124,10 @@ machine, after `claude plugin install statusline@agentic`
 
 Install: `claude plugin marketplace add v1nvn/agentic`, then
 `claude plugin install statusline@agentic`, then `/statusline:lab` in a session — or
-`npx -y @v1nvn/statusline@0.39.1 configure` in a terminal, where the wizard
+`npx -y @v1nvn/statusline@0.39.2 configure` in a terminal, where the wizard
 previews both surfaces at 80/120/200 columns and saves.
 
-Uninstall runs `npx -y @v1nvn/statusline@0.39.1 restore` first, then uninstalls
+Uninstall runs `npx -y @v1nvn/statusline@0.39.2 restore` first, then uninstalls
 the plugin: a plain uninstall deletes the data dir — `backup.json` and the
 resolver go with it — and the keys left behind point `node` at a file that is
 gone: a blank line at the next paint.
