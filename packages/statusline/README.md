@@ -88,7 +88,7 @@ Node ≥ 22. One workspace dep: `@v1nvn/agentic-core` (usage/exit helpers).
 | `src/render/argv.ts`                   | the renderer's argv grammar — `node:util` parseArgs, never commander                                         |
 | `src/render/theme.ts`                  | `resolvePaint` — the one theme resolution, shared by paint and display                                       |
 | `src/render/engine.ts`                 | the line engine — compose, `vlen`, the fit ladder                                                            |
-| `src/render/items.ts`                  | the item registry — 16 items, defaults, rungs, `DEFAULT_LAYOUT`                                              |
+| `src/render/items.ts`                  | the item registry — 17 items, defaults, rungs, `DEFAULT_LAYOUT`                                              |
 | `src/render/segments.ts`               | the per-item segment renderers                                                                               |
 | `src/render/payload.ts`                | the stdin payload types + parse                                                                              |
 | `src/render/git.ts`                    | the git reads                                                                                                |

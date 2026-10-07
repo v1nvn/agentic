@@ -185,7 +185,7 @@ describe('resolvePaint: the five themes carry their own table rows', () => {
     expect(full).not.toContain('$');
     expect(full).not.toContain('█');
     expect(full).not.toContain('░');
-    // The twelve `none` picks and effort's `hidden` render nothing, so the
+    // The thirteen `none` picks and effort's `hidden` render nothing, so the
     // full default layout collapses to exactly the two surviving items.
     expect(full).toBe(lineBytes('{model} {cwd}', resolved.picks));
   });

@@ -101,7 +101,7 @@ describe('configure: writes (contract 3)', () => {
 
   it('writes exactly the two settings keys, nothing else on disk', () => {
     const home = homes.newHome();
-    const layout = '{cwd branch} {model effort} {bar tokens cache}';
+    const layout = '{cwd branch} {model effort} {bar tokens cache-expiry}';
 
     configure({
       home,
@@ -109,7 +109,7 @@ describe('configure: writes (contract 3)', () => {
       variants: {
         bar: 'gauge',
         branch: 'last',
-        cache: 'fuse',
+        'cache-expiry': 'fuse',
         cwd: 'full',
         effort: 'dim',
         model: 'block',
@@ -125,7 +125,7 @@ describe('configure: writes (contract 3)', () => {
         '--branch=last',
         '--bar=gauge',
         '--tokens=compact',
-        '--cache=fuse',
+        '--cache-expiry=fuse',
       ]),
     );
     expect(settingsCommand(home, 'subagentStatusLine')).toBe(

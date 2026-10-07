@@ -28,6 +28,10 @@ import {
   type DemoHome,
 } from './runtime.js';
 
+// The until goldens hold a wall clock, so the corpus renders in one zone:
+// a golden must not move with the runner's timezone.
+process.env.TZ = 'UTC';
+
 type Loose = Record<string, unknown>;
 
 export interface CorpusCase {
@@ -100,13 +104,17 @@ export const CORPUS: readonly CorpusCase[] = [
     name: 'p1-coldin-warm',
     payload: 'p1',
     now: NOW_BEFORE_CACHE_EXPIRY,
-    picks: { cache: 'coldin' },
+    oracle: true,
+    layout: '{cache-expiry}',
+    picks: { 'cache-expiry': 'coldin' },
   },
   {
     name: 'p1-coldin-cold',
     payload: 'p1',
     now: NOW_AFTER_CACHE_EXPIRY,
-    picks: { cache: 'coldin' },
+    oracle: true,
+    layout: '{cache-expiry}',
+    picks: { 'cache-expiry': 'coldin' },
   },
   ...[0, 1, 50, 58.4, 95, 99, 100].map(
     (pct): CorpusCase => ({
@@ -170,8 +178,29 @@ export const CORPUS: readonly CorpusCase[] = [
       name: `ramp-fuse-${id}`,
       payload: 'p1',
       oracle: true,
-      layout: '{cache}',
-      picks: { cache: 'fuse' },
+      layout: '{cache-expiry}',
+      picks: { 'cache-expiry': 'fuse' },
+      mutate: payload => setFuse(payload, ttl, expiresIn),
+    }),
+  ),
+  ...(
+    [
+      ['5m-290', '5m', 290],
+      ['5m-76', '5m', 76],
+      ['5m-59', '5m', 59],
+      ['5m-0', '5m', 0],
+      ['gone', '1h', -86400],
+      ['1h-3500', '1h', 3500],
+      ['no-ttl', null, 0],
+      ['no-expires', '1h', null],
+    ] as const
+  ).map(
+    ([id, ttl, expiresIn]): CorpusCase => ({
+      name: `ramp-until-${id}`,
+      payload: 'p1',
+      oracle: true,
+      layout: '{cache-expiry}',
+      picks: { 'cache-expiry': 'until' },
       mutate: payload => setFuse(payload, ttl, expiresIn),
     }),
   ),
@@ -271,6 +300,7 @@ export const CORPUS: readonly CorpusCase[] = [
       ['bar', 'percent'],
       ['bar', 'flat6'],
       ['bar', 'flat4'],
+      ['cache-hit', 'plain'],
       ['tokens', 'compact'],
       ['tokens', 'free'],
       ['cost', 'burn'],
@@ -357,7 +387,8 @@ describe('the src/render door', () => {
   it('exposes the registry in paint order with the 3 inline rung shims', () => {
     expect(ITEMS.map(entry => entry.item)).toEqual([
       'model', 'effort', 'state', 'cwd', 'branch', 'status', 'ahead', 'pr',
-      'bar', 'tokens', 'cache', 'cost', 'duration', 'lines', 'rate', 'style',
+      'bar', 'tokens', 'cache-hit', 'cache-expiry', 'cost', 'duration',
+      'lines', 'rate', 'style',
     ]);
     const byItem = new Map(ITEMS.map(entry => [entry.item, entry]));
     for (const entry of ITEMS) {
@@ -371,7 +402,7 @@ describe('the src/render door', () => {
 
   it('carries the runtime DEFAULT_LAYOUT', () => {
     expect(DEFAULT_LAYOUT).toBe(
-      '{model effort state} {cwd branch status ahead pr} {bar tokens cache} {cost} {duration} {lines} {rate}',
+      '{model effort state} {cwd branch status ahead pr} {bar tokens cache-hit cache-expiry} {cost} {duration} {lines} {rate}',
     );
   });
 

@@ -137,9 +137,9 @@ describe('catalog: output (contract 2)', () => {
 
   it('stars follow the main key flags in settings.json', () => {
     const home = homes.newHome();
-    seedOursKey(home, null, '{model cache}', [
+    seedOursKey(home, null, '{model cache-hit}', [
       '--model=block',
-      '--cache=none',
+      '--cache-hit=none',
     ]);
 
     const out = catalog({ home });
@@ -147,7 +147,7 @@ describe('catalog: output (contract 2)', () => {
     expect(out.split('\n')).toEqual([
       ...expectedThemeLines(undefined),
       '',
-      ...expectedLines({ cache: 'none', model: 'block' }),
+      ...expectedLines({ 'cache-hit': 'none', model: 'block' }),
     ]);
   });
 

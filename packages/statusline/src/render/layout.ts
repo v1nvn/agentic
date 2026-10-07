@@ -35,7 +35,7 @@ export function parseClusters(layout: string): string[][] {
       } else if (word !== '') {
         throw new Error(`layout '${layout}': '${word}' sits outside a cluster`);
       }
-    } else if (/[a-z0-9]/.test(c)) {
+    } else if (/[a-z0-9-]/.test(c)) {
       word += c;
     } else {
       throw new Error(

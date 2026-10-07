@@ -120,7 +120,7 @@ function parseKeyFlags(flags: string): ScriptConfig {
   const values: Record<string, string> = {};
   let theme: string | undefined;
   for (const [, name, alt] of flags.matchAll(
-    /(?:^| )--([a-z][a-z0-9]*)=([a-z0-9]+)/g,
+    /(?:^| )--([a-z][a-z0-9-]*)=([a-z0-9]+)/g,
   )) {
     if (name === 'theme') {
       theme = alt;

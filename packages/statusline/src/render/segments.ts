@@ -375,15 +375,24 @@ function cacheHit({ row }: SegmentInput): string {
 }
 
 function cacheColdin({ now, row }: SegmentInput): string {
-  const hp = cacheHitPct(row);
-  if (hp === null) {
+  if (row.ttl === '' || row.expires === 0) {
     return '';
   }
   if (row.warm && row.expires > now) {
-    const mins = trunc((row.expires - now) / 60);
-    return `${cacheHCol(hp)}⚡${hp}%${RESET} ${DIM}· cold in ${mins}m${RESET}`;
+    return `${DIM}cold in ${trunc((row.expires - now) / 60)}m${RESET}`;
   }
-  return `❄ ${DIM}cold · ${hp}%${RESET}`;
+  return `${DIM}❄ cold${RESET}`;
+}
+
+function cacheUntil({ now, row }: SegmentInput): string {
+  if (row.ttl === '' || row.expires === 0) {
+    return '';
+  }
+  if (row.expires <= now) {
+    return `${RED}❄ cold${RESET}`;
+  }
+  const at = new Date(row.expires * 1000);
+  return `${DIM}til ${pad2(at.getHours())}:${pad2(at.getMinutes())}${RESET}`;
 }
 
 function cacheFuse({ now, row }: SegmentInput): string {
@@ -531,12 +540,13 @@ export const SEGMENTS: Readonly<
     last: branchLast,
     none: emptySegment,
   },
-  cache: {
+  'cache-expiry': {
     coldin: cacheColdin,
     fuse: cacheFuse,
-    hit: cacheHit,
     none: emptySegment,
+    until: cacheUntil,
   },
+  'cache-hit': { none: emptySegment, plain: cacheHit },
   cost: { burn: costBurn, none: emptySegment, plain: costPlain },
   cwd: {
     base: cwdBase,

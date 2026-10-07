@@ -4,7 +4,7 @@ export interface ItemSpec {
   readonly item: string;
 }
 
-// The one item registry, shared by the renderer and the CLI: 16 items in
+// The one item registry, shared by the renderer and the CLI: 17 items in
 // paint order, including the three rungs no component header ever declared
 // (branch=none, bar=flat6, bar=flat4).
 export const ITEMS: readonly ItemSpec[] = [
@@ -47,9 +47,14 @@ export const ITEMS: readonly ItemSpec[] = [
     item: 'tokens',
   },
   {
-    alternatives: ['hit', 'coldin', 'fuse', 'none'],
-    default: 'hit',
-    item: 'cache',
+    alternatives: ['plain', 'none'],
+    default: 'plain',
+    item: 'cache-hit',
+  },
+  {
+    alternatives: ['coldin', 'fuse', 'until', 'none'],
+    default: 'none',
+    item: 'cache-expiry',
   },
   { alternatives: ['plain', 'burn', 'none'], default: 'plain', item: 'cost' },
   {
@@ -67,7 +72,7 @@ export const ITEMS: readonly ItemSpec[] = [
 ];
 
 export const DEFAULT_LAYOUT =
-  '{model effort state} {cwd branch status ahead pr} {bar tokens cache} {cost} {duration} {lines} {rate}';
+  '{model effort state} {cwd branch status ahead pr} {bar tokens cache-hit cache-expiry} {cost} {duration} {lines} {rate}';
 
 // The registry's lookup door — every module that asks "is this item known,
 // is this alt offered" comes through here, never a Map of its own.
@@ -86,7 +91,8 @@ export const RUNG_ORDERS: Readonly<Partial<Record<string, readonly string[]>>> =
   {
     bar: ['flat', 'flat6', 'flat4', 'percent', 'none'],
     branch: ['icon', 'full', 'initials', 'last', 'none'],
-    cache: ['hit', 'coldin', 'none'],
+    'cache-expiry': ['coldin', 'fuse', 'until', 'none'],
+    'cache-hit': ['plain', 'none'],
     cwd: ['icon', 'full', 'init', 'tail', 'base'],
     duration: ['clock', 'hours', 'none'],
     effort: ['plain', 'dim', 'hidden'],
@@ -98,7 +104,7 @@ export type FitStep = readonly [item: string, alt: string];
 
 export const FULL_STEPS: readonly FitStep[] = [
   ['duration', 'none'],
-  ['cache', 'none'],
+  ['cache-expiry', 'none'],
   ['tokens', 'compact'],
   ['bar', 'flat6'],
   ['status', 'none'],
@@ -112,6 +118,7 @@ export const FULL_STEPS: readonly FitStep[] = [
   ['cwd', 'tail'],
   ['effort', 'hidden'],
   ['cwd', 'base'],
+  ['cache-hit', 'none'],
   ['tokens', 'none'],
 ];
 
@@ -129,10 +136,11 @@ export const L1_STEPS: readonly FitStep[] = [
 
 export const L2_STEPS: readonly FitStep[] = [
   ['duration', 'none'],
-  ['cache', 'none'],
+  ['cache-expiry', 'none'],
   ['tokens', 'compact'],
   ['bar', 'flat6'],
   ['bar', 'flat4'],
   ['tokens', 'none'],
+  ['cache-hit', 'none'],
   ['bar', 'percent'],
 ];

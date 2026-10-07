@@ -116,7 +116,7 @@ describe('configure: quoting closure (ruling 1)', () => {
     const home = homes.newHome();
 
     for (const { alternatives, default: def, item } of ITEMS) {
-      expect(item, `item id '${item}'`).toMatch(/^[a-z0-9]+$/);
+      expect(item, `item id '${item}'`).toMatch(/^[a-z0-9-]+$/);
       for (const alt of alternatives) {
         expect(alt, `variant '${item}=${alt}'`).toMatch(/^[a-z0-9]+$/);
 

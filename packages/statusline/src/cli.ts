@@ -140,6 +140,12 @@ export function subcommandHelp(name: Subcommand): string {
   return command.helpInformation();
 }
 
+// Commander camel-cases a hyphenated long flag: --cache-hit lands on
+// options.cacheHit, never options['cache-hit'].
+function optFor(options: SubcommandOptions, item: string): unknown {
+  return options[item.replace(/-([a-z])/g, (_, c: string) => c.toUpperCase())];
+}
+
 export function parseArgs(args: readonly string[]): ParsedArgs | undefined {
   let chosen:
     | undefined
@@ -165,7 +171,7 @@ export function parseArgs(args: readonly string[]): ParsedArgs | undefined {
   }
   const options = chosen.options;
   if (chosen.command === 'catalog') {
-    const items = ITEM_IDS.filter(item => options[item] === true);
+    const items = ITEM_IDS.filter(item => optFor(options, item) === true);
     return {
       version: false,
       command: 'catalog',
@@ -196,8 +202,9 @@ export function parseArgs(args: readonly string[]): ParsedArgs | undefined {
   }
   const variants: Record<string, string> = {};
   for (const item of ITEM_IDS) {
-    if (typeof options[item] === 'string') {
-      variants[item] = options[item];
+    const alt = optFor(options, item);
+    if (typeof alt === 'string') {
+      variants[item] = alt;
     }
   }
   const common = {

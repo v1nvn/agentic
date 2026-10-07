@@ -93,14 +93,19 @@ var ITEMS = [
 		item: "tokens"
 	},
 	{
+		alternatives: ["plain", "none"],
+		default: "plain",
+		item: "cache-hit"
+	},
+	{
 		alternatives: [
-			"hit",
 			"coldin",
 			"fuse",
+			"until",
 			"none"
 		],
-		default: "hit",
-		item: "cache"
+		default: "none",
+		item: "cache-expiry"
 	},
 	{
 		alternatives: [
@@ -141,7 +146,7 @@ var ITEMS = [
 		item: "style"
 	}
 ];
-var DEFAULT_LAYOUT = "{model effort state} {cwd branch status ahead pr} {bar tokens cache} {cost} {duration} {lines} {rate}";
+var DEFAULT_LAYOUT = "{model effort state} {cwd branch status ahead pr} {bar tokens cache-hit cache-expiry} {cost} {duration} {lines} {rate}";
 var BY_ITEM = new Map(ITEMS.map((spec) => [spec.item, spec]));
 function specFor(item) {
 	return BY_ITEM.get(item);
@@ -163,11 +168,13 @@ var RUNG_ORDERS = {
 		"last",
 		"none"
 	],
-	cache: [
-		"hit",
+	"cache-expiry": [
 		"coldin",
+		"fuse",
+		"until",
 		"none"
 	],
+	"cache-hit": ["plain", "none"],
 	cwd: [
 		"icon",
 		"full",
@@ -199,7 +206,7 @@ var RUNG_ORDERS = {
 };
 var FULL_STEPS = [
 	["duration", "none"],
-	["cache", "none"],
+	["cache-expiry", "none"],
 	["tokens", "compact"],
 	["bar", "flat6"],
 	["status", "none"],
@@ -213,6 +220,7 @@ var FULL_STEPS = [
 	["cwd", "tail"],
 	["effort", "hidden"],
 	["cwd", "base"],
+	["cache-hit", "none"],
 	["tokens", "none"]
 ];
 var L1_STEPS = [
@@ -228,11 +236,12 @@ var L1_STEPS = [
 ];
 var L2_STEPS = [
 	["duration", "none"],
-	["cache", "none"],
+	["cache-expiry", "none"],
 	["tokens", "compact"],
 	["bar", "flat6"],
 	["bar", "flat4"],
 	["tokens", "none"],
+	["cache-hit", "none"],
 	["bar", "percent"]
 ];
 //#endregion
@@ -412,7 +421,7 @@ function parseClusters(layout) {
 	} else if (c === " ") {
 		if (open) pushWord();
 		else if (word !== "") throw new Error(`layout '${layout}': '${word}' sits outside a cluster`);
-	} else if (/[a-z0-9]/.test(c)) word += c;
+	} else if (/[a-z0-9-]/.test(c)) word += c;
 	else throw new Error(`layout '${layout}': '${c}' is not layout grammar (braces, item ids, spaces)`);
 	if (open) throw new Error(`layout '${layout}': unterminated cluster`);
 	if (word !== "") throw new Error(`layout '${layout}': '${word}' sits outside a cluster`);
@@ -829,13 +838,15 @@ function cacheHit({ row }) {
 	return hp === null ? "" : `${cacheHCol(hp)}⚡${hp}%${RESET$1}`;
 }
 function cacheColdin({ now, row }) {
-	const hp = cacheHitPct(row);
-	if (hp === null) return "";
-	if (row.warm && row.expires > now) {
-		const mins = trunc((row.expires - now) / 60);
-		return `${cacheHCol(hp)}⚡${hp}%${RESET$1} ${DIM}· cold in ${mins}m${RESET$1}`;
-	}
-	return `❄ ${DIM}cold · ${hp}%${RESET$1}`;
+	if (row.ttl === "" || row.expires === 0) return "";
+	if (row.warm && row.expires > now) return `${DIM}cold in ${trunc((row.expires - now) / 60)}m${RESET$1}`;
+	return `${DIM}❄ cold${RESET$1}`;
+}
+function cacheUntil({ now, row }) {
+	if (row.ttl === "" || row.expires === 0) return "";
+	if (row.expires <= now) return `${RED$1}❄ cold${RESET$1}`;
+	const at = /* @__PURE__ */ new Date(row.expires * 1e3);
+	return `${DIM}til ${pad2(at.getHours())}:${pad2(at.getMinutes())}${RESET$1}`;
 }
 function cacheFuse({ now, row }) {
 	if (row.ttl === "" || row.expires === 0) return "";
@@ -936,11 +947,15 @@ var SEGMENTS = {
 		last: branchLast,
 		none: emptySegment
 	},
-	cache: {
+	"cache-expiry": {
 		coldin: cacheColdin,
 		fuse: cacheFuse,
-		hit: cacheHit,
-		none: emptySegment
+		none: emptySegment,
+		until: cacheUntil
+	},
+	"cache-hit": {
+		none: emptySegment,
+		plain: cacheHit
 	},
 	cost: {
 		burn: costBurn,
@@ -1078,7 +1093,7 @@ function renderStatusline(input) {
 	const git = readGit(row.dir, { home: input.home });
 	const picks = resolvePicks(input.picks);
 	const { join, sep } = styleSeparators(picks.style);
-	const clusters = parseLayout(input.layout ?? "{model effort state} {cwd branch status ahead pr} {bar tokens cache} {cost} {duration} {lines} {rate}", new Set(ITEMS.map((spec) => spec.item)));
+	const clusters = parseLayout(input.layout ?? "{model effort state} {cwd branch status ahead pr} {bar tokens cache-hit cache-expiry} {cost} {duration} {lines} {rate}", new Set(ITEMS.map((spec) => spec.item)));
 	const wrapAt = clusters.length > 2 ? 2 : 1;
 	let width = input.columns;
 	if (width === void 0 || !Number.isInteger(width) || width < 0) width = 200;
@@ -1339,7 +1354,8 @@ var THEMES = {
 			pr: "badge",
 			bar: "percent",
 			tokens: "full",
-			cache: "hit",
+			"cache-hit": "plain",
+			"cache-expiry": "none",
 			cost: "plain",
 			duration: "clock",
 			lines: "diffstat",
@@ -1361,7 +1377,8 @@ var THEMES = {
 			pr: "badge",
 			bar: "gauge",
 			tokens: "full",
-			cache: "fuse",
+			"cache-hit": "none",
+			"cache-expiry": "fuse",
 			cost: "burn",
 			duration: "clock",
 			lines: "diffstat",
@@ -1383,7 +1400,8 @@ var THEMES = {
 			pr: "none",
 			bar: "none",
 			tokens: "none",
-			cache: "none",
+			"cache-hit": "none",
+			"cache-expiry": "none",
 			cost: "none",
 			duration: "none",
 			lines: "none",
@@ -1399,7 +1417,7 @@ function resolvePaint(input) {
 	const theme = name === void 0 ? void 0 : THEMES[name];
 	if (name !== void 0 && theme === void 0) warn(`statusline: theme=${name} is not a known theme, ignored`);
 	return {
-		layout: input.layout ?? theme?.layout ?? "{model effort state} {cwd branch status ahead pr} {bar tokens cache} {cost} {duration} {lines} {rate}",
+		layout: input.layout ?? theme?.layout ?? "{model effort state} {cwd branch status ahead pr} {bar tokens cache-hit cache-expiry} {cost} {duration} {lines} {rate}",
 		picks: {
 			...theme?.variants ?? {},
 			...input.picks
