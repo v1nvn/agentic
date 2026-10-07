@@ -7,8 +7,10 @@ import { fileURLToPath } from 'node:url';
 import { materializeDemoRepo } from '../src/demo-repo.js';
 import { renderStatusline } from '../src/render/engine.js';
 
-// 2026-09-08T12:20:00Z — after every fixture's cache expiry, inert under the
-// default config (no default-picked segment reads NOW).
+// 2026-09-08T12:20:00Z — after every fixture's cache expiry, so the
+// default-picked cache-expiry=until renders each fixture's own past time on
+// the default goldens; the warm states live in the NOW_BEFORE_CACHE_EXPIRY
+// corpus cases.
 export const DEFAULT_NOW = '1788870000';
 export const NOW_BEFORE_CACHE_EXPIRY = '1788869000';
 export const NOW_AFTER_CACHE_EXPIRY = '1788869200';

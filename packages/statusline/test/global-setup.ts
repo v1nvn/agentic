@@ -10,6 +10,10 @@ import { BUNDLED_RENDERER, BUNDLED_RESOLVER } from '../src/configure.js';
 // still emits no render.mjs fails here naming it; a missing resolver.mjs
 // fails inside syncResolver on first use, naming its own path.
 export default function setup(): void {
+  // The until goldens hold a wall clock: every suite renders in one zone, so
+  // a golden never moves with the runner's timezone. Workers fork after this
+  // and inherit it.
+  process.env.TZ = 'UTC';
   if (existsSync(BUNDLED_RENDERER) && existsSync(BUNDLED_RESOLVER)) {
     return;
   }

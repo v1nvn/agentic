@@ -104,7 +104,7 @@ var ITEMS = [
 			"until",
 			"none"
 		],
-		default: "none",
+		default: "until",
 		item: "cache-expiry"
 	},
 	{
@@ -146,7 +146,7 @@ var ITEMS = [
 		item: "style"
 	}
 ];
-var DEFAULT_LAYOUT = "{model effort state} {cwd branch status ahead pr} {bar tokens cache-hit cache-expiry} {cost} {duration} {lines} {rate}";
+var DEFAULT_LAYOUT = "{model effort state} {cwd branch status ahead pr} {bar tokens} {cache-hit cache-expiry} {cost} {duration} {lines} {rate}";
 var BY_ITEM = new Map(ITEMS.map((spec) => [spec.item, spec]));
 function specFor(item) {
 	return BY_ITEM.get(item);
@@ -842,9 +842,8 @@ function cacheColdin({ now, row }) {
 	if (row.warm && row.expires > now) return `${DIM}cold in ${trunc((row.expires - now) / 60)}m${RESET$1}`;
 	return `${DIM}❄ cold${RESET$1}`;
 }
-function cacheUntil({ now, row }) {
+function cacheUntil({ row }) {
 	if (row.ttl === "" || row.expires === 0) return "";
-	if (row.expires <= now) return `${RED$1}❄ cold${RESET$1}`;
 	const at = /* @__PURE__ */ new Date(row.expires * 1e3);
 	return `${DIM}til ${pad2(at.getHours())}:${pad2(at.getMinutes())}${RESET$1}`;
 }
@@ -1093,7 +1092,7 @@ function renderStatusline(input) {
 	const git = readGit(row.dir, { home: input.home });
 	const picks = resolvePicks(input.picks);
 	const { join, sep } = styleSeparators(picks.style);
-	const clusters = parseLayout(input.layout ?? "{model effort state} {cwd branch status ahead pr} {bar tokens cache-hit cache-expiry} {cost} {duration} {lines} {rate}", new Set(ITEMS.map((spec) => spec.item)));
+	const clusters = parseLayout(input.layout ?? "{model effort state} {cwd branch status ahead pr} {bar tokens} {cache-hit cache-expiry} {cost} {duration} {lines} {rate}", new Set(ITEMS.map((spec) => spec.item)));
 	const wrapAt = clusters.length > 2 ? 2 : 1;
 	let width = input.columns;
 	if (width === void 0 || !Number.isInteger(width) || width < 0) width = 200;
@@ -1417,7 +1416,7 @@ function resolvePaint(input) {
 	const theme = name === void 0 ? void 0 : THEMES[name];
 	if (name !== void 0 && theme === void 0) warn(`statusline: theme=${name} is not a known theme, ignored`);
 	return {
-		layout: input.layout ?? theme?.layout ?? "{model effort state} {cwd branch status ahead pr} {bar tokens cache-hit cache-expiry} {cost} {duration} {lines} {rate}",
+		layout: input.layout ?? theme?.layout ?? "{model effort state} {cwd branch status ahead pr} {bar tokens} {cache-hit cache-expiry} {cost} {duration} {lines} {rate}",
 		picks: {
 			...theme?.variants ?? {},
 			...input.picks

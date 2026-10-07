@@ -384,12 +384,9 @@ function cacheColdin({ now, row }: SegmentInput): string {
   return `${DIM}❄ cold${RESET}`;
 }
 
-function cacheUntil({ now, row }: SegmentInput): string {
+function cacheUntil({ row }: SegmentInput): string {
   if (row.ttl === '' || row.expires === 0) {
     return '';
-  }
-  if (row.expires <= now) {
-    return `${RED}❄ cold${RESET}`;
   }
   const at = new Date(row.expires * 1000);
   return `${DIM}til ${pad2(at.getHours())}:${pad2(at.getMinutes())}${RESET}`;

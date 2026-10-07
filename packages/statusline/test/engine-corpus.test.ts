@@ -28,10 +28,6 @@ import {
   type DemoHome,
 } from './runtime.js';
 
-// The until goldens hold a wall clock, so the corpus renders in one zone:
-// a golden must not move with the runner's timezone.
-process.env.TZ = 'UTC';
-
 type Loose = Record<string, unknown>;
 
 export interface CorpusCase {
@@ -402,7 +398,7 @@ describe('the src/render door', () => {
 
   it('carries the runtime DEFAULT_LAYOUT', () => {
     expect(DEFAULT_LAYOUT).toBe(
-      '{model effort state} {cwd branch status ahead pr} {bar tokens cache-hit cache-expiry} {cost} {duration} {lines} {rate}',
+      '{model effort state} {cwd branch status ahead pr} {bar tokens} {cache-hit cache-expiry} {cost} {duration} {lines} {rate}',
     );
   });
 

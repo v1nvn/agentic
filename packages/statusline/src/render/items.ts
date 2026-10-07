@@ -53,7 +53,7 @@ export const ITEMS: readonly ItemSpec[] = [
   },
   {
     alternatives: ['coldin', 'fuse', 'until', 'none'],
-    default: 'none',
+    default: 'until',
     item: 'cache-expiry',
   },
   { alternatives: ['plain', 'burn', 'none'], default: 'plain', item: 'cost' },
@@ -72,7 +72,7 @@ export const ITEMS: readonly ItemSpec[] = [
 ];
 
 export const DEFAULT_LAYOUT =
-  '{model effort state} {cwd branch status ahead pr} {bar tokens cache-hit cache-expiry} {cost} {duration} {lines} {rate}';
+  '{model effort state} {cwd branch status ahead pr} {bar tokens} {cache-hit cache-expiry} {cost} {duration} {lines} {rate}';
 
 // The registry's lookup door — every module that asks "is this item known,
 // is this alt offered" comes through here, never a Map of its own.
