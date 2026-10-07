@@ -152,7 +152,7 @@ function specFor(item) {
 	return BY_ITEM.get(item);
 }
 ITEMS.map((spec) => spec.item);
-Object.fromEntries(ITEMS.map(({ default: alt, item }) => [item, alt]));
+var DEFAULT_PICKS = Object.fromEntries(ITEMS.map(({ default: alt, item }) => [item, alt]));
 var RUNG_ORDERS = {
 	bar: [
 		"flat",
@@ -569,13 +569,13 @@ function fmtM(n) {
 //#endregion
 //#region src/render/segments.ts
 var BLUE = "\x1B[34m";
-var CYAN$1 = "\x1B[36m";
+var CYAN = "\x1B[36m";
 var DIM = "\x1B[2m";
-var GREEN$1 = "\x1B[32m";
+var GREEN = "\x1B[32m";
 var PURPLE = "\x1B[35m";
-var RED$1 = "\x1B[31m";
-var RESET$1 = "\x1B[0m";
-var YELLOW$1 = "\x1B[33m";
+var RED = "\x1B[31m";
+var RESET = "\x1B[0m";
+var YELLOW = "\x1B[33m";
 var BOLD = "\x1B[1m";
 var GRAY = "\x1B[38;2;68;71;90m";
 var MARK = "\x1B[1;97m";
@@ -622,7 +622,7 @@ function trunc(n) {
 	return Math.trunc(n);
 }
 function modelPlain({ model }) {
-	return model === "" ? "" : `${CYAN$1}${model}${RESET$1}`;
+	return model === "" ? "" : `${CYAN}${model}${RESET}`;
 }
 function modelBlock({ model }) {
 	return model === "" ? "" : `\x1b[48;5;61m\x1b[38;5;231m ${model} \x1b[0m`;
@@ -631,13 +631,13 @@ function modelPill({ model }) {
 	return model === "" ? "" : `\x1b[48;5;61m\x1b[38;5;231m\u{e0b6} ${model} \u{e0b4}\x1b[0m`;
 }
 function modelZen({ model }) {
-	return model === "" ? "" : `${DIM}${model.replace(/[A-Z]/g, (c) => c.toLowerCase())}${RESET$1}`;
+	return model === "" ? "" : `${DIM}${model.replace(/[A-Z]/g, (c) => c.toLowerCase())}${RESET}`;
 }
 function effortPlain({ row }) {
-	return row.effort === "" ? "" : `${CYAN$1}${row.effort}${RESET$1}`;
+	return row.effort === "" ? "" : `${CYAN}${row.effort}${RESET}`;
 }
 function effortDim({ row }) {
-	return row.effort === "" ? "" : `${DIM}${row.effort}${RESET$1}`;
+	return row.effort === "" ? "" : `${DIM}${row.effort}${RESET}`;
 }
 function statePill(label, bg, fg) {
 	return `\x1b[48;5;${bg}m\x1b[38;5;${fg}m\u{e0b6} ${label} \u{e0b4}\x1b[0m`;
@@ -720,8 +720,8 @@ function branchIcon({ git }) {
 function statusCounts({ git }) {
 	if (git.branch === "") return "";
 	let c = "";
-	if (git.staged > 0) c = `${GREEN$1}+${git.staged}${RESET$1}`;
-	if (git.modified > 0) c = `${c} ${YELLOW$1}~${git.modified}${RESET$1}`;
+	if (git.staged > 0) c = `${GREEN}+${git.staged}${RESET}`;
+	if (git.modified > 0) c = `${c} ${YELLOW}~${git.modified}${RESET}`;
 	return c;
 }
 function statusIcons({ git }) {
@@ -729,24 +729,24 @@ function statusIcons({ git }) {
 	let out = "";
 	let sep = "";
 	if (git.staged > 0) {
-		out += `${GREEN$1}●${git.staged}${RESET$1}`;
+		out += `${GREEN}●${git.staged}${RESET}`;
 		sep = " ";
 	}
 	if (git.modified > 0) {
-		out += `${sep}${YELLOW$1}✎${git.modified}${RESET$1}`;
+		out += `${sep}${YELLOW}✎${git.modified}${RESET}`;
 		sep = " ";
 	}
 	if (git.untracked > 0) {
-		out += `${sep}${CYAN$1}+${git.untracked}${RESET$1}`;
+		out += `${sep}${CYAN}+${git.untracked}${RESET}`;
 		sep = " ";
 	}
-	if (git.stashes > 0) out += `${sep}${PURPLE}⚑${git.stashes}${RESET$1}`;
+	if (git.stashes > 0) out += `${sep}${PURPLE}⚑${git.stashes}${RESET}`;
 	return out;
 }
 function aheadArrows({ git }) {
 	let out = "";
-	if (git.ahead > 0) out = `${GREEN$1}↑${git.ahead}${RESET$1}`;
-	if (git.behind > 0) out += ` ${RED$1}↓${git.behind}${RESET$1}`;
+	if (git.ahead > 0) out = `${GREEN}↑${git.ahead}${RESET}`;
+	if (git.behind > 0) out += ` ${RED}↓${git.behind}${RESET}`;
 	return out;
 }
 function prBadge({ row }) {
@@ -755,29 +755,29 @@ function prBadge({ row }) {
 	let mark;
 	switch (row.prs) {
 		case "approved":
-			col = GREEN$1;
+			col = GREEN;
 			mark = "✓";
 			break;
 		case "changes_requested":
-			col = RED$1;
+			col = RED;
 			mark = "✗";
 			break;
 		case "pending":
-			col = YELLOW$1;
+			col = YELLOW;
 			mark = "⏳";
 			break;
 		default:
 			col = "\x1B[90m";
 			mark = "◌";
 	}
-	return `${BLUE}#${row.prn}${RESET$1} ${col}${mark} ${row.prs}${RESET$1}`;
+	return `${BLUE}#${row.prn}${RESET} ${col}${mark} ${row.prs}${RESET}`;
 }
 function barFlatAt(input, w) {
 	const pct = input.row.pct;
 	let f = trunc(pct * w / 100);
 	if (f > w) f = w;
 	if (pct > 0 && f === 0) f = 1;
-	return `${pct >= 90 ? RED$1 : pct >= 70 ? YELLOW$1 : GREEN$1}${"█".repeat(f)}${"░".repeat(w - f)}${RESET$1}`;
+	return `${pct >= 90 ? RED : pct >= 70 ? YELLOW : GREEN}${"█".repeat(f)}${"░".repeat(w - f)}${RESET}`;
 }
 function barFlat(input) {
 	return barFlatAt(input, 10);
@@ -811,7 +811,7 @@ function barGauge({ row }) {
 		}
 		bar += `${col}${cell}`;
 	}
-	return `${moon} ${lead}${bar}${RESET$1} ${MARK}${pct}%${RESET$1}`;
+	return `${moon} ${lead}${bar}${RESET} ${MARK}${pct}%${RESET}`;
 }
 function tokensFull({ row }) {
 	const t = row.tokens >= 1e3 ? fmtK(row.tokens, 1) : String(row.tokens);
@@ -825,50 +825,50 @@ function tokensCompact({ row }) {
 }
 function tokensFree({ row }) {
 	const free = row.ctxSize - row.tokens;
-	return `${DIM}${free >= 1e3 ? fmtK(free, 0) : String(free)} free${RESET$1}`;
+	return `${DIM}${free >= 1e3 ? fmtK(free, 0) : String(free)} free${RESET}`;
 }
 function cacheHitPct(row) {
 	return row.hit === null ? null : trunc(row.hit * 100);
 }
 function cacheHCol(hp) {
-	return hp >= 90 ? GREEN$1 : hp >= 50 ? YELLOW$1 : RED$1;
+	return hp >= 90 ? GREEN : hp >= 50 ? YELLOW : RED;
 }
 function cacheHit({ row }) {
 	const hp = cacheHitPct(row);
-	return hp === null ? "" : `${cacheHCol(hp)}⚡${hp}%${RESET$1}`;
+	return hp === null ? "" : `${cacheHCol(hp)}⚡${hp}%${RESET}`;
 }
 function cacheColdin({ now, row }) {
 	if (row.ttl === "" || row.expires === 0) return "";
-	if (row.warm && row.expires > now) return `${DIM}cold in ${trunc((row.expires - now) / 60)}m${RESET$1}`;
-	return `${DIM}❄ cold${RESET$1}`;
+	if (row.warm && row.expires > now) return `${DIM}cold in ${trunc((row.expires - now) / 60)}m${RESET}`;
+	return `${DIM}❄ cold${RESET}`;
 }
 function cacheUntil({ row }) {
 	if (row.ttl === "" || row.expires === 0) return "";
 	const at = /* @__PURE__ */ new Date(row.expires * 1e3);
-	return `${DIM}${pad2(at.getHours())}:${pad2(at.getMinutes())}${RESET$1}`;
+	return `${DIM}${pad2(at.getHours())}:${pad2(at.getMinutes())}${RESET}`;
 }
 function cacheFuse({ now, row }) {
 	if (row.ttl === "" || row.expires === 0) return "";
 	const span = row.ttl === "1h" ? 3600 : 300;
 	let left = row.expires - now;
 	if (left < 0) left = 0;
-	if (left <= 0) return `${RED$1}❄ cold${RESET$1}`;
+	if (left <= 0) return `${RED}❄ cold${RESET}`;
 	const full = trunc(left * 10 / span);
 	const rem = left * 10 % span;
-	let bar = left * 4 > span ? GREEN$1 : left * 25 > span * 2 ? YELLOW$1 : RED$1;
+	let bar = left * 4 > span ? GREEN : left * 25 > span * 2 ? YELLOW : RED;
 	for (let i = 0; i < 10; i++) if (i < full) bar += "▰";
 	else if (i === full && rem * 20 > span) bar += PART[trunc(rem * 8 / span)];
 	else bar += `${DIM}▱`;
-	return `${bar}${RESET$1} ${DIM}${pad2(trunc(left / 60))}:${pad2(left % 60)}${RESET$1}`;
+	return `${bar}${RESET} ${DIM}${pad2(trunc(left / 60))}:${pad2(left % 60)}${RESET}`;
 }
 function costPlain({ row }) {
-	return row.cost >= .005 ? `${YELLOW$1}$${fmtFixed(row.cost, 2)}${RESET$1}` : "";
+	return row.cost >= .005 ? `${YELLOW}$${fmtFixed(row.cost, 2)}${RESET}` : "";
 }
 function costBurn(input) {
 	const hr = input.row.durationMs / 36e5;
 	const burn = hr > .02 ? fmtFixed(input.row.cost / hr, 2) : "0";
 	let out = costPlain(input);
-	if (burn !== "0.00") out += ` ${DIM}· $${burn}/hr${RESET$1}`;
+	if (burn !== "0.00") out += ` ${DIM}· $${burn}/hr${RESET}`;
 	return out;
 }
 function durationClock({ row }) {
@@ -881,7 +881,7 @@ function durationHours({ row }) {
 }
 function linesDiffstat({ row }) {
 	if (row.la <= 0 && row.lr <= 0) return "";
-	return `${GREEN$1}+${row.la}${RESET$1}${DIM}/${RESET$1}${RED$1}−${row.lr}${RESET$1}`;
+	return `${GREEN}+${row.la}${RESET}${DIM}/${RESET}${RED}−${row.lr}${RESET}`;
 }
 function rateStrip({ now, row }) {
 	const segs = [];
@@ -895,7 +895,7 @@ function rateStrip({ now, row }) {
 		}
 		const intp = Number(intpText);
 		const value = intp * scale + f;
-		const col = value < 70 * scale ? GREEN$1 : value < 90 * scale ? YELLOW$1 : RED$1;
+		const col = value < 70 * scale ? GREEN : value < 90 * scale ? YELLOW : RED;
 		const full = trunc(value * 14 / (100 * scale));
 		const idx = trunc(value * 14 % (100 * scale) * 8 / (100 * scale));
 		let bar = col;
@@ -910,9 +910,9 @@ function rateStrip({ now, row }) {
 			const sec = (s % 60 + 60) % 60;
 			dur = `${trunc((s - sec) / 60)}m${pad2(sec)}s`;
 		}
-		segs.push(`${DIM}${limit.label}${RESET$1} ${bar}${RESET$1} ${BOLD}${lbl}%${RESET$1} ${DIM}· resets ${dur}${RESET$1}`);
+		segs.push(`${DIM}${limit.label}${RESET} ${bar}${RESET} ${BOLD}${lbl}%${RESET} ${DIM}· resets ${dur}${RESET}`);
 	}
-	return segs.join(`  ${DIM}│${RESET$1}  `);
+	return segs.join(`  ${DIM}│${RESET}  `);
 }
 function emptySegment() {
 	return "";
@@ -1024,7 +1024,7 @@ function styleSeparators(alt) {
 		};
 		case "dim": return {
 			join: " ",
-			sep: `${DIM} │ ${RESET$1}`
+			sep: `${DIM} │ ${RESET}`
 		};
 		case "dots": return {
 			join: " · ",
@@ -1173,22 +1173,28 @@ function renderStatusline(input) {
 }
 //#endregion
 //#region src/render/panel.ts
-var CYAN = "\x1B[36m";
-var GREEN = "\x1B[32m";
-var RED = "\x1B[31m";
-var RESET = "\x1B[0m";
-var YELLOW = "\x1B[33m";
 var MS_THRESHOLD = 2e11;
-var STEPS = [
-	["descd", 1],
-	["durd", 1],
-	["statd", 1],
-	["barb", 6],
-	["modeld", 1],
-	["barb", 4],
-	["barb", 0],
-	["modeld", 2],
-	["statd", 2]
+var TASK_ITEMS = [
+	"state",
+	"model",
+	"effort",
+	"bar",
+	"tokens",
+	"duration"
+];
+var PANEL_STEPS = [
+	["desc", "drop"],
+	["duration", "none"],
+	["tokens", "compact"],
+	["bar", "flat"],
+	["bar", "flat6"],
+	["model", "strip"],
+	["bar", "flat4"],
+	["state", "none"],
+	["effort", "hidden"],
+	["tokens", "none"],
+	["bar", "percent"],
+	["bar", "none"]
 ];
 function field(source, key, fallback) {
 	return orElse(source[key], fallback);
@@ -1202,17 +1208,6 @@ function truncateDesc(desc) {
 }
 function intValue(text) {
 	return /^-?\d+$/.test(text) ? Number(text) : null;
-}
-function stylePick(picks) {
-	const spec = specFor("style");
-	if (spec === void 0) return "plain";
-	const wanted = picks?.style ?? "";
-	const alt = wanted === "" ? spec.default : wanted;
-	if (!spec.alternatives.includes(alt)) {
-		warn(`statusline: style=${alt} is not available, using style=${spec.default}`);
-		return spec.default;
-	}
-	return alt;
 }
 function availColumns(tick) {
 	const text = jqText(isRecord(tick) ? field(tick, "columns", 200) : 200);
@@ -1229,76 +1224,91 @@ function extractFields(task) {
 		model: cell(field(task, "model", "")),
 		name: cell(field(task, "name", "")),
 		start: cell(field(task, "startTime", 0)),
+		status: cell(field(task, "status", "")),
 		tokens: cell(field(task, "tokenCount", 0))
 	};
 }
-function makeBar(pct, width) {
-	let f = Math.trunc(pct * width / 100);
-	if (f > width) f = width;
-	let bar = "";
-	for (let i = 0; i < width; i++) bar += i < f ? "█" : "░";
-	return bar;
-}
-function duration(startText, now) {
+function durationMs(startText, now) {
 	const start = intValue(startText);
-	if (start === null || start <= 0) return "";
+	if (start === null || start <= 0) return 0;
 	const seconds = start > MS_THRESHOLD ? Math.trunc(start / 1e3) : start;
 	const elapsed = Math.trunc(now) - seconds;
-	if (elapsed < 0) return "";
-	return fmtDuration(Math.trunc(elapsed / 60));
+	return elapsed < 0 ? 0 : elapsed * 1e3;
 }
-function rowFormats(fields, now) {
-	const tokens = intValue(fields.tokens) ?? 0;
+function altFor(item, picks) {
+	const spec = specFor(item);
+	const fallback = DEFAULT_PICKS[item] ?? "none";
+	if (spec === void 0) return fallback;
+	const wanted = picks?.[item] ?? "";
+	const alt = wanted === "" ? fallback : wanted;
+	if (!spec.alternatives.includes(alt)) {
+		warn(`statusline: ${item}=${alt} is not available, using ${item}=${fallback}`);
+		return fallback;
+	}
+	return alt;
+}
+function makeInput(fields, now, model) {
 	const ctx = intValue(fields.ctx) ?? 0;
-	let ctxText = fields.ctx;
-	if (ctx >= 1e6) ctxText = fmtM(ctx);
-	else if (ctx >= 1e3) ctxText = fmtK(ctx, 0);
+	const tokens = intValue(fields.tokens) ?? 0;
 	return {
-		ctx: ctxText,
-		dur: duration(fields.start, now),
-		tickTok: tokens >= 1e3 ? fmtK(tokens, 0) : String(tokens),
-		tokens: tokens >= 1e3 ? fmtK(tokens, 1) : String(tokens)
+		git: {},
+		home: "",
+		model,
+		now,
+		row: {
+			agent: fields.status.toUpperCase(),
+			ctxSize: ctx,
+			durationMs: durationMs(fields.start, now),
+			effort: fields.effort,
+			model,
+			pct: ctx > 0 ? Math.trunc(tokens * 100 / ctx) : 0,
+			styleName: "",
+			think: false,
+			tokens,
+			vim: "",
+			wt: ""
+		}
 	};
 }
-function renderRow(fields, formats, state, sep) {
-	let s = fields.label === "" ? fields.name : fields.label;
-	if (fields.desc !== "" && fields.desc !== fields.label && state.descd === 0) s += ` ${fields.desc}`;
-	if (fields.model !== "") {
-		let name = fields.model;
-		if (state.modeld >= 1) name = stripModelSuffix(name);
-		const effort = state.modeld >= 2 ? "" : fields.effort;
-		if (effort !== "") name += ` ${effort}`;
-		s += `${sep}${CYAN}${name}${RESET}`;
+function layoutGroups(layout) {
+	return layout.match(/\{[^}]*\}|\S+/g)?.map((group) => group.replace(/[{}]/g, "").split(/\s+/).filter((item) => TASK_ITEMS.includes(item))) ?? [];
+}
+function renderRow(fields, state, now, layout, join, sep) {
+	const name = fields.label === "" ? fields.name : fields.label;
+	const groups = [fields.desc !== "" && fields.desc !== name && !state.desc ? `${name} ${fields.desc}` : name];
+	const input = makeInput(fields, now, state.model);
+	const ctx = intValue(fields.ctx) ?? 0;
+	for (const items of layoutGroups(layout)) {
+		const segs = items.map((item) => ctx <= 0 && (item === "bar" || item === "tokens") ? "" : renderSegment(item, state.working[item], input).trim()).filter((seg) => seg !== "");
+		if (segs.length > 0) groups.push(segs.join(join));
 	}
-	const ctx = intValue(fields.ctx);
-	if (ctx !== null && ctx > 0) {
-		const tokens = intValue(fields.tokens) ?? 0;
-		const pct = Math.trunc(tokens * 100 / ctx);
-		const barColor = pct >= 90 ? RED : pct >= 70 ? YELLOW : GREEN;
-		if (state.barb > 0) s += `${sep}${barColor}${makeBar(pct, state.barb)}${RESET} ${pct}%`;
-		else s += `${sep}${barColor}${pct}%${RESET}`;
-		const stats = state.statd === 1 ? formats.tickTok : state.statd === 2 ? "" : `${formats.tokens}/${formats.ctx}`;
-		if (stats !== "") s += ` ${stats}`;
-	}
-	if (formats.dur !== "" && state.durd === 0) s += `${sep}${formats.dur}`;
-	return s;
+	return groups.join(sep);
 }
 function vlen(text) {
 	return Array.from(stripSgr(text)).length;
 }
-function fitRow(fields, formats, sep, avail) {
+function demote(state, item, target) {
+	const order = RUNG_ORDERS[item];
+	if (order === void 0) return;
+	const at = order.indexOf(state.working[item]);
+	if (order.slice(at + 1).includes(target)) state.working[item] = target;
+}
+function applyStep(state, step) {
+	if (step[0] === "desc" && step[1] === "drop") state.desc = true;
+	else if (step[0] === "model" && step[1] === "strip") state.model = stripModelSuffix(state.model);
+	else demote(state, step[0], step[1]);
+}
+function fitRow(fields, working, now, layout, join, sep, avail) {
 	const state = {
-		barb: 10,
-		descd: 0,
-		durd: 0,
-		modeld: 0,
-		statd: 0
+		desc: false,
+		model: fields.model,
+		working
 	};
-	let out = renderRow(fields, formats, state, sep);
+	let out = renderRow(fields, state, now, layout, join, sep);
 	if (vlen(out) <= avail) return out;
-	for (const [key, value] of STEPS) {
-		state[key] = value;
-		out = renderRow(fields, formats, state, sep);
+	for (const step of PANEL_STEPS) {
+		applyStep(state, step);
+		out = renderRow(fields, state, now, layout, join, sep);
 		if (vlen(out) <= avail) return out;
 	}
 	return out;
@@ -1309,14 +1319,17 @@ function emitLine(id, content) {
 function renderPanel(input) {
 	const tick = JSON.parse(input.payload);
 	const avail = availColumns(tick);
-	const sep = styleSeparators(stylePick(input.picks)).sep;
+	const layout = input.layout ?? "{model effort state} {cwd branch status ahead pr} {bar tokens} {cache-hit cache-expiry} {cost} {duration} {lines} {rate}";
+	const { join, sep } = styleSeparators(altFor("style", input.picks));
+	const working = {};
+	for (const item of TASK_ITEMS) working[item] = altFor(item, input.picks);
 	const tasks = isRecord(tick) && Array.isArray(tick.tasks) ? tick.tasks : [];
 	let out = "";
 	for (const task of tasks) {
 		if (!isRecord(task)) continue;
 		const fields = extractFields(task);
 		if (fields.id === "") continue;
-		const row = fitRow(fields, rowFormats(fields, input.now), sep, avail);
+		const row = fitRow(fields, working, input.now, layout, join, sep, avail);
 		const content = input.noColor === true ? stripSgr(row) : row;
 		out += `${emitLine(fields.id, content)}\n`;
 	}
@@ -1454,6 +1467,7 @@ async function main() {
 	if (argv.mode === "subagent") {
 		capturePayload(home, "tick", payload);
 		process.stdout.write(renderPanel({
+			layout: paint.layout,
 			now,
 			payload,
 			picks: paint.picks,

@@ -92,7 +92,7 @@ Node ≥ 22. One workspace dep: `@v1nvn/agentic-core` (usage/exit helpers).
 | `src/render/segments.ts`               | the per-item segment renderers                                                                               |
 | `src/render/payload.ts`                | the stdin payload types + parse                                                                              |
 | `src/render/git.ts`                    | the git reads                                                                                                |
-| `src/render/panel.ts`                  | the agent-panel renderer — its own `vlen` and fit ladder                                                     |
+| `src/render/panel.ts`                  | the agent-panel renderer — the theme's layout over the six task items, its own `vlen` and fit ladder        |
 | `src/render/awk.ts`                    | printf-style decimal formatting on exact IEEE bits                                                           |
 | `src/render/capture.ts`                | the capture tee + `DATA_DIR`                                                                                 |
 | `src/render/index.ts`                  | the in-process barrel the CLI renders through                                                                |

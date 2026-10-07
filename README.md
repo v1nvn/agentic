@@ -74,7 +74,10 @@ npx -y @v1nvn/statusline@0.39.1 status                             # rows + verd
 Each value is one inline shell command: `node` on that data-dir resolver, the
 decisions as flags — `--theme` first, then one `--<item>=<alt>` per pick that
 differs from the theme's own, `--layout` only when passed; the subagent key
-adds `--subagent`, the one valueless flag. The resolver reads Claude Code's install record
+adds `--subagent`, the one valueless flag. Both keys paint the same theme: the
+subagent row renders the theme's layout filtered to the six per-task items
+(state, model, effort, bar, tokens, duration), the task's label and
+description leading. The resolver reads Claude Code's install record
 (`installed_plugins.json`) and imports the newest installed plugin's
 `render.mjs`, so a plugin update repaints with no rerun. Raw:
 
