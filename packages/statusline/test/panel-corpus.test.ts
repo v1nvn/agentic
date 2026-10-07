@@ -20,6 +20,13 @@ import { describe, expect, it } from 'vitest';
 // are no oracle cases — each panel golden is exact stdout. REGEN_GOLDENS=1
 // rewrites the .ans files instead of comparing.
 import { renderPanel } from '../src/render/panel.js';
+import { THEMES, THEME_NAMES } from '../src/themes.js';
+import {
+  DEFAULT_LAYOUT,
+  DEFAULT_PICKS,
+  ITEMS,
+  specFor,
+} from '../src/render/items.js';
 import { DEFAULT_NOW, GOLDENS_DIR, golden, loadTick } from './runtime.js';
 
 type Loose = Record<string, unknown>;
@@ -143,5 +150,68 @@ describe('the panel golden corpus through the engine', () => {
       return;
     }
     expect(Buffer.from(out, 'utf8'), c.name).toEqual(golden(c.name));
+  });
+});
+
+// The panel twin of the engine corpus's "every registered alternative has a
+// segment renderer": every theme that picks differently for a task item or
+// filters the layout differently must move the row, and every registered
+// alternative of a task item must move it — a pick the panel silently
+// ignores cannot exist while these hold.
+const TASK_ITEMS = [
+  'state',
+  'model',
+  'effort',
+  'bar',
+  'tokens',
+  'duration',
+] as const;
+
+function paintPanel(
+  layout: string,
+  picks: Readonly<Record<string, string>>,
+): string {
+  return renderPanel({
+    layout,
+    now: Number(DEFAULT_NOW),
+    payload: JSON.stringify(loadTick(), null, 2),
+    picks,
+  });
+}
+
+describe('the theme reaches the panel', () => {
+  it.each([...THEME_NAMES])(
+    '%s changes the row wherever its task picks differ',
+    name => {
+      const { layout, variants } = THEMES[name];
+      const themed = paintPanel(layout, variants);
+      const bare = paintPanel(DEFAULT_LAYOUT, {});
+      const picksDiffer = TASK_ITEMS.some(
+        item =>
+          variants[item] !== undefined &&
+          variants[item] !== DEFAULT_PICKS[item],
+      );
+      const layoutDiffers =
+        layout.replace(/[^a-z-]/g, '') !==
+        DEFAULT_LAYOUT.replace(/[^a-z-]/g, '');
+      expect(themed === bare).toBe(!picksDiffer && !layoutDiffers);
+    },
+  );
+
+  it.each([...TASK_ITEMS])('%s: every alternative moves the row', item => {
+    const spec = specFor(item);
+    if (spec === undefined) {
+      throw new Error(`no spec for ${item}`);
+    }
+    const bare = paintPanel(DEFAULT_LAYOUT, {});
+    for (const alt of spec.alternatives) {
+      if (alt === spec.default) {
+        continue;
+      }
+      expect(
+        paintPanel(DEFAULT_LAYOUT, { [item]: alt }),
+        `${item}=${alt}`,
+      ).not.toBe(bare);
+    }
   });
 });
