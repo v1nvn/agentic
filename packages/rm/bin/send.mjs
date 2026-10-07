@@ -3045,7 +3045,7 @@ function useColor() {
 }
 new Command();
 //#endregion
-//#region ../tokens/dist/assets/text-D_R3UWAk.js
+//#region ../tokens/dist/assets/text-BF6fhxqq.js
 function pad2(n) {
 	return String(n).padStart(2, "0");
 }

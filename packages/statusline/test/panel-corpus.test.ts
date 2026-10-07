@@ -24,7 +24,6 @@ import { THEMES, THEME_NAMES } from '../src/themes.js';
 import {
   DEFAULT_LAYOUT,
   DEFAULT_PICKS,
-  ITEMS,
   specFor,
 } from '../src/render/items.js';
 import { DEFAULT_NOW, GOLDENS_DIR, golden, loadTick } from './runtime.js';

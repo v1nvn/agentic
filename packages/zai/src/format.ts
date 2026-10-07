@@ -11,9 +11,9 @@ import {
   barField,
   bold,
   dim,
+  dotMeter,
   fmtNum,
   fmtTokens,
-  meter,
   MONTHS,
   pad2,
   padL,
@@ -562,7 +562,7 @@ export function reportLines({
     out.push([
       dim(`   ${padR('Peak', 16)}`),
       plain(
-        `${padL(peakWin.start, 5)}  ${meter(Math.round((elapsedMin / 240) * 100), 22)}  ${peakWin.end}`,
+        `${padL(peakWin.start, 5)}  ${dotMeter(Math.round((elapsedMin / 240) * 100), 22)}  ${peakWin.end}`,
       ),
     ]);
   }
@@ -577,7 +577,7 @@ export function reportLines({
     out.push([
       dim(`   ${padR('Tokens · 5h', 16)}`),
       bold(padL(`${tok5.percentage || 0}%`, 5)),
-      plain(`  ${meter(tok5.percentage, 22)}  ${reset}`),
+      plain(`  ${dotMeter(tok5.percentage, 22)}  ${reset}`),
     ]);
   }
 
@@ -590,7 +590,7 @@ export function reportLines({
     out.push([
       dim(`   ${padR('MCP · this month', 16)}`),
       bold(padL(`${mcp.percentage || 0}%`, 5)),
-      plain(`  ${meter(mcp.percentage, 22)}  ${reset}`),
+      plain(`  ${dotMeter(mcp.percentage, 22)}  ${reset}`),
     ]);
     const det = mcp.usageDetails ?? [];
     const parts = det

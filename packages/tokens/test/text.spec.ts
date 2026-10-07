@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { barField, fmtTokens, meter, padL, padR } from '../src/text.js';
+import { barField, dotMeter, fmtTokens, padL, padR } from '../src/text.js';
 
 describe('text degenerate values', () => {
   it('renders missing values as an em dash', () => {
@@ -28,8 +28,8 @@ describe('text degenerate values', () => {
   });
 
   it('clamps out-of-range percentages', () => {
-    expect(meter(120, 4)).toBe('████');
-    expect(meter(-10, 4)).toBe('░░░░');
-    expect(meter(undefined, 4)).toBe('░░░░');
+    expect(dotMeter(120, 4)).toBe('████');
+    expect(dotMeter(-10, 4)).toBe('····');
+    expect(dotMeter(undefined, 4)).toBe('····');
   });
 });

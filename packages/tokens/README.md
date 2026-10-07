@@ -12,9 +12,13 @@ User-facing docs: [root README](../../README.md).
 
 ## Quickstart
 
-In Claude Code, the plugin is the way in — a mod draws one surface the model
-never reads: `/tokens-usage` opens the full report as a pane (refreshed on open and
-every 5 minutes while it shows; nothing draws and nothing execs until then).
+In Claude Code, the plugin is the way in — a mod draws two surfaces the model
+never reads: `/tokens-usage` opens the full report as a pane (refreshed on open
+and every 5 minutes while it shows; nothing draws and nothing execs until
+then), and `/tokens-top` draws the live session as a pane — context window and
+its eaters, token and thinking flow off the streaming chunks, rate-limit
+windows with resets, the agent roster and what runs now, all fed by engine
+pushes, no exec, no polling.
 
 ```sh
 claude plugin marketplace add v1nvn/agentic
@@ -32,6 +36,7 @@ npx -y @v1nvn/tokens@0.39.2
 | Invocation                    | Does                                                                                                          |
 | ----------------------------- | ------------------------------------------------------------------------------------------------------------- |
 | `/tokens-usage`               | the full report, as a pane                                                                                    |
+| `/tokens-top`                 | this session live — context + eaters, flow, limits, agents, as a pane                                         |                                                                                    |
 | `npx -y @v1nvn/tokens@0.39.2` | per-model table: input/output/cache-write/cache-read tokens, cache hit rate, 24 h window + 7-day daily totals |
 
 Works for every profile writing to `~/.claude/projects` — default `claude`,
@@ -67,7 +72,7 @@ and re-vendor `types/claude-code.d.ts` (repo root) from the engine-laid
 | `src/index.ts`       | bin entry (`tokens-report`) — dispatch, exit codes                           |
 | `src/aggregate.ts`   | the one usage math: JSONL line → per-model/per-day accumulation              |
 | `src/scan.ts`        | the CLI's transcript walk (node-fs)                                          |
-| `hooks/register.tsx` | the mod: execs the CLI, draws the `/tokens-usage` pane                       |
+| `hooks/register.tsx` | the mod: execs the CLI into the `/tokens-usage` pane; draws the `/tokens-top` pane from engine pushes |
 | `src/format.ts`      | the report both doors render                                                 |
 | `src/text.ts`        | line model + fixed-width primitives — the one home, shared as `@v1nvn/tokens/text` |
 | `bin/report.mjs`     | the standalone build the mod execs — committed, synced by `yarn build`       |

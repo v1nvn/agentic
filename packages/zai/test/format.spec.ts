@@ -135,16 +135,16 @@ describe('zai report render', () => {
 
   it('shows the limits peak row as a window timeline', () => {
     const inPeak = render$({ now: NOW_IN });
-    expect(inPeak).toMatch(/^ {3}Peak {12}14:00  █{8}░{14}  18:00$/m);
+    expect(inPeak).toMatch(/^ {3}Peak {12}14:00  █{8}·{14}  18:00$/m);
     expect(inPeak).not.toContain(' left');
 
     const inPeakIst = render$({ now: NOW_IN, localOffsetMin: 330 });
-    expect(inPeakIst).toMatch(/^ {3}Peak {12}11:30  █{8}░{14}  15:30$/m);
+    expect(inPeakIst).toMatch(/^ {3}Peak {12}11:30  █{8}·{14}  15:30$/m);
 
-    expect(out).toMatch(/^ {3}Peak {12}14:00  ░{22}  18:00$/m); // empty before it opens
+    expect(out).toMatch(/^ {3}Peak {12}14:00  ·{22}  18:00$/m); // empty before it opens
     const afterPeak = render$({ now: new Date(Date.UTC(2026, 6, 13, 12, 0)) });
     expect(afterPeak).toMatch(/^ {3}Peak {12}14:00  █{22}  18:00$/m); // full after it closes
     const weekendPeak = render$({ now: new Date(Date.UTC(2026, 6, 18, 7, 30)) });
-    expect(weekendPeak).toMatch(/^ {3}Peak {12}14:00  ░{22}  18:00$/m); // no fill on a weekend
+    expect(weekendPeak).toMatch(/^ {3}Peak {12}14:00  ·{22}  18:00$/m); // no fill on a weekend
   });
 });

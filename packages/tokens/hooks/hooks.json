@@ -1,4 +1,4 @@
 {
-  "description": "Live token usage: /tokens-usage opens the report as a pane",
+  "description": "Live token usage: /tokens-usage opens the account report as a pane, /tokens-top the live session",
   "modules": ["./register.tsx"]
 }

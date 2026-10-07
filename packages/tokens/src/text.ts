@@ -119,11 +119,23 @@ export function barField(v: number, max: number, width: number): string {
   return s.slice(0, width);
 }
 
-/** Filled/empty meter: █ for used, ░ for remaining. */
-export function meter(pct: number | undefined, width: number): string {
+/** Filled/empty meter: █ for used, · for remaining (shade glyphs draw as nothing here). */
+export function dotMeter(pct: number | undefined, width: number): string {
   let filled = Math.round(((pct || 0) / 100) * width);
   filled = Math.max(0, Math.min(width, filled));
-  return '█'.repeat(filled) + '░'.repeat(width - filled);
+  return '█'.repeat(filled) + '·'.repeat(width - filled);
+}
+
+const SPARK_LEVELS = ['▁', '▂', '▃', '▄', '▅', '▆', '▇', '█'];
+
+/** Sparkline of the last `width` values, solid partial blocks only. */
+export function sparkField(values: readonly number[], width: number): string {
+  const vs = values.slice(-width);
+  const max = Math.max(1, ...vs);
+  return vs
+    .map(v => SPARK_LEVELS[Math.min(7, Math.round((v / max) * 7))])
+    .join('')
+    .padEnd(width, ' ');
 }
 
 export function renderLines(lines: readonly Line[]): string {
