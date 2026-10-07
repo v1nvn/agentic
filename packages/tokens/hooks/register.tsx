@@ -113,7 +113,7 @@ async function scanUsage(
 ): Promise<{ call: ToolCallResult; scan: null | ScanResult }> {
   const call = await $.tool.call({
     tool: 'Bash',
-    command: `node ${$.plugin.root}/bin/report.mjs --json`,
+    command: `node ${$.plugin.root}/bin/report.mjs usage --json`,
   });
   const scan = parsedScan(call);
   if (scan !== null) {

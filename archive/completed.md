@@ -4,3 +4,4 @@
 - **Todo plugin — land the seven migrated repos** — fold landed on origin/main for the six live repos (homelab-gitops needed `*.md` negations, `9f7be9d` there); testril's repo is deleted and ruled done with it. 2026-10-02
 - **Statusline — delete the old `@v1nvn/statusline-lab` npm name** — registry returns Not Found; the package lives as `@v1nvn/statusline`. 2026-10-02
 - **Statusline — adopt `/lab`** — parked entry overtaken: `/lab` is installed and serving. 2026-10-02
+- **tokens/zai — usage as a CLI subcommand** — `npx -y @v1nvn/tokens@0.40.0 usage` and `npx -y @v1nvn/zai@0.40.0 usage` print the reports; bare prints the commands. 2026-10-07

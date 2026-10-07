@@ -7,6 +7,10 @@ import { fetchReport } from './usage.js';
 const parsed =
   parseArgs(process.argv.slice(2)) ?? printUsageAndExit(buildProgram());
 
+if (parsed.command !== 'usage') {
+  printUsageAndExit(buildProgram());
+}
+
 await runMain(async () => {
   const input = await fetchReport(resolveConfig(process.env, parsed));
   console.log(

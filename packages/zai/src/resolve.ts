@@ -8,6 +8,7 @@ const GLM_HOSTS = new Set(['api.z.ai', 'dev.bigmodel.cn', 'open.bigmodel.cn']);
 export interface ParsedArgs {
   readonly authToken: string | undefined;
   readonly baseUrl: string | undefined;
+  readonly command?: 'usage';
   readonly json: boolean;
 }
 
@@ -59,33 +60,52 @@ function resolveBaseUrl(
   return { glm: false, origin: DEFAULT_BASE_URL };
 }
 
-export function buildProgram(): Command {
-  return new Command()
-    .name('zai-usage')
+export function buildProgram(
+  onUsage?: (options: Record<string, unknown>) => void,
+): Command {
+  const usage = new Command('usage')
+    .description('GLM Coding Plan quota and usage report')
     .addOption(
       new Option('--auth-token <token>', 'API key').env('ZAI_AUTH_TOKEN'),
     )
     .addOption(new Option('--base-url <url>', 'base URL').env('ZAI_BASE_URL'))
     .addOption(
       new Option('--json', 'print the report lines as JSON for the zai mod'),
-    );
+    )
+    .action((options: Record<string, unknown>) => onUsage?.(options));
+  return new Command()
+    .name('zai-usage')
+    .description('GLM Coding Plan usage — one command, usage')
+    .action(() => undefined)
+    .addCommand(usage);
 }
 
 export function parseArgs(args: readonly string[]): ParsedArgs | undefined {
-  const program = parseQuietly(buildProgram(), args);
-  if (program === undefined) {
+  let parsed: ParsedArgs | undefined;
+  const program = buildProgram(options => {
+    const { authToken, baseUrl, json } = options as {
+      authToken?: string;
+      baseUrl?: string;
+      json?: boolean;
+    };
+    parsed = {
+      authToken: authToken || undefined,
+      baseUrl: baseUrl || undefined,
+      command: 'usage',
+      json: json === true,
+    };
+  });
+  if (parseQuietly(program, args) === undefined) {
     return undefined;
   }
-  const { authToken, baseUrl, json } = program.opts<{
-    authToken: string | undefined;
-    baseUrl: string | undefined;
-    json?: boolean;
-  }>();
-  return {
-    authToken: authToken || undefined,
-    baseUrl: baseUrl || undefined,
-    json: json === true,
-  };
+  return (
+    parsed ?? {
+      authToken: undefined,
+      baseUrl: undefined,
+      command: undefined,
+      json: false,
+    }
+  );
 }
 
 export function resolveConfig(

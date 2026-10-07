@@ -1,4 +1,4 @@
-/** The zai mod: /zai-usage opens the GLM report as a pane — one bin/usage.mjs --json exec, drawn as engine elements. */
+/** The zai mod: /zai-usage opens the GLM report as a pane — one bin/usage.mjs usage --json exec, drawn as engine elements. */
 
 import { atom, read, update } from 'claude-code';
 
@@ -107,7 +107,7 @@ export function register(on: On): void {
   on('command.run', { command: 'zai-usage' }, async $ => {
     const call = await $.tool.call({
       tool: 'Bash',
-      command: `node ${$.plugin.root}/bin/usage.mjs --json`,
+      command: `node ${$.plugin.root}/bin/usage.mjs usage --json`,
     });
     const lines = parsedLines(call);
     if (lines === null) {

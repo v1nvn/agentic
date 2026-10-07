@@ -22,7 +22,7 @@ claude plugin install zai@agentic
 In a terminal, bare:
 
 ```sh
-npx -y @v1nvn/zai@0.40.0
+npx -y @v1nvn/zai@0.40.0 usage
 ```
 
 ## Usage
@@ -30,10 +30,10 @@ npx -y @v1nvn/zai@0.40.0
 | Invocation | Does |
 |---|---|
 | `/zai-usage` | the account's usage report, as a pane |
-| `npx -y @v1nvn/zai@0.40.0` | the same report, printed bare |
-| `npx -y @v1nvn/zai@0.40.0 --auth-token TOKEN` | same, key on the command line (visible in `ps`) |
-| `npx -y @v1nvn/zai@0.40.0 --auth-token=TOKEN` | `=` form — zsh quoting-safe |
-| `npx -y @v1nvn/zai@0.40.0 --base-url URL` | another GLM endpoint (default `api.z.ai`) |
+| `npx -y @v1nvn/zai@0.40.0 usage` | the same report, printed bare |
+| `npx -y @v1nvn/zai@0.40.0 usage --auth-token TOKEN` | same, key on the command line (visible in `ps`) |
+| `npx -y @v1nvn/zai@0.40.0 usage --auth-token=TOKEN` | `=` form — zsh quoting-safe |
+| `npx -y @v1nvn/zai@0.40.0 usage --base-url URL` | another GLM endpoint (default `api.z.ai`) |
 
 Each setting takes the first source that provides it:
 
@@ -82,8 +82,8 @@ and re-vendor `types/claude-code.d.ts` (repo root) from the engine-laid
 ## Contracts
 
 - One job: print the report, exit 0. Nothing is written anywhere.
-- `/zai-usage` is one `node <plugin root>/bin/usage.mjs --json` exec through
+- `/zai-usage` is one `node <plugin root>/bin/usage.mjs usage --json` exec through
   the session's Bash tool — the same query `npx zai-usage` runs, awaited
   as-is. The one allow rule it needs is
-  `Bash(node <plugin root>/bin/usage.mjs --json)`; the first run asks for it
+  `Bash(node <plugin root>/bin/usage.mjs usage --json)`; the first run asks for it
   once, then it is remembered. Its report is a pane the model never reads.

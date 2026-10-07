@@ -6,11 +6,11 @@
 
 ## Current state
 
-Not started. Ruled in the session-top consult: the live session pane (`/tokens-top`) stays mod-only — no CLI twin, no transcript-polling implementation (owner, a).
+Landed on main: both CLIs take `usage` (flags ride on it), bare prints the command list, the mods exec `report.mjs usage --json` / `usage.mjs usage --json`.
 
 ## Next step
 
-Dispatch argv in the tokens CLI: `usage` runs the report, bare prints the command list; then the same in zai, then docs.
+None — closed.
 
 ## Plan
 

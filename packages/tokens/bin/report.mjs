@@ -2991,6 +2991,30 @@ function useColor() {
 }
 new Command();
 //#endregion
+//#region src/cli.ts
+/**
+* The CLI surface: `tokens-report usage` prints the account report (the
+* mod execs it with --json); bare prints the command list. Parsing lives
+* here, pure, so the spec can drive it; src/index.ts is the entry.
+*/
+function buildProgram(onUsage) {
+	const usage = new Command("usage").description("per-model token usage and cache hit rate from local transcripts").option("--json", "print the ScanResult as JSON for the tokens mod").action((options) => onUsage?.(options));
+	return new Command().name("tokens-report").description("Token usage — the account report; the live session is /tokens-top in Claude Code").action(() => void 0).addCommand(usage);
+}
+function parseArgs(args) {
+	let parsed;
+	if (parseQuietly(buildProgram((options) => {
+		parsed = {
+			command: "usage",
+			json: options.json === true
+		};
+	}), args) === void 0) return;
+	return parsed ?? {
+		command: void 0,
+		json: false
+	};
+}
+//#endregion
 //#region src/text.ts
 function plain(text) {
 	return { text };
@@ -3281,11 +3305,11 @@ function scan({ projectsDir, now = /* @__PURE__ */ new Date() } = {}) {
 }
 //#endregion
 //#region src/index.ts
-var program = new Command().name("tokens-report").description("Per-model token usage and cache hit rate from local transcripts").option("--json", "print the ScanResult as JSON for the tokens mod");
-if (parseQuietly(program, process.argv.slice(2)) === void 0) printUsageAndExit(program);
+var parsed = parseArgs(process.argv.slice(2)) ?? printUsageAndExit(buildProgram());
+if (parsed.command !== "usage") printUsageAndExit(buildProgram());
 await runMain(() => {
 	const scanResult = scan();
-	console.log(program.opts().json ? JSON.stringify(scanResult) : render(scanResult));
+	console.log(parsed.json ? JSON.stringify(scanResult) : render(scanResult));
 });
 //#endregion
 export {};

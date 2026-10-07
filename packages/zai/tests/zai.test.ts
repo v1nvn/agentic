@@ -322,7 +322,7 @@ test('a run execs the shipped CLI with --json, opens the pane sized to the repor
   expect(answer.text).toBeUndefined();
   expect(answer.context).toBeUndefined();
   expect(world.commands).toEqual([
-    expect.stringMatching(/^node .*\/bin\/usage\.mjs --json$/),
+    expect.stringMatching(/^node .*\/bin\/usage\.mjs usage --json$/),
   ]);
   expect(world.logs).toEqual([]);
   expect(world.opens).toEqual([{ id: 'zai-usage', rows: LINES.length + 2 }]);
@@ -344,7 +344,7 @@ test('a refused exec logs the refusal, opens no pane, answers nothing', async ($
   const answer = await runUsage($);
   expect(answer.text).toBeUndefined();
   expect(world.commands).toEqual([
-    expect.stringMatching(/^node .*\/bin\/usage\.mjs --json$/),
+    expect.stringMatching(/^node .*\/bin\/usage\.mjs usage --json$/),
   ]);
   expect(world.logs).toEqual(['permission denied by the user']);
   expect(world.opens).toEqual([]);

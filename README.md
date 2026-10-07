@@ -41,8 +41,8 @@ Start Claude Code and run the command shown above for the plugin you installed.
 The four tool CLIs run outside Claude Code too:
 
 ```sh
-npx -y @v1nvn/zai@0.40.0        # GLM Coding Plan usage report
-npx -y @v1nvn/tokens@0.40.0     # token usage + cache hit rate from local transcripts
+npx -y @v1nvn/zai@0.40.0 usage   # GLM Coding Plan usage report (bare prints the commands)
+npx -y @v1nvn/tokens@0.40.0 usage # token usage + cache hit rate from local transcripts
 npx -y @v1nvn/rm@0.40.0         # last reply → reMarkable (or a file: npx -y @v1nvn/rm@0.40.0 reply.md)
 npx -y @v1nvn/md@0.40.0         # last reply → Markdown-Viewer (--view for read-only; or a file: npx -y @v1nvn/md@0.40.0 reply.md)
 ```

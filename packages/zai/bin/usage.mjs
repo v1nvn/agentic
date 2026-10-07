@@ -3419,17 +3419,26 @@ function resolveBaseUrl(flag, env) {
 		origin: DEFAULT_BASE_URL
 	};
 }
-function buildProgram() {
-	return new Command().name("zai-usage").addOption(new Option("--auth-token <token>", "API key").env("ZAI_AUTH_TOKEN")).addOption(new Option("--base-url <url>", "base URL").env("ZAI_BASE_URL")).addOption(new Option("--json", "print the report lines as JSON for the zai mod"));
+function buildProgram(onUsage) {
+	const usage = new Command("usage").description("GLM Coding Plan quota and usage report").addOption(new Option("--auth-token <token>", "API key").env("ZAI_AUTH_TOKEN")).addOption(new Option("--base-url <url>", "base URL").env("ZAI_BASE_URL")).addOption(new Option("--json", "print the report lines as JSON for the zai mod")).action((options) => onUsage?.(options));
+	return new Command().name("zai-usage").description("GLM Coding Plan usage — one command, usage").action(() => void 0).addCommand(usage);
 }
 function parseArgs(args) {
-	const program = parseQuietly(buildProgram(), args);
-	if (program === void 0) return;
-	const { authToken, baseUrl, json } = program.opts();
-	return {
-		authToken: authToken || void 0,
-		baseUrl: baseUrl || void 0,
-		json: json === true
+	let parsed;
+	if (parseQuietly(buildProgram((options) => {
+		const { authToken, baseUrl, json } = options;
+		parsed = {
+			authToken: authToken || void 0,
+			baseUrl: baseUrl || void 0,
+			command: "usage",
+			json: json === true
+		};
+	}), args) === void 0) return;
+	return parsed ?? {
+		authToken: void 0,
+		baseUrl: void 0,
+		command: void 0,
+		json: false
 	};
 }
 function resolveConfig(env, parsed) {
@@ -3514,6 +3523,7 @@ async function fetchReport(config) {
 //#endregion
 //#region src/index.ts
 var parsed = parseArgs(process.argv.slice(2)) ?? printUsageAndExit(buildProgram());
+if (parsed.command !== "usage") printUsageAndExit(buildProgram());
 await runMain(async () => {
 	const input = await fetchReport(resolveConfig(process.env, parsed));
 	console.log(parsed.json ? JSON.stringify({ lines: reportLines(input) }) : render(input));

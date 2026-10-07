@@ -125,7 +125,7 @@ test('/tokens-usage execs the shipped CLI into the pane; startup draws and execs
   const answer = await runUsage($);
   expect(answer.text).toBeUndefined();
   expect(world.commands).toEqual([
-    expect.stringMatching(/^node .*\/bin\/report\.mjs --json$/),
+    expect.stringMatching(/^node .*\/bin\/report\.mjs usage --json$/),
   ]);
   expect(world.opens).toEqual([{ id: 'tokens-usage', rows: LINES.length + 2 }]);
 

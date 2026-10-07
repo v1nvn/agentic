@@ -6,7 +6,7 @@ import type { ParsedArgs } from '../src/resolve.js';
 const env = (vars: Record<string, string>) => vars as NodeJS.ProcessEnv;
 
 // The resolve tests only use argv that parses; the parse tests cover the rest.
-const args = (argv: string[]): ParsedArgs => parseArgs(argv) as ParsedArgs;
+const args = (argv: string[]): ParsedArgs => parseArgs(['usage', ...argv]) as ParsedArgs;
 
 // An empty stub reads as unset, pinning a clean env where the machine exports ZAI_*.
 beforeEach(() => {
@@ -28,56 +28,68 @@ const glmPair = {
 
 describe('parseArgs', () => {
   it('parses flags in any order', () => {
-    expect(parseArgs(['--base-url', 'https://x', '--auth-token', 't'])).toEqual({
+    expect(
+      parseArgs(['usage', '--base-url', 'https://x', '--auth-token', 't']),
+    ).toEqual({
       authToken: 't',
       baseUrl: 'https://x',
+      command: 'usage',
       json: false,
     });
   });
 
   it('parses the --flag=value form', () => {
-    expect(parseArgs(['--auth-token=t', '--base-url=https://x'])).toEqual({
+    expect(
+      parseArgs(['usage', '--auth-token=t', '--base-url=https://x']),
+    ).toEqual({
       authToken: 't',
       baseUrl: 'https://x',
+      command: 'usage',
       json: false,
     });
   });
 
   it('parses --json', () => {
-    expect(parseArgs(['--json'])!.json).toBe(true);
+    expect(parseArgs(['usage', '--json'])!.json).toBe(true);
   });
 
-  it('accepts no args', () => {
+  it('answers bare with no command', () => {
     expect(parseArgs([])).toEqual({
       authToken: undefined,
       baseUrl: undefined,
+      command: undefined,
       json: false,
     });
   });
 
+  it('refuses the flags outside the command', () => {
+    expect(parseArgs(['--auth-token', 't'])).toBeUndefined();
+  });
+
   it('folds ZAI_AUTH_TOKEN in from the environment', () => {
     vi.stubEnv('ZAI_AUTH_TOKEN', 'env-key');
-    expect(parseArgs([])!.authToken).toBe('env-key');
+    expect(parseArgs(['usage'])!.authToken).toBe('env-key');
   });
 
   it('lets the flag beat the environment', () => {
     vi.stubEnv('ZAI_AUTH_TOKEN', 'env-key');
     vi.stubEnv('ZAI_BASE_URL', 'https://open.bigmodel.cn');
-    const parsed = parseArgs(['--auth-token', 'flag-key'])!;
+    const parsed = parseArgs(['usage', '--auth-token', 'flag-key'])!;
     expect(parsed.authToken).toBe('flag-key');
     expect(parsed.baseUrl).toBe('https://open.bigmodel.cn');
   });
 
   it('rejects a flag with no value', () => {
-    expect(parseArgs(['--auth-token'])).toBeUndefined();
+    expect(parseArgs(['usage', '--auth-token'])).toBeUndefined();
   });
 
   it('rejects unknown flags', () => {
-    expect(parseArgs(['--platform', 'zhipu'])).toBeUndefined();
+    expect(parseArgs(['usage', '--platform', 'zhipu'])).toBeUndefined();
   });
 
   it('rejects positionals', () => {
-    expect(parseArgs(['file.md'])).toBeUndefined();
+    expect(parseArgs(['usage', 'file.md'])).toBeUndefined();
+    expect(parseArgs(['usage2'])).toBeUndefined();
   });
 });
 
@@ -211,8 +223,11 @@ describe('resolveConfig', () => {
 });
 
 describe('buildProgram help', () => {
-  it('names every flag and env var', () => {
-    const help = buildProgram().helpInformation();
+  it('bare lists the usage command; its flags live on the command', () => {
+    const program = buildProgram();
+    expect(program.helpInformation()).toContain('usage');
+    const help = program.commands.find(c => c.name() === 'usage')!
+      .helpInformation();
     expect(help).toContain('--auth-token');
     expect(help).toContain('--base-url');
     expect(help).toContain('ZAI_AUTH_TOKEN');
