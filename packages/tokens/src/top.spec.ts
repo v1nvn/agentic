@@ -78,8 +78,10 @@ describe('topLines', () => {
       state(s => ({
         ...s,
         running: {
-          calls: [{ tool: 'Bash', label: 'node check.js', at: NOW - 4000 }],
-          children: [{ argv: 'git status', at: NOW - 1000 }],
+          calls: [
+            { id: 'c1', tool: 'Bash', label: 'node check.js', at: NOW - 4000 },
+          ],
+          children: [{ id: 'ch1', argv: 'git status', at: NOW - 1000 }],
         },
       })),
     );
@@ -92,7 +94,12 @@ describe('topLines', () => {
         ...s,
         running: {
           calls: [
-            { tool: 'Read', label: 'hooks/register.tsx', at: NOW - 4000 },
+            {
+              id: 'c1',
+              tool: 'Read',
+              label: 'hooks/register.tsx',
+              at: NOW - 4000,
+            },
           ],
           children: [],
         },

@@ -5,7 +5,7 @@ export function parseQuietly<T = never>(
   args: readonly string[],
   recover?: (err: unknown) => T | undefined,
 ): Command | T | undefined {
-  const quiet = (command: Command): void => {
+  function quiet(command: Command): void {
     command
       .allowExcessArguments(false)
       .exitOverride()
@@ -14,7 +14,7 @@ export function parseQuietly<T = never>(
         writeErr: () => undefined,
       });
     command.commands.forEach(quiet);
-  };
+  }
   try {
     quiet(program);
     program.parse([...args], { from: 'user' });

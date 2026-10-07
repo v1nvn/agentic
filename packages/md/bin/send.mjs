@@ -9,13 +9,13 @@ import { stripVTControlCharacters } from "node:util";
 import { deflateSync } from "node:zlib";
 //#region ../core/dist/index.js
 function parseQuietly(program, args, recover) {
-	const quiet = (command) => {
+	function quiet(command) {
 		command.allowExcessArguments(false).exitOverride().configureOutput({
 			writeOut: () => void 0,
 			writeErr: () => void 0
 		});
 		command.commands.forEach(quiet);
-	};
+	}
 	try {
 		quiet(program);
 		program.parse([...args], { from: "user" });

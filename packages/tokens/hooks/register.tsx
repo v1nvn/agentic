@@ -198,8 +198,9 @@ function draw(
   { frame = true }: { frame?: boolean } = {},
 ): ReturnType<Elements['terminal']['Box']> {
   const { Box, Text } = t;
-  const isColor = (ink: Line[number]['ink']): boolean =>
-    ink === 'green' || ink === 'magenta';
+  function isColor(ink: Line[number]['ink']): boolean {
+    return ink === 'green' || ink === 'magenta';
+  }
   return (
     <Box
       borderColor={frame ? ACCENT : undefined}
@@ -389,21 +390,28 @@ export function register(on: On): void {
   });
 
   on('tool.call', async ($, e, next) => {
-    const call = { tool: e.tool, label: callLabel(e), at: await $.clock.now() };
+    const id = e.tool_use_id ?? `call:${e.tool}:${String(await $.clock.now())}`;
+    const row = {
+      id,
+      tool: e.tool,
+      label: callLabel(e),
+      at: await $.clock.now(),
+    };
     await update($, top, s =>
-      withRunning(s, r => ({ ...r, calls: [...r.calls, call] })),
+      withRunning(s, r => ({ ...r, calls: [...r.calls, row] })),
     );
     const ran = await next(e);
     await update($, top, s =>
-      withRunning(s, r => ({ ...r, calls: r.calls.filter(c => c !== call) })),
+      withRunning(s, r => ({ ...r, calls: r.calls.filter(c => c.id !== id) })),
     );
     return ran;
   });
 
   on('process.spawn', async function* ($, e, next) {
-    const child = { argv: e.argv.join(' '), at: await $.clock.now() };
+    const id = `child:${e.argv.join(' ')}:${String(await $.clock.now())}`;
+    const row = { id, argv: e.argv.join(' '), at: await $.clock.now() };
     await update($, top, s =>
-      withRunning(s, r => ({ ...r, children: [...r.children, child] })),
+      withRunning(s, r => ({ ...r, children: [...r.children, row] })),
     );
     try {
       for await (const chunk of next(e)) {
@@ -413,7 +421,7 @@ export function register(on: On): void {
       await update($, top, s =>
         withRunning(s, r => ({
           ...r,
-          children: r.children.filter(c => c !== child),
+          children: r.children.filter(c => c.id !== id),
         })),
       );
     }

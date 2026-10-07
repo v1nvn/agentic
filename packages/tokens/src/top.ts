@@ -75,8 +75,8 @@ export interface TopFlow {
 }
 
 export interface TopRunning {
-  calls: { at: number; label: string; tool: string }[];
-  children: { argv: string; at: number }[];
+  calls: { at: number; id: string; label: string; tool: string }[];
+  children: { argv: string; at: number; id: string }[];
 }
 
 export interface TopNotices {

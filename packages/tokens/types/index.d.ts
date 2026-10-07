@@ -66,8 +66,8 @@ export type TopState = {
     compact: { after: number | null; at: number; before: number | null } | null;
   };
   running: {
-    calls: { at: number; label: string; tool: string }[];
-    children: { argv: string; at: number }[];
+    calls: { at: number; id: string; label: string; tool: string }[];
+    children: { argv: string; at: number; id: string }[];
   };
   spawns: { at: number; id: string }[];
 };

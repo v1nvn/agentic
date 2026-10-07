@@ -217,3 +217,36 @@ test('the ring samples only while the pane is open', async ($, on) => {
   await clock.advance(TICK_MS * 2);
   expect(world.rosters).toBeGreaterThan(0);
 });
+
+test('completed tool calls leave no running rows behind', async ($, on) => {
+  mock.clock(on);
+  const world = stubWorld(on);
+  const results: string[] = [];
+  on('tool.call', { tool: 'Read' }, () => ({
+    result: { file: 'a.ts', filePath: 'a.ts', content: 'x' },
+  }));
+
+  await startSession($);
+  await $.command.run({
+    command: 'tokens-top',
+    args: '',
+    origin: { kind: 'composer' },
+    presentation: { isFullscreen: false, columns: 100 },
+  });
+
+  for (let i = 0; i < 3; i += 1) {
+    const answer = await $.tool.call({
+      tool: 'Read',
+      file_path: `file${i}.ts`,
+      tool_use_id: `tu_${i}`,
+    });
+    results.push(answer.deny ?? 'ran');
+  }
+  expect(results).toEqual(['ran', 'ran', 'ran']);
+  void world;
+
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' });
+  expect(await ui.find({ type: 'Text', text: /running ─/ })).toBeUndefined();
+  expect(await ui.find({ type: 'Text', text: /file\d\.ts/ })).toBeUndefined();
+  await ui.unmount();
+});
