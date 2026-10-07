@@ -6,6 +6,10 @@
 2. **Mods port — release and live-verify the four commands** · HIGH · [packages]
    Merge the mods-port PR, release the train, then verify `/rm-send`, `/md-edit`, `/md-view`, `/zai-usage` from a fresh install — the thread record is archive/mods-port.md.
 
+## packages
+
+- **tokens/zai — usage as a CLI subcommand** · MEDIUM · [packages/tokens, packages/zai] → progress/usage-subcommand.md
+
 ## readability
 
 - **Site-matched extraction presets + real-world corpus** · HIGH · [packages/readability] → progress/presets-corpus.md
