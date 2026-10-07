@@ -12,8 +12,9 @@
 
 ## statusline
 
-- **Statusline — unify or drop the panel render engines** · LOW
-  Wanted: one ruling — the line and panel engines unified, kept separate, or the panel dropped; unruled, argued in archive/mods-port.md's open questions.
+- **The panel row renders the theme's layout** · HIGH · [packages/statusline] → progress/statusline-panel-theme.md
+- **Statusline — preview width flag** · LOW
+  `preview` renders at a fixed 200 columns; chat panes are narrower, so a sketch wraps. Wanted: a preview width the picker can match to the pane.
 - **Statusline — preview width flag** · LOW
   `preview` renders at a fixed 200 columns; chat panes are narrower, so a sketch wraps. Wanted: a preview width the picker can match to the pane.
 - **Statusline — lab as a pane**
