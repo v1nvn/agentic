@@ -845,7 +845,7 @@ function cacheColdin({ now, row }) {
 function cacheUntil({ row }) {
 	if (row.ttl === "" || row.expires === 0) return "";
 	const at = /* @__PURE__ */ new Date(row.expires * 1e3);
-	return `${DIM}til ${pad2(at.getHours())}:${pad2(at.getMinutes())}${RESET$1}`;
+	return `${DIM}${pad2(at.getHours())}:${pad2(at.getMinutes())}${RESET$1}`;
 }
 function cacheFuse({ now, row }) {
 	if (row.ttl === "" || row.expires === 0) return "";

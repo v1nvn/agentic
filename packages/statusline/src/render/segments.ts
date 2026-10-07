@@ -389,7 +389,7 @@ function cacheUntil({ row }: SegmentInput): string {
     return '';
   }
   const at = new Date(row.expires * 1000);
-  return `${DIM}til ${pad2(at.getHours())}:${pad2(at.getMinutes())}${RESET}`;
+  return `${DIM}${pad2(at.getHours())}:${pad2(at.getMinutes())}${RESET}`;
 }
 
 function cacheFuse({ now, row }: SegmentInput): string {
