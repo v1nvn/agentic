@@ -8,10 +8,11 @@ import { stripVTControlCharacters } from "node:util";
 //#region ../core/dist/index.js
 function parseQuietly(program, args, recover) {
 	function quiet(command) {
-		command.allowExcessArguments(false).exitOverride().configureOutput({
+		command.configureOutput({
 			writeOut: () => void 0,
 			writeErr: () => void 0
 		});
+		if (!hasExitOverride(command)) command.exitOverride();
 		command.commands.forEach(quiet);
 	}
 	try {
@@ -22,16 +23,35 @@ function parseQuietly(program, args, recover) {
 		return recover?.(err);
 	}
 }
+function hasExitOverride(command) {
+	return command._exitCallback != null;
+}
+function exitZeroOnHelp(program) {
+	function install(command) {
+		command.exitOverride((err) => {
+			if (err.exitCode === 0 && (err.code === "commander.help" || err.code === "commander.helpDisplayed")) {
+				console.log(command.helpInformation());
+				exitWithCode(0);
+			}
+			throw err;
+		});
+		command.commands.forEach(install);
+	}
+	install(program);
+}
+function exitWithCode(code) {
+	process.exit(code);
+}
 function printUsageAndExit(program) {
 	console.error(program.helpInformation());
-	process.exit(1);
+	exitWithCode(1);
 }
 async function runMain(main) {
 	try {
 		await main();
 	} catch (e) {
 		console.error(e.message);
-		process.exit(1);
+		exitWithCode(1);
 	}
 }
 Number.MAX_SAFE_INTEGER;
@@ -3430,7 +3450,7 @@ function buildProgram(onUsage) {
 }
 function parseArgs(args) {
 	let parsed;
-	if (parseQuietly(buildProgram((options) => {
+	const program = buildProgram((options) => {
 		const { authToken, baseUrl, json } = options;
 		parsed = {
 			authToken: authToken || void 0,
@@ -3438,7 +3458,9 @@ function parseArgs(args) {
 			command: "usage",
 			json: json === true
 		};
-	}), args) === void 0) return;
+	});
+	exitZeroOnHelp(program);
+	if (parseQuietly(program, args) === void 0) return;
 	return parsed ?? {
 		authToken: void 0,
 		baseUrl: void 0,

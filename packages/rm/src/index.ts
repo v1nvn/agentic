@@ -1,4 +1,5 @@
 import {
+  exitZeroOnHelp,
   lastReply,
   parseQuietly,
   printUsageAndExit,
@@ -14,6 +15,7 @@ const program = new Command()
   .description('Beam a Markdown reply to the reMarkable as EPUB')
   .argument('[file]', 'Markdown file; the last reply when omitted');
 
+exitZeroOnHelp(program);
 const parsed =
   parseQuietly(program, process.argv.slice(2)) ?? printUsageAndExit(program);
 const file = parsed.args.at(0);

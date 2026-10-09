@@ -9,10 +9,11 @@ import { stripVTControlCharacters } from "node:util";
 //#region ../core/dist/index.js
 function parseQuietly(program, args, recover) {
 	function quiet(command) {
-		command.allowExcessArguments(false).exitOverride().configureOutput({
+		command.configureOutput({
 			writeOut: () => void 0,
 			writeErr: () => void 0
 		});
+		if (!hasExitOverride(command)) command.exitOverride();
 		command.commands.forEach(quiet);
 	}
 	try {
@@ -23,16 +24,35 @@ function parseQuietly(program, args, recover) {
 		return recover?.(err);
 	}
 }
+function hasExitOverride(command) {
+	return command._exitCallback != null;
+}
+function exitZeroOnHelp(program) {
+	function install(command) {
+		command.exitOverride((err) => {
+			if (err.exitCode === 0 && (err.code === "commander.help" || err.code === "commander.helpDisplayed")) {
+				console.log(command.helpInformation());
+				exitWithCode(0);
+			}
+			throw err;
+		});
+		command.commands.forEach(install);
+	}
+	install(program);
+}
+function exitWithCode(code) {
+	process.exit(code);
+}
 function printUsageAndExit(program) {
 	console.error(program.helpInformation());
-	process.exit(1);
+	exitWithCode(1);
 }
 async function runMain(main) {
 	try {
 		await main();
 	} catch (e) {
 		console.error(e.message);
-		process.exit(1);
+		exitWithCode(1);
 	}
 }
 /** A markdown file's contents, with the CLI's no-such-file error. */
@@ -3119,6 +3139,7 @@ function sendToRemarkable(markdown) {
 //#endregion
 //#region src/index.ts
 var program = new Command().name("rm-send").description("Beam a Markdown reply to the reMarkable as EPUB").argument("[file]", "Markdown file; the last reply when omitted");
+exitZeroOnHelp(program);
 var file = (parseQuietly(program, process.argv.slice(2)) ?? printUsageAndExit(program)).args.at(0);
 await runMain(() => {
 	const markdown = file === void 0 ? lastReply() : readMarkdownFile(file);

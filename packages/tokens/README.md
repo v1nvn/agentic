@@ -45,8 +45,8 @@ are skipped by mtime, keeping the scan under a second even with a large
 transcript history.
 
 **Semantics:** `input_tokens` is the _uncached_ input only; the modeled context
-is `input + cacheRead + cacheCreation`. Hit rate =
-`cacheRead / (input + cacheRead + cacheCreation)`. On the GLM Coding Plan,
+is `input + cacheRead + cacheWrite`. Hit rate =
+`cacheRead / (input + cacheRead + cacheWrite)`. On the GLM Coding Plan,
 cached tokens count fully against quota, so a high hit rate saves latency, not
 quota.
 
@@ -70,19 +70,21 @@ and re-vendor `types/claude-code.d.ts` (repo root) from the engine-laid
 | File                 | Role                                                                         |
 | -------------------- | ---------------------------------------------------------------------------- |
 | `src/index.ts`       | bin entry (`tokens-report`) — dispatch, exit codes                           |
+| `src/cli.ts`         | the CLI surface — `usage` + `--json` parsing, pure                           |
 | `src/aggregate.ts`   | the one usage math: JSONL line → per-model/per-day accumulation              |
 | `src/scan.ts`        | the CLI's transcript walk (node-fs)                                          |
 | `hooks/register.tsx` | the mod: execs the CLI into the `/tokens-usage` pane; draws the `/tokens-top` pane from engine pushes |
 | `src/format.ts`      | the report both doors render                                                 |
 | `src/text.ts`        | line model + fixed-width primitives — the one home, shared as `@v1nvn/tokens/text` |
+| `src/top.ts`         | the `/tokens-top` pane layout — ink-tagged segments from engine pushes       |
 | `bin/report.mjs`     | the standalone build the mod execs — committed, synced by `yarn build`       |
 
 ## Contracts
 
 - Reads transcripts only; writes nothing.
 - The island never reads transcripts (`$.fs.read` caps at 4 MiB); every number
-  is one `node <plugin root>/bin/report.mjs --json` exec through the session's
-  Bash tool — the same scan `npx tokens-report` runs. First `/tokens-usage`
+  is one `node <plugin root>/bin/report.mjs usage --json` exec through the
+  session's Bash tool — the same scan `npx tokens-report` runs. First `/tokens-usage`
   may ask to allow that command once; allow and it is remembered.
 - The mod's surface (the pane) is drawn by the engine and never enters the
   model's context; the CLI prints the same report bare.

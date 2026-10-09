@@ -9,10 +9,11 @@ import { stripVTControlCharacters } from "node:util";
 //#region ../core/dist/index.js
 function parseQuietly(program, args, recover) {
 	function quiet(command) {
-		command.allowExcessArguments(false).exitOverride().configureOutput({
+		command.configureOutput({
 			writeOut: () => void 0,
 			writeErr: () => void 0
 		});
+		if (!hasExitOverride(command)) command.exitOverride();
 		command.commands.forEach(quiet);
 	}
 	try {
@@ -23,16 +24,35 @@ function parseQuietly(program, args, recover) {
 		return recover?.(err);
 	}
 }
+function hasExitOverride(command) {
+	return command._exitCallback != null;
+}
+function exitZeroOnHelp(program) {
+	function install(command) {
+		command.exitOverride((err) => {
+			if (err.exitCode === 0 && (err.code === "commander.help" || err.code === "commander.helpDisplayed")) {
+				console.log(command.helpInformation());
+				exitWithCode(0);
+			}
+			throw err;
+		});
+		command.commands.forEach(install);
+	}
+	install(program);
+}
+function exitWithCode(code) {
+	process.exit(code);
+}
 function printUsageAndExit(program) {
 	console.error(program.helpInformation());
-	process.exit(1);
+	exitWithCode(1);
 }
 async function runMain(main) {
 	try {
 		await main();
 	} catch (e) {
 		console.error(e.message);
-		process.exit(1);
+		exitWithCode(1);
 	}
 }
 function claudeProjectsDir() {
@@ -3008,12 +3028,14 @@ function buildProgram(onUsage) {
 }
 function parseArgs(args) {
 	let parsed;
-	if (parseQuietly(buildProgram((options) => {
+	const program = buildProgram((options) => {
 		parsed = {
 			command: "usage",
 			json: options.json === true
 		};
-	}), args) === void 0) return;
+	});
+	exitZeroOnHelp(program);
+	if (parseQuietly(program, args) === void 0) return;
 	return parsed ?? {
 		command: void 0,
 		json: false
@@ -3116,15 +3138,15 @@ function renderLines(lines) {
 //#endregion
 //#region src/aggregate.ts
 /**
-* Pure aggregation over transcript JSONL lines — the one usage math shared by
-* the node-fs CLI walk (scan.ts) and the engine-side $.fs walk (register.tsx).
+* Pure aggregation over transcript JSONL lines — the one usage math, feeding
+* the CLI's walk (scan.ts) and the report's rows (format.ts).
 */
 function totalTokens(a) {
-	return (a.input || 0) + (a.output || 0) + (a.cacheRead || 0) + (a.cacheCreation || 0);
+	return (a.input || 0) + (a.output || 0) + (a.cacheRead || 0) + (a.cacheWrite || 0);
 }
 /** cacheRead / modeled context; input_tokens is uncached input only. */
-function hitRate({ input = 0, cacheRead = 0, cacheCreation = 0 } = {}) {
-	const denom = input + cacheRead + cacheCreation;
+function hitRate({ input = 0, cacheRead = 0, cacheWrite = 0 } = {}) {
+	const denom = input + cacheRead + cacheWrite;
 	return denom > 0 ? cacheRead / denom * 100 : 0;
 }
 function sumRows(rows) {
@@ -3132,14 +3154,14 @@ function sumRows(rows) {
 		input: 0,
 		output: 0,
 		cacheRead: 0,
-		cacheCreation: 0,
+		cacheWrite: 0,
 		calls: 0
 	};
 	for (const r of rows) {
 		sum.input += r.input;
 		sum.output += r.output;
 		sum.cacheRead += r.cacheRead;
-		sum.cacheCreation += r.cacheCreation;
+		sum.cacheWrite += r.cacheWrite;
 		sum.calls += r.calls;
 	}
 	return sum;
@@ -3162,7 +3184,7 @@ function zero() {
 		input: 0,
 		output: 0,
 		cacheRead: 0,
-		cacheCreation: 0,
+		cacheWrite: 0,
 		calls: 0
 	};
 }
@@ -3170,7 +3192,7 @@ function add(acc, u, n = 1) {
 	acc.input += n * (u.input_tokens ?? 0);
 	acc.output += n * (u.output_tokens ?? 0);
 	acc.cacheRead += n * (u.cache_read_input_tokens ?? 0);
-	acc.cacheCreation += n * (u.cache_creation_input_tokens ?? 0);
+	acc.cacheWrite += n * (u.cache_creation_input_tokens ?? 0);
 	acc.calls += n;
 }
 function byTotalDesc(a, b) {
@@ -3262,8 +3284,8 @@ function reportLines(scanResult, { now = /* @__PURE__ */ new Date() } = {}) {
 			dim("out"),
 			plain(` · ${padL(fmtTokens(r.cacheRead), 8)} `),
 			dim("read"),
-			plain(` · ${padL(fmtTokens(r.cacheCreation), 8)} `),
-			dim("created"),
+			plain(` · ${padL(fmtTokens(r.cacheWrite), 8)} `),
+			dim("cache-write"),
 			plain("  "),
 			bold(padL(`${pct}%`, 4)),
 			plain(` ${barField(pct, 100, 14)}`)
@@ -3279,7 +3301,7 @@ function reportLines(scanResult, { now = /* @__PURE__ */ new Date() } = {}) {
 	}
 	if (days.length === 0) out.push([plain("   (no usage recorded in the last 7 days)")]);
 	out.push([]);
-	out.push([dim(" Covers every profile writing to ~/.claude/projects — hit rate = read / (in + read + created).")]);
+	out.push([dim(" Covers every profile writing to ~/.claude/projects — hit rate = read / (in + read + cache-write).")]);
 	out.push([plain(rule())]);
 	return out;
 }

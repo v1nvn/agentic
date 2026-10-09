@@ -133,7 +133,7 @@ describe('cli runCli', () => {
   });
 
   it('returns 2 for a non-extract invocation', async () => {
-    const code = await runCli(['--help']);
+    const code = await runCli(['bogus']);
     expect(code).toBe(2);
     expect(stderr()).toContain('Usage:');
   });

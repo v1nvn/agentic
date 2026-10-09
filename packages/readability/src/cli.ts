@@ -1,4 +1,4 @@
-import { parseQuietly } from '@v1nvn/agentic-core';
+import { exitZeroOnHelp, parseQuietly } from '@v1nvn/agentic-core';
 import { Command, InvalidArgumentError, Option } from 'commander';
 
 import { describeError } from './errors.js';
@@ -38,15 +38,17 @@ export function buildProgram(): Command {
 }
 
 export function parseArgs(argv: readonly string[]): ParsedArgs | undefined {
-  const program = parseQuietly(buildProgram(), argv.slice(1));
-  if (program === undefined) {
+  const program = buildProgram();
+  exitZeroOnHelp(program);
+  const parsed = parseQuietly(program, argv.slice(1));
+  if (parsed === undefined) {
     return undefined;
   }
-  const { format, maxChars } = program.opts<{
+  const { format, maxChars } = parsed.opts<{
     format: CliFormat;
     maxChars: number | undefined;
   }>();
-  return { file: program.args.at(0), format, maxChars };
+  return { file: parsed.args.at(0), format, maxChars };
 }
 
 // The stream is injected rather than reading process.stdin directly so the

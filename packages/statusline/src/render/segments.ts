@@ -305,7 +305,7 @@ function barFlatAt(input: SegmentInput, w: number): string {
     f = 1;
   }
   const col = pct >= 90 ? RED : pct >= 70 ? YELLOW : GREEN;
-  return `${col}${'█'.repeat(f)}${'░'.repeat(w - f)}${RESET}`;
+  return `${col}${'█'.repeat(f)}${'·'.repeat(w - f)}${RESET}`;
 }
 
 function barFlat(input: SegmentInput): string {
@@ -334,7 +334,7 @@ function barGauge({ row }: SegmentInput): string {
       cell = i === full ? PART[idx] : '█';
     } else {
       col = GRAY;
-      cell = '░';
+      cell = '·';
     }
     bar += `${col}${cell}`;
   }
@@ -478,7 +478,7 @@ function rateStrip({ now, row }: SegmentInput): string {
       } else if (i === full) {
         bar += PART[idx];
       } else {
-        bar += `${DIM}░`;
+        bar += `${DIM}·`;
       }
     }
     const lbl =

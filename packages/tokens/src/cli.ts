@@ -4,7 +4,7 @@
  * here, pure, so the spec can drive it; src/index.ts is the entry.
  */
 
-import { parseQuietly } from '@v1nvn/agentic-core';
+import { exitZeroOnHelp, parseQuietly } from '@v1nvn/agentic-core';
 import { Command } from 'commander';
 
 export interface ParsedArgs {
@@ -35,6 +35,7 @@ export function parseArgs(args: readonly string[]): ParsedArgs | undefined {
   const program = buildProgram(options => {
     parsed = { command: 'usage', json: options.json === true };
   });
+  exitZeroOnHelp(program);
   if (parseQuietly(program, args) === undefined) {
     return undefined;
   }

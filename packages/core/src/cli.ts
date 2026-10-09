@@ -6,13 +6,13 @@ export function parseQuietly<T = never>(
   recover?: (err: unknown) => T | undefined,
 ): Command | T | undefined {
   function quiet(command: Command): void {
-    command
-      .allowExcessArguments(false)
-      .exitOverride()
-      .configureOutput({
-        writeOut: () => undefined,
-        writeErr: () => undefined,
-      });
+    command.configureOutput({
+      writeOut: () => undefined,
+      writeErr: () => undefined,
+    });
+    if (!hasExitOverride(command)) {
+      command.exitOverride();
+    }
     command.commands.forEach(quiet);
   }
   try {
@@ -24,11 +24,36 @@ export function parseQuietly<T = never>(
   }
 }
 
+function hasExitOverride(command: Command): boolean {
+  return (command as { _exitCallback?: unknown })._exitCallback != null;
+}
+
+export function exitZeroOnHelp(program: Command): void {
+  function install(command: Command): void {
+    command.exitOverride(err => {
+      if (
+        err.exitCode === 0 &&
+        (err.code === 'commander.help' ||
+          err.code === 'commander.helpDisplayed')
+      ) {
+        console.log(command.helpInformation());
+        exitWithCode(0);
+      }
+      throw err;
+    });
+    command.commands.forEach(install);
+  }
+  install(program);
+}
+
+function exitWithCode(code: number): never {
+  // eslint-disable-next-line n/no-process-exit
+  process.exit(code);
+}
+
 export function printUsageAndExit(program: Command): never {
   console.error(program.helpInformation());
-  // CLIs report failure through the exit code; the rule targets libraries.
-  // eslint-disable-next-line n/no-process-exit
-  process.exit(1);
+  exitWithCode(1);
 }
 
 export async function runMain(main: () => Promise<void> | void): Promise<void> {
@@ -36,8 +61,6 @@ export async function runMain(main: () => Promise<void> | void): Promise<void> {
     await main();
   } catch (e) {
     console.error((e as Error).message);
-    // CLIs report failure through the exit code; the rule targets libraries.
-    // eslint-disable-next-line n/no-process-exit
-    process.exit(1);
+    exitWithCode(1);
   }
 }

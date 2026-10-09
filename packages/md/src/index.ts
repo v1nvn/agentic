@@ -1,4 +1,5 @@
 import {
+  exitZeroOnHelp,
   lastReply,
   parseQuietly,
   printUsageAndExit,
@@ -16,6 +17,7 @@ const program = new Command()
   .argument('[file]', 'Markdown file, - for stdin; the last reply when omitted')
   .option('--view', 'open the viewer read-only, without the edit pane');
 
+exitZeroOnHelp(program);
 const parsed =
   parseQuietly(program, process.argv.slice(2)) ?? printUsageAndExit(program);
 const arg = parsed.args.at(0);

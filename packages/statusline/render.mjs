@@ -777,7 +777,7 @@ function barFlatAt(input, w) {
 	let f = trunc(pct * w / 100);
 	if (f > w) f = w;
 	if (pct > 0 && f === 0) f = 1;
-	return `${pct >= 90 ? RED : pct >= 70 ? YELLOW : GREEN}${"█".repeat(f)}${"░".repeat(w - f)}${RESET}`;
+	return `${pct >= 90 ? RED : pct >= 70 ? YELLOW : GREEN}${"█".repeat(f)}${"·".repeat(w - f)}${RESET}`;
 }
 function barFlat(input) {
 	return barFlatAt(input, 10);
@@ -807,7 +807,7 @@ function barGauge({ row }) {
 			cell = i === full ? PART[idx] : "█";
 		} else {
 			col = GRAY;
-			cell = "░";
+			cell = "·";
 		}
 		bar += `${col}${cell}`;
 	}
@@ -901,7 +901,7 @@ function rateStrip({ now, row }) {
 		let bar = col;
 		for (let i = 0; i < 14; i++) if (i < full) bar += "█";
 		else if (i === full) bar += PART[idx];
-		else bar += `${DIM}░`;
+		else bar += `${DIM}·`;
 		const lbl = fracp === "" || f * 2 < scale ? intp : f * 2 > scale ? intp + 1 : intp + intp % 2;
 		const s = limit.resets - now;
 		let dur;

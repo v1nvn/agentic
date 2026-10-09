@@ -3,6 +3,7 @@ import { Command } from 'commander';
 
 import pkg from '../package.json' with { type: 'json' };
 import { ITEM_IDS } from './render/items.js';
+import { THEMES } from './themes.js';
 
 export const VERSION = pkg.version;
 
@@ -46,8 +47,7 @@ function quiet(name: Subcommand, command: Command): Command {
       }
       throw err;
     })
-    .configureOutput(QUIET)
-    .allowExcessArguments(false);
+    .configureOutput(QUIET);
 }
 
 export function buildProgram(
@@ -68,8 +68,7 @@ export function buildProgram(
 
   const LAYOUT_HELP =
     "brace clusters of item ids, e.g. '{cwd branch} {model effort}'";
-  const THEME_HELP =
-    'base design the item flags override: quiet, lean, classic, rich, custom';
+  const THEME_HELP = `base design the item flags override: ${Object.keys(THEMES).join(', ')}`;
 
   const configure = quiet('configure', new Command('configure'))
     .description('write both settings keys with the inline lab commands')
