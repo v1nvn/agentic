@@ -16,7 +16,7 @@ this one closes.
 
 ## Next step
 
-Run A3.
+Run A4.
 
 ## Steps
 
@@ -24,7 +24,7 @@ Run A3.
 |----|------|-------|--------|----------------|
 | A1 | core `parseQuietly` stops replacing a caller's `exitOverride` | | | `statusline catalog --help`, `tokens usage --help`, `zai usage --help` each print that subcommand's own options and exit 0; md and rm `--help` exit 0; readability `extract --help` prints its own options and exits 0; the three red statusline tests (`test/cli.test.ts` ×2, `test/status.test.ts` ×1) green — landed `4cae0cb` + `33dbbd4` |
 | A2 | docs truth pass | sonnet | | every claim re-checked against code; grep over live surfaces (`git grep -n -- ':!archive' ':!progress'`) finds no "six verbs" and no `statusline-lab` — archive records stay verbatim — landed `02638a7`, blind review no findings |
-| A3 | dead code, stale comments, and the invisible bar tracks out | sonnet | | `yarn test` green after each deletion; grep for each removed identifier returns nothing; the flat bar, gauge and strip tracks render as `·`; repo-wide `yarn lint` exits 0 |
+| A3 | dead code, stale comments, and the invisible bar tracks out | sonnet | | `yarn test` green after each deletion; grep for each removed identifier returns nothing; the flat bar, gauge and strip tracks render as `·`; repo-wide `yarn lint` exits 0 — landed `6cbcdd0` + fix `refactor(tokens): usage atom holds lines only`, blind review clean after 2 fix rounds |
 | A4 | tokens naming consistency | | | one name for cache-write across report, panes and README; the 7-day window label matches statusline's; goldens regenerated |
 
 ## Plan

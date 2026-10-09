@@ -40,7 +40,7 @@ const EST_CHARS_PER_TOKEN = 4;
 
 const usage = atom(
   { plugin: 'tokens', key: 'usage' } as const,
-  null as null | { lines: Line[]; scan: ScanResult },
+  null as null | { lines: Line[] },
 );
 const top = atom(
   { plugin: 'tokens', key: 'top' } as const,
@@ -120,7 +120,7 @@ async function scanUsage(
     return { call, lines: null };
   }
   const lines = reportLines(scan, { now: new Date(scan.now) });
-  await update($, usage, () => ({ lines, scan }));
+  await update($, usage, () => ({ lines }));
   return { call, lines };
 }
 

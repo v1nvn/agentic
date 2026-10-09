@@ -75,7 +75,7 @@ declare module 'claude-code' {
   interface PluginState {
     tokens: {
       top: null | TopState;
-      usage: null | { lines: Line[]; scan: ScanResult };
+      usage: null | { lines: Line[] };
     };
   }
 }
