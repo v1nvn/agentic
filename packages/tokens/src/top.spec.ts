@@ -67,7 +67,7 @@ describe('topLines', () => {
     expect(text).toContain('mcp     chrome-devtools 4.2K · enhansome 2.1K');
     expect(text).toContain('memory  CLAUDE.md 2.6K');
     expect(text).toContain('5h');
-    expect(text).toContain('week');
+    expect(text).toContain('7d');
     expect(text).toContain('resets 2h12m');
   });
 

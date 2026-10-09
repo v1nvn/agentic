@@ -196,7 +196,7 @@ function windowLabel(kind: string): string {
     return '5h';
   }
   if (kind === 'seven_day') {
-    return 'week';
+    return '7d';
   }
   return kind;
 }

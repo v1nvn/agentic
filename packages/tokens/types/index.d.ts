@@ -1,8 +1,8 @@
 import type { Line } from '../src/text.js';
 
 export type UsageAcc = {
-  cacheCreation: number;
   cacheRead: number;
+  cacheWrite: number;
   calls: number;
   input: number;
   output: number;

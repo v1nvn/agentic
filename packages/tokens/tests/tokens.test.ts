@@ -15,7 +15,7 @@ const ROW = {
   input: 30,
   output: 10,
   cacheRead: 970,
-  cacheCreation: 0,
+  cacheWrite: 0,
   calls: 1,
 };
 

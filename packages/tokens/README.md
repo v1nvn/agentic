@@ -45,8 +45,8 @@ are skipped by mtime, keeping the scan under a second even with a large
 transcript history.
 
 **Semantics:** `input_tokens` is the _uncached_ input only; the modeled context
-is `input + cacheRead + cacheCreation`. Hit rate =
-`cacheRead / (input + cacheRead + cacheCreation)`. On the GLM Coding Plan,
+is `input + cacheRead + cacheWrite`. Hit rate =
+`cacheRead / (input + cacheRead + cacheWrite)`. On the GLM Coding Plan,
 cached tokens count fully against quota, so a high hit rate saves latency, not
 quota.
 
