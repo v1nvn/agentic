@@ -3097,7 +3097,7 @@ new Command();
 *   md-send                      # from the last Claude reply (core.lastReply)
 *   md-send --view               # open read-only (no edit pane)
 *
-* Env knobs: MD_VIEWER_URL (default: https://md.v1n.space), MD_NO_OPEN=1 (skip browser).
+* Env knobs: MD_VIEWER_URL (default: https://md.v1n.space), MD_NO_OPEN (any value skips the browser).
 */
 /**
 * Encode Markdown into the Markdown-Viewer share token.

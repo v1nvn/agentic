@@ -16,14 +16,14 @@ this one closes.
 
 ## Next step
 
-Land A1's readability extension (its own commit), then run A2.
+Run A2.
 
 ## Steps
 
 | id | unit | model | review | close criteria |
 |----|------|-------|--------|----------------|
-| A1 | core `parseQuietly` stops replacing a caller's `exitOverride` | | | `statusline catalog --help`, `tokens usage --help`, `zai usage --help` each print that subcommand's own options and exit 0; md and rm `--help` exit 0; readability `extract --help` prints its own options and exits 0; the three red statusline tests (`test/cli.test.ts` ×2, `test/status.test.ts` ×1) green |
-| A2 | docs truth pass | sonnet | | every claim re-checked against code; grep over the repo finds no "six verbs" and no `statusline-lab` |
+| A1 | core `parseQuietly` stops replacing a caller's `exitOverride` | | | `statusline catalog --help`, `tokens usage --help`, `zai usage --help` each print that subcommand's own options and exit 0; md and rm `--help` exit 0; readability `extract --help` prints its own options and exits 0; the three red statusline tests (`test/cli.test.ts` ×2, `test/status.test.ts` ×1) green — landed `4cae0cb` + `33dbbd4` |
+| A2 | docs truth pass | sonnet | | every claim re-checked against code; grep over live surfaces (`git grep -n -- ':!archive' ':!progress'`) finds no "six verbs" and no `statusline-lab` — archive records stay verbatim |
 | A3 | dead code, stale comments, and the invisible bar track out | sonnet | | `yarn test` green after each deletion; grep for each removed identifier returns nothing; the flat bar's track renders as `·`; repo-wide `yarn lint` exits 0 |
 | A4 | tokens naming consistency | | | one name for cache-write across report, panes and README; the 7-day window label matches statusline's; goldens regenerated |
 
@@ -117,7 +117,9 @@ Land A1's readability extension (its own commit), then run A2.
   the fix, never by an edit. A touched file's comment-line count never rises
   (the regenerated `types/claude-code.d.ts` is exempt — stamped, not authored).
   A2's close greps ("six verbs", `statusline-lab`) and A3's per-identifier
-  greps run repo-wide from the root.
+  greps run from the root over live surfaces only (`':!archive' ':!progress'`)
+  — archive records are verbatim history and the plan's own text carries the
+  strings.
 
 ## Design
 
