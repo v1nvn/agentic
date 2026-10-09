@@ -24,7 +24,7 @@ Run A1.
 |----|------|-------|--------|----------------|
 | A1 | core `parseQuietly` stops replacing a caller's `exitOverride` | | | `statusline catalog --help`, `tokens usage --help`, `zai usage --help` each print that subcommand's own options and exit 0; md and rm `--help` exit 0; the three red statusline tests (`test/cli.test.ts` ×2, `test/status.test.ts` ×1) green |
 | A2 | docs truth pass | sonnet | | every claim re-checked against code; grep over the repo finds no "six verbs" and no `statusline-lab` |
-| A3 | dead code and stale comments out | sonnet | | `yarn test` green after each deletion; grep for each removed identifier returns nothing |
+| A3 | dead code, stale comments, and the invisible bar track out | sonnet | | `yarn test` green after each deletion; grep for each removed identifier returns nothing; the flat bar's track renders as `·`; repo-wide `yarn lint` exits 0 |
 | A4 | tokens naming consistency | | | one name for cache-write across report, panes and README; the 7-day window label matches statusline's; goldens regenerated |
 
 ## Plan
@@ -32,9 +32,15 @@ Run A1.
 - **A1 direction.** `packages/core/src/cli.ts:8-17` — `quiet()` walks the command
   tree and calls `.exitOverride()` with no handler, replacing the
   `HelpRequested`-throwing override statusline installs per subcommand
-  (`packages/statusline/src/cli.ts:40-51`). Core keeps output-quieting and
-  `allowExcessArguments(false)` for every command; a caller's own override rules.
-  The broken surface shipped through v0.38 → v0.41.1.
+  (`packages/statusline/src/cli.ts:40-51`). Core keeps per-command
+  output-quieting and installs its throwing fallback only where no caller
+  override exists (`_exitCallback === null`); the walk's
+  `allowExcessArguments(false)` is dropped — commander 15 defaults it false, a
+  verified no-op. Help is each caller's: md, rm, tokens and zai install their
+  own help-aware override at their parseQuietly call sites, printing their own
+  help to stdout and exiting 0 (statusline's pattern); genuine parse errors keep
+  the usage-to-stderr, exit-1 path. The broken surface shipped through
+  v0.38 → v0.41.1.
 - **A2 inventory** (each wrong today; fix the doc, not the code, unless the code
   is what's wrong):
   - `packages/core/package.json:4` — description claims fixed-width formatting;
@@ -79,7 +85,15 @@ Run A1.
   (`src/top.ts:368-370`), `reportLines` recomputed per render
   (`hooks/register.tsx:246-255`); tokens `src/aggregate.ts:1-4` header describes
   a removed `$.fs` walk; statusline `test/engine-corpus.test.ts:16` cites
-  deleted `subagent.sh`.
+  deleted `subagent.sh`; statusline's own `quiet()` still carries a dead
+  `allowExcessArguments(false)` (commander 15 defaults false), and tokens'
+  `src/top.ts` carries the run's 6 lint errors (func-style at the `plain()` /
+  `.slice(0,1)` block, non-null at `spawnAge`) — both ride the items above;
+  statusline `render/segments.ts:308` paints the flat
+  bar's track with `░` — a shade glyph that draws as nothing on this terminal,
+  so the track is invisible (tokens hit the same choice and used `·`,
+  `text.ts:122`; the invariant is AGENTS.md's shade-glyph rule). One-glyph fix;
+  engine-corpus goldens regenerate.
 - **A4**: cache-write answers to `cacheCreation` (`src/aggregate.ts:14`),
   `cacheWrite` (`src/top.ts:59`), label `created` (`src/format.ts:71-72`) and
   `cache-write` (README:40) — pick one (README's `cache-write`) and rescope
@@ -97,10 +111,12 @@ Run A1.
   `node packages/md/dist/index.js --help`, `node packages/rm/dist/index.js --help`.
 - **Enforcement inventory.** `yarn test` green throughout; launch baseline 362
   passed / 3 failed, the failures exactly A1's three named reds and no others.
-  statusline `test/cli.test.ts` and `test/status.test.ts` land byte-for-byte
-  untouched — the reds turn green by the fix, never by an edit. A touched file's
-  comment-line count never rises. A2's close greps ("six verbs",
-  `statusline-lab`) and A3's per-identifier greps run repo-wide from the root.
+  `yarn lint` baseline: 6 errors, all in tokens `src/top.ts`, none of A1's
+  making — A3's close erases them. statusline `test/cli.test.ts` and
+  `test/status.test.ts` land byte-for-byte untouched — the reds turn green by
+  the fix, never by an edit. A touched file's comment-line count never rises.
+  A2's close greps ("six verbs", `statusline-lab`) and A3's per-identifier
+  greps run repo-wide from the root.
 
 ## Design
 

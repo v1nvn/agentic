@@ -1,4 +1,4 @@
-import { parseQuietly } from '@v1nvn/agentic-core';
+import { exitZeroOnHelp, parseQuietly } from '@v1nvn/agentic-core';
 import { Command, Option } from 'commander';
 
 const DEFAULT_BASE_URL = 'https://api.z.ai';
@@ -95,6 +95,7 @@ export function parseArgs(args: readonly string[]): ParsedArgs | undefined {
       json: json === true,
     };
   });
+  exitZeroOnHelp(program);
   if (parseQuietly(program, args) === undefined) {
     return undefined;
   }
