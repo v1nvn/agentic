@@ -34,13 +34,13 @@ const ACCENT = 'cyan';
 
 const TOP = 'tokens-top';
 const TICK_MS = 500;
-const RING_MAX = 120;
-const AGENT_RING_MAX = 24;
+const RING_MAX = 16;
+const AGENT_RING_MAX = 5;
 const EST_CHARS_PER_TOKEN = 4;
 
 const usage = atom(
   { plugin: 'tokens', key: 'usage' } as const,
-  null as null | ScanResult,
+  null as null | { lines: Line[]; scan: ScanResult },
 );
 const top = atom(
   { plugin: 'tokens', key: 'top' } as const,
@@ -110,16 +110,18 @@ function callLabel(e: { tool: string }): string {
 
 async function scanUsage(
   $: EngineInterface,
-): Promise<{ call: ToolCallResult; scan: null | ScanResult }> {
+): Promise<{ call: ToolCallResult; lines: Line[] | null }> {
   const call = await $.tool.call({
     tool: 'Bash',
     command: `node ${$.plugin.root}/bin/report.mjs usage --json`,
   });
   const scan = parsedScan(call);
-  if (scan !== null) {
-    await update($, usage, () => scan);
+  if (scan === null) {
+    return { call, lines: null };
   }
-  return { call, scan };
+  const lines = reportLines(scan, { now: new Date(scan.now) });
+  await update($, usage, () => ({ lines, scan }));
+  return { call, lines };
 }
 
 function parsedScan(call: ToolCallResult): null | ScanResult {
@@ -244,12 +246,11 @@ export function register(on: On): void {
   });
 
   on('command.run', { command: 'tokens-usage' }, async $ => {
-    const { call, scan } = await scanUsage($);
-    if (scan === null) {
+    const { call, lines } = await scanUsage($);
+    if (lines === null) {
       $.ui.log(lineOf(call));
       return {};
     }
-    const lines = reportLines(scan, { now: new Date(scan.now) });
     await $.ui.open({ id: PANE, title: 'Token usage', rows: lines.length + 2 });
     return {};
   });
@@ -260,12 +261,12 @@ export function register(on: On): void {
   });
 
   on('ui.render', { component: 'Pane', requestId: PANE }, async ($, e) => {
-    const s = await read($, usage);
-    if (!s) {
+    const saved = await read($, usage);
+    if (!saved) {
       const { Text } = $.ui.resolve(e);
       return <Text dimColor>(no usage report)</Text>;
     }
-    return draw($.ui.resolve(e), reportLines(s, { now: new Date(s.now) }));
+    return draw($.ui.resolve(e), saved.lines);
   });
 
   on('ui.render', { component: 'Pane', requestId: TOP }, async ($, e) => {
@@ -309,8 +310,6 @@ export function register(on: On): void {
       mcp.set(t.serverName, (mcp.get(t.serverName) ?? 0) + t.tokens);
     }
     const measure: TopMeasure = {
-      at: await $.clock.now(),
-      model: b?.model ?? null,
       startedAt: u.startedAt,
       tokens: u.context.tokens ?? null,
       window: u.context.window,
@@ -372,7 +371,6 @@ export function register(on: On): void {
               input: u.input_tokens,
               output: u.output_tokens,
               cacheRead: u.cache_read_input_tokens,
-              cacheWrite: u.cache_creation_input_tokens,
             },
           })),
         );

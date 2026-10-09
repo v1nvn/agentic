@@ -47,8 +47,7 @@ function quiet(name: Subcommand, command: Command): Command {
       }
       throw err;
     })
-    .configureOutput(QUIET)
-    .allowExcessArguments(false);
+    .configureOutput(QUIET);
 }
 
 export function buildProgram(

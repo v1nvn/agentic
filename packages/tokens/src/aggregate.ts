@@ -1,6 +1,6 @@
 /**
- * Pure aggregation over transcript JSONL lines — the one usage math shared by
- * the node-fs CLI walk (scan.ts) and the engine-side $.fs walk (register.tsx).
+ * Pure aggregation over transcript JSONL lines — the one usage math, feeding
+ * the CLI's walk (scan.ts) and the report's rows (format.ts).
  */
 
 import { ymd } from './text.js';

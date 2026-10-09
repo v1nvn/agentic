@@ -3138,8 +3138,8 @@ function renderLines(lines) {
 //#endregion
 //#region src/aggregate.ts
 /**
-* Pure aggregation over transcript JSONL lines — the one usage math shared by
-* the node-fs CLI walk (scan.ts) and the engine-side $.fs walk (register.tsx).
+* Pure aggregation over transcript JSONL lines — the one usage math, feeding
+* the CLI's walk (scan.ts) and the report's rows (format.ts).
 */
 function totalTokens(a) {
 	return (a.input || 0) + (a.output || 0) + (a.cacheRead || 0) + (a.cacheCreation || 0);

@@ -17,8 +17,6 @@ const SESSION = {
 };
 
 const MEASURE: TopMeasure = {
-  at: NOW,
-  model: 'glm-5.3',
   startedAt: NOW - 112 * 60 * 1000,
   tokens: 124100,
   window: 200000,
@@ -158,7 +156,6 @@ describe('topLines', () => {
             input: 14900,
             output: 2100,
             cacheRead: 383200,
-            cacheWrite: 1200,
           },
           firstChunkMs: 800,
           turnMs: 41000,

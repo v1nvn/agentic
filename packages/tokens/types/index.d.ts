@@ -1,3 +1,5 @@
+import type { Line } from '../src/text.js';
+
 export type UsageAcc = {
   cacheCreation: number;
   cacheRead: number;
@@ -24,8 +26,6 @@ export type TopRateLimit = {
 };
 
 export type TopMeasure = {
-  at: number;
-  model: string | null;
   startedAt: number | null;
   tokens: number | null;
   window: number;
@@ -40,7 +40,6 @@ export type TopMeasure = {
 
 export type TopUsage = {
   cacheRead: number;
-  cacheWrite: number;
   input: number;
   output: number;
 };
@@ -74,6 +73,9 @@ export type TopState = {
 
 declare module 'claude-code' {
   interface PluginState {
-    tokens: { top: null | TopState; usage: null | ScanResult };
+    tokens: {
+      top: null | TopState;
+      usage: null | { lines: Line[]; scan: ScanResult };
+    };
   }
 }

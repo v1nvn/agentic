@@ -16,15 +16,15 @@ this one closes.
 
 ## Next step
 
-Run A2.
+Run A3.
 
 ## Steps
 
 | id | unit | model | review | close criteria |
 |----|------|-------|--------|----------------|
 | A1 | core `parseQuietly` stops replacing a caller's `exitOverride` | | | `statusline catalog --help`, `tokens usage --help`, `zai usage --help` each print that subcommand's own options and exit 0; md and rm `--help` exit 0; readability `extract --help` prints its own options and exits 0; the three red statusline tests (`test/cli.test.ts` ×2, `test/status.test.ts` ×1) green — landed `4cae0cb` + `33dbbd4` |
-| A2 | docs truth pass | sonnet | | every claim re-checked against code; grep over live surfaces (`git grep -n -- ':!archive' ':!progress'`) finds no "six verbs" and no `statusline-lab` — archive records stay verbatim |
-| A3 | dead code, stale comments, and the invisible bar track out | sonnet | | `yarn test` green after each deletion; grep for each removed identifier returns nothing; the flat bar's track renders as `·`; repo-wide `yarn lint` exits 0 |
+| A2 | docs truth pass | sonnet | | every claim re-checked against code; grep over live surfaces (`git grep -n -- ':!archive' ':!progress'`) finds no "six verbs" and no `statusline-lab` — archive records stay verbatim — landed `02638a7`, blind review no findings |
+| A3 | dead code, stale comments, and the invisible bar tracks out | sonnet | | `yarn test` green after each deletion; grep for each removed identifier returns nothing; the flat bar, gauge and strip tracks render as `·`; repo-wide `yarn lint` exits 0 |
 | A4 | tokens naming consistency | | | one name for cache-write across report, panes and README; the 7-day window label matches statusline's; goldens regenerated |
 
 ## Plan
@@ -89,16 +89,18 @@ Run A2.
   `allowExcessArguments(false)` (commander 15 defaults false), and tokens'
   `src/top.ts` carries the run's 6 lint errors (func-style at the `plain()` /
   `.slice(0,1)` block, non-null at `spawnAge`) — both ride the items above;
-  statusline `render/segments.ts:308` paints the flat
-  bar's track with `░` — a shade glyph that draws as nothing on this terminal,
-  so the track is invisible (tokens hit the same choice and used `·`,
-  `text.ts:122`; the invariant is AGENTS.md's shade-glyph rule). One-glyph fix;
-  engine-corpus goldens regenerate.
-- **A4**: cache-write answers to `cacheCreation` (`src/aggregate.ts:14`),
-  `cacheWrite` (`src/top.ts:59`), label `created` (`src/format.ts:71-72`) and
-  `cache-write` (README:40) — pick one (README's `cache-write`) and rescope
-  everywhere in the same change; the 7-day window is `week` in tokens
-  (`src/top.ts:197-205`) vs `7d` in statusline (`src/render/payload.ts:75-76`).
+  statusline `render/segments.ts` paints invisible `░` shade-glyph tracks at
+  three sites — :308 (flat bar track), :337 (`barGauge` empty cells), :481
+  (rate `strip` track) — a shade glyph that draws as nothing on this terminal,
+  so each track is invisible (tokens hit the same choice and used `·`,
+  `text.ts:122`; the invariant is AGENTS.md's shade-glyph rule). One-glyph
+  swap per site; engine-corpus goldens regenerate.
+- **A4**: after A3, cache-write answers to `cacheCreation`
+  (`src/aggregate.ts`), label `created` (`src/format.ts`) and `cache-write`
+  (README) — pick one (README's `cache-write`) and rescope everywhere in the
+  same change (`TopUsage.cacheWrite` and the `TopMeasure.at`/`.model` anchors
+  are gone, deleted at A3); the 7-day window is `week` in tokens
+  (`src/top.ts`) vs `7d` in statusline (`src/render/payload.ts`).
 - Anchor drift: every `file:line` above was verified at `5942e0a`; re-read
   before editing.
 - **Run mechanics.** One branch `audit-fixes` off main, one PR at the end, its
@@ -118,8 +120,10 @@ Run A2.
   (the regenerated `types/claude-code.d.ts` is exempt — stamped, not authored).
   A2's close greps ("six verbs", `statusline-lab`) and A3's per-identifier
   greps run from the root over live surfaces only (`':!archive' ':!progress'`)
-  — archive records are verbatim history and the plan's own text carries the
-  strings.
+  — archive records are verbatim history, the plan's own text carries the
+  strings, and a removed identifier may survive as commander's own bundled
+  internals inside the synced `bin/` artifacts (the library's method
+  definition, not a reference to the removed call).
 
 ## Design
 
