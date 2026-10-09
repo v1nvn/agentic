@@ -9,14 +9,15 @@ names one quantity one way. Suite green throughout.
 
 ## Current state
 
-Nothing landed. The findings below were verified against the code at `5942e0a`
-by the audit sitting; re-read each anchor before relying on it. The companion
-thread `progress/audit-refactor.md` carries the ruled restructure and lands after
-this one closes.
+Landed and closed. Every unit's evidence is in its row; the gate ends green
+(lint 0 problems, all suites 0 failed, `claude plugin test packages/tokens`
+7/7). Blind reviews: A1 and A2 no defects, A3 one finding fixed in two rounds,
+A4 no findings.
 
 ## Next step
 
-Run A4.
+Closed 2026-10-09 — the ruled restructure continues in
+`progress/audit-refactor.md` on this cleaned base.
 
 ## Steps
 
@@ -25,7 +26,7 @@ Run A4.
 | A1 | core `parseQuietly` stops replacing a caller's `exitOverride` | | | `statusline catalog --help`, `tokens usage --help`, `zai usage --help` each print that subcommand's own options and exit 0; md and rm `--help` exit 0; readability `extract --help` prints its own options and exits 0; the three red statusline tests (`test/cli.test.ts` ×2, `test/status.test.ts` ×1) green — landed `4cae0cb` + `33dbbd4` |
 | A2 | docs truth pass | sonnet | | every claim re-checked against code; grep over live surfaces (`git grep -n -- ':!archive' ':!progress'`) finds no "six verbs" and no `statusline-lab` — archive records stay verbatim — landed `02638a7`, blind review no findings |
 | A3 | dead code, stale comments, and the invisible bar tracks out | sonnet | | `yarn test` green after each deletion; grep for each removed identifier returns nothing; the flat bar, gauge and strip tracks render as `·`; repo-wide `yarn lint` exits 0 — landed `6cbcdd0` + fix `refactor(tokens): usage atom holds lines only`, blind review clean after 2 fix rounds |
-| A4 | tokens naming consistency | | | one name for cache-write across report, panes and README; the 7-day window label matches statusline's; goldens regenerated |
+| A4 | tokens naming consistency | | | one name for cache-write across report, panes and README; the 7-day window label matches statusline's; goldens regenerated — landed `8a68ef9`, blind review no findings |
 
 ## Plan
 
