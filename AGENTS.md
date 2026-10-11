@@ -10,7 +10,7 @@ agent panel), and `todo` (work tracking) — nine independently-installable plug
 in one repo. Each plugin's root is its package home, `packages/<name>/` itself.
 Seven homes publish npm code (`@v1nvn/*`), while
 `enhansome` points its
-`.mcp.json` at the deployed server and `todo` is manifest + skills, no package.
+`.mcp.json` at the deployed server and `todo` is manifest, skills and agents, no package.
 
 ## Philosophy
 
@@ -48,7 +48,8 @@ name or shape wins.
 
 - **A plugin's root is its package home; there is no `plugins/` directory.** A
   plugin root holds the manifest, `.md` surfaces — skills (a `SKILL.md` at the
-  root or under `skills/<name>/`) when the model executes the body — and a
+  root or under `skills/<name>/`) when the model executes the body, subagents
+  (`agents/<name>.md`) when a body is a dispatched role's whole law — and a
   hooks/mcp config. Four homes are mods (`rm`, `md`, `zai`, `tokens`): a hooks
   module registers the home's commands, each `command.run` exec'ing the home's
   shipped CLI and answering `{}`. One yarn workspace at the root
@@ -136,8 +137,9 @@ time, so it speaks only to that model.
 - **Emphasis is earned by a reason.** State a constraint plainly with its _because_; caps and
   `NEVER` are for contract facts and routing, not for steering behavior.
 - **todo: `/todo:run` is the primary skill.** It is the battle-tested one; `rules` defines
-  the progress-file shape `run` consumes, and every other todo skill stays in sync with
-  both — a change to one lands in the others in the same change.
+  the progress-file shape `run` consumes, the `agents/` role files carry the law `run`
+  dispatches, and every other todo skill stays in sync with all three — a change to one
+  lands in the others in the same change.
 - **Promotion out of a thread is rare and strict.** A rule reaches a consumer repo's
   `references/` only as a settled fact that repo still needs; it reaches this repo (todo's
   own rules) only when every consumer repo needs it. The default is: it stays in the thread.

@@ -44,15 +44,15 @@ the tree says so rather than summing them away.
 Read the run's plan file and its `progress/.scratch/` records. Drop every candidate
 the records explain — a firing the plan mandates, a flake whose failure is quoted, a
 wait an inherent dependency chain forces. Confirm each survivor with its minutes and
-the rule it breaks, quoted from `run/SKILL.md` by line. The script's candidates:
+the rule it breaks, quoted by line from `run/SKILL.md` or the role file in
+`agents/` that holds it. The script's candidates:
 
 - an orchestrator suite run (run: the session never gates);
-- a worker Bash `sleep` poll (run: no worker polls with `sleep`);
-- a suite re-run inside five minutes whose command differs only in output shaping;
-- a full-suite firing beyond the unit's gate firings (run: the full gate fires before
-  a commit and per code-touching fix round, and its log answers later questions);
-- a reviewer transcript holding a suite run (run: a review reads a diff against the
-  plan, it does not re-do the build);
+- a suite run by any worker but the clerk (clerk: the workspace gate is yours alone;
+  builder: run only the scoped gate lines; reviewer: never run a build or a test suite);
+- a worker Bash `sleep` poll (builder: never poll with `sleep`);
+- a suite re-run inside five minutes whose command differs only in output shaping
+  (clerk: the gate re-fires only for a stated cause);
 - an idle span where one background ritual ran and nothing else did.
 
 ## Report

@@ -106,7 +106,13 @@ function ledger(events) {
     if (!prev || (billed && (!prev.billed || (u.input_tokens ?? 0) > 0)))
       calls.set(id, { u: u ?? {}, billed });
   }
-  const sum = { calls: calls.size, input: 0, cacheRead: 0, cacheCreate: 0, output: 0 };
+  const sum = {
+    calls: calls.size,
+    input: 0,
+    cacheRead: 0,
+    cacheCreate: 0,
+    output: 0,
+  };
   const ctx = [];
   const reads = [];
   for (const { u } of calls.values()) {
@@ -141,7 +147,12 @@ function toolRuns(events) {
     for (const b of blocks(e)) {
       const p = pending.get(b?.tool_use_id);
       if (!p) continue;
-      runs.push({ start: p.t, dur: t - p.t, name: p.b.name, input: p.b.input ?? {} });
+      runs.push({
+        start: p.t,
+        dur: t - p.t,
+        name: p.b.name,
+        input: p.b.input ?? {},
+      });
       pending.delete(b.tool_use_id);
     }
   }
@@ -151,7 +162,11 @@ function toolRuns(events) {
 const bashOf = runs =>
   runs
     .filter(r => r.name === 'Bash')
-    .map(r => ({ start: r.start, dur: r.dur, cmd: String(r.input.command ?? '') }));
+    .map(r => ({
+      start: r.start,
+      dur: r.dur,
+      cmd: String(r.input.command ?? ''),
+    }));
 
 function lastCostState(path) {
   return records(path).findLast(e => e.type === 'cost-state') ?? null;
@@ -204,7 +219,13 @@ function main(transcript, suiteSrc) {
   }));
   const orchRuns = toolRuns(ev);
   const fgTools = orchRuns
-    .filter(r => !(r.name === 'Agent' || (r.name === 'Bash' && r.input.run_in_background)))
+    .filter(
+      r =>
+        !(
+          r.name === 'Agent' ||
+          (r.name === 'Bash' && r.input.run_in_background)
+        ),
+    )
     .reduce((a, r) => a + r.dur, 0);
 
   // A gap before an assistant message that background work fully covered is
@@ -252,7 +273,10 @@ function main(transcript, suiteSrc) {
       workers.push({
         desc: meta.description ?? '?',
         type: meta.agentType ?? '?',
-        model: wev.findLast(e => e.message?.model)?.message.model ?? meta.model ?? '?',
+        model:
+          wev.findLast(e => e.message?.model)?.message.model ??
+          meta.model ??
+          '?',
         start: w0,
         end: w1,
         wall: w1 - w0,
@@ -287,11 +311,15 @@ function main(transcript, suiteSrc) {
     '| agent | calls | input | cache rd | cache cr | out | 1st ctx | max ctx | hit |',
   );
   console.log('|---|---|---|---|---|---|---|---|---|');
-  const rows = [
-    { desc: ORCHESTRATOR, usage: ledger(ev) },
-    ...byStart,
-  ];
-  const total = { calls: 0, input: 0, cacheRead: 0, cacheCreate: 0, output: 0, standing: 0 };
+  const rows = [{ desc: ORCHESTRATOR, usage: ledger(ev) }, ...byStart];
+  const total = {
+    calls: 0,
+    input: 0,
+    cacheRead: 0,
+    cacheCreate: 0,
+    output: 0,
+    standing: 0,
+  };
   for (const { desc, usage: u } of rows) {
     for (const k of Object.keys(total)) total[k] += u[k];
     console.log(
@@ -309,7 +337,9 @@ function main(transcript, suiteSrc) {
   console.log('\n## cost\n');
   const cost = lastCostState(transcript);
   if (cost) {
-    console.log(`$${cost.totalCostUSD.toFixed(2)} total (harness cost-state; counts retries the transcripts do not)\n`);
+    console.log(
+      `$${cost.totalCostUSD.toFixed(2)} total (harness cost-state; counts retries the transcripts do not)\n`,
+    );
     console.log('| model | input | cache rd | cache cr | out | cost |');
     console.log('|---|---|---|---|---|---|');
     for (const [m, u] of Object.entries(cost.modelUsage ?? {})) {
@@ -329,7 +359,11 @@ function main(transcript, suiteSrc) {
   ]) {
     for (const b of bash) {
       const k = `${who}: ${
-        SLEEP.test(b.cmd) ? 'sleep (waiting)' : SUITE?.test(b.cmd) ? 'suite' : 'other'
+        SLEEP.test(b.cmd)
+          ? 'sleep (waiting)'
+          : SUITE?.test(b.cmd)
+            ? 'suite'
+            : 'other'
       }`;
       const row = cats.get(k) ?? { n: 0, ms: 0 };
       cats.set(k, { n: row.n + 1, ms: row.ms + b.dur });
@@ -343,7 +377,10 @@ function main(transcript, suiteSrc) {
 
   console.log('\n## files read by two or more agents\n');
   const readers = new Map();
-  for (const { desc, runs } of [{ desc: ORCHESTRATOR, runs: orchRuns }, ...workers]) {
+  for (const { desc, runs } of [
+    { desc: ORCHESTRATOR, runs: orchRuns },
+    ...workers,
+  ]) {
     for (const r of runs.filter(x => x.name === 'Read')) {
       const row = readers.get(r.input.file_path) ?? { who: new Set(), n: 0 };
       row.who.add(desc);
@@ -357,7 +394,8 @@ function main(transcript, suiteSrc) {
     .slice(0, 15);
   console.log('| agents | reads | file |');
   console.log('|---|---|---|');
-  for (const [file, v] of shared) console.log(`| ${v.who.size} | ${v.n} | ${file} |`);
+  for (const [file, v] of shared)
+    console.log(`| ${v.who.size} | ${v.n} | ${file} |`);
 
   console.log('\n## violation candidates\n');
   let flagged = false;
@@ -366,7 +404,9 @@ function main(transcript, suiteSrc) {
     const seg = base.split(';').find(s => SUITE.test(s)) ?? base;
     return seg.split('|')[0].trim();
   };
-  const orchSuites = SUITE ? bashOf(orchRuns).filter(b => SUITE.test(b.cmd)) : [];
+  const orchSuites = SUITE
+    ? bashOf(orchRuns).filter(b => SUITE.test(b.cmd))
+    : [];
   if (orchSuites.length) {
     flagged = true;
     console.log(
@@ -384,10 +424,10 @@ function main(transcript, suiteSrc) {
         `- sleep poll: ${w.desc} slept ${sleeps.length} times, ${fmt(sleeps.reduce((a, b) => a + b.dur, 0))} total — first at ${hhmm(sleeps[0].start)}: ${sleeps[0].cmd.slice(0, 60)}`,
       );
     }
-    if (/review/i.test(`${w.type} ${w.desc}`) && suites.length) {
+    if (!/clerk/i.test(`${w.type} ${w.desc}`) && suites.length) {
       flagged = true;
       console.log(
-        `- reviewer ran a suite: ${w.desc} — ${suites.length} run(s), ${fmt(suites.reduce((a, b) => a + b.dur, 0))}`,
+        `- suite outside the clerk: ${w.desc} — ${suites.length} run(s), ${fmt(suites.reduce((a, b) => a + b.dur, 0))}`,
       );
     }
     const clusters = new Map();
