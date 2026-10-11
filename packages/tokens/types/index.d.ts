@@ -1,4 +1,7 @@
-import type { Line } from '../src/text.js';
+export type Line = {
+  ink?: 'bold' | 'dim' | 'green' | 'magenta';
+  text: string;
+}[];
 
 export type UsageAcc = {
   cacheRead: number;
