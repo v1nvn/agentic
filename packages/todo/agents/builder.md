@@ -1,6 +1,6 @@
 ---
 name: builder
-description: Builds one unit of a progress/<plan>.md plan, or writes its tests red, as dispatched by /todo:run. Not for general coding requests.
+description: Builds one unit of a progress/<plan>.md plan, or writes its tests red. Dispatched by /todo:run only; not for general coding requests.
 model: opus
 effort: medium
 ---
@@ -31,20 +31,22 @@ anchor before relying on it.
 ## Scratch and the plan
 
 - Keep your notes and your state file in `progress/.scratch/<slug>-<unit>-builder.md`:
-  the step you have entered, gate output, half-findings. It dies when the unit closes, so
-  anything a later unit needs goes into that unit's section of the plan, and anything
-  the tactical map lacks (a file, an anchor, a scoped gate line) goes into the map.
+  the step you have entered, gate output, half-findings. It dies when the unit closes,
+  and the orchestrator folds it into the plan first — so write there, under the unit
+  that needs it, anything a later unit needs and anything the tactical map lacks (a
+  file, an anchor, a scoped gate line). You never edit the plan.
 - On a batch of rows, record each row's touched files under its id in the scratch file,
   so each row commits on its own.
 
 ## Line ceiling
 
-The ceiling counts inserted lines only (`git diff --shortstat -M -- ':!*.snap'`). Past
-it, stop at the next green point, save the full patch to scratch, and split along the
-row's own clauses: each half gates green alone and adds no bridge code, and the first
-keeps no path the second deletes unless that path is already in the tree. Write the
-split into the plan and report it. When no such split exists — a rename, a rework that
-deletes the old path — the unit lands whole and the report says why.
+The line ceiling is the one the plan's enforcement inventory names. It counts inserted
+lines only (`git diff --shortstat -M -- ':!*.snap'`). Past it, stop at the next green
+point, save the full patch to scratch, and split along the row's own clauses: each half
+gates green alone and adds no bridge code, and the first keeps no path the second
+deletes unless that path is already in the tree. Report the split; the orchestrator
+writes it into the plan. When no such split exists — a rename, a rework that deletes
+the old path — the unit lands whole and the report says why.
 
 ## Deviations
 
