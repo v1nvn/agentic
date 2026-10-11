@@ -6,13 +6,24 @@ import childProcess from "node:child_process";
 import process$1 from "node:process";
 import { stripVTControlCharacters } from "node:util";
 //#region ../core/dist/index.js
-function parseQuietly(program, args, recover) {
+var HelpRequested = class extends Error {
+	command;
+	constructor(command) {
+		super(`${command.name()} --help`);
+		this.command = command;
+	}
+};
+function parseQuietly(program, args) {
 	function quiet(command) {
 		command.configureOutput({
 			writeOut: () => void 0,
 			writeErr: () => void 0
 		});
-		if (!hasExitOverride(command)) command.exitOverride();
+		command.exitOverride((err) => {
+			const code = err.code;
+			if (code === "commander.help" || code === "commander.helpDisplayed") throw new HelpRequested(command);
+			throw err;
+		});
 		command.commands.forEach(quiet);
 	}
 	try {
@@ -20,27 +31,15 @@ function parseQuietly(program, args, recover) {
 		program.parse([...args], { from: "user" });
 		return program;
 	} catch (err) {
-		return recover?.(err);
+		return err instanceof HelpRequested ? err : void 0;
 	}
-}
-function hasExitOverride(command) {
-	return command._exitCallback != null;
-}
-function exitZeroOnHelp(program) {
-	function install(command) {
-		command.exitOverride((err) => {
-			if (err.exitCode === 0 && (err.code === "commander.help" || err.code === "commander.helpDisplayed")) {
-				console.log(command.helpInformation());
-				exitWithCode(0);
-			}
-			throw err;
-		});
-		command.commands.forEach(install);
-	}
-	install(program);
 }
 function exitWithCode(code) {
 	process.exit(code);
+}
+function printHelpAndExit(command) {
+	console.log(command.helpInformation());
+	exitWithCode(0);
 }
 function printUsageAndExit(program) {
 	console.error(program.helpInformation());
@@ -3450,7 +3449,7 @@ function buildProgram(onUsage) {
 }
 function parseArgs(args) {
 	let parsed;
-	const program = buildProgram((options) => {
+	const quiet = parseQuietly(buildProgram((options) => {
 		const { authToken, baseUrl, json } = options;
 		parsed = {
 			authToken: authToken || void 0,
@@ -3458,9 +3457,8 @@ function parseArgs(args) {
 			command: "usage",
 			json: json === true
 		};
-	});
-	exitZeroOnHelp(program);
-	if (parseQuietly(program, args) === void 0) return;
+	}), args);
+	if (quiet === void 0 || quiet instanceof HelpRequested) return quiet;
 	return parsed ?? {
 		authToken: void 0,
 		baseUrl: void 0,
@@ -3549,7 +3547,9 @@ async function fetchReport(config) {
 }
 //#endregion
 //#region src/index.ts
-var parsed = parseArgs(process.argv.slice(2)) ?? printUsageAndExit(buildProgram());
+var asked = parseArgs(process.argv.slice(2));
+if (asked instanceof HelpRequested) printHelpAndExit(asked.command);
+var parsed = asked ?? printUsageAndExit(buildProgram());
 if (parsed.command !== "usage") printUsageAndExit(buildProgram());
 await runMain(async () => {
 	const input = await fetchReport(resolveConfig(process.env, parsed));

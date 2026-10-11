@@ -1,4 +1,4 @@
-import { parseQuietly } from '@v1nvn/agentic-core';
+import { HelpRequested, parseQuietly } from '@v1nvn/agentic-core';
 import { Command } from 'commander';
 
 import pkg from '../package.json' with { type: 'json' };
@@ -10,14 +10,18 @@ export const VERSION = pkg.version;
 // The flag surface is the render registry's item ids — one registry, shared
 // with the data-dir renderer.
 
+export const PROGRAM = 'statusline';
+
 export type Subcommand =
   'catalog' | 'configure' | 'preview' | 'restore' | 'status';
+
+export type HelpTopic = Subcommand | typeof PROGRAM;
 
 export interface ParsedArgs {
   readonly command?: Subcommand;
   readonly dryRun?: boolean;
   readonly force?: boolean;
-  readonly help?: Subcommand;
+  readonly help?: HelpTopic;
   readonly home?: string;
   readonly items?: readonly string[];
   readonly layout?: string;
@@ -30,30 +34,10 @@ export interface ParsedArgs {
 
 type SubcommandOptions = Record<string, unknown>;
 
-const QUIET = { writeOut: () => undefined, writeErr: () => undefined };
-
-class HelpRequested extends Error {
-  constructor(readonly command: Subcommand) {
-    super(`${command} --help`);
-  }
-}
-
-function quiet(name: Subcommand, command: Command): Command {
-  return command
-    .exitOverride(err => {
-      const code = (err as { code?: string }).code;
-      if (code === 'commander.help' || code === 'commander.helpDisplayed') {
-        throw new HelpRequested(name);
-      }
-      throw err;
-    })
-    .configureOutput(QUIET);
-}
-
 export function buildProgram(
   onSubcommand?: (command: Subcommand, options: SubcommandOptions) => void,
 ): Command {
-  const catalog = quiet('catalog', new Command('catalog'))
+  const catalog = new Command('catalog')
     .description(
       'print the themes block (* marks the live theme) then one line per item — * marks the live variant',
     )
@@ -70,7 +54,7 @@ export function buildProgram(
     "brace clusters of item ids, e.g. '{cwd branch} {model effort}'";
   const THEME_HELP = `base design the item flags override: ${Object.keys(THEMES).join(', ')}`;
 
-  const configure = quiet('configure', new Command('configure'))
+  const configure = new Command('configure')
     .description('write both settings keys with the inline lab commands')
     .option('--home <dir>', 'operate on this home instead of $HOME')
     .option('--layout <spec>', LAYOUT_HELP)
@@ -83,7 +67,7 @@ export function buildProgram(
     onSubcommand?.('configure', options),
   );
 
-  const preview = quiet('preview', new Command('preview'))
+  const preview = new Command('preview')
     .description('render a candidate line and panel row; nothing is written')
     .option('--home <dir>', 'operate on this home instead of $HOME')
     .option('--layout <spec>', LAYOUT_HELP)
@@ -96,7 +80,7 @@ export function buildProgram(
     onSubcommand?.('preview', options),
   );
 
-  const restore = quiet('restore', new Command('restore'))
+  const restore = new Command('restore')
     .description(
       'revert both settings keys to their pre-lab values, clean the data dir',
     )
@@ -110,7 +94,7 @@ export function buildProgram(
     onSubcommand?.('restore', options),
   );
 
-  const status = quiet('status', new Command('status'))
+  const status = new Command('status')
     .description(
       'check install, keys, config, and backup — exit 0 healthy, 1 when a row needs action',
     )
@@ -120,7 +104,7 @@ export function buildProgram(
   );
 
   return new Command()
-    .name('statusline')
+    .name(PROGRAM)
     .description('Configure the status line and agent panel designs')
     .option('-V, --version', 'print the version and exit')
     .action(() => undefined)
@@ -131,10 +115,13 @@ export function buildProgram(
     .addCommand(status);
 }
 
-export function subcommandHelp(name: Subcommand): string {
-  const command = buildProgram().commands.find(c => c.name() === name);
+export function helpFor(help: HelpTopic): string {
+  const command =
+    help === PROGRAM
+      ? buildProgram()
+      : buildProgram().commands.find(c => c.name() === help);
   if (command === undefined) {
-    throw new Error(`no '${name}' command to describe`);
+    throw new Error(`no '${help}' command to describe`);
   }
   return command.helpInformation();
 }
@@ -152,14 +139,12 @@ export function parseArgs(args: readonly string[]): ParsedArgs | undefined {
   const program = buildProgram((command, options) => {
     chosen = { command, options };
   });
-  const parsed = parseQuietly(program, args, err =>
-    err instanceof HelpRequested ? { help: err.command } : undefined,
-  );
+  const parsed = parseQuietly(program, args);
   if (parsed === undefined) {
     return undefined;
   }
-  if (!(parsed instanceof Command)) {
-    return { version: false, help: parsed.help };
+  if (parsed instanceof HelpRequested) {
+    return { version: false, help: parsed.command.name() as HelpTopic };
   }
   const { version } = program.opts<{ version: boolean | undefined }>();
   if (version) {

@@ -1,18 +1,29 @@
 import type { Command } from 'commander';
 
-export function parseQuietly<T = never>(
+// A --help ask caught mid-parse: parseQuietly returns it instead of exiting,
+// so a spec can drive the parse and the bin decides to print and exit.
+export class HelpRequested extends Error {
+  constructor(readonly command: Command) {
+    super(`${command.name()} --help`);
+  }
+}
+
+export function parseQuietly(
   program: Command,
   args: readonly string[],
-  recover?: (err: unknown) => T | undefined,
-): Command | T | undefined {
+): Command | HelpRequested | undefined {
   function quiet(command: Command): void {
     command.configureOutput({
       writeOut: () => undefined,
       writeErr: () => undefined,
     });
-    if (!hasExitOverride(command)) {
-      command.exitOverride();
-    }
+    command.exitOverride(err => {
+      const code = (err as { code?: string }).code;
+      if (code === 'commander.help' || code === 'commander.helpDisplayed') {
+        throw new HelpRequested(command);
+      }
+      throw err;
+    });
     command.commands.forEach(quiet);
   }
   try {
@@ -20,35 +31,18 @@ export function parseQuietly<T = never>(
     program.parse([...args], { from: 'user' });
     return program;
   } catch (err) {
-    return recover?.(err);
+    return err instanceof HelpRequested ? err : undefined;
   }
-}
-
-function hasExitOverride(command: Command): boolean {
-  return (command as { _exitCallback?: unknown })._exitCallback != null;
-}
-
-export function exitZeroOnHelp(program: Command): void {
-  function install(command: Command): void {
-    command.exitOverride(err => {
-      if (
-        err.exitCode === 0 &&
-        (err.code === 'commander.help' ||
-          err.code === 'commander.helpDisplayed')
-      ) {
-        console.log(command.helpInformation());
-        exitWithCode(0);
-      }
-      throw err;
-    });
-    command.commands.forEach(install);
-  }
-  install(program);
 }
 
 function exitWithCode(code: number): never {
   // eslint-disable-next-line n/no-process-exit
   process.exit(code);
+}
+
+export function printHelpAndExit(command: Command): never {
+  console.log(command.helpInformation());
+  exitWithCode(0);
 }
 
 export function printUsageAndExit(program: Command): never {

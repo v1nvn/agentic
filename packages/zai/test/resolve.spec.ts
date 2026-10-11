@@ -1,3 +1,4 @@
+import { HelpRequested } from '@v1nvn/agentic-core';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { buildProgram, parseArgs, resolveConfig } from '../src/resolve.js';
@@ -6,7 +7,8 @@ import type { ParsedArgs } from '../src/resolve.js';
 const env = (vars: Record<string, string>) => vars as NodeJS.ProcessEnv;
 
 // The resolve tests only use argv that parses; the parse tests cover the rest.
-const args = (argv: string[]): ParsedArgs => parseArgs(['usage', ...argv]) as ParsedArgs;
+const args = (argv: string[]): ParsedArgs =>
+  parseArgs(['usage', ...argv]) as ParsedArgs;
 
 // An empty stub reads as unset, pinning a clean env where the machine exports ZAI_*.
 beforeEach(() => {
@@ -50,7 +52,14 @@ describe('parseArgs', () => {
   });
 
   it('parses --json', () => {
-    expect(parseArgs(['usage', '--json'])!.json).toBe(true);
+    expect(args(['--json']).json).toBe(true);
+  });
+
+  it('answers --help as a HelpRequested ask, root or command', () => {
+    const asked = parseArgs(['usage', '--help']);
+    expect(asked).toBeInstanceOf(HelpRequested);
+    expect((asked as HelpRequested).command.name()).toBe('usage');
+    expect(parseArgs(['--help'])).toBeInstanceOf(HelpRequested);
   });
 
   it('answers bare with no command', () => {
@@ -68,13 +77,13 @@ describe('parseArgs', () => {
 
   it('folds ZAI_AUTH_TOKEN in from the environment', () => {
     vi.stubEnv('ZAI_AUTH_TOKEN', 'env-key');
-    expect(parseArgs(['usage'])!.authToken).toBe('env-key');
+    expect(args([]).authToken).toBe('env-key');
   });
 
   it('lets the flag beat the environment', () => {
     vi.stubEnv('ZAI_AUTH_TOKEN', 'env-key');
     vi.stubEnv('ZAI_BASE_URL', 'https://open.bigmodel.cn');
-    const parsed = parseArgs(['usage', '--auth-token', 'flag-key'])!;
+    const parsed = args(['--auth-token', 'flag-key']);
     expect(parsed.authToken).toBe('flag-key');
     expect(parsed.baseUrl).toBe('https://open.bigmodel.cn');
   });
@@ -105,7 +114,12 @@ describe('resolveConfig', () => {
     expect(
       resolveConfig(
         env({}),
-        args(['--base-url', 'https://open.bigmodel.cn/api/paas/v4', '--auth-token', 'zai-key']),
+        args([
+          '--base-url',
+          'https://open.bigmodel.cn/api/paas/v4',
+          '--auth-token',
+          'zai-key',
+        ]),
       ),
     ).toEqual({ token: 'zai-key', url: BIGMODEL_ORIGIN });
   });
@@ -161,10 +175,7 @@ describe('resolveConfig', () => {
 
   it('treats an empty base URL as unset', () => {
     expect(() =>
-      resolveConfig(
-        env({ ...glmPair, ANTHROPIC_BASE_URL: '' }),
-        args([]),
-      ),
+      resolveConfig(env({ ...glmPair, ANTHROPIC_BASE_URL: '' }), args([])),
     ).toThrow(/ZAI_AUTH_TOKEN/);
   });
 
@@ -226,7 +237,8 @@ describe('buildProgram help', () => {
   it('bare lists the usage command; its flags live on the command', () => {
     const program = buildProgram();
     expect(program.helpInformation()).toContain('usage');
-    const help = program.commands.find(c => c.name() === 'usage')!
+    const help = program.commands
+      .find(c => c.name() === 'usage')!
       .helpInformation();
     expect(help).toContain('--auth-token');
     expect(help).toContain('--base-url');

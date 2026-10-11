@@ -7,13 +7,24 @@ import childProcess, { spawnSync } from "node:child_process";
 import process$1 from "node:process";
 import { stripVTControlCharacters } from "node:util";
 //#region ../core/dist/index.js
-function parseQuietly(program, args, recover) {
+var HelpRequested = class extends Error {
+	command;
+	constructor(command) {
+		super(`${command.name()} --help`);
+		this.command = command;
+	}
+};
+function parseQuietly(program, args) {
 	function quiet(command) {
 		command.configureOutput({
 			writeOut: () => void 0,
 			writeErr: () => void 0
 		});
-		if (!hasExitOverride(command)) command.exitOverride();
+		command.exitOverride((err) => {
+			const code = err.code;
+			if (code === "commander.help" || code === "commander.helpDisplayed") throw new HelpRequested(command);
+			throw err;
+		});
 		command.commands.forEach(quiet);
 	}
 	try {
@@ -21,27 +32,15 @@ function parseQuietly(program, args, recover) {
 		program.parse([...args], { from: "user" });
 		return program;
 	} catch (err) {
-		return recover?.(err);
+		return err instanceof HelpRequested ? err : void 0;
 	}
-}
-function hasExitOverride(command) {
-	return command._exitCallback != null;
-}
-function exitZeroOnHelp(program) {
-	function install(command) {
-		command.exitOverride((err) => {
-			if (err.exitCode === 0 && (err.code === "commander.help" || err.code === "commander.helpDisplayed")) {
-				console.log(command.helpInformation());
-				exitWithCode(0);
-			}
-			throw err;
-		});
-		command.commands.forEach(install);
-	}
-	install(program);
 }
 function exitWithCode(code) {
 	process.exit(code);
+}
+function printHelpAndExit(command) {
+	console.log(command.helpInformation());
+	exitWithCode(0);
 }
 function printUsageAndExit(program) {
 	console.error(program.helpInformation());
@@ -3139,8 +3138,9 @@ function sendToRemarkable(markdown) {
 //#endregion
 //#region src/index.ts
 var program = new Command().name("rm-send").description("Beam a Markdown reply to the reMarkable as EPUB").argument("[file]", "Markdown file; the last reply when omitted");
-exitZeroOnHelp(program);
-var file = (parseQuietly(program, process.argv.slice(2)) ?? printUsageAndExit(program)).args.at(0);
+var asked = parseQuietly(program, process.argv.slice(2));
+if (asked instanceof HelpRequested) printHelpAndExit(asked.command);
+var file = (asked ?? printUsageAndExit(program)).args.at(0);
 await runMain(() => {
 	const markdown = file === void 0 ? lastReply() : readMarkdownFile(file);
 	console.log(sendToRemarkable(markdown));

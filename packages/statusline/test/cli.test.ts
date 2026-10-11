@@ -2,12 +2,7 @@ import { readFileSync } from 'node:fs';
 
 import { describe, expect, it } from 'vitest';
 
-import {
-  buildProgram,
-  parseArgs,
-  subcommandHelp,
-  VERSION,
-} from '../src/cli.js';
+import { buildProgram, helpFor, parseArgs, VERSION } from '../src/cli.js';
 
 // Read the manifest off disk so the test sees the published file, not the
 // bundler-resolved import src/cli.ts uses.
@@ -50,6 +45,17 @@ describe('parseArgs', () => {
     });
   });
 
+  it('routes a bare --help to the program, not a usage error', () => {
+    expect(parseArgs(['--help'])).toEqual({
+      version: false,
+      help: 'statusline',
+    });
+    expect(parseArgs(['-h'])).toEqual({
+      version: false,
+      help: 'statusline',
+    });
+  });
+
   it('registers restore with --dry-run/--force/--home and routes to it', () => {
     expect(
       parseArgs(['restore', '--dry-run', '--force', '--home', '/tmp/lab-home']),
@@ -73,13 +79,13 @@ describe('parseArgs', () => {
   });
 });
 
-describe('subcommandHelp', () => {
+describe('helpFor', () => {
   it("names the catalog's per-item flags", () => {
-    expect(subcommandHelp('catalog')).toContain('--model');
+    expect(helpFor('catalog')).toContain('--model');
   });
 
   it("names the configure's configuration flags", () => {
-    const help = subcommandHelp('configure');
+    const help = helpFor('configure');
     expect(help).toContain('--theme');
     expect(help).toContain('--layout');
     expect(help).not.toContain('--fallback');
@@ -88,14 +94,14 @@ describe('subcommandHelp', () => {
   });
 
   it("names the restore's flags", () => {
-    const help = subcommandHelp('restore');
+    const help = helpFor('restore');
     expect(help).toContain('--dry-run');
     expect(help).toContain('--force');
     expect(help).toContain('--home');
   });
 
   it("names the preview's render flags and no writer flags", () => {
-    const help = subcommandHelp('preview');
+    const help = helpFor('preview');
     expect(help).toContain('--theme');
     expect(help).toContain('--layout');
     expect(help).toContain('--plain');

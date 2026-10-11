@@ -1,7 +1,7 @@
 import { printUsageAndExit } from '@v1nvn/agentic-core';
 
 import { catalog } from './catalog.js';
-import { buildProgram, parseArgs, subcommandHelp, VERSION } from './cli.js';
+import { buildProgram, helpFor, parseArgs, VERSION } from './cli.js';
 import { configure } from './configure.js';
 import { preview } from './preview.js';
 import { restore } from './restore.js';
@@ -30,7 +30,7 @@ function run(job: () => void): void {
 }
 
 if (parsed.help !== undefined) {
-  console.log(subcommandHelp(parsed.help));
+  console.log(helpFor(parsed.help));
 } else if (parsed.version) {
   console.log(VERSION);
 } else if (parsed.command === 'catalog') {
