@@ -59,8 +59,10 @@ orchestrator's context — and never another agent type.
 | `todo:reviewer` | read-only: blind review, re-review, slice review, design or split consult, rescue diagnosis       |
 | `todo:clerk`    | the workspace gate, the enforcement script, scripts, tails, scratch drafts, close-criteria checks |
 
-The tier rides the dispatch: the Agent call carries `model` and `effort`, which beat
-the role file's defaults.
+The tier rides the dispatch. A cell's `model/effort` pair becomes the Agent call's
+`model` and `effort` parameters — `sonnet/low` dispatches with `model: "sonnet"`,
+`effort: "low"` — and they beat the role file's frontmatter. A blank cell passes
+neither, so the role file's defaults decide.
 
 - A `**Run:**` line names the orchestrator model only when the owner launches one other
   than the default; without it, the launching session orchestrates. A session on a

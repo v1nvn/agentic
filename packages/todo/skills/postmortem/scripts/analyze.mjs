@@ -276,6 +276,7 @@ function main(transcript, suiteSrc) {
           wev.findLast(e => e.message?.model)?.message.model ??
           meta.model ??
           '?',
+        effort: wev.findLast(e => e.effort)?.effort ?? meta.effort ?? '?',
         start: w0,
         end: w1,
         wall: w1 - w0,
@@ -295,13 +296,13 @@ function main(transcript, suiteSrc) {
 
   console.log('## workers\n');
   console.log(
-    '| start-end | wall | gen | tools | type | model | calls | median gap | worker |',
+    '| start-end | wall | gen | tools | type | model | effort | calls | median gap | worker |',
   );
-  console.log('|---|---|---|---|---|---|---|---|---|');
+  console.log('|---|---|---|---|---|---|---|---|---|---|');
   const byStart = [...workers].sort((a, b) => a.start - b.start);
   for (const w of byStart) {
     console.log(
-      `| ${hhmm(w.start)}-${hhmm(w.end)} | ${fmt(w.wall)} | ${fmt(w.gen)} | ${fmt(w.wall - w.gen)} | ${w.type} | ${w.model} | ${w.usage.calls} | ${(median(w.gaps) / 1000).toFixed(1)}s | ${w.desc} |`,
+      `| ${hhmm(w.start)}-${hhmm(w.end)} | ${fmt(w.wall)} | ${fmt(w.gen)} | ${fmt(w.wall - w.gen)} | ${w.type} | ${w.model} | ${w.effort} | ${w.usage.calls} | ${(median(w.gaps) / 1000).toFixed(1)}s | ${w.desc} |`,
     );
   }
 
