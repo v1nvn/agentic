@@ -23,7 +23,8 @@
 
 ## todo
 
-- **todo:run — small runs take hours** · HIGH · [packages] → progress/run-costs.md
+- **Progress sweep — every plan onto the role-agent Steps shape** · HIGH · [progress]
+  Every `progress/` plan under `~/git`, two levels deep, still uses the Steps cells todo 0.43.0 retired (`checklist`, bare `sonnet`, `trivial`); `/todo:audit` in each repo shows them. testril's `references/run-rules.md` folds into the four plans citing it and is deleted; the scope is recorded in archive/run-costs.md.
 - **Rules promotion triage — where a thread's rules land** · MEDIUM · open
   Parked from the audit consult (2026-10-09): draw the line for when a rule earned in a
   thread promotes to the consumer repo's `references/`, and when it belongs in todo's own
@@ -33,7 +34,9 @@
 
 ## Parked
 
-- **Audit — refactor** · HIGH → progress/audit-refactor.md — revisit when run-costs S1 lands
+- **Audit — refactor** · HIGH → progress/audit-refactor.md — revisit when the progress sweep lands
+- **todo:run — re-measure under the role agents** · HIGH — revisit when the progress sweep lands
+  Wanted: a fresh `/todo:run` of `progress/audit-refactor.md` whose `/todo:postmortem` per-unit wall, tokens and minutes to first edit sit beside the baseline recorded in archive/run-costs.md.
 
 ## Out of scope
 
