@@ -12,11 +12,13 @@ Behavior changes only where a ruling names it; everything else is structure.
 
 ## Current state
 
-Nothing landed. The run is open on branch `audit-refactor`: the validator
-probe cleared — rm's `session.start` `on()` relocated to a plugin-relative
-sibling passed `claude plugin validate` and `plugin test` both (record in the
-B0 clerk scratch) — and the launch workspace gate is green, 0 fail (baselines
-in the enforcement inventory). Rulings recorded: the sharing
+B0 landed (`5868518` + fix `46a83dd`): the plan is hardened — tactical map,
+enforcement inventory, mechanics — and its blind review's fixes (workspace
+names, audit-grep pathspecs, B10's format.ts entailment, B7's resolve.ts)
+landed in the same sitting. The validator probe cleared: rm's `session.start`
+`on()` relocated to a plugin-relative sibling passed `claude plugin validate`
+and `plugin test` both — B1's stamp design stands. Launch workspace gate
+green, 0 fail (baselines in the enforcement inventory). Rulings recorded: the sharing
 principle (AGENTS.md — core is the one home; stamped copies, never hand-synced
 mirrors); the drawing home and ink-as-data; the interface patterns, each on
 the test that it owns a bug class this repo hit; the mod shape after blind
@@ -34,7 +36,7 @@ B1 — the drawing kit and the stamp, proven on rm.
 
 | id  | unit                                        | model      | review | consult | close criteria                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | --- | ------------------------------------------- | ---------- | ------ | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| B0  | harden the plan                             |            |        |         | probe verdict and launch baselines folded in; every Plan-section anchor re-verified against the tree; tactical map with per-row scoped gate lines; enforcement inventory (byte-frozen tests, forbidden idioms, never-rising counts) carrying the launch baselines; small-row line; line ceiling; run mechanics (gate line, live-probe protocol, ritual-record home, PR grouping); stop rules; audit list; open questions dated to their units |
+| B0  | harden the plan                             |            |        |         | probe verdict and launch baselines folded in; every Plan-section anchor re-verified against the tree; tactical map with per-row scoped gate lines; enforcement inventory (byte-frozen tests, forbidden idioms, never-rising counts) carrying the launch baselines; small-row line; line ceiling; run mechanics (gate line, live-probe protocol, ritual-record home, PR grouping); stop rules; audit list; open questions dated to their units — landed `5868518` + fix `46a83dd` |
 | B1  | the drawing kit and the stamp, proven on rm |            |        |         | kit exports branded `Line`/`Doc`, closed ink kinds with parametric constructors, glyphs, layout constants, one parameterized local date-time formatter; `yarn build` stamps `.ts` source copies byte-exact from a manifest; a probed hand-edit, an orphaned stamp and a foreign-stamp import all go red; rm's `lineOf` and `pad2` come from the kit; core's package.json description states the stamp truthfully; rm's suite and gates green                                                                                                                           |
 | B8  | the mod kit across the four homes           |            |        |         | `lineOf`, the exec/accept/parse door, pane chrome (frame, empty, refresh as fields), refresh-while-open and tick cleanup are stamped helpers in all four homes; command registration is declarative for the exec shape; event-fed state stays `on()` with reducers feeding pane renders; every hooks module is thin over the kit — no hand-rolled copy of what the kit owns; `plugin validate` + `plugin test` ×4 green; references/mods.md rewritten to the stamp; engine tests ride the stamped helpers |
 | B9  | statusline onto the kit                     |            |        |         | `SEGMENTS` returns documents; `toSgr` is the only escape emitter — no SGR literal outside the kit (grep); themes compute special colors through the kit's parametric ink constructors; both golden sets regenerated                                                                                                                                                       |
