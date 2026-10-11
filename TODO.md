@@ -2,9 +2,10 @@
 
 ## Next
 
-1. **Rulings — port into the marketplace as the tenth plugin** · HIGH · [packages] → progress/rulings-port.md
-2. **Rules plugin — catalogue · config · per-session render** · HIGH · [packages] → progress/rules-plugin.md
-3. **Mods port — live-verify from a fresh install** · HIGH · [packages]
+1. **Audit — refactor** · HIGH · [packages] → progress/audit-refactor.md
+2. **Rulings — port into the marketplace as the tenth plugin** · HIGH · [packages] → progress/rulings-port.md
+3. **Rules plugin — catalogue · config · per-session render** · HIGH · [packages] → progress/rules-plugin.md
+4. **Mods port — live-verify from a fresh install** · HIGH · [packages]
    Verify `/rm-send`, `/md-edit`, `/md-view`, `/zai-usage` and the tokens pane `/tokens-usage` from a fresh install — records: archive/mods-port.md, archive/zai-pane.md.
 
 ## readability
@@ -33,7 +34,6 @@
 
 ## Parked
 
-- **Audit — refactor** · HIGH → progress/audit-refactor.md — revisit when the progress sweep's unit 3 lands
 - **todo:run — re-measure under the role agents** · HIGH — revisit when the progress sweep's unit 3 lands
   Wanted: a fresh `/todo:run` of `progress/audit-refactor.md` whose `/todo:postmortem` per-unit wall, tokens and minutes to first edit sit beside the baseline recorded in archive/run-costs.md.
 - **Panel row — per-task cache and cost** · LOW · [packages/statusline] — revisit when Claude Code ships them in the tick
