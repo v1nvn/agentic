@@ -44,8 +44,9 @@ fresh install needs.
 ## This repo's shape
 
 - The mod's home is the package root — `packages/<name>/` itself — sources
-  committed as `.ts`; the one synced artifact is the exec'd CLI,
-  `bin/report.mjs`. The marketplace `source`
+  committed as `.ts`; the one synced artifact per home is its exec'd CLI —
+  `bin/send.mjs` for rm and md, `bin/usage.mjs` for zai, `bin/report.mjs` for
+  tokens. The marketplace `source`
   points there. The engine's test runner collects every `*.test.ts` under that
   root, so inside a mod home the name belongs to engine tests — the package's
   vitest suite names its files `*.spec.ts`.
@@ -85,7 +86,6 @@ fresh install needs.
 
 | Surface     | How                                                                                                                                                                                                                      |
 | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| status line | `$.ui.status(text)` — one line per plugin under the prompt; `undefined` clears it. Never model-read.                                                                                                                     |
 | pane        | `$.ui.open({ id, title })` from something the person did (a command); `on('ui.render', { component: 'Pane', requestId: id })` draws it with elements from `$.ui.resolve(e)`; Esc/dismiss closes; zero space until opened |
 | command     | `$.command.register` in `session.start` + `on('command.run', { command })`; return `{}` to print nothing (a pane's command answers nothing — `text` would be model-read)                                                 |
 | timers      | `$.clock.every(ms, fn)` from `session.start`; the handle lives until the module reloads                                                                                                                                  |

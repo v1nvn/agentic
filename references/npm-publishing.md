@@ -54,7 +54,7 @@ later release is keyless:
 4. Re-run the release workflow.
 
 A laptop publish carries no provenance, permanently — cosmetic, same as the
-seven at bootstrap.
+bootstrap publishes.
 
 ## Partial release failures
 
