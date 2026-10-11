@@ -4,25 +4,9 @@
  * line shown as a dim transcript row the model never reads.
  */
 
-import type { ToolCallResult } from 'claude-code';
-import type { EngineInterface, On } from 'claude-code';
+import { lineOf } from './kit/draw.js';
 
-/** The line a run shows: the refusal's reason, the CLI's stdout, else its stderr or the old door's failure label. */
-function lineOf(call: ToolCallResult): string {
-  if (call.deny !== undefined) {
-    return call.deny;
-  }
-  if (call.isError === true) {
-    return call.text ?? 'send failed';
-  }
-  const result = call.result as null | { stderr?: unknown; stdout?: unknown };
-  const stdout = typeof result?.stdout === 'string' ? result.stdout.trim() : '';
-  if (stdout !== '') {
-    return stdout;
-  }
-  const stderr = typeof result?.stderr === 'string' ? result.stderr.trim() : '';
-  return stderr !== '' ? stderr : 'send failed';
-}
+import type { EngineInterface, On } from 'claude-code';
 
 export function register(on: On): void {
   on('session.start', async ($, e, next) => {
@@ -38,7 +22,7 @@ export function register(on: On): void {
       tool: 'Bash',
       command: `node ${$.plugin.root}/bin/send.mjs`,
     });
-    $.ui.log(lineOf(call));
+    $.ui.log(lineOf(call, 'send failed'));
     return {};
   });
 }

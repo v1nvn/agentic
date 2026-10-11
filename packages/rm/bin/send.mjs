@@ -54,6 +54,16 @@ async function runMain(main) {
 		exitWithCode(1);
 	}
 }
+function pad2(n) {
+	return String(n).padStart(2, "0");
+}
+/** Local date-time stamp: `YYYY-MM-DD`, plus `HH:mm` and optionally seconds. */
+function localStamp(now, clock) {
+	const day = `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}`;
+	if (clock === "none") return day;
+	const hhmm = `${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
+	return clock === "second" ? `${day} ${hhmm}:${pad2(now.getSeconds())}` : `${day} ${hhmm}`;
+}
 /** A markdown file's contents, with the CLI's no-such-file error. */
 function readMarkdownFile(path) {
 	if (!statSync(path, { throwIfNoEntry: false })?.isFile()) throw new Error(`no such file: ${path}`);
@@ -3069,11 +3079,6 @@ function useColor() {
 }
 new Command();
 //#endregion
-//#region ../tokens/dist/assets/text-CwfwZy7j.js
-function pad2(n) {
-	return String(n).padStart(2, "0");
-}
-//#endregion
 //#region src/send.ts
 /**
 * Convert Markdown to EPUB (pandoc) and push it to the reMarkable over SSH.
@@ -3083,12 +3088,9 @@ function pad2(n) {
 *
 * Env knobs: REMARKABLE_HOST (default: remarkable), REMARKABLE_DIR (default: /home/root/books)
 */
-function timestamp(now) {
-	return `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())} ${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
-}
 /** Title = first Markdown heading, else a timestamp. */
 function titleOf(markdown, now = /* @__PURE__ */ new Date()) {
-	return markdown.split("\n").find((line) => line.startsWith("#"))?.replace(/^#+\s*/, "") || `Claude reply ${timestamp(now)}`;
+	return markdown.split("\n").find((line) => line.startsWith("#"))?.replace(/^#+\s*/, "") || `Claude reply ${localStamp(now, "minute")}`;
 }
 /** Slugify a title into a safe filename: runs of non-alphanumerics → '_', capped at 60 chars. */
 function slugify(title) {

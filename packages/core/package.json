@@ -1,7 +1,7 @@
 {
   "name": "@v1nvn/agentic-core",
   "version": "0.44.0",
-  "description": "Shared runtime for the @v1nvn agent tools — last-reply transcript reader.",
+  "description": "Shared source home for the @v1nvn agent tools — runtime helpers and the drawing kit that yarn build stamps into each mod's hooks.",
   "type": "module",
   "main": "./dist/index.js",
   "exports": {

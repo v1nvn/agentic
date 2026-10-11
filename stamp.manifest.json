@@ -1,0 +1,8 @@
+{
+  "copies": [
+    {
+      "from": "packages/core/src/draw.ts",
+      "to": "packages/rm/hooks/kit/draw.ts"
+    }
+  ]
+}

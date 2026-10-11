@@ -7,20 +7,19 @@
  * Env knobs: REMARKABLE_HOST (default: remarkable), REMARKABLE_DIR (default: /home/root/books)
  */
 
-import { pad2 } from '@v1nvn/tokens/text';
+import { localStamp } from '@v1nvn/agentic-core';
 import { spawnSync } from 'node:child_process';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-function timestamp(now: Date): string {
-  return `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())} ${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
-}
-
 /** Title = first Markdown heading, else a timestamp. */
 export function titleOf(markdown: string, now = new Date()): string {
   const heading = markdown.split('\n').find(line => line.startsWith('#'));
-  return heading?.replace(/^#+\s*/, '') || `Claude reply ${timestamp(now)}`;
+  return (
+    heading?.replace(/^#+\s*/, '') ||
+    `Claude reply ${localStamp(now, 'minute')}`
+  );
 }
 
 /** Slugify a title into a safe filename: runs of non-alphanumerics → '_', capped at 60 chars. */
