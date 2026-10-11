@@ -1,6 +1,6 @@
 ---
 name: postmortem
-description: Read a finished run's session transcripts and report where the time went and which run rules were broken — the time tree across orchestrator, workers and background rituals, per-worker generation against tool time, and mechanical waste shapes. Use when the user asks why a run was slow, where its time went, or names a session to autopsy.
+description: Read a finished run's session transcripts and report where the time and money went and which run rules were broken — the time tree across orchestrator, workers and background rituals, the token ledger and cost, per-unit figures, and mechanical waste shapes. Use when the user asks why a run was slow or costly, where its time or tokens went, or names a session to autopsy or compare against an earlier one.
 argument-hint: [session-id]
 disable-model-invocation: true
 ---
@@ -24,8 +24,15 @@ markdown:
 
 - the time tree: wall, owner wait, orchestrator generation, every worker's wall split
   into generation and tools, every background span with how much of it overlapped work;
-- per worker: model, wall, generation, tool time, tokens, turns, median turn gap;
-- worker Bash time by category, and every full-suite firing with its duration;
+- per worker: type, model, wall, generation, tool time, model calls, median turn gap;
+- the token ledger per agent, orchestrator included: input, cache read and write,
+  output, first-call context (the spawn's entry cost), peak context, cache hit; the
+  read : write ratio and the standing-context share;
+- cost from the harness `cost-state` record, per model — absent while the session
+  is still live;
+- Bash time by category for the orchestrator and the workers, and every full-suite
+  firing with its duration;
+- files two or more agents read;
 - violation candidates, as many as the transcripts carry.
 
 Timestamp deltas are the whole measure. Thinking blocks are encrypted, so generation
@@ -39,6 +46,7 @@ the records explain — a firing the plan mandates, a flake whose failure is quo
 wait an inherent dependency chain forces. Confirm each survivor with its minutes and
 the rule it breaks, quoted from `run/SKILL.md` by line. The script's candidates:
 
+- an orchestrator suite run (run: the session never gates);
 - a worker Bash `sleep` poll (run: no worker polls with `sleep`);
 - a suite re-run inside five minutes whose command differs only in output shaping;
 - a full-suite firing beyond the unit's gate firings (run: the full gate fires before
@@ -49,7 +57,13 @@ the rule it breaks, quoted from `run/SKILL.md` by line. The script's candidates:
 
 ## Report
 
-One grouped time table; the violation list with minutes; then levers ranked by the
+One grouped time table; per-unit figures — wall, tokens and cost divided by the
+units the plan landed, the run's shape named (units, commits, lines); the violation
+list with minutes; then levers ranked by the
 minutes they touch, each naming where it lands — this plugin's skills, the run's plan,
 or the repo. End with what the measure cannot see. Say plainly when a big number is
 the price of evidence the plan demands, not waste.
+
+Given an earlier session to compare, run the script on both and set the per-unit
+figures side by side with each side's shape. Compare cost only when both ran on the
+same models; wall and tokens per unit compare across models.
