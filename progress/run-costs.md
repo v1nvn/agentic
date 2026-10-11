@@ -22,7 +22,7 @@ REL — the owner merges PR #18 and cuts the release train.
 | R3 | surfaces move with the change: todo README and manifests, AGENTS.md layout and todo-sync rule, `rules` (Steps paragraph, tactical map, `Small rows:`, private scratch), `postmortem` (candidates quote the role files; suites outside the clerk flagged) | sonnet | | | README and AGENTS.md state the role agents; rules states the new Steps shape; `audit` needs no edit (it walks the rules' clauses); no stale claims — `239c552` |
 | REL | merge P1–R3, cut the release train (`references/npm-publishing.md`), install the released todo | owner | | | the installed todo version carries R1–R3 |
 | S1 | manual sweep of every progress file under `~/git` (two levels deep) to the new Steps shape: agentic 4, firstmenu 5, homelab-gitops 2, stonks 5, streamdeck 1, enhansome/webapp 3, ormi/testril 13; testril's `references/run-rules.md` folds into the four plans that cite it and is deleted | owner | | | `/todo:audit` clean in each of the seven repos; no `run-rules.md` in testril |
-| R4 | fresh `/todo:run` of `progress/audit-refactor.md` under the released skill, then `/todo:postmortem` on its full session id | owner | | | `## Plan` carries the after side beside the baseline: shape named, per-unit wall and tokens; $ per unit only when the run used the baseline's backend |
+| R4 | fresh `/todo:run` of `progress/audit-refactor.md` under the released skill, then `/todo:postmortem` on its full session id | owner | | | `## Plan` carries the after side beside the baseline: shape named, per-unit wall and tokens, each builder's minutes to first edit beside the baseline's; $ per unit only when the run used the baseline's backend |
 
 ## Plan
 
@@ -40,6 +40,7 @@ compare only against a glm-backed R4; wall and tokens per unit compare on any ba
 | cost (cost-state) | $45.63 | $11.4 |
 | orchestrator context | 32k → 161k over 78 calls | |
 | spawn entry (first-call context) | ~27.5k every spawn | |
+| builder minutes to first edit | cold 23.1 · 20.9 · 11.1 · 3.8; from a state file 3.4 · 1.1 | |
 | worker effort | `max` on all 12 spawns (inherited; no per-spawn control) | |
 | suites outside a boundary role | 27 builder/reviewer runs, 30.4m | |
 

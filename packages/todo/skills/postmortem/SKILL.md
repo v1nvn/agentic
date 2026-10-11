@@ -24,7 +24,8 @@ markdown:
 
 - the time tree: wall, owner wait, orchestrator generation, every worker's wall split
   into generation and tools, every background span with how much of it overlapped work;
-- per worker: type, the model and effort it ran at, wall, generation, tool time, model calls, median turn gap;
+- per worker: type, the model and effort it ran at, wall, minutes from spawn to its
+  first edit (the context it had to build before working), generation, tool time, model calls, median turn gap;
 - the token ledger per agent, orchestrator included: input, cache read and write,
   output, first-call context (the spawn's entry cost), peak context, cache hit; the
   read : write ratio and the standing-context share;

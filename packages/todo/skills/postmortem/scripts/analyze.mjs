@@ -11,6 +11,7 @@ import { basename, dirname, join } from 'node:path';
 
 const SLEEP = /\bsleep\b/;
 const CACHE_TTL = 300000;
+const EDITS = new Set(['Edit', 'Write', 'NotebookEdit']);
 const TOLLED = new Set(['attachment', 'meta', 'queue']);
 const ORCHESTRATOR = 'orchestrator';
 
@@ -285,6 +286,9 @@ function main(transcript, suiteSrc) {
         runs,
         bash: bashOf(runs),
         usage: ledger(wev),
+        firstEdit: Math.min(
+          ...runs.filter(r => EDITS.has(r.name)).map(r => r.start - w0),
+        ),
       });
     }
   }
@@ -296,13 +300,13 @@ function main(transcript, suiteSrc) {
 
   console.log('## workers\n');
   console.log(
-    '| start-end | wall | gen | tools | type | model | effort | calls | median gap | worker |',
+    '| start-end | wall | to first edit | gen | tools | type | model | effort | calls | median gap | worker |',
   );
-  console.log('|---|---|---|---|---|---|---|---|---|---|');
+  console.log('|---|---|---|---|---|---|---|---|---|---|---|');
   const byStart = [...workers].sort((a, b) => a.start - b.start);
   for (const w of byStart) {
     console.log(
-      `| ${hhmm(w.start)}-${hhmm(w.end)} | ${fmt(w.wall)} | ${fmt(w.gen)} | ${fmt(w.wall - w.gen)} | ${w.type} | ${w.model} | ${w.effort} | ${w.usage.calls} | ${(median(w.gaps) / 1000).toFixed(1)}s | ${w.desc} |`,
+      `| ${hhmm(w.start)}-${hhmm(w.end)} | ${fmt(w.wall)} | ${Number.isFinite(w.firstEdit) ? fmt(w.firstEdit) : '-'} | ${fmt(w.gen)} | ${fmt(w.wall - w.gen)} | ${w.type} | ${w.model} | ${w.effort} | ${w.usage.calls} | ${(median(w.gaps) / 1000).toFixed(1)}s | ${w.desc} |`,
     );
   }
 
