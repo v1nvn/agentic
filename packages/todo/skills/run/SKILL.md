@@ -185,6 +185,11 @@ neither, so the role file's defaults decide.
 - The orchestrator never opens a source file to understand it. It reads reports, gate
   output, `git diff` and `git show` diffs, and the diff classes the plan flags as
   silent-failure carriers (migrations, wire bodies, signatures).
+- Round-trips happen only at boundaries; each one wakes the orchestrator and re-reads
+  its whole context. A builder reports once — when it stops green, or on a deviation or
+  the line ceiling — never with mid-build progress. The clerk gets one message per
+  boundary carrying all of that boundary's work — the workspace gate, the enforcement
+  script, and at close the close criteria — and answers in one report.
 - A stalled or rate-limited worker is continued by message, never replaced. A
   successor starts from the worker's state file, and only once the original is gone.
 
@@ -195,13 +200,14 @@ neither, so the role file's defaults decide.
    unit's builder may not edit them. Where the plan doesn't name tests, red-first rides
    in the builder's brief.
 2. The builder builds on the row's scoped gates and stops green with the tree
-   uncommitted. The clerk fires the workspace gate; on green the orchestrator commits
+   uncommitted. One clerk message fires the workspace gate and the enforcement script
+   together; on green the orchestrator commits
    (one line, no co-author trailer) and appends to or opens the PR, because auto mode
    refuses a worker's commit. A deviation stops its item, not the builder, and nothing
    that depends on it lands until the orchestrator answers.
 3. Where the enforcement inventory names checkables, the clerk writes the gate script
-   from it and runs it after every commit and fix round. Red items route back by message;
-   the reviewer is not dispatched until green.
+   from it once, and every boundary message runs it beside the workspace gate. Red
+   items route back by message; the reviewer is not dispatched until green.
 4. Review: a fresh `todo:reviewer`, blind — the diff and the plan's sections, never the
    builder's report — at the tier the `review` cell names, plus a slice review where the
    `consult` cell names `review`.
@@ -231,8 +237,7 @@ neither, so the role file's defaults decide.
    lacks into the map — delete the scratch, then dispatch the next. A finding outside the
    unit's row does not hold the unit: the unit commits on its row, and the finding lands
    as its own commit after its ruling.
-   Strictly serial: one lane, one warm build, no worktrees inside a run, no parallel
-   units. Read-only prep for the next unit — its trace, its before pass, its brief — runs
+   Strictly serial: one unit at a time, no worktrees inside a run, no parallel units. Read-only prep for the next unit — its trace, its before pass, its brief — runs
    beside the current one; its build does not.
 8. A unit whose deliverable is a document or a dataset — nothing compiles, no gate —
    skips the test writer and the gate. Its reviewer checks the deliverable against

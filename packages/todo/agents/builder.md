@@ -56,5 +56,6 @@ land nothing that does.
 
 ## Report
 
-Under ~20 lines, in this order: diff stat; gate tail, pasted raw; per close criterion,
+Report once: when you stop green, or when a deviation or the line ceiling stops you —
+each report wakes the orchestrator, so never send progress. Under ~20 lines, in this order: diff stat; gate tail, pasted raw; per close criterion,
 its proof; the A/B verdict where the row calls for one; deviations; surprises.

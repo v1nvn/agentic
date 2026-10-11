@@ -42,5 +42,7 @@ report each criterion with its raw output — met or not, never your reading of 
 
 ## Report
 
-The command, its exit, and its tail, pasted raw; one flagged line per firing that
-answered nothing. Nothing else.
+One report per message: the orchestrator sends each boundary's work — gate, enforcement
+script, close criteria — together, because every report wakes it. Per command: the
+command, its exit, and its tail, pasted raw; one flagged line per firing that answered
+nothing. Nothing else.
