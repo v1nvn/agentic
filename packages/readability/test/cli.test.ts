@@ -22,7 +22,14 @@ describe('cli parseArgs', () => {
 
   it('parses file, format, and max-chars together', () => {
     expect(
-      parseArgs(['extract', 'a.html', '--format', 'json', '--max-chars', '100']),
+      parseArgs([
+        'extract',
+        'a.html',
+        '--format',
+        'json',
+        '--max-chars',
+        '100',
+      ]),
     ).toEqual({
       file: 'a.html',
       format: 'json',
@@ -133,8 +140,16 @@ describe('cli runCli', () => {
   });
 
   it('returns 2 for a non-extract invocation', async () => {
-    const code = await runCli(['--help']);
+    const code = await runCli(['bogus']);
     expect(code).toBe(2);
     expect(stderr()).toContain('Usage:');
+  });
+
+  it('answers extract --help on stdout with 0', async () => {
+    const code = await runCli(['extract', '--help']);
+    expect(code).toBe(0);
+    expect(stdout()).toContain('Usage: readability extract');
+    expect(stdout()).toContain('--max-chars');
+    expect(stderr()).toBe('');
   });
 });

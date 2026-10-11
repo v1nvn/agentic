@@ -68,8 +68,8 @@ export function reportLines(
       dim('out'),
       plain(` · ${padL(fmtTokens(r.cacheRead), 8)} `),
       dim('read'),
-      plain(` · ${padL(fmtTokens(r.cacheCreation), 8)} `),
-      dim('created'),
+      plain(` · ${padL(fmtTokens(r.cacheWrite), 8)} `),
+      dim('cache-write'),
       plain('  '),
       bold(padL(`${pct}%`, 4)),
       plain(` ${barField(pct, 100, 14)}`),
@@ -98,7 +98,7 @@ export function reportLines(
   out.push([]);
   out.push([
     dim(
-      ' Covers every profile writing to ~/.claude/projects — hit rate = read / (in + read + created).',
+      ' Covers every profile writing to ~/.claude/projects — hit rate = read / (in + read + cache-write).',
     ),
   ]);
   out.push([plain(rule())]);

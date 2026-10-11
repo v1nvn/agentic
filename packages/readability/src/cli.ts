@@ -1,4 +1,4 @@
-import { parseQuietly } from '@v1nvn/agentic-core';
+import { HelpRequested, parseQuietly } from '@v1nvn/agentic-core';
 import { Command, InvalidArgumentError, Option } from 'commander';
 
 import { describeError } from './errors.js';
@@ -37,16 +37,19 @@ export function buildProgram(): Command {
     .option('--max-chars <n>', 'truncate the output', parseMaxChars);
 }
 
-export function parseArgs(argv: readonly string[]): ParsedArgs | undefined {
-  const program = parseQuietly(buildProgram(), argv.slice(1));
-  if (program === undefined) {
-    return undefined;
+export function parseArgs(
+  argv: readonly string[],
+): HelpRequested | ParsedArgs | undefined {
+  const program = buildProgram();
+  const parsed = parseQuietly(program, argv.slice(1));
+  if (parsed === undefined || parsed instanceof HelpRequested) {
+    return parsed;
   }
-  const { format, maxChars } = program.opts<{
+  const { format, maxChars } = parsed.opts<{
     format: CliFormat;
     maxChars: number | undefined;
   }>();
-  return { file: program.args.at(0), format, maxChars };
+  return { file: parsed.args.at(0), format, maxChars };
 }
 
 // The stream is injected rather than reading process.stdin directly so the
@@ -82,6 +85,10 @@ export async function runCli(argv: readonly string[]): Promise<number> {
   }
 
   const parsed = parseArgs(argv);
+  if (parsed instanceof HelpRequested) {
+    process.stdout.write(`${parsed.command.helpInformation()}\n`);
+    return 0;
+  }
   if (parsed === undefined) {
     process.stderr.write(buildProgram().helpInformation());
     return 2;

@@ -54,13 +54,13 @@
       "name": "statusline",
       "source": "./packages/statusline",
       "category": "productivity",
-      "description": "Render the status line and agent-panel rows from a component library of pickable designs."
+      "description": "Show, preview, and set the Claude Code status line and agent panel from a library of pickable designs — or revert to the previous setup."
     },
     {
       "name": "todo",
       "source": "./packages/todo",
       "category": "productivity",
-      "description": "Work tracking — the rules plus six verbs (init, new, run, status, audit, handoff) over TODO.md, progress/, references/, archive/."
+      "description": "Work tracking — the rules plus seven verbs (init, new, run, status, audit, handoff, postmortem) over TODO.md, progress/, references/, archive/."
     }
   ]
 }

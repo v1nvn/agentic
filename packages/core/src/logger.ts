@@ -8,13 +8,6 @@ const LEVEL_RANK: Record<LogLevel, number> = {
   silent: Number.MAX_SAFE_INTEGER,
 };
 
-export function levelEnabled(
-  active: LogLevel,
-  wanted: Exclude<LogLevel, 'silent'>,
-): boolean {
-  return LEVEL_RANK[wanted] >= LEVEL_RANK[active];
-}
-
 const LEVEL_LABEL: Record<Exclude<LogLevel, 'silent'>, string> = {
   debug: 'DEBUG',
   error: 'ERROR',
@@ -52,7 +45,7 @@ export class Logger {
   }
 
   private log(level: Exclude<LogLevel, 'silent'>, message: string): void {
-    if (levelEnabled(this.activeLevel, level)) {
+    if (LEVEL_RANK[level] >= LEVEL_RANK[this.activeLevel]) {
       this.stderr(`${LEVEL_LABEL[level]} ${message}`);
     }
   }

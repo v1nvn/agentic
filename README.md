@@ -15,7 +15,7 @@ at the hosted registry server, and `todo` is manifest + skills, no package.
 | **zai**         | GLM Coding Plan quota and usage — the report as a pane.                                                                                | `/zai-usage`                                          |
 | **tokens**      | Live token usage — the account report as a pane, and the live session (context, flow, limits, agents) as a pane. | `/tokens-usage`, `/tokens-top`                        |
 | **statusline**  | Pick a theme for the status line + agent panel, or revert the setup.                                                                   | `/statusline:lab`                                                |
-| **todo**        | Work tracking — the rules plus six verbs over `TODO.md`, `progress/`, `references/`, `archive/`. Every repo carries data only.         | `/todo:run <plan>`, or a what's-next ask              |
+| **todo**        | Work tracking — the rules plus seven verbs over `TODO.md`, `progress/`, `references/`, `archive/`. Every repo carries data only.         | `/todo:run <plan>`, or a what's-next ask              |
 
 `rm`, `md`, `zai` and `tokens` are zero-token the mod way — a function-hook module serves the command, a surface the model never reads.
 
@@ -49,7 +49,7 @@ npx -y @v1nvn/md@0.41.1         # last reply → Markdown-Viewer (--view for rea
 
 `rm` needs `pandoc` plus `ssh`/`scp` access to the device (`REMARKABLE_HOST`, default
 `remarkable`, device dir `REMARKABLE_DIR`, default `/home/root/books`); `md` honors
-`MD_VIEWER_URL` (default `https://md.v1n.space`) and `MD_NO_OPEN=1` to skip opening
+`MD_VIEWER_URL` (default `https://md.v1n.space`) and a set `MD_NO_OPEN` to skip opening
 the browser.
 
 ## statusline
@@ -88,9 +88,9 @@ node "$HOME/.claude/plugins/data/statusline-agentic/render.mjs" --subagent --the
 
 The layout — brace clusters of item ids — rides as `--layout` only when
 passed; the theme's layout holds otherwise. With flags, `configure` is
-strict — `--theme <name>` (quiet, lean, classic, rich, custom) is the base
-design, item flags override it, and a layout item nothing picks is an error
-naming it; `classic` names the shipped defaults. The theme resolves at paint,
+strict — `--theme <name>` (quiet, classic, lean, rich, custom) is the base
+design and item flags override it; `classic` names the shipped defaults.
+The theme resolves at paint,
 and `preview` renders a candidate through the same resolution without
 writing — `--plain` strips the color escapes so the sketch survives chat. A
 foreign settings key is refused unless `--force`. The first takeover saves
@@ -150,7 +150,8 @@ packages/                           one yarn workspace — every plugin's home
                                      zai also types/ (state contract)
   tokens/                            tokens-report CLI + the tokens mod — the plugin root itself:
                                      .claude-plugin/ + hooks/register.tsx + tests/ + types/
-                                     (state contract), island aggregate/format/text.ts in src/
+                                     (state contract); src/ holds the CLI (index, cli, scan)
+                                     and the island's aggregate/format/top/text.ts
                                      (text.ts is the one fixed-width home, via @v1nvn/tokens/text),
                                      bin/report.mjs (standalone build the mod execs, committed)
   statusline/                        the configure CLI + renderer, pure TS (@v1nvn/statusline) — the plugin root itself:

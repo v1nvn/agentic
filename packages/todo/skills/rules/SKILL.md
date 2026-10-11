@@ -60,7 +60,7 @@ description: The work-tracking rules — TODO.md is the index, progress/<slug>.m
 ## Current state
 ## Next step
 ## Steps
-| id | unit | model | review | close criteria |
+| id | unit | model | review | consult | close criteria |
 ## Plan
 ## Design
 ```

@@ -67,8 +67,10 @@ name or shape wins.
   no bundler, no artifact** (module at `hooks/`, island in `src/` or the hooks
   module, engine tests at `tests/`). A hooks module imports only plugin-relative
   files and the bare `claude-code` (types + state helpers) — never an npm
-  package — so the engine island is self-contained; shared pure code lives in
-  the island and the packages import it from there. Types come from the vendored
+  package — so the engine island is self-contained. Shared pure code has one
+  home, core: the npm side imports it, and the build stamps it into each island
+  and engine-test tree as committed copies — the bins' discipline, one edit
+  home, never a hand-synced mirror. Types come from the vendored
   `types/claude-code.d.ts` (engine-written, version-stamped on its first line) via
   `tsconfig.mods.json`; regenerate it from `.claude-plugin/types/` after an engine
   update. `claude plugin validate <plugin root>` and `claude plugin test <plugin
@@ -136,6 +138,9 @@ time, so it speaks only to that model.
 - **todo: `/todo:run` is the primary skill.** It is the battle-tested one; `rules` defines
   the progress-file shape `run` consumes, and every other todo skill stays in sync with
   both — a change to one lands in the others in the same change.
+- **Promotion out of a thread is rare and strict.** A rule reaches a consumer repo's
+  `references/` only as a settled fact that repo still needs; it reaches this repo (todo's
+  own rules) only when every consumer repo needs it. The default is: it stays in the thread.
 - **A skill names no consumer repo.** What one project needs — its units, files, thresholds,
   high-stakes slices — lives in that project's plan; the skill states the generic mechanism
   the plan fills in.

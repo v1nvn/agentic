@@ -1,4 +1,4 @@
-import { parseQuietly } from '@v1nvn/agentic-core';
+import { HelpRequested, parseQuietly } from '@v1nvn/agentic-core';
 import { Command, Option } from 'commander';
 
 const DEFAULT_BASE_URL = 'https://api.z.ai';
@@ -80,7 +80,9 @@ export function buildProgram(
     .addCommand(usage);
 }
 
-export function parseArgs(args: readonly string[]): ParsedArgs | undefined {
+export function parseArgs(
+  args: readonly string[],
+): HelpRequested | ParsedArgs | undefined {
   let parsed: ParsedArgs | undefined;
   const program = buildProgram(options => {
     const { authToken, baseUrl, json } = options as {
@@ -95,8 +97,9 @@ export function parseArgs(args: readonly string[]): ParsedArgs | undefined {
       json: json === true,
     };
   });
-  if (parseQuietly(program, args) === undefined) {
-    return undefined;
+  const quiet = parseQuietly(program, args);
+  if (quiet === undefined || quiet instanceof HelpRequested) {
+    return quiet;
   }
   return (
     parsed ?? {

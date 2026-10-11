@@ -40,13 +40,11 @@ export interface TopCategory {
 }
 
 export interface TopMeasure {
-  at: number;
   categories: TopCategory[];
   compactAt: null | number;
   costUsd: null | number;
   mcp: { server: string; tokens: number }[];
   memory: { path: string; tokens: number }[];
-  model: null | string;
   percent: null | number;
   rateLimits: TopRateLimit[];
   startedAt: null | number;
@@ -56,7 +54,6 @@ export interface TopMeasure {
 
 export interface TopUsage {
   cacheRead: number;
-  cacheWrite: number;
   input: number;
   output: number;
 }
@@ -199,7 +196,7 @@ function windowLabel(kind: string): string {
     return '5h';
   }
   if (kind === 'seven_day') {
-    return 'week';
+    return '7d';
   }
   return kind;
 }
@@ -230,18 +227,18 @@ export function topLines(
   ].filter(Boolean);
   out.push([dim(' ' + sub.join(' · '))]);
 
-  const section = (name: string): void => {
+  function section(name: string): void {
     out.push([]);
     out.push([
       dim(` ${name} ${'─'.repeat(Math.max(4, TOP_WIDTH - name.length - 3))}`),
     ]);
-  };
-  const row = (label: string, rest: Line): void => {
+  }
+  function row(label: string, rest: Line): void {
     out.push([plain(` ${label} `.padEnd(LABEL)), ...rest]);
-  };
-  const under = (rest: Line): void => {
+  }
+  function under(rest: Line): void {
     out.push([plain(' '.repeat(LABEL)), ...rest]);
-  };
+  }
 
   const { flow } = state;
   section('flow');
@@ -260,14 +257,11 @@ export function topLines(
     ]);
   }
   if (flow.usage) {
-    row(
-      'last',
-      [
-        plain(
-          `${fmtTokens(flow.usage.input)} in · ${fmtTokens(flow.usage.output)} out · ${fmtTokens(flow.usage.cacheRead)} read`,
-        ),
-      ].slice(0, 1),
-    );
+    row('last', [
+      plain(
+        `${fmtTokens(flow.usage.input)} in · ${fmtTokens(flow.usage.output)} out · ${fmtTokens(flow.usage.cacheRead)} read`,
+      ),
+    ]);
   } else {
     row('last', [dim('(no response yet)')]);
   }
@@ -306,7 +300,11 @@ export function topLines(
     if (m.mcp.length > 0) {
       const servers = m.mcp.map(x => `${x.server} ${fmtTokens(x.tokens)}`);
       wrapJoin(servers, TOP_WIDTH - LABEL - 1).forEach((r, i) => {
-        i === 0 ? row('mcp', [dim(r)]) : under([dim(r)]);
+        if (i === 0) {
+          row('mcp', [dim(r)]);
+        } else {
+          under([dim(r)]);
+        }
       });
     }
     if (m.memory.length > 0) {
@@ -314,7 +312,11 @@ export function topLines(
         x => `${x.path.split('/').pop()} ${fmtTokens(x.tokens)}`,
       );
       wrapJoin(files, TOP_WIDTH - LABEL - 1).forEach((r, i) => {
-        i === 0 ? row('memory', [dim(r)]) : under([dim(r)]);
+        if (i === 0) {
+          row('memory', [dim(r)]);
+        } else {
+          under([dim(r)]);
+        }
       });
     }
 
@@ -363,11 +365,10 @@ export function topLines(
     const rates = new Map(flow.agents.map(a => [a.id, a]));
     for (const a of agentRows.slice(0, 6)) {
       const name = cut(a.name ?? a.type, 12).padEnd(12);
+      const age = spawnAge(state, a.id, now);
       const bits = [
         a.status,
-        spawnAge(state, a.id, now) != null
-          ? fmtDur(spawnAge(state, a.id, now)!)
-          : null,
+        age != null ? fmtDur(age) : null,
         a.description !== '' ? cut(a.description, 24) : null,
       ].filter(Boolean);
       out.push([plain(` ${name}`), dim(` ${bits.join(' · ')}`)]);

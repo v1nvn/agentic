@@ -1,6 +1,6 @@
 {
   "name": "tokens",
-  "description": "Live token usage: the /tokens-usage pane, zero-token",
+  "description": "Live token usage: the /tokens-usage and /tokens-top panes, zero-token",
   "version": "0.41.1",
   "author": {
     "name": "v1nvn",

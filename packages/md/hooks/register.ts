@@ -18,7 +18,7 @@ function lineOf(call: ToolCallResult): string {
     return call.deny;
   }
   if (call.isError === true) {
-    return call.text ?? 'send failed';
+    return call.text ?? 'share failed';
   }
   const result = call.result as null | { stderr?: unknown; stdout?: unknown };
   const stdout = typeof result?.stdout === 'string' ? result.stdout.trim() : '';
@@ -26,7 +26,7 @@ function lineOf(call: ToolCallResult): string {
     return stdout;
   }
   const stderr = typeof result?.stderr === 'string' ? result.stderr.trim() : '';
-  return stderr !== '' ? stderr : 'send failed';
+  return stderr !== '' ? stderr : 'share failed';
 }
 
 async function share(

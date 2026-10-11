@@ -3,7 +3,7 @@ import { dirname, join } from 'node:path';
 
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { parseArgs, subcommandHelp } from '../src/cli.js';
+import { helpFor, parseArgs } from '../src/cli.js';
 import { configure, type ConfigureOptions } from '../src/configure.js';
 import {
   backupPath,
@@ -467,7 +467,7 @@ describe('status: CLI surface (contract 5)', () => {
   });
 
   it('names the status flags in its help', () => {
-    expect(subcommandHelp('status')).toContain('--home');
+    expect(helpFor('status')).toContain('--home');
   });
 });
 

@@ -1,6 +1,6 @@
 /**
- * Pure aggregation over transcript JSONL lines — the one usage math shared by
- * the node-fs CLI walk (scan.ts) and the engine-side $.fs walk (register.tsx).
+ * Pure aggregation over transcript JSONL lines — the one usage math, feeding
+ * the CLI's walk (scan.ts) and the report's rows (format.ts).
  */
 
 import { ymd } from './text.js';
@@ -8,8 +8,8 @@ import { ymd } from './text.js';
 const DAYS = 7;
 
 export interface UsageAcc {
-  cacheCreation: number;
   cacheRead: number;
+  cacheWrite: number;
   calls: number;
   input: number;
   output: number;
@@ -44,10 +44,7 @@ interface TranscriptEntry {
 
 export function totalTokens(a: UsageAcc): number {
   return (
-    (a.input || 0) +
-    (a.output || 0) +
-    (a.cacheRead || 0) +
-    (a.cacheCreation || 0)
+    (a.input || 0) + (a.output || 0) + (a.cacheRead || 0) + (a.cacheWrite || 0)
   );
 }
 
@@ -55,9 +52,9 @@ export function totalTokens(a: UsageAcc): number {
 export function hitRate({
   input = 0,
   cacheRead = 0,
-  cacheCreation = 0,
+  cacheWrite = 0,
 }: Partial<UsageAcc> = {}): number {
-  const denom = input + cacheRead + cacheCreation;
+  const denom = input + cacheRead + cacheWrite;
   return denom > 0 ? (cacheRead / denom) * 100 : 0;
 }
 
@@ -66,14 +63,14 @@ export function sumRows(rows: readonly UsageAcc[]): UsageAcc {
     input: 0,
     output: 0,
     cacheRead: 0,
-    cacheCreation: 0,
+    cacheWrite: 0,
     calls: 0,
   };
   for (const r of rows) {
     sum.input += r.input;
     sum.output += r.output;
     sum.cacheRead += r.cacheRead;
-    sum.cacheCreation += r.cacheCreation;
+    sum.cacheWrite += r.cacheWrite;
     sum.calls += r.calls;
   }
   return sum;
@@ -96,14 +93,14 @@ export function last7(scanResult: ScanResult, now: Date): DayRow[] {
 }
 
 function zero(): UsageAcc {
-  return { input: 0, output: 0, cacheRead: 0, cacheCreation: 0, calls: 0 };
+  return { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, calls: 0 };
 }
 
 function add(acc: UsageAcc, u: UsageBlock, n = 1): void {
   acc.input += n * (u.input_tokens ?? 0);
   acc.output += n * (u.output_tokens ?? 0);
   acc.cacheRead += n * (u.cache_read_input_tokens ?? 0);
-  acc.cacheCreation += n * (u.cache_creation_input_tokens ?? 0);
+  acc.cacheWrite += n * (u.cache_creation_input_tokens ?? 0);
   acc.calls += n;
 }
 

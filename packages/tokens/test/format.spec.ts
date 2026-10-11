@@ -13,7 +13,7 @@ const scan: ScanResult = {
       input: 51,
       output: 4,
       cacheRead: 40448,
-      cacheCreation: 0,
+      cacheWrite: 0,
       calls: 3,
     },
     {
@@ -21,7 +21,7 @@ const scan: ScanResult = {
       input: 5685,
       output: 28,
       cacheRead: 40256,
-      cacheCreation: 1200,
+      cacheWrite: 1200,
       calls: 4,
     },
     {
@@ -29,7 +29,7 @@ const scan: ScanResult = {
       input: 0,
       output: 0,
       cacheRead: 0,
-      cacheCreation: 0,
+      cacheWrite: 0,
       calls: 2,
     },
   ],
@@ -40,7 +40,7 @@ const scan: ScanResult = {
       input: 1200,
       output: 300,
       cacheRead: 8000,
-      cacheCreation: 500,
+      cacheWrite: 500,
       calls: 9,
     },
     {
@@ -48,7 +48,7 @@ const scan: ScanResult = {
       input: 5736,
       output: 32,
       cacheRead: 80704,
-      cacheCreation: 1200,
+      cacheWrite: 1200,
       calls: 7,
     },
   ],
@@ -68,7 +68,7 @@ describe('tokens report render', () => {
     expect(text).toContain('92% cache hit rate');
   });
 
-  it('renders per-model rows with in/out/read/created', () => {
+  it('renders per-model rows with in/out/read/cache-write', () => {
     expect(/glm-5\.3\s+51 in/.test(text)).toBe(true);
     expect(/40\.4K read/.test(text)).toBe(true);
     expect(text).toContain('claude-opus-5');
@@ -92,7 +92,7 @@ describe('tokens report render', () => {
 
   it('stays plain text and states the hit-rate formula', () => {
     expect(text).not.toContain('**');
-    expect(text).toContain('read / (in + read + created)');
+    expect(text).toContain('read / (in + read + cache-write)');
   });
 
   it('renders a placeholder for an empty scan', () => {
@@ -105,9 +105,9 @@ describe('tokens report render', () => {
 });
 
 describe('hitRate units', () => {
-  it('counts cacheCreation in the denominator', () => {
+  it('counts cacheWrite in the denominator', () => {
     expect(
-      hitRate({ input: 0, cacheRead: 100, cacheCreation: 100 }),
+      hitRate({ input: 0, cacheRead: 100, cacheWrite: 100 }),
     ).toBeCloseTo(50, 9);
   });
 

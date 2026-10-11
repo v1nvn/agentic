@@ -185,7 +185,7 @@ test('/tokens-top opens the pane; startup draws nothing; the measure fills it', 
     await ui.find({ type: 'Text', text: /CLAUDE\.md 2\.6K/ }),
   ).toBeDefined();
   expect(await ui.find({ type: 'Text', text: /5h\s+71%/ })).toBeDefined();
-  expect(await ui.find({ type: 'Text', text: /week\s+34%/ })).toBeDefined();
+  expect(await ui.find({ type: 'Text', text: /7d\s+34%/ })).toBeDefined();
   expect(await ui.find({ type: 'Text', text: /Explore/ })).toBeDefined();
   expect(
     await ui.find({ type: 'Text', text: /audit the render/ }),

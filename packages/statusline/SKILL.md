@@ -16,8 +16,8 @@ first. Sketch the four curated themes, then show the in-chat picker in the
 same reply. One plain render per theme, run by the agent:
 
     npx -y @v1nvn/statusline@0.41.1 preview --theme quiet --plain
-    npx -y @v1nvn/statusline@0.41.1 preview --theme lean --plain
     npx -y @v1nvn/statusline@0.41.1 preview --theme classic --plain
+    npx -y @v1nvn/statusline@0.41.1 preview --theme lean --plain
     npx -y @v1nvn/statusline@0.41.1 preview --theme rich --plain
 
 Each render prints a header line, the bar, and the panel row; paste the bar
@@ -25,8 +25,8 @@ and panel row into that option's preview pane. Four options, single-select,
 each description carrying its summary:
 
 - `quiet` — model and directory, nothing else
-- `lean` — text only, no graphics
 - `classic` — the shipped defaults, named
+- `lean` — text only, no graphics
 - `rich` — every gauge and counter
 
 Say in the reply that naming `custom` in the picker's Other free text starts
@@ -53,8 +53,7 @@ what each shows, describe, never render — then one write naming the picks:
 plain text and may go into the chat as reference; selection never routes
 through a catalog table. The layout — brace clusters of item ids, one cluster
 per rendered group — is the only way to put an item on the surface;
-`--layout` overrides the theme's, and a layout item no flag or theme picks is
-an error naming what is unresolved.
+`--layout` overrides the theme's.
 
 **Show.** `catalog` prints the themes block (`*` marks the theme the key
 names) then one line per item — `item: alt | alt*`, `*` marking the variant
@@ -85,7 +84,7 @@ zero ANSI, agent-runnable:
 A healthy install prints:
 
     node: on PATH (/usr/local/bin/node)
-    renderer: resolves → 0.30.8
+    renderer: resolves → 0.41.1
     statusLine: ours
     subagentStatusLine: ours — theme=lean
     config: no drift

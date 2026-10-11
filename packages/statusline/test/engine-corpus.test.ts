@@ -13,8 +13,8 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 // item -> alternative, layout overrides the default, columns is COLUMNS
 // (omitted -> the engine default), noColor is NO_COLOR.
 // The return is the emitted stdout: lines joined by '\n' with a trailing
-// '\n'. The panel goldens (multi-*, subagent.sh) are the panel engine's
-// corpus, not this door.
+// '\n'. The panel goldens (multi-*) are the panel engine's corpus, not this
+// door.
 import { DEFAULT_LAYOUT, ITEMS } from '../src/render/index.js';
 import { SEGMENTS } from '../src/render/segments.js';
 import {

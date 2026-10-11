@@ -4,7 +4,7 @@
  * here, pure, so the spec can drive it; src/index.ts is the entry.
  */
 
-import { parseQuietly } from '@v1nvn/agentic-core';
+import { HelpRequested, parseQuietly } from '@v1nvn/agentic-core';
 import { Command } from 'commander';
 
 export interface ParsedArgs {
@@ -30,13 +30,16 @@ export function buildProgram(
     .addCommand(usage);
 }
 
-export function parseArgs(args: readonly string[]): ParsedArgs | undefined {
+export function parseArgs(
+  args: readonly string[],
+): HelpRequested | ParsedArgs | undefined {
   let parsed: ParsedArgs | undefined;
   const program = buildProgram(options => {
     parsed = { command: 'usage', json: options.json === true };
   });
-  if (parseQuietly(program, args) === undefined) {
-    return undefined;
+  const quiet = parseQuietly(program, args);
+  if (quiet === undefined || quiet instanceof HelpRequested) {
+    return quiet;
   }
   return parsed ?? { command: undefined, json: false };
 }

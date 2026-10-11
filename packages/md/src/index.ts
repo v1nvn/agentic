@@ -1,6 +1,8 @@
 import {
+  HelpRequested,
   lastReply,
   parseQuietly,
+  printHelpAndExit,
   printUsageAndExit,
   readMarkdownFile,
   readStdin,
@@ -16,8 +18,11 @@ const program = new Command()
   .argument('[file]', 'Markdown file, - for stdin; the last reply when omitted')
   .option('--view', 'open the viewer read-only, without the edit pane');
 
-const parsed =
-  parseQuietly(program, process.argv.slice(2)) ?? printUsageAndExit(program);
+const asked = parseQuietly(program, process.argv.slice(2));
+if (asked instanceof HelpRequested) {
+  printHelpAndExit(asked.command);
+}
+const parsed = asked ?? printUsageAndExit(program);
 const arg = parsed.args.at(0);
 const { view } = parsed.opts<{ view: boolean | undefined }>();
 
