@@ -423,7 +423,7 @@ function toSgr(rows) {
 		return inkOpen ? `${out}\x1b[0m` : out;
 	}).join("\n");
 }
-function textOf$1(rows) {
+function textOf(rows) {
 	return rowsOf(rows).map((row) => row.map((seg) => seg.text).join("")).join("\n");
 }
 //#endregion
@@ -561,13 +561,13 @@ function field$1(source, path) {
 	for (const key of path.split(".")) current = member(current, key);
 	return current;
 }
-function textOf(value) {
+function fieldText(value) {
 	if (typeof value === "string") return value;
 	if (typeof value === "number" || typeof value === "boolean") return String(value);
 	return "";
 }
 function scalar(source, path, fallback) {
-	return textOf(orElse(field$1(source, path), fallback));
+	return fieldText(orElse(field$1(source, path), fallback));
 }
 function numberField(source, path) {
 	return Number(scalar(source, path, "0"));
@@ -877,7 +877,7 @@ function statePills({ row }) {
 	if (row.agent !== "") pills.push(statePill(row.agent, 60, 231));
 	if (row.wt !== "") pills.push(statePill(`wt:${row.wt}`, 131, 231));
 	if (row.styleName !== "" && row.styleName !== "default") pills.push(statePill(row.styleName, 95, 16));
-	return line(...pills.flatMap((pill, at) => at === 0 ? pill : [plain(" "), ...pill]));
+	return line(...pills.flatMap((pill, at) => at === 0 && row.vim !== "" ? pill : [plain(" "), ...pill]));
 }
 function splitPath(raw, home) {
 	let p = raw;
@@ -1308,13 +1308,9 @@ function styleSeparators(alt) {
 //#endregion
 //#region src/render/engine.ts
 var RUNG_ITEMS = Object.keys(RUNG_ORDERS);
-function stripSgr(text) {
-	return text.replace(/\x1b\[[0-9;]*m/g, "");
-}
 function vlen$1(text) {
-	const plain = stripSgr(text);
-	let n = Array.from(plain).length;
-	for (const ch of plain) if (ch === "⚡") n += 1;
+	let n = Array.from(text).length;
+	for (const ch of text) if (ch === "⚡") n += 1;
 	return n;
 }
 function warn(message) {
@@ -1403,7 +1399,7 @@ function renderStatusline(input) {
 		return line(...segs);
 	}
 	function fits(row) {
-		return vlen$1(textOf$1(row)) <= avail;
+		return vlen$1(textOf(row)) <= avail;
 	}
 	function demote(item, target) {
 		const order = RUNG_ORDERS[item];
@@ -1431,7 +1427,7 @@ function renderStatusline(input) {
 		return out;
 	}
 	function emit(row) {
-		return `${input.noColor === true ? textOf$1(row) : toSgr(row)}\n`;
+		return `${input.noColor === true ? textOf(row) : toSgr(row)}\n`;
 	}
 	const full = fit("full", FULL_STEPS);
 	if (fits(full)) return emit(full);
@@ -1565,7 +1561,7 @@ function renderRow(fields, state, now, layout, separators) {
 		for (const item of items) {
 			if (ctx <= 0 && (item === "bar" || item === "tokens")) continue;
 			const out = trimLine(renderSegment(item, state.working[item], input));
-			if (textOf$1(out) === "") continue;
+			if (textOf(out) === "") continue;
 			if (first) {
 				group.push(...out);
 				first = false;
@@ -1576,7 +1572,7 @@ function renderRow(fields, state, now, layout, separators) {
 	return line(...segs);
 }
 function vlen(row) {
-	return Array.from(textOf$1(row)).length;
+	return Array.from(textOf(row)).length;
 }
 function demote(state, item, target) {
 	const order = RUNG_ORDERS[item];
@@ -1621,7 +1617,7 @@ function renderPanel(input) {
 		const fields = extractFields(task, input.usage);
 		if (fields.id === "") continue;
 		const row = fitRow(fields, working, input.now, layout, separators, avail);
-		const content = input.noColor === true ? textOf$1(row) : toSgr(row);
+		const content = input.noColor === true ? textOf(row) : toSgr(row);
 		out += `${emitLine(fields.id, content)}\n`;
 	}
 	return out;

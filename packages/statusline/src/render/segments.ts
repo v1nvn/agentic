@@ -136,7 +136,9 @@ function statePills({ row }: SegmentInput): Line {
     pills.push(statePill(row.styleName, 95, 16));
   }
   return line(
-    ...pills.flatMap((pill, at) => (at === 0 ? pill : [plain(' '), ...pill])),
+    ...pills.flatMap((pill, at) =>
+      at === 0 && row.vim !== '' ? pill : [plain(' '), ...pill],
+    ),
   );
 }
 

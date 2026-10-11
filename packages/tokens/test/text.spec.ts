@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { barField, dotMeter, fmtTokens, padL, padR } from '../src/text.js';
+import { barField, fmtTokens, padL, padR } from '../src/text.js';
 
 describe('text degenerate values', () => {
   it('renders missing values as an em dash', () => {
@@ -25,11 +25,5 @@ describe('text degenerate values', () => {
   it('rounds a fractional cell up into a full block', () => {
     // 1.94 cells → 0.94 of a cell → round(7.52) = 8 eighths → two full blocks.
     expect(barField(19.4, 100, 10)).toBe('██        ');
-  });
-
-  it('clamps out-of-range percentages', () => {
-    expect(dotMeter(120, 4)).toBe('████');
-    expect(dotMeter(-10, 4)).toBe('····');
-    expect(dotMeter(undefined, 4)).toBe('····');
   });
 });

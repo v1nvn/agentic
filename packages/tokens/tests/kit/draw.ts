@@ -158,6 +158,11 @@ export function toSgr(rows: Doc | Line): string {
     .join('\n');
 }
 
+export function stripSgr(text: string): string {
+  // eslint-disable-next-line no-control-regex
+  return text.replace(/\x1b\[[0-9;]*m/g, '');
+}
+
 export function textOf(rows: Doc | Line): string {
   return rowsOf(rows)
     .map(row => row.map(seg => seg.text).join(''))
@@ -249,10 +254,8 @@ export function meter(
   width: number,
   filled: Ink = 'green',
 ): Line {
-  const n = Math.max(
-    0,
-    Math.min(width, Math.round(((pct ?? 0) / 100) * width)),
-  );
+  const safePct = typeof pct === 'number' && Number.isFinite(pct) ? pct : 0;
+  const n = Math.max(0, Math.min(width, Math.round((safePct / 100) * width)));
   return line(
     { text: BLOCK.repeat(n), ink: filled },
     { text: TRACK.repeat(width - n), ink: 'dim' },

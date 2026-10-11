@@ -1,8 +1,9 @@
 import { rmSync } from 'node:fs';
 
+import { stripSgr } from '@v1nvn/agentic-core/draw';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import { stripSgr, vlen } from '../src/render/engine.js';
+import { vlen } from '../src/render/engine.js';
 import {
   createDemoHome,
   DEFAULT_NOW,

@@ -10,7 +10,7 @@ function line(...segments) {
 	return segments;
 }
 function meter(pct, width, filled = "green") {
-	const n = Math.max(0, Math.min(width, Math.round((pct ?? 0) / 100 * width)));
+	const n = Math.max(0, Math.min(width, Math.round((typeof pct === "number" && Number.isFinite(pct) ? pct : 0) / 100 * width)));
 	return line({
 		text: "█".repeat(n),
 		ink: filled
@@ -70,7 +70,7 @@ async function runMain(main) {
 }
 Number.MAX_SAFE_INTEGER;
 //#endregion
-//#region ../tokens/dist/assets/text-CwfwZy7j.js
+//#region ../tokens/dist/assets/text-CWCp7yDH.js
 function plain(text) {
 	return { text };
 }

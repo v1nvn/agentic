@@ -39,17 +39,11 @@ type Mode = 'full' | 'l1' | 'l2';
 
 const RUNG_ITEMS = Object.keys(RUNG_ORDERS);
 
-export function stripSgr(text: string): string {
-  // eslint-disable-next-line no-control-regex
-  return text.replace(/\x1b\[[0-9;]*m/g, '');
-}
-
 // The bash vlen counts bytes minus UTF-8 continuation bytes — one per
 // codepoint — then adds one more per ⚡, which renders two cells wide.
 export function vlen(text: string): number {
-  const plain = stripSgr(text);
-  let n = Array.from(plain).length;
-  for (const ch of plain) {
+  let n = Array.from(text).length;
+  for (const ch of text) {
     if (ch === '⚡') {
       n += 1;
     }
