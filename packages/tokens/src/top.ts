@@ -8,16 +8,20 @@
 import type { Line } from './text.js';
 import type { Segment } from './text.js';
 
+import { meter } from '../hooks/kit/draw.js';
 import {
   barField,
   bold,
   dim,
   fmtTokens,
-  meterSegs,
   pad2,
   plain,
   sparkField,
 } from './text.js';
+
+function meterSegs(pct: number | undefined, width: number): readonly Segment[] {
+  return meter(pct, width) as readonly Segment[];
+}
 
 function magenta(text: string): Segment {
   return { text: ' ' + text, ink: 'magenta' };

@@ -6,6 +6,18 @@ import { EventEmitter } from "node:events";
 import childProcess, { spawnSync } from "node:child_process";
 import process$1 from "node:process";
 import { stripVTControlCharacters } from "node:util";
+//#region ../core/dist/draw.js
+function pad2(n) {
+	return String(n).padStart(2, "0");
+}
+/** Local date-time stamp: `YYYY-MM-DD`, plus `HH:mm` and optionally seconds. */
+function localStamp(now, clock) {
+	const day = `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}`;
+	if (clock === "none") return day;
+	const hhmm = `${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
+	return clock === "second" ? `${day} ${hhmm}:${pad2(now.getSeconds())}` : `${day} ${hhmm}`;
+}
+//#endregion
 //#region ../core/dist/index.js
 var HelpRequested = class extends Error {
 	command;
@@ -53,16 +65,6 @@ async function runMain(main) {
 		console.error(e.message);
 		exitWithCode(1);
 	}
-}
-function pad2(n) {
-	return String(n).padStart(2, "0");
-}
-/** Local date-time stamp: `YYYY-MM-DD`, plus `HH:mm` and optionally seconds. */
-function localStamp(now, clock) {
-	const day = `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}`;
-	if (clock === "none") return day;
-	const hhmm = `${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
-	return clock === "second" ? `${day} ${hhmm}:${pad2(now.getSeconds())}` : `${day} ${hhmm}`;
 }
 /** A markdown file's contents, with the CLI's no-such-file error. */
 function readMarkdownFile(path) {

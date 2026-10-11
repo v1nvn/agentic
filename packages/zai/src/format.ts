@@ -7,11 +7,11 @@
  * quota/limit — the last already passed through processQuotaLimit).
  */
 
+import { meter } from '@v1nvn/agentic-core/draw';
 import {
   barField,
   bold,
   dim,
-  dotMeter,
   fmtNum,
   fmtTokens,
   MONTHS,
@@ -24,7 +24,11 @@ import {
   RULE_WIDTH,
 } from '@v1nvn/tokens/text';
 
-import type { Line } from '@v1nvn/tokens/text';
+import type { Line, Segment } from '@v1nvn/tokens/text';
+
+function meterSegs(pct: number | undefined, width: number): readonly Segment[] {
+  return meter(pct, width) as readonly Segment[];
+}
 
 // Lower-half block eighths for vertical bars (1/8 .. 7/8); a full cell uses '█'.
 const VBLOCKS = '▁▂▃▄▅▆▇';
@@ -561,9 +565,9 @@ export function reportLines({
   if (peakWin) {
     out.push([
       dim(`   ${padR('Peak', 16)}`),
-      plain(
-        `${padL(peakWin.start, 5)}  ${dotMeter(Math.round((elapsedMin / 240) * 100), 22)}  ${peakWin.end}`,
-      ),
+      plain(`${padL(peakWin.start, 5)}  `),
+      ...meterSegs(Math.round((elapsedMin / 240) * 100), 22),
+      plain(`  ${peakWin.end}`),
     ]);
   }
 
@@ -577,7 +581,9 @@ export function reportLines({
     out.push([
       dim(`   ${padR('Tokens · 5h', 16)}`),
       bold(padL(`${tok5.percentage || 0}%`, 5)),
-      plain(`  ${dotMeter(tok5.percentage, 22)}  ${reset}`),
+      plain('  '),
+      ...meterSegs(tok5.percentage, 22),
+      plain(`  ${reset}`),
     ]);
   }
 
@@ -590,7 +596,9 @@ export function reportLines({
     out.push([
       dim(`   ${padR('MCP · this month', 16)}`),
       bold(padL(`${mcp.percentage || 0}%`, 5)),
-      plain(`  ${dotMeter(mcp.percentage, 22)}  ${reset}`),
+      plain('  '),
+      ...meterSegs(mcp.percentage, 22),
+      plain(`  ${reset}`),
     ]);
     const det = mcp.usageDetails ?? [];
     const parts = det

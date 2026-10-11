@@ -7,7 +7,7 @@
  * Env knobs: REMARKABLE_HOST (default: remarkable), REMARKABLE_DIR (default: /home/root/books)
  */
 
-import { localStamp } from '@v1nvn/agentic-core';
+import { localStamp } from '@v1nvn/agentic-core/draw';
 import { spawnSync } from 'node:child_process';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';

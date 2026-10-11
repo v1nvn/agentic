@@ -5,6 +5,21 @@ import { EventEmitter } from "node:events";
 import childProcess from "node:child_process";
 import process$1 from "node:process";
 import { stripVTControlCharacters } from "node:util";
+//#region ../core/dist/draw.js
+function line(...segments) {
+	return segments;
+}
+function meter(pct, width, filled = "green") {
+	const n = Math.max(0, Math.min(width, Math.round((pct ?? 0) / 100 * width)));
+	return line({
+		text: "█".repeat(n),
+		ink: filled
+	}, {
+		text: "·".repeat(width - n),
+		ink: "dim"
+	});
+}
+//#endregion
 //#region ../core/dist/index.js
 var HelpRequested = class extends Error {
 	command;
@@ -133,12 +148,6 @@ function barField(v, max, width) {
 	if (s.length < width) s += " ".repeat(width - s.length);
 	return s.slice(0, width);
 }
-/** Filled/empty meter: █ for used, · for remaining (shade glyphs draw as nothing here). */
-function dotMeter(pct, width) {
-	let filled = Math.round((pct || 0) / 100 * width);
-	filled = Math.max(0, Math.min(width, filled));
-	return "█".repeat(filled) + "·".repeat(width - filled);
-}
 function renderLines(lines) {
 	return lines.map((line) => line.map((seg) => seg.text).join("")).join("\n");
 }
@@ -152,6 +161,9 @@ function renderLines(lines) {
 * of the three ZAI/ZHIPU monitor endpoints (model-usage, tool-usage,
 * quota/limit — the last already passed through processQuotaLimit).
 */
+function meterSegs(pct, width) {
+	return meter(pct, width);
+}
 var VBLOCKS = "▁▂▃▄▅▆▇";
 function parseSlot(s) {
 	const m = /^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})/.exec(s ?? "");
@@ -416,7 +428,12 @@ function reportLines({ platform, model, tool, quota, apiOffsetMin = 480, localOf
 	const bj = new Date(now.getTime() + apiOffsetMin * 6e4);
 	const bjDay = bj.getUTCDay();
 	const elapsedMin = bjDay >= 1 && bjDay <= 5 ? Math.max(0, Math.min(240, (bj.getUTCHours() - 14) * 60 + bj.getUTCMinutes())) : 0;
-	if (peakWin) out.push([dim(`   ${padR("Peak", 16)}`), plain(`${padL(peakWin.start, 5)}  ${dotMeter(Math.round(elapsedMin / 240 * 100), 22)}  ${peakWin.end}`)]);
+	if (peakWin) out.push([
+		dim(`   ${padR("Peak", 16)}`),
+		plain(`${padL(peakWin.start, 5)}  `),
+		...meterSegs(Math.round(elapsedMin / 240 * 100), 22),
+		plain(`  ${peakWin.end}`)
+	]);
 	const limits = quota.limits ?? [];
 	const mcp = limits.find((l) => /mcp/i.test(l.type ?? ""));
 	const tok5 = limits.find((l) => /token/i.test(l.type ?? ""));
@@ -425,7 +442,9 @@ function reportLines({ platform, model, tool, quota, apiOffsetMin = 480, localOf
 		out.push([
 			dim(`   ${padR("Tokens · 5h", 16)}`),
 			bold(padL(`${tok5.percentage || 0}%`, 5)),
-			plain(`  ${dotMeter(tok5.percentage, 22)}  ${reset}`)
+			plain("  "),
+			...meterSegs(tok5.percentage, 22),
+			plain(`  ${reset}`)
 		]);
 	}
 	if (tok5 && mcp) out.push([]);
@@ -434,7 +453,9 @@ function reportLines({ platform, model, tool, quota, apiOffsetMin = 480, localOf
 		out.push([
 			dim(`   ${padR("MCP · this month", 16)}`),
 			bold(padL(`${mcp.percentage || 0}%`, 5)),
-			plain(`  ${dotMeter(mcp.percentage, 22)}  ${reset}`)
+			plain("  "),
+			...meterSegs(mcp.percentage, 22),
+			plain(`  ${reset}`)
 		]);
 		const parts = (mcp.usageDetails ?? []).map((d) => `${friendlyTool(d.modelCode)} ${fmtNum(d.usage)}`).join("  ");
 		if (parts) out.push([plain(`   ${fmtNum(mcp.currentUsage)}M / ${fmtNum(mcp.totol)}M · ${parts}`)]);
