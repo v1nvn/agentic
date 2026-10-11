@@ -93,8 +93,9 @@ B1 — the drawing kit and the stamp, proven on rm.
   (zai `format.ts:565,580,593`; tokens `top.ts:256,291`).
 - **B10 — one door, one break.** zai's `--json` goes raw with its island
   rendering; the hand-synced `.d.ts` mirrors die (`tokens/types/index.d.ts`
-  keeps only its `declare-module` block); rm's `pad2` from core; `/text`
-  export removed.
+  keeps only its `declare-module` block); rm's `pad2` from core; zai's
+  `format.ts` `tokens/text` imports rewire to the kit so the dependency drop
+  is possible; `/text` export removed.
 - **B4 — wrapper, not registry.** The blind review showed a tool registry must
   learn output schemas, capability gating and the resources family — surface,
   not structure. The handler wrapper alone owns the error-drift class.
@@ -119,16 +120,16 @@ Anchors verified at `304cba6`. Scoped gates answer the row; the workspace gate
 - **B1** — `packages/core/src/draw.ts` (new), the stamp manifest + emit step on
   root `package.json`'s `build`, `packages/core/test/stamp.spec.ts` (new
   guard), `packages/core/package.json` (description), `packages/rm/hooks/register.ts`
-  (:11 `lineOf` → kit), `packages/rm/src/send.ts` (:12 `pad2` import → kit),
+  (:11 `lineOf` → kit), `packages/rm/src/send.ts` (:10 `pad2` import → kit),
   stamped copies under `packages/rm/hooks/`. Gates: `yarn build`,
-  `yarn workspace @v1nvn/core test`, `yarn workspace @v1nvn/rm test`,
+  `yarn workspace @v1nvn/agentic-core test`, `yarn workspace @v1nvn/rm test`,
   `claude plugin validate packages/rm && claude plugin test packages/rm`.
 - **B8** — the mod-kit source in core + manifest entries ×4;
   `packages/{rm,md}/hooks/register.ts`, `packages/{zai,tokens}/hooks/register.tsx`;
   engine tests `packages/{rm,md,zai}/tests/*.test.ts` and
   `packages/tokens/tests/{tokens,top}.test.ts` (World glue at
   `tokens/tests/tokens.test.ts:47-54` dies); `references/mods.md`. Gates:
-  `yarn build`, `yarn workspace @v1nvn/core test`,
+  `yarn build`, `yarn workspace @v1nvn/agentic-core test`,
   `tsc --noEmit -p tsconfig.mods.json`, `claude plugin validate` +
   `claude plugin test` for each of `packages/rm packages/md packages/zai packages/tokens`.
 - **B9** — `packages/core/src/draw.ts` (the `toSgr` skin);
@@ -139,9 +140,11 @@ Anchors verified at `304cba6`. Scoped gates answer the row; the workspace gate
   `yarn workspace @v1nvn/tokens test`; ritual
   `REGEN_GOLDENS=1 yarn workspace @v1nvn/statusline test`.
 - **B10** — `packages/zai/src/usage.ts` (:6 `pad2` import dies),
+  `packages/zai/src/format.ts` (:25-27 — the `@v1nvn/tokens/text` imports
+  rewire to the kit; npm side imports core directly, the bins' discipline),
   `packages/zai/src/index.ts` (`--json` raw), `packages/zai/hooks/register.tsx`
   (island renders raw), `packages/zai/package.json` (:41 tokens dep dies);
-  `packages/rm/src/send.ts` (:12 `pad2` → core), `packages/rm/package.json`
+  `packages/rm/src/send.ts` (:10 `pad2` → core), `packages/rm/package.json`
   (tokens dep dies); `packages/tokens/package.json` (:10-12 `./text` export
   removed), `packages/tokens/types/index.d.ts` (only `declare-module` remains).
   Gates: `yarn workspace @v1nvn/zai test`, `yarn workspace @v1nvn/rm test`,
@@ -167,7 +170,7 @@ Anchors verified at `304cba6`. Scoped gates answer the row; the workspace gate
   `packages/omlx/src/{server.ts,omlx.ts,dev.ts,errors.ts,logger.ts,tools/*.ts}`;
   `packages/readability/test/server/{registration,sampling,resources}.test.ts`
   (`LoopbackTransport` at :14/:11/:18 → `InMemoryTransport.createLinkedPair()`).
-  Gates: `yarn workspace @v1nvn/core test`,
+  Gates: `yarn workspace @v1nvn/agentic-core test`,
   `yarn workspace @v1nvn/readability test`, `yarn workspace @v1nvn/omlx test`.
 - **B5** — `packages/statusline/src/render/panel.ts` + `layout.ts` (shares the
   engine's parser), `items.ts` (pick-validation helper), `install-record.ts`
@@ -180,12 +183,14 @@ Anchors verified at `304cba6`. Scoped gates answer the row; the workspace gate
   workspace gate at the boundary answers it.
 - **B7** — `packages/core/src/cli.ts` (`runCli`; A1's minimal fix — the
   fallback path from `96b94b1` — deleted); `packages/rm/src/index.ts` (:19-20),
-  `packages/md/src/index.ts` (:21-22), `packages/zai/src/index.ts` (:12-13),
+  `packages/md/src/index.ts` (:21-22), `packages/zai/src/resolve.ts`
+  (:2 commander, :66-80 the declared commands) with `packages/zai/src/index.ts`
+  (:12-13 parse site),
   `packages/tokens/src/cli.ts` (:40-41), `packages/statusline/src/cli.ts`
   (:142-149), `packages/readability/src/cli.ts` (:42-45); tests
   `packages/core/test/cli.test.ts`, `packages/statusline/test/cli.test.ts`,
   `packages/tokens/test/cli.spec.ts`, `packages/readability/test/cli.test.ts`.
-  Gates: `yarn build`, then `yarn workspace @v1nvn/core test` and each
+  Gates: `yarn build`, then `yarn workspace @v1nvn/agentic-core test` and each
   touched home's `yarn workspace <name> test`; live probes ×6 after build:
   `node packages/{statusline,tokens,readability,zai,rm,md}/dist/index.js`
   `<subcommand> --help` exits 0 printing that subcommand's own options.
@@ -225,7 +230,7 @@ row touches money, structure or a caller-visible surface.
 
 400 inserted lines per unit, counted `git diff --shortstat -M -- ':!*.snap'`.
 Derivation: this repo's recent code units span 5–303 inserted lines (A1 171+13,
-A3 172+5, A4 37, `96b94b1` 303, run-costs units 9–183; median ≈ 118), with A2's
+A3 172+5, A4 37, `96b94b1` 303, run-costs units 9–183), with A2's
 1081 a docs/types-regen outlier. Stamped copies count toward the ceiling — a
 unit over it stops at the next green point, saves the patch to scratch, and
 splits along its own clauses (B8's natural clause boundary is per home).
@@ -256,15 +261,15 @@ run reaches B10 — never silent, never chosen by the run.
 End-of-run, run from the repo root over live surfaces:
 
 ```
-git grep -n "function lineOf" -- 'packages/*/hooks'                 # empty (B8)
-git grep -n "type World\|stubWorld" -- 'packages/*/tests'           # empty (B8)
-git grep -nE '\\x1b\[|\\u001b\[' -- 'packages/*/src' 'packages/*/hooks' | grep -v draw.ts   # only the kit's skin (B9)
-git grep -ln "from 'commander'" -- 'packages/*/src'                 # only packages/core (B7)
-git grep -n "@v1nvn/tokens" -- packages/rm packages/zai             # empty (B10)
-git grep -n '"./text"' -- packages/tokens/package.json              # empty (B10)
-git grep -rn "LoopbackTransport" -- packages ':!*/node_modules/*'   # empty (B4)
-git grep -n "../policy" -- 'packages/readability/src/pipeline'      # empty (B2; pin test also asserts)
-yarn workspace @v1nvn/core test                                     # stamp guard green
+git grep -n "function lineOf" -- ':(glob)packages/*/hooks/**'                 # empty (B8)
+git grep -n "type World\|stubWorld" -- ':(glob)packages/*/tests/**'           # empty (B8)
+git grep -nE '\\x1b\[|\\u001b\[' -- ':(glob)packages/*/src/**' ':(glob)packages/*/hooks/**' | grep -v draw.ts   # only the kit's skin (B9)
+git grep -ln "from 'commander'" -- ':(glob)packages/*/src/**'                 # only packages/core (B7)
+git grep -n "@v1nvn/tokens" -- packages/rm packages/zai                       # empty (B10)
+git grep -n '"./text"' -- packages/tokens/package.json                        # empty (B10)
+git grep -rn "LoopbackTransport" -- packages ':!*/node_modules/*'             # empty (B4)
+git grep -n "../policy" -- 'packages/readability/src/pipeline'                # empty (B2; pin test also asserts)
+yarn workspace @v1nvn/agentic-core test                                       # stamp guard green
 ```
 
 Plus the count checks: every touched file's comment-line count at or below its
