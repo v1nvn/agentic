@@ -1,9 +1,9 @@
 /**
  * The tokens mod. /tokens-usage opens the account report as a pane — one
- * bin/report.mjs --json exec, drawn as the CLI's own ink-tagged lines from
- * src/format.ts. /tokens-top draws the live session — engine-pushed measures,
- * streaming chunks, the agent roster — redrawn as they arrive: no exec, no
- * polling, one clock tick aging the rate ring while the pane is open.
+ * bin/report.mjs --json exec through the exec/accept/parse door, drawn as
+ * the CLI's own ink-tagged lines from src/format.ts and re-scanned on its
+ * refresh tick while the pane stays open. /tokens-top draws the live session
+ * — engine-pushed measures, chunks, the agent roster — no exec, one aging tick.
  */
 
 import { atom, read, update } from 'claude-code';
@@ -20,23 +20,46 @@ import type {
 
 import { reportLines } from '../src/format.js';
 import { emptyTop, topLines } from '../src/top.js';
+import {
+  acceptJson,
+  ageAgents,
+  type AgentCell,
+  cellAt,
+  type CommandSpec,
+  type Door,
+  paneRows,
+  type PaneSpec,
+  showsPane,
+} from './kit/mod.js';
 
-import type {
-  Elements,
-  EngineInterface,
-  On,
-  ToolCallResult,
-} from 'claude-code';
+import type { Elements, EngineInterface, On } from 'claude-code';
 
-const PANE = 'tokens-usage';
-const REFRESH_MS = 5 * 60 * 1000;
-const ACCENT = 'cyan';
+const USAGE: PaneSpec = {
+  empty: '(no usage report)',
+  frame: true,
+  id: 'tokens-usage',
+  refreshMs: 5 * 60 * 1000,
+  title: 'Token usage',
+};
 
-const TOP = 'tokens-top';
+const TOP: PaneSpec = { frame: false, id: 'tokens-top', title: 'Session' };
+
 const TICK_MS = 500;
 const RING_MAX = 16;
 const AGENT_RING_MAX = 5;
 const EST_CHARS_PER_TOKEN = 4;
+const ACCENT = 'cyan';
+
+const COMMANDS = [
+  {
+    description: 'Token usage — per-model 24h mix and 7-day dailies, as a pane',
+    name: USAGE.id,
+  },
+  {
+    description: 'This session live — context, flow, limits, agents, as a pane',
+    name: TOP.id,
+  },
+] as const satisfies readonly CommandSpec[];
 
 const usage = atom(
   { plugin: 'tokens', key: 'usage' } as const,
@@ -49,9 +72,7 @@ const top = atom(
 
 let accOut = 0;
 let accThink = 0;
-const accAgent = new Map<string, number>();
-const agentRings = new Map<string, number[]>();
-const spawnAt = new Map<string, number>();
+const agentCells = new Map<string, AgentCell>();
 let lastTickAt = 0;
 let inSum = 0;
 let readSum = 0;
@@ -108,87 +129,65 @@ function callLabel(e: { tool: string }): string {
   return '';
 }
 
-async function scanUsage(
-  $: EngineInterface,
-): Promise<{ call: ToolCallResult; lines: Line[] | null }> {
+function parsedScan(parsed: unknown): null | ScanResult {
+  return typeof parsed === 'object' &&
+    parsed !== null &&
+    Array.isArray((parsed as ScanResult).days)
+    ? (parsed as ScanResult)
+    : null;
+}
+
+async function scanUsage($: EngineInterface): Promise<Door<ScanResult>> {
   const call = await $.tool.call({
     tool: 'Bash',
     command: `node ${$.plugin.root}/bin/report.mjs usage --json`,
   });
-  const scan = parsedScan(call);
-  if (scan === null) {
-    return { call, lines: null };
+  const got = acceptJson(call, 'query failed', parsedScan);
+  if (got.ok) {
+    const lines = reportLines(got.value, { now: new Date(got.value.now) });
+    await update($, usage, () => ({ lines }));
   }
-  const lines = reportLines(scan, { now: new Date(scan.now) });
-  await update($, usage, () => ({ lines }));
-  return { call, lines };
+  return got;
 }
 
-function parsedScan(call: ToolCallResult): null | ScanResult {
-  if (call.deny !== undefined || call.isError === true) {
-    return null;
-  }
-  const result = call.result as null | { stdout?: unknown };
-  try {
-    const parsed = JSON.parse(
-      typeof result?.stdout === 'string' ? result.stdout : '',
-    ) as ScanResult;
-    return Array.isArray(parsed.days) ? parsed : null;
-  } catch {
-    return null;
-  }
-}
-
-async function refreshIfOpen($: EngineInterface): Promise<void> {
-  const open = await $.ui.panes();
-  if (open.some(p => p.id === PANE)) {
+async function rescanWhileOpen($: EngineInterface): Promise<void> {
+  if (showsPane(await $.ui.panes(), USAGE)) {
     await scanUsage($);
   }
 }
 
-/** Ages the rate ring: one sample of the accumulators, only while the pane shows. */
+/** Ages the rate rings: one sample of the accumulators, only while the pane shows. */
 async function topTick($: EngineInterface): Promise<void> {
-  const open = await $.ui.panes();
-  if (!open.some(p => p.id === TOP)) {
+  if (!showsPane(await $.ui.panes(), TOP)) {
     return;
   }
+  const roster = await $.agent.list();
   const now = await $.clock.now();
   const dt = lastTickAt === 0 ? 0 : (now - lastTickAt) / 1000;
   lastTickAt = now;
+  const agents = ageAgents(agentCells, roster, dt, AGENT_RING_MAX);
   const outSample = accOut;
   const thinkSample = accThink;
   accOut = 0;
   accThink = 0;
 
-  const roster = await $.agent.list();
-  const live = new Set(roster.map(a => a.id));
-  for (const id of [...spawnAt.keys()]) {
-    if (!live.has(id)) {
-      spawnAt.delete(id);
-      agentRings.delete(id);
-    }
-  }
-  const agents = roster.map(a => {
-    const n = accAgent.get(a.id) ?? 0;
-    const ring = [...(agentRings.get(a.id) ?? []), n].slice(-AGENT_RING_MAX);
-    agentRings.set(a.id, ring);
-    return { id: a.id, ring, rate: dt > 0 ? n / dt : 0 };
-  });
-  for (const id of [...accAgent.keys()]) {
-    accAgent.set(id, 0);
-  }
-
   await update($, top, s =>
     withTop(s, t => ({
       ...t,
-      spawns: [...spawnAt.entries()].map(([id, at]) => ({ id, at })),
+      spawns: agents.flatMap(a =>
+        a.spawnAt === null ? [] : [{ at: a.spawnAt, id: a.id }],
+      ),
       flow: {
         ...t.flow,
         outRing: [...t.flow.outRing, outSample].slice(-RING_MAX),
         thinkRing: [...t.flow.thinkRing, thinkSample].slice(-RING_MAX),
         outRate: dt > 0 ? outSample / dt : 0,
         thinkRate: dt > 0 ? thinkSample / dt : 0,
-        agents,
+        agents: agents.map(a => ({
+          id: a.id,
+          rate: a.rate,
+          ring: [...a.ring],
+        })),
       },
     })),
   );
@@ -197,7 +196,7 @@ async function topTick($: EngineInterface): Promise<void> {
 function draw(
   t: Pick<Elements['terminal'], 'Box' | 'Text'>,
   lines: readonly Line[],
-  { frame = true }: { frame?: boolean } = {},
+  pane: PaneSpec,
 ): ReturnType<Elements['terminal']['Box']> {
   const { Box, Text } = t;
   function isColor(ink: Line[number]['ink']): boolean {
@@ -205,10 +204,10 @@ function draw(
   }
   return (
     <Box
-      borderColor={frame ? ACCENT : undefined}
-      borderStyle={frame ? 'round' : undefined}
+      borderColor={pane.frame ? ACCENT : undefined}
+      borderStyle={pane.frame ? 'round' : undefined}
       flexDirection="column"
-      paddingX={frame ? 1 : 0}
+      paddingX={pane.frame ? 1 : 0}
     >
       {lines.map((line, i) => (
         <Text key={`l${i}`} wrap="truncate-end">
@@ -228,48 +227,52 @@ function draw(
   );
 }
 
+async function usageRun($: EngineInterface): Promise<Record<string, never>> {
+  const got = await scanUsage($);
+  if (!got.ok) {
+    $.ui.log(got.line);
+    return {};
+  }
+  const saved = await read($, usage);
+  await $.ui.open({
+    id: USAGE.id,
+    rows: paneRows(saved?.lines.length ?? 0, USAGE),
+    title: USAGE.title,
+  });
+  return {};
+}
+
+async function topRun($: EngineInterface): Promise<Record<string, never>> {
+  await $.ui.open({ id: TOP.id, title: TOP.title });
+  return {};
+}
+
 export function register(on: On): void {
   on('session.start', async ($, e, next) => {
-    await $.command.register({
-      name: 'tokens-usage',
-      description:
-        'Token usage — per-model 24h mix and 7-day dailies, as a pane',
-    });
-    await $.command.register({
-      name: 'tokens-top',
-      description:
-        'This session live — context, flow, limits, agents, as a pane',
-    });
-    $.clock.every(REFRESH_MS, () => void refreshIfOpen($));
+    for (const command of COMMANDS) {
+      await $.command.register(command);
+    }
+    const refreshMs = USAGE.refreshMs;
+    if (refreshMs !== undefined) {
+      $.clock.every(refreshMs, () => void rescanWhileOpen($));
+    }
     $.clock.every(TICK_MS, () => void topTick($));
     return next(e);
   });
 
-  on('command.run', { command: 'tokens-usage' }, async $ => {
-    const { call, lines } = await scanUsage($);
-    if (lines === null) {
-      $.ui.log(lineOf(call));
-      return {};
-    }
-    await $.ui.open({ id: PANE, title: 'Token usage', rows: lines.length + 2 });
-    return {};
-  });
+  on('command.run', { command: USAGE.id }, usageRun);
+  on('command.run', { command: TOP.id }, topRun);
 
-  on('command.run', { command: 'tokens-top' }, async $ => {
-    await $.ui.open({ id: TOP, title: 'Session' });
-    return {};
-  });
-
-  on('ui.render', { component: 'Pane', requestId: PANE }, async ($, e) => {
+  on('ui.render', { component: 'Pane', requestId: USAGE.id }, async ($, e) => {
     const saved = await read($, usage);
     if (!saved) {
       const { Text } = $.ui.resolve(e);
-      return <Text dimColor>(no usage report)</Text>;
+      return <Text dimColor>{USAGE.empty}</Text>;
     }
-    return draw($.ui.resolve(e), saved.lines);
+    return draw($.ui.resolve(e), saved.lines, USAGE);
   });
 
-  on('ui.render', { component: 'Pane', requestId: TOP }, async ($, e) => {
+  on('ui.render', { component: 'Pane', requestId: TOP.id }, async ($, e) => {
     const [state, model, version, cwd, turns, surfaces, roster] =
       await Promise.all([
         read($, top),
@@ -299,7 +302,7 @@ export function register(on: On): void {
       },
       { now },
     );
-    return draw($.ui.resolve(e), lines, { frame: false });
+    return draw($.ui.resolve(e), lines, TOP);
   });
 
   on('session.measure', async ($, e, next) => {
@@ -352,7 +355,7 @@ export function register(on: On): void {
           accThink += n;
         }
         if (e.agentId !== undefined) {
-          accAgent.set(e.agentId, (accAgent.get(e.agentId) ?? 0) + n);
+          cellAt(agentCells, e.agentId).acc += n;
         }
       }
       if (chunk.kind === 'stop' && chunk.usage) {
@@ -428,7 +431,7 @@ export function register(on: On): void {
   on('agent.spawn', async ($, e, next) => {
     const ran = await next(e);
     if (ran.agentId !== undefined) {
-      spawnAt.set(ran.agentId, await $.clock.now());
+      cellAt(agentCells, ran.agentId).spawnAt = await $.clock.now();
     }
     return ran;
   });
@@ -465,20 +468,4 @@ export function register(on: On): void {
     }
     return ran;
   });
-}
-
-function lineOf(call: ToolCallResult): string {
-  if (call.deny !== undefined) {
-    return call.deny;
-  }
-  if (call.isError === true) {
-    return call.text ?? 'query failed';
-  }
-  const result = call.result as null | { stderr?: unknown; stdout?: unknown };
-  const stdout = typeof result?.stdout === 'string' ? result.stdout.trim() : '';
-  if (stdout !== '') {
-    return stdout;
-  }
-  const stderr = typeof result?.stderr === 'string' ? result.stderr.trim() : '';
-  return stderr !== '' ? stderr : 'query failed';
 }

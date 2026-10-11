@@ -4,8 +4,9 @@ import type { ScanResult } from '../src/aggregate.js';
 
 import { reportLines } from '../src/format.js';
 import { ymd } from '../src/text.js';
+import { stubEngine } from './kit/stub.js';
 
-import type { CommandRunResult, On } from 'claude-code';
+import type { CommandRunResult } from 'claude-code';
 import type { Engine } from 'claude-code/testing';
 
 const REFRESH_MS = 5 * 60 * 1000;
@@ -43,61 +44,6 @@ const PANE = {
   },
 } as const;
 
-type Answer = { mode: 'refuse' | 'report' | 'stderr' };
-type World = {
-  commands: string[];
-  logs: string[];
-  opens: { id: string; rows: number }[];
-};
-
-function stubWorld(on: On, answer: Answer = { mode: 'report' }): World {
-  const world: World = { commands: [], logs: [], opens: [] };
-  const openIds = new Set<string>();
-  on('command.register', () => ({ value: { command: 'tokens-usage' } }));
-  on('session.start', () => ({ cwd: '/work' }));
-  on('ui.log', ($, e) => {
-    world.logs.push(e.text);
-    return { value: undefined };
-  });
-  on('ui.open', ($, e) => {
-    world.opens.push({ id: e.id, rows: e.rows ?? 0 });
-    openIds.add(e.id);
-    return { value: { isPlaced: true } };
-  });
-  on('ui.panes', () => ({
-    value: [...openIds].map(id => ({
-      id,
-      title: 'Token usage',
-      isShown: true,
-      isFocused: true,
-      isPlaced: true,
-    })),
-  }));
-  on('tool.call', { tool: 'Bash' }, ($, e) => {
-    world.commands.push(String(e.command));
-    if (answer.mode === 'refuse') {
-      return { deny: 'permission denied by the user' };
-    }
-    if (answer.mode === 'stderr') {
-      return {
-        result: {
-          stdout: '',
-          stderr: 'no transcripts directory at /work',
-          interrupted: false,
-        },
-      };
-    }
-    return {
-      result: {
-        stdout: JSON.stringify(report),
-        stderr: '',
-        interrupted: false,
-      },
-    };
-  });
-  return world;
-}
-
 async function startSession($: Engine): Promise<void> {
   await $.session.start({
     surface: 'terminal',
@@ -117,7 +63,7 @@ async function runUsage($: Engine): Promise<CommandRunResult> {
 
 test('/tokens-usage execs the shipped CLI into the pane; startup draws and execs nothing', async ($, on) => {
   mock.clock(on);
-  const world = stubWorld(on);
+  const world = stubEngine(on, { stdout: JSON.stringify(report) });
 
   await startSession($);
   expect(world.commands).toEqual([]);
@@ -141,10 +87,9 @@ test('/tokens-usage execs the shipped CLI into the pane; startup draws and execs
   await ui.unmount();
 });
 
-test('the clock refreshes the pane only while it is open; a failed rescan keeps the last good state', async ($, on) => {
+test('the pane re-scans on its refresh tick only while open; a failed rescan keeps the last good state', async ($, on) => {
   const clock = mock.clock(on);
-  const answer: Answer = { mode: 'report' };
-  const world = stubWorld(on, answer);
+  const world = stubEngine(on, { stdout: JSON.stringify(report) });
 
   await startSession($);
   await clock.advance(REFRESH_MS);
@@ -156,7 +101,7 @@ test('the clock refreshes the pane only while it is open; a failed rescan keeps 
   await clock.advance(REFRESH_MS);
   expect(world.commands).toHaveLength(2);
 
-  answer.mode = 'refuse';
+  world.answer = () => ({ deny: 'permission denied by the user' });
   await clock.advance(REFRESH_MS);
   expect(world.commands).toHaveLength(3);
   expect(world.logs).toEqual([]);
@@ -168,7 +113,7 @@ test('the clock refreshes the pane only while it is open; a failed rescan keeps 
 
 test('a refused exec logs the reason, opens no pane, answers nothing', async ($, on) => {
   mock.clock(on);
-  const world = stubWorld(on, { mode: 'refuse' });
+  const world = stubEngine(on, { deny: 'permission denied by the user' });
 
   await startSession($);
   const answer = await runUsage($);
@@ -179,7 +124,10 @@ test('a refused exec logs the reason, opens no pane, answers nothing', async ($,
 
 test('a failed exec logs its stderr reason, opens no pane', async ($, on) => {
   mock.clock(on);
-  const world = stubWorld(on, { mode: 'stderr' });
+  const world = stubEngine(on, {
+    stderr: 'no transcripts directory at /work',
+    stdout: '',
+  });
 
   await startSession($);
   await runUsage($);

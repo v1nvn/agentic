@@ -90,6 +90,11 @@ function stdioOf(result: unknown): Stdio {
   return typeof result === 'object' && result !== null ? result : {};
 }
 
+export function stdoutOf(result: unknown): string {
+  const { stdout } = stdioOf(result);
+  return typeof stdout === 'string' ? stdout : '';
+}
+
 /** The one line an exec shows: the refusal's reason, stdout, else stderr or `fallback`. */
 export function lineOf(call: ToolLineSource, fallback: string): string {
   if (call.deny !== undefined) {
@@ -98,11 +103,11 @@ export function lineOf(call: ToolLineSource, fallback: string): string {
   if (call.isError === true) {
     return call.text ?? fallback;
   }
-  const { stdout, stderr } = stdioOf(call.result);
-  const out = typeof stdout === 'string' ? stdout.trim() : '';
+  const out = stdoutOf(call.result).trim();
   if (out !== '') {
     return out;
   }
+  const { stderr } = stdioOf(call.result);
   const err = typeof stderr === 'string' ? stderr.trim() : '';
   return err !== '' ? err : fallback;
 }
@@ -147,10 +152,6 @@ export function pad(
   }
   const gap = ' '.repeat(width - text.length);
   return side === 'left' ? gap + text : text + gap;
-}
-
-export function clip(text: string, width: number): string {
-  return text.slice(0, Math.max(0, width));
 }
 
 export function meter(

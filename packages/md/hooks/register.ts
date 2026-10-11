@@ -5,29 +5,21 @@
  * model never reads. /md-view adds the CLI's --view flag (read-only share).
  */
 
-import type {
-  CommandRunResult,
-  EngineInterface,
-  On,
-  ToolCallResult,
-} from 'claude-code';
+import { lineOf } from './kit/draw.js';
+import { type CommandSpec } from './kit/mod.js';
 
-/** The line a run shows: the refusal's reason, the CLI's stdout, else its stderr or the share's failure label. */
-function lineOf(call: ToolCallResult): string {
-  if (call.deny !== undefined) {
-    return call.deny;
-  }
-  if (call.isError === true) {
-    return call.text ?? 'share failed';
-  }
-  const result = call.result as null | { stderr?: unknown; stdout?: unknown };
-  const stdout = typeof result?.stdout === 'string' ? result.stdout.trim() : '';
-  if (stdout !== '') {
-    return stdout;
-  }
-  const stderr = typeof result?.stderr === 'string' ? result.stderr.trim() : '';
-  return stderr !== '' ? stderr : 'share failed';
-}
+import type { CommandRunResult, EngineInterface, On } from 'claude-code';
+
+const COMMANDS = [
+  {
+    description: 'Send the last reply to the Markdown-Viewer, editable',
+    name: 'md-edit',
+  },
+  {
+    description: 'Send the last reply to the Markdown-Viewer, read-only',
+    name: 'md-view',
+  },
+] as const satisfies readonly CommandSpec[];
 
 async function share(
   $: EngineInterface,
@@ -38,20 +30,15 @@ async function share(
     tool: 'Bash',
     command: `node ${$.plugin.root}/bin/send.mjs${flag}`,
   });
-  $.ui.log(lineOf(call));
+  $.ui.log(lineOf(call, 'share failed'));
   return {};
 }
 
 export function register(on: On): void {
   on('session.start', async ($, e, next) => {
-    await $.command.register({
-      name: 'md-edit',
-      description: 'Send the last reply to the Markdown-Viewer, editable',
-    });
-    await $.command.register({
-      name: 'md-view',
-      description: 'Send the last reply to the Markdown-Viewer, read-only',
-    });
+    for (const command of COMMANDS) {
+      await $.command.register(command);
+    }
     return next(e);
   });
 
