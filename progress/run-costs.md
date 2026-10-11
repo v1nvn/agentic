@@ -40,6 +40,7 @@ compare only against a glm-backed R4; wall and tokens per unit compare on any ba
 | cost (cost-state) | $45.63 | $11.4 |
 | orchestrator context | 32k → 161k over 78 calls | |
 | spawn entry (first-call context) | ~27.5k every spawn | |
+| worker effort | `max` on all 12 spawns (inherited; no per-spawn control) | |
 | suites outside a boundary role | 27 builder/reviewer runs, 30.4m | |
 
 Estimate R4 replaces: under the ruled architecture, batching included, about
