@@ -3,12 +3,14 @@ import type { WizardDeps } from './wizard.js';
 
 import { renderPreview } from './payloads.js';
 
+const ESC = '\x1b';
+
 function nextKey(buffer: string): readonly [string, string] | undefined {
   if (buffer === '') {
     return undefined;
   }
   const head = buffer[0];
-  if (head !== '\x1b') {
+  if (head !== ESC) {
     return [head, buffer.slice(1)];
   }
   if (buffer.length < 3) {
@@ -87,7 +89,7 @@ export function terminalDeps(
       }
     },
     render(frame: string): void {
-      output.write(`\x1b[2J\x1b[H${frame}\n`);
+      output.write(`${ESC}[2J${ESC}[H${frame}\n`);
     },
     preview(bag: PreviewRender): PreviewSurfaces {
       return renderPreview(bag);

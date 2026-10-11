@@ -1,10 +1,10 @@
 import { configDefaults, defineConfig } from 'vitest/config';
 
 // One config, two build modes, both run by `yarn build`. The render pass
-// emits two standalone entries the data dir and the plugin dir carry: the
-// resolver the keys spawn, and the renderer it imports. Neither shares a
-// chunk with the CLI, which builds the default way and inlines the engine it
-// renders through in-process.
+// emits two standalone entries the data dir and the plugin dir carry — the
+// resolver the keys spawn and the renderer it imports — run bare, so it
+// inlines every dependency; neither shares a chunk with the CLI, which
+// builds the default way and inlines the engine it renders through.
 export default defineConfig(({ mode }) => {
   const common = {
     outDir: 'dist',
@@ -22,6 +22,7 @@ export default defineConfig(({ mode }) => {
   };
   if (mode === 'render') {
     return {
+      ssr: { noExternal: true },
       build: {
         outDir: common.outDir,
         sourcemap: common.sourcemap,

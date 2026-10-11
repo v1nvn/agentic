@@ -1,3 +1,11 @@
+import {
+  line,
+  type Line,
+  type Segment,
+  textOf,
+  toSgr,
+} from '@v1nvn/agentic-core/draw';
+
 import { readGit } from './git.js';
 import {
   DEFAULT_LAYOUT,
@@ -13,6 +21,7 @@ import { parseRow } from './payload.js';
 import {
   renderSegment,
   type SegmentInput,
+  type Separators,
   styleSeparators,
 } from './segments.js';
 
@@ -111,7 +120,6 @@ export function renderStatusline(input: RenderInput): string {
   const row = parseRow(input.payload);
   const git = readGit(row.dir, { home: input.home });
   const picks = resolvePicks(input.picks);
-  const { join, sep } = styleSeparators(picks.style);
   const clusters = parseLayout(
     input.layout ?? DEFAULT_LAYOUT,
     new Set(ITEMS.map(spec => spec.item)),
@@ -134,41 +142,42 @@ export function renderStatusline(input: RenderInput): string {
     return { git, home: input.home, model, now: input.now, row };
   }
 
-  function compose(mode: Mode): string {
+  function compose(mode: Mode): Line {
     const from = mode === 'l2' ? wrapAt : 0;
     const to = mode === 'l1' ? wrapAt : clusters.length;
-    let line = '';
+    const { join, sep }: Separators = styleSeparators(picks.style);
+    const segs: Segment[] = [];
     let first = true;
     for (let ci = from; ci < to; ci++) {
-      let cseg = '';
+      const cseg: Segment[] = [];
       let cf = true;
       for (const item of clusters[ci]) {
         const out = renderSegment(item, picks[item], segmentInput());
-        if (out === '') {
+        if (out.length === 0) {
           continue;
         }
         if (cf) {
-          cseg = out;
+          cseg.push(...out);
           cf = false;
         } else {
-          cseg += join + out;
+          cseg.push(...join, ...out);
         }
       }
-      if (cseg === '') {
+      if (cseg.length === 0) {
         continue;
       }
       if (first) {
-        line = cseg;
+        segs.push(...cseg);
         first = false;
       } else {
-        line += sep + cseg;
+        segs.push(...sep, ...cseg);
       }
     }
-    return line;
+    return line(...segs);
   }
 
-  function fits(line: string): boolean {
-    return vlen(line) <= avail;
+  function fits(row: Line): boolean {
+    return vlen(textOf(row)) <= avail;
   }
 
   function demote(item: string, target: string): void {
@@ -200,7 +209,7 @@ export function renderStatusline(input: RenderInput): string {
     }
   }
 
-  function fit(mode: Mode, steps: readonly FitStep[]): string {
+  function fit(mode: Mode, steps: readonly FitStep[]): Line {
     let out = compose(mode);
     if (fits(out)) {
       return out;
@@ -215,8 +224,8 @@ export function renderStatusline(input: RenderInput): string {
     return out;
   }
 
-  function emit(line: string): string {
-    const text = input.noColor === true ? stripSgr(line) : line;
+  function emit(row: Line): string {
+    const text = input.noColor === true ? textOf(row) : toSgr(row);
     return `${text}\n`;
   }
 

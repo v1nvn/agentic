@@ -1,8 +1,17 @@
+import {
+  line,
+  type Line,
+  plain,
+  type Segment,
+  textOf,
+  toSgr,
+} from '@v1nvn/agentic-core/draw';
+
 import type { GitFacts } from './git.js';
 import type { FitStep } from './items.js';
 import type { Row } from './payload.js';
 
-import { stripModelSuffix, stripSgr, warn } from './engine.js';
+import { stripModelSuffix, warn } from './engine.js';
 import {
   DEFAULT_LAYOUT,
   DEFAULT_PICKS,
@@ -10,7 +19,7 @@ import {
   specFor,
 } from './items.js';
 import { isRecord, jqText, orElse, tsvEscape } from './jq.js';
-import { renderSegment, styleSeparators } from './segments.js';
+import { renderSegment, type Separators, styleSeparators } from './segments.js';
 
 // The agent panel, ported from the bash subagent renderer it replaced — a
 // second renderer by ruling: its vlen counts codepoints (jq `length`), not
@@ -197,38 +206,60 @@ function layoutGroups(layout: string): string[][] {
   );
 }
 
+function trimLine(row: Line): Line {
+  const segs = row.map(seg => ({ ...seg }));
+  if (segs.length === 0) {
+    return line();
+  }
+  const lead = segs[0];
+  const tail = segs[segs.length - 1];
+  lead.text = lead.text.trimStart();
+  tail.text = tail.text.trimEnd();
+  return line(...segs);
+}
+
 function renderRow(
   fields: TaskFields,
   state: FitState,
   now: number,
   layout: string,
-  join: string,
-  sep: string,
-): string {
+  separators: Separators,
+): Line {
   const name = fields.label === '' ? fields.name : fields.label;
   const withDesc = fields.desc !== '' && fields.desc !== name && !state.desc;
   const head = withDesc ? `${name} ${fields.desc}` : name;
-  const groups = [head];
+  const { join, sep } = separators;
+  const segs: Segment[] = [plain(head)];
   const input = makeInput(fields, now, state.model);
   const ctx = intValue(fields.ctx) ?? 0;
   for (const items of layoutGroups(layout)) {
-    const segs = items
-      .map(item =>
-        ctx <= 0 && (item === 'bar' || item === 'tokens')
-          ? ''
-          : renderSegment(item, state.working[item], input).trim(),
-      )
-      .filter(seg => seg !== '');
-    if (segs.length > 0) {
-      groups.push(segs.join(join));
+    const group: Segment[] = [];
+    let first = true;
+    for (const item of items) {
+      if (ctx <= 0 && (item === 'bar' || item === 'tokens')) {
+        continue;
+      }
+      const out = trimLine(renderSegment(item, state.working[item], input));
+      if (textOf(out) === '') {
+        continue;
+      }
+      if (first) {
+        group.push(...out);
+        first = false;
+      } else {
+        group.push(...join, ...out);
+      }
+    }
+    if (group.length > 0) {
+      segs.push(...sep, ...group);
     }
   }
-  return groups.join(sep);
+  return line(...segs);
 }
 
-// The panel's own vlen: codepoints of the SGR-stripped row.
-function vlen(text: string): number {
-  return Array.from(stripSgr(text)).length;
+// The panel's own vlen: codepoints of the row's plain text.
+function vlen(row: Line): number {
+  return Array.from(textOf(row)).length;
 }
 
 function demote(state: FitState, item: string, target: string): void {
@@ -258,18 +289,17 @@ function fitRow(
   working: Record<string, string>,
   now: number,
   layout: string,
-  join: string,
-  sep: string,
+  separators: Separators,
   avail: number,
-): string {
+): Line {
   const state: FitState = { desc: false, model: fields.model, working };
-  let out = renderRow(fields, state, now, layout, join, sep);
+  let out = renderRow(fields, state, now, layout, separators);
   if (vlen(out) <= avail) {
     return out;
   }
   for (const step of PANEL_STEPS) {
     applyStep(state, step);
-    out = renderRow(fields, state, now, layout, join, sep);
+    out = renderRow(fields, state, now, layout, separators);
     if (vlen(out) <= avail) {
       return out;
     }
@@ -285,7 +315,7 @@ export function renderPanel(input: PanelInput): string {
   const tick: unknown = JSON.parse(input.payload);
   const avail = availColumns(tick);
   const layout = input.layout ?? DEFAULT_LAYOUT;
-  const { join, sep } = styleSeparators(altFor('style', input.picks));
+  const separators = styleSeparators(altFor('style', input.picks));
   const working: Record<string, string> = {};
   for (const item of TASK_ITEMS) {
     working[item] = altFor(item, input.picks);
@@ -300,8 +330,8 @@ export function renderPanel(input: PanelInput): string {
     if (fields.id === '') {
       continue;
     }
-    const row = fitRow(fields, working, input.now, layout, join, sep, avail);
-    const content = input.noColor === true ? stripSgr(row) : row;
+    const row = fitRow(fields, working, input.now, layout, separators, avail);
+    const content = input.noColor === true ? textOf(row) : toSgr(row);
     out += `${emitLine(fields.id, content)}\n`;
   }
   return out;

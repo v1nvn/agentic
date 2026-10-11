@@ -320,6 +320,113 @@ function capturePayload(home, surface, payload) {
 	} catch {}
 }
 //#endregion
+//#region ../core/dist/draw.js
+function rgb(r, g, b) {
+	return { rgb: [
+		r,
+		g,
+		b
+	] };
+}
+function indexed(n) {
+	return { indexed: n };
+}
+function bg(ink) {
+	return { bg: ink };
+}
+function line(...segments) {
+	return segments;
+}
+function plain(text) {
+	return { text };
+}
+function dim(text) {
+	return {
+		text,
+		ink: "dim"
+	};
+}
+function bold(text) {
+	return {
+		text,
+		ink: "bold"
+	};
+}
+function green(text) {
+	return {
+		text,
+		ink: "green"
+	};
+}
+function magenta(text) {
+	return {
+		text,
+		ink: "magenta"
+	};
+}
+function red(text) {
+	return {
+		text,
+		ink: "red"
+	};
+}
+function yellow(text) {
+	return {
+		text,
+		ink: "yellow"
+	};
+}
+function assertNever(kind) {
+	throw new Error(`unhandled Ink kind: ${String(kind)}`);
+}
+function paramsOf(ink) {
+	if (typeof ink !== "string") {
+		if ("bg" in ink) return paramsOf(ink.bg).replace(/^3/, "4");
+		return "indexed" in ink ? `38;5;${ink.indexed}` : `38;2;${ink.rgb[0]};${ink.rgb[1]};${ink.rgb[2]}`;
+	}
+	switch (ink) {
+		case "blue": return "34";
+		case "bold": return "1";
+		case "brightBlack": return "90";
+		case "cyan": return "36";
+		case "dim": return "2";
+		case "green": return "32";
+		case "magenta": return "35";
+		case "mark": return "1;97";
+		case "plain": return "39";
+		case "red": return "31";
+		case "white": return "37";
+		case "yellow": return "33";
+		default: return assertNever(ink);
+	}
+}
+function rowsOf(rows) {
+	return rows.every((r) => Array.isArray(r)) ? rows : [rows];
+}
+function toSgr(rows) {
+	return rowsOf(rows).map((row) => {
+		let out = "";
+		let inkOpen = false;
+		for (const seg of row) {
+			if (seg.ink === void 0) {
+				out += (inkOpen ? "\x1B[0m" : "") + seg.text;
+				inkOpen = false;
+				continue;
+			}
+			out += `\x1b[${paramsOf(seg.ink)}m${seg.text}`;
+			if (seg.carry === true) inkOpen = true;
+			else {
+				out += "\x1B[0m";
+				inkOpen = false;
+			}
+		}
+		return inkOpen ? `${out}\x1b[0m` : out;
+	}).join("\n");
+}
+function textOf$1(rows) {
+	return rowsOf(rows).map((row) => row.map((seg) => seg.text).join("")).join("\n");
+}
+//#endregion
 //#region src/render/git.ts
 var BRANCH_HEAD = "# branch.head ";
 var BRANCH_AB = /^# branch\.ab \+(\d+) -(\d+)$/;
@@ -568,17 +675,6 @@ function fmtM(n) {
 }
 //#endregion
 //#region src/render/segments.ts
-var BLUE = "\x1B[34m";
-var CYAN = "\x1B[36m";
-var DIM = "\x1B[2m";
-var GREEN = "\x1B[32m";
-var PURPLE = "\x1B[35m";
-var RED = "\x1B[31m";
-var RESET = "\x1B[0m";
-var YELLOW = "\x1B[33m";
-var BOLD = "\x1B[1m";
-var GRAY = "\x1B[38;2;68;71;90m";
-var MARK = "\x1B[1;97m";
 var SHORT_AT = 15;
 var PART = [
 	"▏",
@@ -590,66 +686,198 @@ var PART = [
 	"▉",
 	"█"
 ];
+var GRAY = rgb(68, 71, 90);
 var HEAT = [
-	"\x1B[38;2;48;242;36m",
-	"\x1B[38;2;63;242;36m",
-	"\x1B[38;2;79;242;36m",
-	"\x1B[38;2;95;242;36m",
-	"\x1B[38;2;111;242;36m",
-	"\x1B[38;2;126;242;36m",
-	"\x1B[38;2;142;242;36m",
-	"\x1B[38;2;158;242;36m",
-	"\x1B[38;2;173;242;36m",
-	"\x1B[38;2;189;242;36m",
-	"\x1B[38;2;205;242;36m",
-	"\x1B[38;2;220;242;36m",
-	"\x1B[38;2;236;242;36m",
-	"\x1B[38;2;242;232;36m",
-	"\x1B[38;2;242;216;36m",
-	"\x1B[38;2;242;200;36m",
-	"\x1B[38;2;242;185;36m",
-	"\x1B[38;2;242;169;36m",
-	"\x1B[38;2;242;153;36m",
-	"\x1B[38;2;242;138;36m",
-	"\x1B[38;2;242;122;36m",
-	"\x1B[38;2;242;106;36m",
-	"\x1B[38;2;242;91;36m",
-	"\x1B[38;2;242;75;36m",
-	"\x1B[38;2;242;59;36m",
-	"\x1B[38;2;242;44;36m"
-];
+	[
+		48,
+		242,
+		36
+	],
+	[
+		63,
+		242,
+		36
+	],
+	[
+		79,
+		242,
+		36
+	],
+	[
+		95,
+		242,
+		36
+	],
+	[
+		111,
+		242,
+		36
+	],
+	[
+		126,
+		242,
+		36
+	],
+	[
+		142,
+		242,
+		36
+	],
+	[
+		158,
+		242,
+		36
+	],
+	[
+		173,
+		242,
+		36
+	],
+	[
+		189,
+		242,
+		36
+	],
+	[
+		205,
+		242,
+		36
+	],
+	[
+		220,
+		242,
+		36
+	],
+	[
+		236,
+		242,
+		36
+	],
+	[
+		242,
+		232,
+		36
+	],
+	[
+		242,
+		216,
+		36
+	],
+	[
+		242,
+		200,
+		36
+	],
+	[
+		242,
+		185,
+		36
+	],
+	[
+		242,
+		169,
+		36
+	],
+	[
+		242,
+		153,
+		36
+	],
+	[
+		242,
+		138,
+		36
+	],
+	[
+		242,
+		122,
+		36
+	],
+	[
+		242,
+		106,
+		36
+	],
+	[
+		242,
+		91,
+		36
+	],
+	[
+		242,
+		75,
+		36
+	],
+	[
+		242,
+		59,
+		36
+	],
+	[
+		242,
+		44,
+		36
+	]
+].map(([r, g, b]) => rgb(r, g, b));
 function trunc(n) {
 	return Math.trunc(n);
 }
 function modelPlain({ model }) {
-	return model === "" ? "" : `${CYAN}${model}${RESET}`;
+	return model === "" ? line() : line({
+		text: model,
+		ink: "cyan"
+	});
 }
 function modelBlock({ model }) {
-	return model === "" ? "" : `\x1b[48;5;61m\x1b[38;5;231m ${model} \x1b[0m`;
+	return model === "" ? line() : line({
+		text: "",
+		ink: bg(indexed(61)),
+		carry: true
+	}, {
+		text: ` ${model} `,
+		ink: indexed(231)
+	});
 }
 function modelPill({ model }) {
-	return model === "" ? "" : `\x1b[48;5;61m\x1b[38;5;231m\u{e0b6} ${model} \u{e0b4}\x1b[0m`;
+	return model === "" ? line() : line({
+		text: "",
+		ink: bg(indexed(61)),
+		carry: true
+	}, {
+		text: `\u{e0b6} ${model} \u{e0b4}`,
+		ink: indexed(231)
+	});
 }
 function modelZen({ model }) {
-	return model === "" ? "" : `${DIM}${model.replace(/[A-Z]/g, (c) => c.toLowerCase())}${RESET}`;
+	return model === "" ? line() : line(dim(model.replace(/[A-Z]/g, (c) => c.toLowerCase())));
 }
 function effortPlain({ row }) {
-	return row.effort === "" ? "" : `${CYAN}${row.effort}${RESET}`;
+	return row.effort === "" ? line() : line({
+		text: row.effort,
+		ink: "cyan"
+	});
 }
 function effortDim({ row }) {
-	return row.effort === "" ? "" : `${DIM}${row.effort}${RESET}`;
+	return row.effort === "" ? line() : line(dim(row.effort));
 }
-function statePill(label, bg, fg) {
-	return `\x1b[48;5;${bg}m\x1b[38;5;${fg}m\u{e0b6} ${label} \u{e0b4}\x1b[0m`;
+function statePill(label, bgN, fgN) {
+	return line({
+		text: "",
+		ink: bg(indexed(bgN)),
+		carry: true
+	}, {
+		text: `\u{e0b6} ${label} \u{e0b4}`,
+		ink: indexed(fgN)
+	});
 }
 function statePills({ row }) {
-	let out = "";
-	if (row.vim !== "") out = row.vim === "INSERT" ? statePill(row.vim, 97, 16) : statePill(row.vim, 240, 231);
-	if (row.think) out += ` ${statePill("THINK", 66, 16)}`;
-	if (row.agent !== "") out += ` ${statePill(row.agent, 60, 231)}`;
-	if (row.wt !== "") out += ` ${statePill(`wt:${row.wt}`, 131, 231)}`;
-	if (row.styleName !== "" && row.styleName !== "default") out += ` ${statePill(row.styleName, 95, 16)}`;
-	return out;
+	const pills = [];
+	if (row.vim !== "") pills.push(row.vim === "INSERT" ? statePill(row.vim, 97, 16) : statePill(row.vim, 240, 231));
+	if (row.think) pills.push(statePill("THINK", 66, 16));
+	if (row.agent !== "") pills.push(statePill(row.agent, 60, 231));
+	if (row.wt !== "") pills.push(statePill(`wt:${row.wt}`, 131, 231));
+	if (row.styleName !== "" && row.styleName !== "default") pills.push(statePill(row.styleName, 95, 16));
+	return line(...pills.flatMap((pill, at) => at === 0 ? pill : [plain(" "), ...pill]));
 }
 function splitPath(raw, home) {
 	let p = raw;
@@ -681,103 +909,106 @@ function pathTail(raw, home, lim) {
 }
 function cwdInit({ home, row }) {
 	const { text } = splitPath(row.dir, home);
-	return Buffer.byteLength(text, "utf8") > SHORT_AT ? pathInit(row.dir, home) : text;
+	return line(plain(Buffer.byteLength(text, "utf8") > SHORT_AT ? pathInit(row.dir, home) : text));
 }
 function cwdFull({ home, row }) {
-	return splitPath(row.dir, home).text;
+	return line(plain(splitPath(row.dir, home).text));
 }
 function cwdTail({ home, row }) {
-	return pathTail(row.dir, home, 1);
+	return line(plain(pathTail(row.dir, home, 1)));
 }
 function baseName(dir) {
 	return dir.slice(dir.lastIndexOf("/") + 1);
 }
 function cwdBase({ row }) {
-	return baseName(row.dir);
+	return line(plain(baseName(row.dir)));
 }
 function cwdIcon({ row }) {
-	return `\u{f07b} ${baseName(row.dir)}`;
+	return line(plain(`\u{f07b} ${baseName(row.dir)}`));
 }
 function branchInitials({ git }) {
 	const branch = git.branch;
-	if (branch === "") return "";
-	if (Buffer.byteLength(branch, "utf8") <= SHORT_AT) return branch;
+	if (branch === "") return line();
+	if (Buffer.byteLength(branch, "utf8") <= SHORT_AT) return line(plain(branch));
 	const parts = branch.split("/").filter((part) => part !== "");
-	if (parts.length <= 1) return branch;
+	if (parts.length <= 1) return line(plain(branch));
 	let out = "";
 	for (let i = 0; i < parts.length - 1; i++) out += `${parts[i].slice(0, 1)}/`;
-	return `${out}${parts[parts.length - 1]}`;
+	return line(plain(`${out}${parts[parts.length - 1]}`));
 }
 function branchFull({ git }) {
-	return git.branch;
+	return line(plain(git.branch));
 }
 function branchLast({ git }) {
-	return git.branch.slice(git.branch.lastIndexOf("/") + 1);
+	return line(plain(git.branch.slice(git.branch.lastIndexOf("/") + 1)));
 }
 function branchIcon({ git }) {
-	return git.branch === "" ? "" : `\u{e0a0} ${git.branch}`;
+	return git.branch === "" ? line() : line(plain(`\u{e0a0} ${git.branch}`));
 }
 function statusCounts({ git }) {
-	if (git.branch === "") return "";
-	let c = "";
-	if (git.staged > 0) c = `${GREEN}+${git.staged}${RESET}`;
-	if (git.modified > 0) c = `${c} ${YELLOW}~${git.modified}${RESET}`;
-	return c;
+	if (git.branch === "") return line();
+	const segs = [];
+	if (git.staged > 0) segs.push(green(`+${git.staged}`));
+	if (git.modified > 0) segs.push(plain(" "), yellow(`~${git.modified}`));
+	return line(...segs);
 }
 function statusIcons({ git }) {
-	if (git.branch === "") return "";
-	let out = "";
-	let sep = "";
-	if (git.staged > 0) {
-		out += `${GREEN}●${git.staged}${RESET}`;
-		sep = " ";
-	}
-	if (git.modified > 0) {
-		out += `${sep}${YELLOW}✎${git.modified}${RESET}`;
-		sep = " ";
-	}
-	if (git.untracked > 0) {
-		out += `${sep}${CYAN}+${git.untracked}${RESET}`;
-		sep = " ";
-	}
-	if (git.stashes > 0) out += `${sep}${PURPLE}⚑${git.stashes}${RESET}`;
-	return out;
+	if (git.branch === "") return line();
+	const segs = [];
+	if (git.staged > 0) segs.push(green(`●${git.staged}`));
+	if (git.modified > 0) segs.push(yellow(`✎${git.modified}`));
+	if (git.untracked > 0) segs.push({
+		text: `+${git.untracked}`,
+		ink: "cyan"
+	});
+	if (git.stashes > 0) segs.push(magenta(`⚑${git.stashes}`));
+	return line(...segs.flatMap((seg, at) => at === 0 ? [seg] : [plain(" "), seg]));
 }
 function aheadArrows({ git }) {
-	let out = "";
-	if (git.ahead > 0) out = `${GREEN}↑${git.ahead}${RESET}`;
-	if (git.behind > 0) out += ` ${RED}↓${git.behind}${RESET}`;
-	return out;
+	const segs = [];
+	if (git.ahead > 0) segs.push(green(`↑${git.ahead}`));
+	if (git.behind > 0) segs.push(plain(" "), red(`↓${git.behind}`));
+	return line(...segs);
 }
 function prBadge({ row }) {
-	if (row.prn === "") return "";
-	let col;
+	if (row.prn === "") return line();
+	let ink;
 	let mark;
 	switch (row.prs) {
 		case "approved":
-			col = GREEN;
+			ink = "green";
 			mark = "✓";
 			break;
 		case "changes_requested":
-			col = RED;
+			ink = "red";
 			mark = "✗";
 			break;
 		case "pending":
-			col = YELLOW;
+			ink = "yellow";
 			mark = "⏳";
 			break;
 		default:
-			col = "\x1B[90m";
+			ink = "brightBlack";
 			mark = "◌";
 	}
-	return `${BLUE}#${row.prn}${RESET} ${col}${mark} ${row.prs}${RESET}`;
+	return line({
+		text: `#${row.prn}`,
+		ink: "blue"
+	}, plain(" "), {
+		text: `${mark} ${row.prs}`,
+		ink
+	});
 }
 function barFlatAt(input, w) {
 	const pct = input.row.pct;
 	let f = trunc(pct * w / 100);
 	if (f > w) f = w;
 	if (pct > 0 && f === 0) f = 1;
-	return `${pct >= 90 ? RED : pct >= 70 ? YELLOW : GREEN}${"█".repeat(f)}${"·".repeat(w - f)}${RESET}`;
+	const ink = pct >= 90 ? "red" : pct >= 70 ? "yellow" : "green";
+	return line({
+		text: "█".repeat(f) + "·".repeat(w - f),
+		ink
+	});
 }
 function barFlat(input) {
 	return barFlatAt(input, 10);
@@ -787,7 +1018,7 @@ function barGauge({ row }) {
 	const p = Math.max(0, Math.min(100, pct));
 	const full = trunc(p * 26 / 100);
 	const idx = trunc(p * 26 % 100 * 8 / 100);
-	const lead = p >= 50 ? `\x1b[38;2;242;${trunc(4845 * (15e3 + 1683 * (100 - p)) / 2e6)};36m` : `\x1b[38;2;${trunc(4845 * (185e3 - 1683 * (100 - p)) / 2e6)};242;36m`;
+	const lead = p >= 50 ? rgb(242, trunc(4845 * (15e3 + 1683 * (100 - p)) / 2e6), 36) : rgb(trunc(4845 * (185e3 - 1683 * (100 - p)) / 2e6), 242, 36);
 	const moon = [
 		"○",
 		"◔",
@@ -795,97 +1026,126 @@ function barGauge({ row }) {
 		"◕",
 		"●"
 	][Math.min(trunc(p / 20), 4)];
-	let bar = "";
+	const segs = [plain(`${moon} `), {
+		text: "",
+		ink: lead,
+		carry: true
+	}];
 	for (let i = 0; i < 26; i++) {
-		let col;
+		let ink;
 		let cell;
 		if (i === 20) {
-			col = MARK;
+			ink = "mark";
 			cell = i <= full ? "┃" : "│";
 		} else if (i <= full) {
-			col = HEAT[i];
+			ink = HEAT[i];
 			cell = i === full ? PART[idx] : "█";
 		} else {
-			col = GRAY;
+			ink = GRAY;
 			cell = "·";
 		}
-		bar += `${col}${cell}`;
+		segs.push({
+			carry: i < 25,
+			ink,
+			text: cell
+		});
 	}
-	return `${moon} ${lead}${bar}${RESET} ${MARK}${pct}%${RESET}`;
+	segs.push(plain(" "), {
+		text: `${pct}%`,
+		ink: "mark"
+	});
+	return line(...segs);
 }
 function tokensFull({ row }) {
 	const t = row.tokens >= 1e3 ? fmtK(row.tokens, 1) : String(row.tokens);
 	let c = String(row.ctxSize);
 	if (row.ctxSize >= 1e6) c = fmtM(row.ctxSize);
 	else if (row.ctxSize >= 1e3) c = fmtK(row.ctxSize, 0);
-	return `${t}/${c}`;
+	return line(plain(`${t}/${c}`));
 }
 function tokensCompact({ row }) {
-	return row.tokens >= 1e3 ? fmtK(row.tokens, 0) : String(row.tokens);
+	return line(plain(row.tokens >= 1e3 ? fmtK(row.tokens, 0) : String(row.tokens)));
 }
 function tokensFree({ row }) {
 	const free = row.ctxSize - row.tokens;
-	return `${DIM}${free >= 1e3 ? fmtK(free, 0) : String(free)} free${RESET}`;
+	return line(dim(`${free >= 1e3 ? fmtK(free, 0) : String(free)} free`));
 }
 function cacheHitPct(row) {
 	return row.hit === null ? null : trunc(row.hit * 100);
 }
-function cacheHCol(hp) {
-	return hp >= 90 ? GREEN : hp >= 50 ? YELLOW : RED;
+function cacheHInk(hp) {
+	return hp >= 90 ? "green" : hp >= 50 ? "yellow" : "red";
 }
 function cacheHit({ row }) {
 	const hp = cacheHitPct(row);
-	return hp === null ? "" : `${cacheHCol(hp)}⚡${hp}%${RESET}`;
+	return hp === null ? line() : line({
+		text: `⚡${hp}%`,
+		ink: cacheHInk(hp)
+	});
 }
 function cacheColdin({ now, row }) {
-	if (row.ttl === "" || row.expires === 0) return "";
-	if (row.warm && row.expires > now) return `${DIM}cold in ${trunc((row.expires - now) / 60)}m${RESET}`;
-	return `${DIM}❄ cold${RESET}`;
+	if (row.ttl === "" || row.expires === 0) return line();
+	if (row.warm && row.expires > now) return line(dim(`cold in ${trunc((row.expires - now) / 60)}m`));
+	return line(dim("❄ cold"));
 }
 function cacheUntil({ row }) {
-	if (row.ttl === "" || row.expires === 0) return "";
+	if (row.ttl === "" || row.expires === 0) return line();
 	const at = /* @__PURE__ */ new Date(row.expires * 1e3);
-	return `${DIM}${pad2(at.getHours())}:${pad2(at.getMinutes())}${RESET}`;
+	return line(dim(`${pad2(at.getHours())}:${pad2(at.getMinutes())}`));
 }
 function cacheFuse({ now, row }) {
-	if (row.ttl === "" || row.expires === 0) return "";
+	if (row.ttl === "" || row.expires === 0) return line();
 	const span = row.ttl === "1h" ? 3600 : 300;
 	let left = row.expires - now;
 	if (left < 0) left = 0;
-	if (left <= 0) return `${RED}❄ cold${RESET}`;
-	const full = trunc(left * 10 / span);
+	if (left <= 0) return line({
+		text: "❄ cold",
+		ink: "red"
+	});
+	const full = Math.min(10, trunc(left * 10 / span));
 	const rem = left * 10 % span;
-	let bar = left * 4 > span ? GREEN : left * 25 > span * 2 ? YELLOW : RED;
-	for (let i = 0; i < 10; i++) if (i < full) bar += "▰";
-	else if (i === full && rem * 20 > span) bar += PART[trunc(rem * 8 / span)];
-	else bar += `${DIM}▱`;
-	return `${bar}${RESET} ${DIM}${pad2(trunc(left / 60))}:${pad2(left % 60)}${RESET}`;
+	const ink = left * 4 > span ? "green" : left * 25 > span * 2 ? "yellow" : "red";
+	let head = "▰".repeat(full);
+	if (full < 10 && rem * 20 > span) head += PART[trunc(rem * 8 / span)];
+	const segs = [{
+		carry: head.length < 10,
+		ink,
+		text: head
+	}];
+	for (let i = head.length; i < 10; i++) segs.push({
+		carry: i < 9,
+		ink: "dim",
+		text: "▱"
+	});
+	segs.push(plain(" "), dim(`${pad2(trunc(left / 60))}:${pad2(left % 60)}`));
+	return line(...segs);
 }
 function costPlain({ row }) {
-	return row.cost >= .005 ? `${YELLOW}$${fmtFixed(row.cost, 2)}${RESET}` : "";
+	return row.cost >= .005 ? line(yellow(`$${fmtFixed(row.cost, 2)}`)) : line();
 }
 function costBurn(input) {
 	const hr = input.row.durationMs / 36e5;
 	const burn = hr > .02 ? fmtFixed(input.row.cost / hr, 2) : "0";
-	let out = costPlain(input);
-	if (burn !== "0.00") out += ` ${DIM}· $${burn}/hr${RESET}`;
-	return out;
+	const segs = [];
+	if (input.row.cost >= .005) segs.push(yellow(`$${fmtFixed(input.row.cost, 2)}`));
+	if (burn !== "0.00") segs.push(plain(" "), dim(`· $${burn}/hr`));
+	return line(...segs);
 }
 function durationClock({ row }) {
-	return fmtDuration(trunc(row.durationMs / 6e4));
+	return line(plain(fmtDuration(trunc(row.durationMs / 6e4))));
 }
 function durationHours({ row }) {
 	const m = trunc(row.durationMs / 6e4);
-	if (m < 1440) return `${trunc(m / 60)}h${pad2(m % 60)}m`;
-	return `${trunc(m / 1440)}d${pad2(trunc(m / 60) % 24)}h${pad2(m % 60)}m`;
+	if (m < 1440) return line(plain(`${trunc(m / 60)}h${pad2(m % 60)}m`));
+	return line(plain(`${trunc(m / 1440)}d${pad2(trunc(m / 60) % 24)}h${pad2(m % 60)}m`));
 }
 function linesDiffstat({ row }) {
-	if (row.la <= 0 && row.lr <= 0) return "";
-	return `${GREEN}+${row.la}${RESET}${DIM}/${RESET}${RED}−${row.lr}${RESET}`;
+	if (row.la <= 0 && row.lr <= 0) return line();
+	return line(green(`+${row.la}`), dim("/"), red(`−${row.lr}`));
 }
 function rateStrip({ now, row }) {
 	const segs = [];
-	for (const limit of row.rateRows) {
+	for (const [at, limit] of row.rateRows.entries()) {
 		const [intpText, fracp = ""] = limit.pctText.split(".");
 		let f = 0;
 		let scale = 1;
@@ -895,13 +1155,11 @@ function rateStrip({ now, row }) {
 		}
 		const intp = Number(intpText);
 		const value = intp * scale + f;
-		const col = value < 70 * scale ? GREEN : value < 90 * scale ? YELLOW : RED;
-		const full = trunc(value * 14 / (100 * scale));
+		const ink = value < 70 * scale ? "green" : value < 90 * scale ? "yellow" : "red";
+		const full = Math.min(14, trunc(value * 14 / (100 * scale)));
 		const idx = trunc(value * 14 % (100 * scale) * 8 / (100 * scale));
-		let bar = col;
-		for (let i = 0; i < 14; i++) if (i < full) bar += "█";
-		else if (i === full) bar += PART[idx];
-		else bar += `${DIM}·`;
+		let head = "█".repeat(full);
+		if (full < 14) head += PART[idx];
 		const lbl = fracp === "" || f * 2 < scale ? intp : f * 2 > scale ? intp + 1 : intp + intp % 2;
 		const s = limit.resets - now;
 		let dur;
@@ -910,12 +1168,23 @@ function rateStrip({ now, row }) {
 			const sec = (s % 60 + 60) % 60;
 			dur = `${trunc((s - sec) / 60)}m${pad2(sec)}s`;
 		}
-		segs.push(`${DIM}${limit.label}${RESET} ${bar}${RESET} ${BOLD}${lbl}%${RESET} ${DIM}· resets ${dur}${RESET}`);
+		if (at > 0) segs.push(plain("  "), dim("│"), plain("  "));
+		segs.push(dim(limit.label), plain(" "), {
+			carry: head.length < 14,
+			ink,
+			text: head
+		});
+		for (let i = head.length; i < 14; i++) segs.push({
+			carry: i < 13,
+			ink: "dim",
+			text: "·"
+		});
+		segs.push(plain(" "), bold(`${lbl}%`), plain(" "), dim(`· resets ${dur}`));
 	}
-	return segs.join(`  ${DIM}│${RESET}  `);
+	return line(...segs);
 }
 function emptySegment() {
-	return "";
+	return line();
 }
 function barFlat6(input) {
 	return barFlatAt(input, 6);
@@ -924,7 +1193,7 @@ function barFlat4(input) {
 	return barFlatAt(input, 4);
 }
 function barPercent({ row }) {
-	return `${row.pct}%`;
+	return line(plain(`${row.pct}%`));
 }
 var SEGMENTS = {
 	ahead: {
@@ -1014,25 +1283,25 @@ var SEGMENTS = {
 };
 function renderSegment(item, alt, input) {
 	const segment = SEGMENTS[item]?.[alt];
-	return segment === void 0 ? "" : segment(input);
+	return segment === void 0 ? line() : segment(input);
 }
 function styleSeparators(alt) {
 	switch (alt) {
 		case "bare": return {
-			join: "  ",
-			sep: "   "
+			join: [plain("  ")],
+			sep: [plain("   ")]
 		};
 		case "dim": return {
-			join: " ",
-			sep: `${DIM} │ ${RESET}`
+			join: [plain(" ")],
+			sep: [dim(" │ ")]
 		};
 		case "dots": return {
-			join: " · ",
-			sep: " · "
+			join: [plain(" · ")],
+			sep: [plain(" · ")]
 		};
 		default: return {
-			join: " ",
-			sep: " │ "
+			join: [plain(" ")],
+			sep: [plain(" │ ")]
 		};
 	}
 }
@@ -1091,7 +1360,6 @@ function renderStatusline(input) {
 	const row = parseRow(input.payload);
 	const git = readGit(row.dir, { home: input.home });
 	const picks = resolvePicks(input.picks);
-	const { join, sep } = styleSeparators(picks.style);
 	const clusters = parseLayout(input.layout ?? "{model effort state} {cwd branch status ahead pr} {bar tokens} {cache-hit cache-expiry} {cost} {duration} {lines} {rate}", new Set(ITEMS.map((spec) => spec.item)));
 	const wrapAt = clusters.length > 2 ? 2 : 1;
 	let width = input.columns;
@@ -1112,29 +1380,30 @@ function renderStatusline(input) {
 	function compose(mode) {
 		const from = mode === "l2" ? wrapAt : 0;
 		const to = mode === "l1" ? wrapAt : clusters.length;
-		let line = "";
+		const { join, sep } = styleSeparators(picks.style);
+		const segs = [];
 		let first = true;
 		for (let ci = from; ci < to; ci++) {
-			let cseg = "";
+			const cseg = [];
 			let cf = true;
 			for (const item of clusters[ci]) {
 				const out = renderSegment(item, picks[item], segmentInput());
-				if (out === "") continue;
+				if (out.length === 0) continue;
 				if (cf) {
-					cseg = out;
+					cseg.push(...out);
 					cf = false;
-				} else cseg += join + out;
+				} else cseg.push(...join, ...out);
 			}
-			if (cseg === "") continue;
+			if (cseg.length === 0) continue;
 			if (first) {
-				line = cseg;
+				segs.push(...cseg);
 				first = false;
-			} else line += sep + cseg;
+			} else segs.push(...sep, ...cseg);
 		}
-		return line;
+		return line(...segs);
 	}
-	function fits(line) {
-		return vlen$1(line) <= avail;
+	function fits(row) {
+		return vlen$1(textOf$1(row)) <= avail;
 	}
 	function demote(item, target) {
 		const order = RUNG_ORDERS[item];
@@ -1161,8 +1430,8 @@ function renderStatusline(input) {
 		}
 		return out;
 	}
-	function emit(line) {
-		return `${input.noColor === true ? stripSgr(line) : line}\n`;
+	function emit(row) {
+		return `${input.noColor === true ? textOf$1(row) : toSgr(row)}\n`;
 	}
 	const full = fit("full", FULL_STEPS);
 	if (fits(full)) return emit(full);
@@ -1274,19 +1543,40 @@ function makeInput(fields, now, model) {
 function layoutGroups(layout) {
 	return layout.match(/\{[^}]*\}|\S+/g)?.map((group) => group.replace(/[{}]/g, "").split(/\s+/).filter((item) => TASK_ITEMS.includes(item))) ?? [];
 }
-function renderRow(fields, state, now, layout, join, sep) {
+function trimLine(row) {
+	const segs = row.map((seg) => ({ ...seg }));
+	if (segs.length === 0) return line();
+	const lead = segs[0];
+	const tail = segs[segs.length - 1];
+	lead.text = lead.text.trimStart();
+	tail.text = tail.text.trimEnd();
+	return line(...segs);
+}
+function renderRow(fields, state, now, layout, separators) {
 	const name = fields.label === "" ? fields.name : fields.label;
-	const groups = [fields.desc !== "" && fields.desc !== name && !state.desc ? `${name} ${fields.desc}` : name];
+	const head = fields.desc !== "" && fields.desc !== name && !state.desc ? `${name} ${fields.desc}` : name;
+	const { join, sep } = separators;
+	const segs = [plain(head)];
 	const input = makeInput(fields, now, state.model);
 	const ctx = intValue(fields.ctx) ?? 0;
 	for (const items of layoutGroups(layout)) {
-		const segs = items.map((item) => ctx <= 0 && (item === "bar" || item === "tokens") ? "" : renderSegment(item, state.working[item], input).trim()).filter((seg) => seg !== "");
-		if (segs.length > 0) groups.push(segs.join(join));
+		const group = [];
+		let first = true;
+		for (const item of items) {
+			if (ctx <= 0 && (item === "bar" || item === "tokens")) continue;
+			const out = trimLine(renderSegment(item, state.working[item], input));
+			if (textOf$1(out) === "") continue;
+			if (first) {
+				group.push(...out);
+				first = false;
+			} else group.push(...join, ...out);
+		}
+		if (group.length > 0) segs.push(...sep, ...group);
 	}
-	return groups.join(sep);
+	return line(...segs);
 }
-function vlen(text) {
-	return Array.from(stripSgr(text)).length;
+function vlen(row) {
+	return Array.from(textOf$1(row)).length;
 }
 function demote(state, item, target) {
 	const order = RUNG_ORDERS[item];
@@ -1299,17 +1589,17 @@ function applyStep(state, step) {
 	else if (step[0] === "model" && step[1] === "strip") state.model = stripModelSuffix(state.model);
 	else demote(state, step[0], step[1]);
 }
-function fitRow(fields, working, now, layout, join, sep, avail) {
+function fitRow(fields, working, now, layout, separators, avail) {
 	const state = {
 		desc: false,
 		model: fields.model,
 		working
 	};
-	let out = renderRow(fields, state, now, layout, join, sep);
+	let out = renderRow(fields, state, now, layout, separators);
 	if (vlen(out) <= avail) return out;
 	for (const step of PANEL_STEPS) {
 		applyStep(state, step);
-		out = renderRow(fields, state, now, layout, join, sep);
+		out = renderRow(fields, state, now, layout, separators);
 		if (vlen(out) <= avail) return out;
 	}
 	return out;
@@ -1321,7 +1611,7 @@ function renderPanel(input) {
 	const tick = JSON.parse(input.payload);
 	const avail = availColumns(tick);
 	const layout = input.layout ?? "{model effort state} {cwd branch status ahead pr} {bar tokens} {cache-hit cache-expiry} {cost} {duration} {lines} {rate}";
-	const { join, sep } = styleSeparators(altFor("style", input.picks));
+	const separators = styleSeparators(altFor("style", input.picks));
 	const working = {};
 	for (const item of TASK_ITEMS) working[item] = altFor(item, input.picks);
 	const tasks = isRecord(tick) && Array.isArray(tick.tasks) ? tick.tasks : [];
@@ -1330,8 +1620,8 @@ function renderPanel(input) {
 		if (!isRecord(task)) continue;
 		const fields = extractFields(task, input.usage);
 		if (fields.id === "") continue;
-		const row = fitRow(fields, working, input.now, layout, join, sep, avail);
-		const content = input.noColor === true ? stripSgr(row) : row;
+		const row = fitRow(fields, working, input.now, layout, separators, avail);
+		const content = input.noColor === true ? textOf$1(row) : toSgr(row);
 		out += `${emitLine(fields.id, content)}\n`;
 	}
 	return out;

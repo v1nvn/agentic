@@ -22,6 +22,7 @@ export interface WizardOptions {
 }
 
 const WIDTHS: readonly number[] = [80, 120, 200];
+const ESC = '\x1b';
 type Pass = 'refine' | 'themes';
 const THEME_KEYMAP = 'j/k focus · w width · enter pick · q cancel';
 const REFINE_KEYMAP =
@@ -123,8 +124,8 @@ export async function createWizard(
   }
 
   function step(key: string): Pass {
-    const down = key === '\x1b[B' || key === 'j';
-    const up = key === '\x1b[A' || key === 'k';
+    const down = key === `${ESC}[B` || key === 'j';
+    const up = key === `${ESC}[A` || key === 'k';
     if (key === 'w') {
       widthAt = (widthAt + 1) % WIDTHS.length;
     } else if (pass === 'themes') {
@@ -139,9 +140,9 @@ export async function createWizard(
       focus = (focus + 1) % offered.length;
     } else if (up) {
       focus = (focus + offered.length - 1) % offered.length;
-    } else if (key === '\x1b[C' || key === 'l') {
+    } else if (key === `${ESC}[C` || key === 'l') {
       cycle(1);
-    } else if (key === '\x1b[D' || key === 'h') {
+    } else if (key === `${ESC}[D` || key === 'h') {
       cycle(-1);
     } else if (key === 's') {
       const focused = offered.at(focus);
