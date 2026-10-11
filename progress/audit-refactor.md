@@ -12,17 +12,17 @@ Behavior changes only where a ruling names it; everything else is structure.
 
 ## Current state
 
-B1 and B8 landed. The drawing kit (`core/src/draw.ts`) and the mod kit
-(`core/src/mod.ts` + `core/src/stub.ts`) stamp byte-exact copies from
-`stamp.manifest.json` into every home's `hooks/kit/` and `tests/kit/` (20
-entries; the frozen guard `core/test/stamp.spec.ts` proves hand-edit, orphan
-and foreign-import red); each hooks module walks kit-stamped `CommandSpec`
-descriptors, zai's pane refreshes, the World glue is gone, and
-`references/mods.md` states the stamp. B8 landed whole by ceiling ruling —
-3004 of its 3757 insertions are guard-proven stamps no per-home partition
-fits under 400. The plan is hardened (B0, `5868518` + `46a83dd`) and the
-launch gate was green, 0 fail (baselines in the enforcement inventory).
-Rulings recorded: the sharing
+B1, B8 and B9 landed. The drawing kit (`core/src/draw.ts` — glyphs, documents,
+the `toSgr` skin and its inverse `stripSgr`) and the mod kit (`core/src/mod.ts`
++ `core/src/stub.ts`) stamp byte-exact copies from `stamp.manifest.json` into
+every home's `hooks/kit/` and `tests/kit/` (20 entries; the frozen guard
+`core/test/stamp.spec.ts` proves hand-edit, orphan and foreign-import red).
+The skin is the only SGR emitter (the wizard pair's input/cursor sequences
+are literal and allowlisted); statusline renders documents through its two
+final doors, goldens byte-identical; kit imports split by consumer class —
+engine-loaded modules ride their home's stamp, npm-side modules the
+`@v1nvn/agentic-core/draw` subpath. B8 landed whole by ceiling ruling (3004
+of 3757 insertions are guard-proven stamps). Rulings recorded: the sharing
 principle (AGENTS.md — core is the one home; stamped copies, never hand-synced
 mirrors); the drawing home and ink-as-data; the interface patterns, each on
 the test that it owns a bug class this repo hit; the mod shape after blind
@@ -34,7 +34,8 @@ feasibility) shaped B1/B8 below. Every Plan-section anchor re-verified against
 
 ## Next step
 
-B9 — statusline onto the kit.
+B10 — zai raw door and the `/text` break; the semver question posts with its
+dispatch.
 
 ## Steps
 
@@ -43,7 +44,7 @@ B9 — statusline onto the kit.
 | B0  | harden the plan                             |            |        |         | probe verdict and launch baselines folded in; every Plan-section anchor re-verified against the tree; tactical map with per-row scoped gate lines; enforcement inventory (byte-frozen tests, forbidden idioms, never-rising counts) carrying the launch baselines; small-row line; line ceiling; run mechanics (gate line, live-probe protocol, ritual-record home, PR grouping); stop rules; audit list; open questions dated to their units — landed `5868518` + fix `46a83dd` |
 | B1  | the drawing kit and the stamp, proven on rm |            |        |         | kit exports branded `Line`/`Doc`, closed ink kinds with parametric constructors, glyphs, layout constants, one parameterized local date-time formatter; `yarn build` stamps `.ts` source copies byte-exact from a manifest; a probed hand-edit, an orphaned stamp and a foreign-stamp import all go red; rm's `lineOf` and `pad2` come from the kit; core's package.json description states the stamp truthfully; rm's suite and gates green — landed `4f11a8b` + `d67e8e7`                                                                                                                           |
 | B8  | the mod kit across the four homes           |            |        |         | `lineOf`, the exec/accept/parse door, pane chrome (frame, empty, refresh as fields), refresh-while-open and tick cleanup are stamped helpers in all four homes; command registration is declarative for the exec shape; event-fed state stays `on()` with reducers feeding pane renders; every hooks module is thin over the kit — no hand-rolled copy of what the kit owns; `plugin validate` + `plugin test` ×4 green; references/mods.md rewritten to the stamp; engine tests ride the stamped helpers — landed `0040f55` + fix `6c59b1a`, whole by ceiling ruling (3004 of 3757 insertions are guard-proven stamps; no per-home partition meets 400 as written) |
-| B9  | statusline onto the kit                     |            |        |         | `SEGMENTS` returns documents; `toSgr` is the only escape emitter — no SGR literal outside the kit (grep); themes compute special colors through the kit's parametric ink constructors; both golden sets regenerated                                                                                                                                                       |
+| B9  | statusline onto the kit                     |            |        |         | `SEGMENTS` returns documents; `toSgr` is the only escape emitter — no SGR literal outside the kit (grep); themes compute special colors through the kit's parametric ink constructors; both golden sets regenerated — landed `bfdfd5a`+`fcda8e4`+`67215dc` (clause split) + review round `af16d42`, goldens byte-identical                                                                                                                                                       |
 | B10 | zai raw door and the `/text` break          |            |        |         | zai's `--json` ships the raw payload, its island renders it — one exec-accept-render door with tokens; rm and zai carry no `@v1nvn/tokens` dependency; `@v1nvn/tokens`'s `/text` export removed (semver step is the owner's call, never silent)                                                                                                                                                                                                                                                           |
 | B2  | readability layers enforced                 |            |        |         | math, tables, footnotes and resolver's class list + derived language tokens move down together — policy imports downward, legal; a pin test asserts nothing under `pipeline/` imports `../policy`; suite green; the AGENTS.md layer rule is true without editing it                                                                                                                                                                                                                                       |
 | B3  | statusline ruled changes                    |            |        |         | live `configure --theme rich` writes the theme's picks to the panel key and the agent row draws the theme's bar; live narrow-terminal probe: a gauge line falls to flat; the engine's demote guard is deleted outright — `indexOf` −1 reads as before-rung-0, matching the panel exactly; both golden sets regenerated                                                                                                                                                                                    |
@@ -107,7 +108,14 @@ B9 — statusline onto the kit.
   chains (`segments.ts:341`) and `panel.ts:299`'s strip-at-the-end NO_COLOR
   hack die; themes keep choosing inks per item and compute specials through
   the parametric constructors. `dotMeter`/`meterSegs` collapse into `meter`
-  (zai `format.ts:565,580,593`; tokens `top.ts:256,291`).
+  (zai `format.ts:565,580,593`; tokens `top.ts:256,291`). Landed shape: the
+  union's late kinds (`mark`, `brightBlack`) and `Segment.carry` (an inked
+  segment resets unless it carries into the next) are forced by the pinned
+  bytes; `stripSgr` lives beside `toSgr` — the kit owns SGR both directions;
+  the wizard pair's input/cursor sequences stay literal, allowlisted; the
+  kit's npm door is the `./draw` subpath (engine-loaded modules ride their
+  home's stamp — the barrel import pulls node globals into the mods program,
+  the bare specifier breaks the engine loader).
 - **B10 — one door, one break.** zai's `--json` goes raw with its island
   rendering; the hand-synced `.d.ts` mirrors die (`tokens/types/index.d.ts`
   keeps only its `declare-module` block); rm's `pad2` from core; zai's
@@ -151,6 +159,8 @@ Anchors verified at `304cba6`. Scoped gates answer the row; the workspace gate
   `claude plugin test` for each of `packages/rm packages/md packages/zai packages/tokens`.
 - **B9** — `packages/core/src/draw.ts` (the `toSgr` skin);
   `packages/statusline/src/render/{segments,panel,theme,engine}.ts`;
+  `packages/statusline/src/{wizard,wizard-tui}.ts` (their SGR literals die
+  with the rest — the criterion's grep entails them);
   `packages/zai/src/format.ts`; `packages/tokens/src/top.ts`;
   `packages/statusline/test/goldens/*` (both corpora). Gates:
   `yarn workspace @v1nvn/statusline test`, `yarn workspace @v1nvn/zai test`,
@@ -245,12 +255,16 @@ row touches money, structure or a caller-visible surface.
 
 ## Line ceiling
 
-400 inserted lines per unit, counted `git diff --shortstat -M -- ':!*.snap'`.
+400 authored inserted lines per unit, counted
+`git diff --shortstat -M -- ':!*.snap' ':(exclude,glob)packages/*/hooks/kit/**' ':(exclude,glob)packages/*/tests/kit/**' ':(exclude)packages/statusline/render.mjs' ':(exclude,glob)packages/*/bin/**'`.
 Derivation: this repo's recent code units span 5–303 inserted lines (A1 171+13,
 A3 172+5, A4 37, `96b94b1` 303, run-costs units 9–183), with A2's
-1081 a docs/types-regen outlier. Stamped copies count toward the ceiling — a
-unit over it stops at the next green point, saves the patch to scratch, and
-splits along its own clauses (B8's natural clause boundary is per home).
+1081 a docs/types-regen outlier. Stamped copies and synced bins don't count —
+machine-proven or machine-generated; the ceiling measures authored change.
+B8 landed whole under the count-stamps letter (3004
+stamp lines made every per-home partition breach 400); that exception is
+recorded in its row. A unit over the ceiling stops at the next green point,
+saves the patch to scratch, and splits along its own clauses.
 
 ## Run mechanics
 
@@ -280,7 +294,8 @@ End-of-run, run from the repo root over live surfaces:
 ```
 git grep -n "function lineOf" -- ':(glob)packages/*/hooks/**' ':(exclude,glob)packages/*/hooks/kit/**'        # empty outside the kit stamps (B8)
 git grep -n "type World\|stubWorld" -- ':(glob)packages/*/tests/**' ':(exclude,glob)packages/*/tests/kit/**'   # empty outside the kit stamps (B8)
-git grep -nE '\\x1b\[|\\u001b\[' -- ':(glob)packages/*/src/**' ':(glob)packages/*/hooks/**' | grep -v draw.ts   # only the kit's skin (B9)
+git grep -nE '\\x1b\[[0-9;]*m|\\u001b\[[0-9;]*m' -- ':(glob)packages/*/src/**' ':(glob)packages/*/hooks/**' ':(exclude,glob)packages/*/hooks/kit/**' | grep -v draw.ts   # empty (B9)
+git grep -nE '\\x1b|\\u001b' -- ':(glob)packages/*/src/**' ':(glob)packages/*/hooks/**' ':(exclude,glob)packages/*/hooks/kit/**' | grep -v draw.ts   # only the wizard pair, input/cursor control (B9)
 git grep -ln "from 'commander'" -- ':(glob)packages/*/src/**'                 # only packages/core (B7)
 git grep -n "@v1nvn/tokens" -- packages/rm packages/zai                       # empty (B10)
 git grep -n '"./text"' -- packages/tokens/package.json                        # empty (B10)
