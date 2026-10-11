@@ -18,10 +18,10 @@ REL — merge the branch and cut the release train.
 ## Steps
 | id | unit | model | review | consult | close criteria |
 |----|------|-------|--------|---------|----------------|
-| P1 | `postmortem` absorbs the kit: token ledger, `cost-state` cost, shared reads, standing-context share, worker type and model in `scripts/analyze.mjs`; streamed chunks deduped by `message.id`; kit, briefs and `references/run-costs*` deleted; the report archived | | blind | | postmortem on `d7ab34d2-a919-4107-a99c-a52f663e5b1e` reproduces the baseline: 516 calls, 36.7M cache read, 356k out, 95.6% hit, 108:1, $45.63, orchestrator 32k → 161k; gate firings match `analyze.py` (93) on the same pattern — `00d3306` |
-| R1 | `packages/todo/agents/` — `builder.md`, `reviewer.md`, `clerk.md` | | blind | | validate green; probe session `a5855450` spawned each role, each answered from its body; postmortem lists `todo:builder`/`todo:reviewer` on opus and `todo:clerk` on sonnet — `bd791b1` |
-| R2 | `run/SKILL.md` rewrite to the ruled architecture | | blind | design | every ruled block in `## Design` has its lines in the skill or a role file; grep finds no orphan (`checklist` tier, fable pricing, whole-gate default, reviewer-tier sentence, model-only column, trivial bundling, clerk per run); postmortem's rule quotes resolve; blind review's seams fixed (plan edits are the orchestrator's, one gate per batch, consult tier defaults to the role) — `ef68ccb` |
-| R3 | surfaces move with the change: todo README and manifests, AGENTS.md layout and todo-sync rule, `rules` (Steps paragraph, tactical map, `Small rows:`, private scratch), `postmortem` (candidates quote the role files; suites outside the clerk flagged) | sonnet | | | README and AGENTS.md state the role agents; rules states the new Steps shape; `audit` needs no edit (it walks the rules' clauses); no stale claims — `ed4d7fa` |
+| P1 | `postmortem` absorbs the kit: token ledger, `cost-state` cost, shared reads, standing-context share, worker type and model in `scripts/analyze.mjs`; streamed chunks deduped by `message.id`; kit, briefs and `references/run-costs*` deleted; the report archived | | blind | | postmortem on `d7ab34d2-a919-4107-a99c-a52f663e5b1e` reproduces the baseline: 516 calls, 36.7M cache read, 356k out, 95.6% hit, 108:1, $45.63, orchestrator 32k → 161k; gate firings match `analyze.py` (93) on the same pattern — `d241a13` |
+| R1 | `packages/todo/agents/` — `builder.md`, `reviewer.md`, `clerk.md` | | blind | | validate green; probe session `a5855450` spawned each role, each answered from its body; postmortem lists `todo:builder`/`todo:reviewer` on opus and `todo:clerk` on sonnet — `6a3c8ed` |
+| R2 | `run/SKILL.md` rewrite to the ruled architecture | | blind | design | every ruled block in `## Design` has its lines in the skill or a role file; grep finds no orphan (`checklist` tier, fable pricing, whole-gate default, reviewer-tier sentence, model-only column, trivial bundling, clerk per run); postmortem's rule quotes resolve; blind review's seams fixed (plan edits are the orchestrator's, one gate per batch, consult tier defaults to the role) — `b864f9a` |
+| R3 | surfaces move with the change: todo README and manifests, AGENTS.md layout and todo-sync rule, `rules` (Steps paragraph, tactical map, `Small rows:`, private scratch), `postmortem` (candidates quote the role files; suites outside the clerk flagged) | sonnet | | | README and AGENTS.md state the role agents; rules states the new Steps shape; `audit` needs no edit (it walks the rules' clauses); no stale claims — `239c552` |
 | REL | merge P1–R3, cut the release train (`references/npm-publishing.md`), install the released todo | owner | | | the installed todo version carries R1–R3 |
 | S1 | manual sweep of every progress file under `~/git` (two levels deep) to the new Steps shape: agentic 4, firstmenu 5, homelab-gitops 2, stonks 5, streamdeck 1, enhansome/webapp 3, ormi/testril 13; testril's `references/run-rules.md` folds into the four plans that cite it and is deleted | owner | | | `/todo:audit` clean in each of the seven repos; no `run-rules.md` in testril |
 | R4 | fresh `/todo:run` of `progress/audit-refactor.md` under the released skill, then `/todo:postmortem` on its full session id | owner | | | `## Plan` carries the after side beside the baseline: shape named, per-unit wall and tokens; $ per unit only when the run used the baseline's backend |
@@ -56,40 +56,6 @@ output on the baseline and probe sessions, and `/todo:audit` (S1).
 
 Reading list for S1: `packages/todo/skills/rules/SKILL.md` (released), each repo's
 `progress/`, and for testril `references/run-rules.md` with the four plans citing it.
-
-## Design` has its skill lines; grep finds no orphan text (fresh-per-role, whole-gate default, reviewer-tier sentence, model-only column, fable-pricing lines, trivial-bundling as an aside); every `run/SKILL.md` line postmortem quotes still resolves; `references/skill-review.md` checklist passes |
-| R3 | surfaces move with the change: todo README (line "a gate per unit"), AGENTS.md layout (todo grows `agents/`, no longer "manifest + skills"), `rules` SKILL.md (tactical map, private-scratch death, Steps paragraph: model/effort pairs, `owner`, review values, `consult` column), `audit` SKILL.md (Steps columns it checks), `postmortem` SKILL.md (violation candidates) | sonnet | | | README and AGENTS.md state the role files and dispatch law; rules states the tactical map, the private-scratch death and the Steps-table shape; audit and postmortem check the new shape and rules; no stale claims — `ed4d7fa` |
-| REL | merge P1–R3, cut the release train (`references/npm-publishing.md`), install the released todo | owner | | | the installed todo version carries R1–R3 |
-| S1 | manual sweep of every progress file under `~/git` to the new Steps shape — agentic 4, firstmenu 5, homelab-gitops 2, stonks 5, streamdeck 1 | owner | | | `/todo:audit` clean in each of the five repos |
-| R4 | fresh `/todo:run` of `progress/audit-refactor.md` under the released skill, then `/todo:postmortem` on its full session id | owner | | | `## Plan` carries the after side beside the baseline: shape named, per-unit wall and tokens; $ per unit only when the run used the baseline's backend |
-
-## Plan
-
-Baseline: `references/run-costs.md` and its kit until P1, then this section.
-P1 carries the baseline numbers here; the full record is
-`archive/run-costs-d7ab34d2.md`. The baseline ran on glm (`sonnet` rows on
-glm-5.3-flash, the rest on glm-5.3), so its dollars compare only against a
-glm-backed R4; time and tokens per unit compare on any backend.
-
-Estimate R4 replaces: under the ruled architecture, batching included, about
-11–12m and ~3.5M tokens per unit (a desk simulation of the audited 4-unit shape:
-~45–50m, ~13–15M tokens). R4's run of audit-refactor has a larger grain, so the
-comparison is per unit, never totals.
-
-Enforcement inventory: the todo plugin has no test suite of its own, and
-`claude plugin test` has nothing to exercise in a hooks-less plugin. The gates are
-`claude plugin validate`, postmortem's output on the baseline (P1) and probe (R1)
-sessions, the greps named in R2/R3's rows, and `/todo:audit` (S1).
-
-Out of thread, owed elsewhere: testril deletes `references/run-rules.md` in its
-own thread; nothing here depends on it. Before this thread closes, testril's
-`TODO.md` carries that deletion, or the deferral is lost.
-
-Reading list: `packages/todo/skills/run/SKILL.md` and
-`packages/todo/skills/postmortem/` whole; `references/run-costs.md` and
-`references/run-costs/` (P1); `references/skill-review.md` and Anthropic's
-skill-creator (`anthropics/claude-plugins-official`,
-`plugins/skill-creator/skills/skill-creator`, via `gh`) before P1, R2 and R3.
 
 ## Design
 The architecture, as ruled:

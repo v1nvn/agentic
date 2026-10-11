@@ -50,7 +50,8 @@ the rule it breaks, quoted by line from `run/SKILL.md` or the role file in
 - an orchestrator suite run (run: the session never gates);
 - a suite run by any worker but the clerk (clerk: the workspace gate is yours alone;
   builder: run only the scoped gate lines; reviewer: never run a build or a test suite);
-- a worker Bash `sleep` poll (builder: never poll with `sleep`);
+- a worker Bash `sleep` poll, or one `sleep` past five minutes (builder: never poll with
+  `sleep`);
 - a suite re-run inside five minutes whose command differs only in output shaping
   (clerk: the gate re-fires only for a stated cause);
 - an idle span where one background ritual ran and nothing else did.

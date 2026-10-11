@@ -10,6 +10,7 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
 
 const SLEEP = /\bsleep\b/;
+const CACHE_TTL = 300000;
 const TOLLED = new Set(['attachment', 'meta', 'queue']);
 const ORCHESTRATOR = 'orchestrator';
 
@@ -49,10 +50,11 @@ function records(path) {
   return out;
 }
 
-const load = path =>
-  records(path)
+const timeline = recs =>
+  recs
     .filter(e => e.timestamp)
     .sort((a, b) => ts(a.timestamp) - ts(b.timestamp));
+const load = path => timeline(records(path));
 
 function blocks(e) {
   const c = e?.message?.content;
@@ -168,13 +170,10 @@ const bashOf = runs =>
       cmd: String(r.input.command ?? ''),
     }));
 
-function lastCostState(path) {
-  return records(path).findLast(e => e.type === 'cost-state') ?? null;
-}
-
 function main(transcript, suiteSrc) {
   const SUITE = suiteSrc ? new RegExp(suiteSrc) : null;
-  const ev = load(transcript);
+  const recs = records(transcript);
+  const ev = timeline(recs);
   if (!ev.length) throw new Error(`no timestamped events in ${transcript}`);
   const end = ts(ev.at(-1).timestamp);
   const wall = end - ts(ev[0].timestamp);
@@ -335,7 +334,7 @@ function main(transcript, suiteSrc) {
   );
 
   console.log('\n## cost\n');
-  const cost = lastCostState(transcript);
+  const cost = recs.findLast(e => e.type === 'cost-state');
   if (cost) {
     console.log(
       `$${cost.totalCostUSD.toFixed(2)} total (harness cost-state; counts retries the transcripts do not)\n`,
@@ -418,7 +417,7 @@ function main(transcript, suiteSrc) {
     const sleeps = w.bash
       .filter(b => SLEEP.test(b.cmd))
       .sort((a, b) => a.start - b.start);
-    if (sleeps.length >= 2) {
+    if (sleeps.length >= 2 || sleeps.some(b => b.dur >= CACHE_TTL)) {
       flagged = true;
       console.log(
         `- sleep poll: ${w.desc} slept ${sleeps.length} times, ${fmt(sleeps.reduce((a, b) => a + b.dur, 0))} total — first at ${hhmm(sleeps[0].start)}: ${sleeps[0].cmd.slice(0, 60)}`,
