@@ -12,13 +12,14 @@ Behavior changes only where a ruling names it; everything else is structure.
 
 ## Current state
 
-B0 landed (`5868518` + fix `46a83dd`): the plan is hardened — tactical map,
-enforcement inventory, mechanics — and its blind review's fixes (workspace
-names, audit-grep pathspecs, B10's format.ts entailment, B7's resolve.ts)
-landed in the same sitting. The validator probe cleared: rm's `session.start`
-`on()` relocated to a plugin-relative sibling passed `claude plugin validate`
-and `plugin test` both — B1's stamp design stands. Launch workspace gate
-green, 0 fail (baselines in the enforcement inventory). Rulings recorded: the sharing
+B1 landed (`4f11a8b` + `d67e8e7`, a sanctioned ceiling split at 612 lines,
+blind review clean): the drawing kit is `core/src/draw.ts`; root `yarn build`
+stamps byte-exact copies from `stamp.manifest.json` under each home's
+`hooks/kit/` (B8 extends to `tests/kit/` and the other three homes); the
+frozen guard `core/test/stamp.spec.ts` proves hand-edit, orphan and
+foreign-import red; rm draws through the kit both ways. The plan is hardened
+(B0, `5868518` + `46a83dd`) and the launch gate was green, 0 fail (baselines
+in the enforcement inventory). Rulings recorded: the sharing
 principle (AGENTS.md — core is the one home; stamped copies, never hand-synced
 mirrors); the drawing home and ink-as-data; the interface patterns, each on
 the test that it owns a bug class this repo hit; the mod shape after blind
@@ -30,14 +31,14 @@ feasibility) shaped B1/B8 below. Every Plan-section anchor re-verified against
 
 ## Next step
 
-B1 — the drawing kit and the stamp, proven on rm.
+B8 — the mod kit across the four homes.
 
 ## Steps
 
 | id  | unit                                        | model      | review | consult | close criteria                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | --- | ------------------------------------------- | ---------- | ------ | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | B0  | harden the plan                             |            |        |         | probe verdict and launch baselines folded in; every Plan-section anchor re-verified against the tree; tactical map with per-row scoped gate lines; enforcement inventory (byte-frozen tests, forbidden idioms, never-rising counts) carrying the launch baselines; small-row line; line ceiling; run mechanics (gate line, live-probe protocol, ritual-record home, PR grouping); stop rules; audit list; open questions dated to their units — landed `5868518` + fix `46a83dd` |
-| B1  | the drawing kit and the stamp, proven on rm |            |        |         | kit exports branded `Line`/`Doc`, closed ink kinds with parametric constructors, glyphs, layout constants, one parameterized local date-time formatter; `yarn build` stamps `.ts` source copies byte-exact from a manifest; a probed hand-edit, an orphaned stamp and a foreign-stamp import all go red; rm's `lineOf` and `pad2` come from the kit; core's package.json description states the stamp truthfully; rm's suite and gates green                                                                                                                           |
+| B1  | the drawing kit and the stamp, proven on rm |            |        |         | kit exports branded `Line`/`Doc`, closed ink kinds with parametric constructors, glyphs, layout constants, one parameterized local date-time formatter; `yarn build` stamps `.ts` source copies byte-exact from a manifest; a probed hand-edit, an orphaned stamp and a foreign-stamp import all go red; rm's `lineOf` and `pad2` come from the kit; core's package.json description states the stamp truthfully; rm's suite and gates green — landed `4f11a8b` + `d67e8e7`                                                                                                                           |
 | B8  | the mod kit across the four homes           |            |        |         | `lineOf`, the exec/accept/parse door, pane chrome (frame, empty, refresh as fields), refresh-while-open and tick cleanup are stamped helpers in all four homes; command registration is declarative for the exec shape; event-fed state stays `on()` with reducers feeding pane renders; every hooks module is thin over the kit — no hand-rolled copy of what the kit owns; `plugin validate` + `plugin test` ×4 green; references/mods.md rewritten to the stamp; engine tests ride the stamped helpers |
 | B9  | statusline onto the kit                     |            |        |         | `SEGMENTS` returns documents; `toSgr` is the only escape emitter — no SGR literal outside the kit (grep); themes compute special colors through the kit's parametric ink constructors; both golden sets regenerated                                                                                                                                                       |
 | B10 | zai raw door and the `/text` break          |            |        |         | zai's `--json` ships the raw payload, its island renders it — one exec-accept-render door with tokens; rm and zai carry no `@v1nvn/tokens` dependency; `@v1nvn/tokens`'s `/text` export removed (semver step is the owner's call, never silent)                                                                                                                                                                                                                                                           |
@@ -62,10 +63,12 @@ B1 — the drawing kit and the stamp, proven on rm.
   heat gradient and pills are values, not union members; tag functions;
   `meter`/`bar`/`pad`/`clip`/`spark` on solid blocks and visible tracks; label
   gutter and `RULE_WIDTH` constants; one local date-time formatter with
-  precision parameters (today four shapes: rm `send.ts:16-17` display title,
-  zai `usage.ts:59-61` URL-query seconds, tokens `ymd` (`src/text.ts:65`),
-  statusline duration (`awk.ts:49` `pad2`) — unified as one function, not one
-  format).
+  precision parameters — `localStamp(now, 'none'|'minute'|'second')` covers
+  the three date shapes (rm display title, zai URL-query seconds, tokens
+  `ymd`); the fourth today-shape is a duration, not a date, so the kit
+  exports `pad2` as its shared two-digit primitive. `lineOf` takes a
+  structural `ToolLineSource` (draw.ts never imports `claude-code`) with the
+  surface's fallback word at the call site.
 - **B1 — the stamp.** Root `yarn build` writes committed `.ts` copies into each
   home's `hooks/` and `tests/` from a manifest. The guard is a core vitest spec
   (it may read across the repo): manifest entries byte-equal, no orphaned stamp
@@ -75,8 +78,8 @@ B1 — the drawing kit and the stamp, proven on rm.
   them. Live-CLI probes reinstall the plugin first (a cached pre-stamp install
   runs old hooks).
 - **B8 — the mod kit.** Stamped helpers own the cited bug classes: `lineOf`
-  (rm `hooks/register.ts:11`, md `hooks/register.ts:16`, zai
-  `hooks/register.tsx:24`, tokens `hooks/register.tsx:470`), the
+  (md `hooks/register.ts:16`, zai `hooks/register.tsx:24`, tokens
+  `hooks/register.tsx:470` — rm's already rides the B1 kit), the
   exec/accept/parse door (kills the zai/tokens contract divergence), pane
   chrome with frame/empty/refresh as fields (kills framed-vs-frameless and
   frozen-zai-pane drift), refresh-while-open, tick cleanup (kills `topTick`'s
@@ -84,7 +87,11 @@ B1 — the drawing kit and the stamp, proven on rm.
   declarative for the exec shape; **event-fed state stays raw `on()`** — the
   engine's own declarative API (eight events feed tokens-top,
   `register.tsx:305-451`) — with reducers feeding pane renders. The kit never
-  stamps a home's reducers into other islands. Engine tests ride the stamped
+  stamps a home's reducers into other islands. The mod kit is JSX-free `.ts`
+  — helpers are functions and data-shaped chrome, panes stay home `.tsx`
+  (the frozen guard's kit regex admits `.ts` only); stamps land under each
+  home's `hooks/kit/` and `tests/kit/`; the kit's `clip` finds an adopter
+  here or dies (the interface law). Engine tests ride the stamped
   helpers; the World glue dies. `exec`'s wrapper/field name collision is
   resolved in the descriptor naming.
 - **B9 — statusline onto the kit.** The `SEGMENTS` registry returns documents;
