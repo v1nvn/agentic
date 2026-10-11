@@ -8,12 +8,10 @@ under `~/git` is on its Steps shape, and one fresh `/todo:run` of
 baseline's — each side's shape named.
 
 ## Current state
-P1–R3 built in the owner's sitting, not through `/todo:run`. The plugin ships the
-three role agents, the rewritten run law, and a postmortem that carries the whole
-run-costs kit. Unreleased: REL is next.
+P1–R3 built and open as PR #18 against `main`; unreleased.
 
 ## Next step
-REL — merge the branch and cut the release train.
+REL — the owner merges PR #18 and cuts the release train.
 
 ## Steps
 | id | unit | model | review | consult | close criteria |
