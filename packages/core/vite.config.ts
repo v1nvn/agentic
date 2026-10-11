@@ -13,7 +13,7 @@ export default defineConfig({
     // bundled. ESM out matches "type":"module".
     ssr: true,
     rollupOptions: {
-      input: { index: 'src/index.ts', vite: 'src/vite.ts' },
+      input: { draw: 'src/draw.ts', index: 'src/index.ts', vite: 'src/vite.ts' },
     },
   },
   test: {

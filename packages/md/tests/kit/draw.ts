@@ -1,17 +1,19 @@
 /**
- * The drawing kit: the one home of the repo's terminal drawing model. Ink
- * kinds are a closed union, color values are data, and every surface renders
- * documents — the kit draws, the surface words. `yarn build` stamps this file
- * into each mod home's `hooks/kit/` (stamp.manifest.json).
+ * The drawing kit — the one home of the repo's terminal drawing model: ink
+ * kinds are a closed union, color values are data, surfaces render
+ * documents, and `toSgr` is the one skin, resetting each inked segment
+ * unless it carries its ink into the next; stamped into each mod home.
  */
 
 export type InkKind =
   | 'blue'
   | 'bold'
+  | 'brightBlack'
   | 'cyan'
   | 'dim'
   | 'green'
   | 'magenta'
+  | 'mark'
   | 'plain'
   | 'red'
   | 'white'
@@ -36,6 +38,7 @@ export function bg(ink: Ink): Ink {
 }
 
 export interface Segment {
+  readonly carry?: boolean;
   readonly ink?: Ink;
   readonly text: string;
 }
@@ -72,6 +75,93 @@ export function green(text: string): Segment {
 
 export function magenta(text: string): Segment {
   return { text, ink: 'magenta' };
+}
+
+export function red(text: string): Segment {
+  return { text, ink: 'red' };
+}
+
+export function yellow(text: string): Segment {
+  return { text, ink: 'yellow' };
+}
+
+function assertNever(kind: never): never {
+  throw new Error(`unhandled Ink kind: ${String(kind)}`);
+}
+
+function paramsOf(ink: Ink): string {
+  if (typeof ink !== 'string') {
+    if ('bg' in ink) {
+      return paramsOf(ink.bg).replace(/^3/, '4');
+    }
+    return 'indexed' in ink
+      ? `38;5;${ink.indexed}`
+      : `38;2;${ink.rgb[0]};${ink.rgb[1]};${ink.rgb[2]}`;
+  }
+  switch (ink) {
+    case 'blue':
+      return '34';
+    case 'bold':
+      return '1';
+    case 'brightBlack':
+      return '90';
+    case 'cyan':
+      return '36';
+    case 'dim':
+      return '2';
+    case 'green':
+      return '32';
+    case 'magenta':
+      return '35';
+    case 'mark':
+      return '1;97';
+    case 'plain':
+      return '39';
+    case 'red':
+      return '31';
+    case 'white':
+      return '37';
+    case 'yellow':
+      return '33';
+    default:
+      return assertNever(ink);
+  }
+}
+
+function rowsOf(rows: Doc | Line): readonly (readonly Segment[])[] {
+  return (rows as readonly unknown[]).every(r => Array.isArray(r))
+    ? (rows as Doc)
+    : [rows as Line];
+}
+
+export function toSgr(rows: Doc | Line): string {
+  return rowsOf(rows)
+    .map(row => {
+      let out = '';
+      let inkOpen = false;
+      for (const seg of row) {
+        if (seg.ink === undefined) {
+          out += (inkOpen ? '\x1b[0m' : '') + seg.text;
+          inkOpen = false;
+          continue;
+        }
+        out += `\x1b[${paramsOf(seg.ink)}m${seg.text}`;
+        if (seg.carry === true) {
+          inkOpen = true;
+        } else {
+          out += '\x1b[0m';
+          inkOpen = false;
+        }
+      }
+      return inkOpen ? `${out}\x1b[0m` : out;
+    })
+    .join('\n');
+}
+
+export function textOf(rows: Doc | Line): string {
+  return rowsOf(rows)
+    .map(row => row.map(seg => seg.text).join(''))
+    .join('\n');
 }
 
 export interface ToolLineSource {

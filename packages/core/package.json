@@ -9,6 +9,10 @@
       "types": "./src/index.ts",
       "default": "./dist/index.js"
     },
+    "./draw": {
+      "types": "./src/draw.ts",
+      "default": "./dist/draw.js"
+    },
     "./vite": {
       "types": "./src/vite.ts",
       "default": "./dist/vite.js"
