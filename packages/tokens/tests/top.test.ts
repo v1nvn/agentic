@@ -229,7 +229,7 @@ test('the ring samples only while the pane is open', async ($, on) => {
 
 test('completed tool calls leave no running rows behind', async ($, on) => {
   mock.clock(on);
-  const world = stubEngine(on);
+  stubEngine(on);
   stubSession(on);
   const results: string[] = [];
   on('tool.call', { tool: 'Read' }, () => ({
@@ -253,7 +253,6 @@ test('completed tool calls leave no running rows behind', async ($, on) => {
     results.push(answer.deny ?? 'ran');
   }
   expect(results).toEqual(['ran', 'ran', 'ran']);
-  void world;
 
   const ui = await $.ui.mount({ ...PANE, surface: 'terminal' });
   expect(await ui.find({ type: 'Text', text: /running ─/ })).toBeUndefined();

@@ -81,7 +81,7 @@ export interface AgentCell {
   spawnAt: null | number;
 }
 
-export interface AgentRow {
+interface AgentRow {
   readonly id: string;
   readonly rate: number;
   readonly ring: readonly number[];
