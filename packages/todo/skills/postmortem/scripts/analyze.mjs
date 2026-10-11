@@ -1,17 +1,19 @@
 #!/usr/bin/env node
-// Time tree and violation candidates for a finished Claude Code session.
+// Time tree, token ledger, cost and violation candidates for a finished Claude
+// Code session.
 //
 // Usage: node analyze.mjs <session.jsonl> [gate-pattern]
 //
-// Prints markdown. Timestamp deltas are the measure: generation time is the gap
-// before an assistant message (thinking is encrypted); parallel tools overlap.
 // The gate pattern is the autopsied repo's suite command, passed by the caller;
 // this script carries no repo's words.
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
 
 const SLEEP = /\bsleep\b/;
+const CACHE_TTL = 300000;
+const EDITS = new Set(['Edit', 'Write', 'NotebookEdit']);
 const TOLLED = new Set(['attachment', 'meta', 'queue']);
+const ORCHESTRATOR = 'orchestrator';
 
 const ts = s => new Date(s).getTime();
 const mins = ms => ms / 60000;
@@ -23,6 +25,7 @@ const hhmm = ms => {
 };
 const tok = t =>
   t >= 1e6 ? `${(t / 1e6).toFixed(1)}M` : `${(t / 1e3).toFixed(1)}k`;
+const pct = (a, b) => (b ? `${((100 * a) / b).toFixed(1)}%` : '-');
 
 function spanUnion(spans) {
   let covered = -Infinity;
@@ -35,19 +38,24 @@ function spanUnion(spans) {
   return total;
 }
 
-function load(path) {
-  const events = [];
+function records(path) {
+  const out = [];
   for (const line of readFileSync(path, 'utf8').split('\n')) {
     if (!line) continue;
     try {
-      const e = JSON.parse(line);
-      if (e.timestamp) events.push(e);
+      out.push(JSON.parse(line));
     } catch {
       // partial line from a live session — skip it
     }
   }
-  return events.sort((a, b) => ts(a.timestamp) - ts(b.timestamp));
+  return out;
 }
+
+const timeline = recs =>
+  recs
+    .filter(e => e.timestamp)
+    .sort((a, b) => ts(a.timestamp) - ts(b.timestamp));
+const load = path => timeline(records(path));
 
 function blocks(e) {
   const c = e?.message?.content;
@@ -88,9 +96,85 @@ function median(values) {
   return s[Math.floor(s.length / 2)];
 }
 
+// One model call streams as several assistant records sharing a message.id;
+// the record carrying cache_read_input_tokens holds the billed usage.
+function ledger(events) {
+  const calls = new Map();
+  for (const e of events) {
+    const id = e.type === 'assistant' && e.message?.id;
+    if (!id) continue;
+    const u = e.message.usage;
+    const prev = calls.get(id);
+    const billed = u && 'cache_read_input_tokens' in u;
+    if (!prev || (billed && (!prev.billed || (u.input_tokens ?? 0) > 0)))
+      calls.set(id, { u: u ?? {}, billed });
+  }
+  const sum = {
+    calls: calls.size,
+    input: 0,
+    cacheRead: 0,
+    cacheCreate: 0,
+    output: 0,
+  };
+  const ctx = [];
+  const reads = [];
+  for (const { u } of calls.values()) {
+    reads.push(u.cache_read_input_tokens ?? 0);
+    sum.input += u.input_tokens ?? 0;
+    sum.cacheRead += u.cache_read_input_tokens ?? 0;
+    sum.cacheCreate += u.cache_creation_input_tokens ?? 0;
+    sum.output += u.output_tokens ?? 0;
+    ctx.push(
+      (u.input_tokens ?? 0) +
+        (u.cache_read_input_tokens ?? 0) +
+        (u.cache_creation_input_tokens ?? 0),
+    );
+  }
+  return {
+    ...sum,
+    firstCtx: ctx[0] ?? 0,
+    maxCtx: Math.max(0, ...ctx),
+    standing: sum.cacheRead - (reads[0] ?? 0),
+  };
+}
+
+function toolRuns(events) {
+  const pending = new Map();
+  const runs = [];
+  for (const e of events) {
+    const t = ts(e.timestamp);
+    for (const b of blocks(e)) {
+      if (b?.type === 'tool_use') pending.set(b.id, { t, b });
+    }
+    if (kind(e) !== 'tool_result') continue;
+    for (const b of blocks(e)) {
+      const p = pending.get(b?.tool_use_id);
+      if (!p) continue;
+      runs.push({
+        start: p.t,
+        dur: t - p.t,
+        name: p.b.name,
+        input: p.b.input ?? {},
+      });
+      pending.delete(b.tool_use_id);
+    }
+  }
+  return runs;
+}
+
+const bashOf = runs =>
+  runs
+    .filter(r => r.name === 'Bash')
+    .map(r => ({
+      start: r.start,
+      dur: r.dur,
+      cmd: String(r.input.command ?? ''),
+    }));
+
 function main(transcript, suiteSrc) {
   const SUITE = suiteSrc ? new RegExp(suiteSrc) : null;
-  const ev = load(transcript);
+  const recs = records(transcript);
+  const ev = timeline(recs);
   if (!ev.length) throw new Error(`no timestamped events in ${transcript}`);
   const end = ts(ev.at(-1).timestamp);
   const wall = end - ts(ev[0].timestamp);
@@ -105,11 +189,8 @@ function main(transcript, suiteSrc) {
     if (j >= 0) ownerWait += ts(e.timestamp) - ts(ev[j].timestamp);
   }
 
-  // Background spawns complete at their task notification; everything else
-  // pairs tool_use with tool_result in its own transcript.
+  // Background spawns complete at their task notification, not their tool_result.
   const spawns = new Map();
-  const pending = new Map();
-  const fgTools = new Map();
   const completions = new Map();
   for (const e of ev) {
     const t = ts(e.timestamp);
@@ -122,19 +203,6 @@ function main(transcript, suiteSrc) {
           t,
           label: `bg-bash: ${String(b.input?.command ?? '').slice(0, 70)}`,
         });
-      } else {
-        pending.set(b.id, t);
-      }
-    }
-    if (kind(e) === 'tool_result') {
-      for (const b of blocks(e)) {
-        if (b?.tool_use_id && pending.has(b.tool_use_id)) {
-          fgTools.set(
-            'tools',
-            (fgTools.get('tools') ?? 0) + (t - pending.get(b.tool_use_id)),
-          );
-          pending.delete(b.tool_use_id);
-        }
       }
     }
     const note = bgNotification(e);
@@ -149,6 +217,16 @@ function main(transcript, suiteSrc) {
     end: completions.get(id) ?? end,
     label: s.label,
   }));
+  const orchRuns = toolRuns(ev);
+  const fgTools = orchRuns
+    .filter(
+      r =>
+        !(
+          r.name === 'Agent' ||
+          (r.name === 'Bash' && r.input.run_in_background)
+        ),
+    )
+    .reduce((a, r) => a + r.dur, 0);
 
   // A gap before an assistant message that background work fully covered is
   // orchestrator wait, not generation.
@@ -191,89 +269,106 @@ function main(transcript, suiteSrc) {
           gaps.push(g);
         }
       }
-      const bashPending = new Map();
-      const usage = { input: 0, cacheRead: 0, cacheCreate: 0, output: 0 };
-      const bash = [];
-      let turns = 0;
-      for (const e of wev) {
-        const t = ts(e.timestamp);
-        if (e.type === 'assistant') {
-          turns++;
-          usage.input += e.message?.usage?.input_tokens ?? 0;
-          usage.cacheRead += e.message?.usage?.cache_read_input_tokens ?? 0;
-          usage.cacheCreate +=
-            e.message?.usage?.cache_creation_input_tokens ?? 0;
-          usage.output += e.message?.usage?.output_tokens ?? 0;
-        }
-        for (const b of blocks(e)) {
-          if (b?.type === 'tool_use' && b.name === 'Bash') {
-            bashPending.set(b.id, { t, cmd: String(b.input?.command ?? '') });
-          }
-        }
-        if (kind(e) === 'tool_result') {
-          for (const b of blocks(e)) {
-            const p = bashPending.get(b?.tool_use_id);
-            if (p) {
-              bash.push({ start: p.t, dur: t - p.t, cmd: p.cmd });
-              bashPending.delete(b.tool_use_id);
-            }
-          }
-        }
-      }
+      const runs = toolRuns(wev);
       workers.push({
         desc: meta.description ?? '?',
-        model: meta.model ?? '?',
+        type: meta.agentType ?? '?',
+        model:
+          wev.findLast(e => e.message?.model)?.message.model ??
+          meta.model ??
+          '?',
+        effort: wev.findLast(e => e.effort)?.effort ?? meta.effort ?? '?',
         start: w0,
         end: w1,
         wall: w1 - w0,
         gen: wgen,
-        turns,
         gaps,
-        bash,
-        usage,
+        runs,
+        bash: bashOf(runs),
+        usage: ledger(wev),
+        firstEdit: Math.min(
+          ...runs.filter(r => EDITS.has(r.name)).map(r => r.start - w0),
+        ),
       });
     }
   }
 
   console.log('# postmortem\n');
   console.log(
-    `session ${basename(transcript)}  wall ${fmt(wall)}  owner wait ${fmt(ownerWait)}  orchestrator gen ${fmt(gen)}  orchestrator wait ${fmt(wait)}  foreground tools ${fmt(fgTools.get('tools') ?? 0)}\n`,
+    `session ${basename(transcript)}  wall ${fmt(wall)}  owner wait ${fmt(ownerWait)}  orchestrator gen ${fmt(gen)}  orchestrator wait ${fmt(wait)}  foreground tools ${fmt(fgTools)}\n`,
   );
 
   console.log('## workers\n');
   console.log(
-    '| start-end | wall | gen | tools | model | turns | median gap | out tok | cache rd | cache cr | worker |',
+    '| start-end | wall | to first edit | gen | tools | type | model | effort | calls | median gap | worker |',
   );
   console.log('|---|---|---|---|---|---|---|---|---|---|---|');
-  for (const w of [...workers].sort((a, b) => a.start - b.start)) {
+  const byStart = [...workers].sort((a, b) => a.start - b.start);
+  for (const w of byStart) {
     console.log(
-      `| ${hhmm(w.start)}-${hhmm(w.end)} | ${fmt(w.wall)} | ${fmt(w.gen)} | ${fmt(w.wall - w.gen)} | ${w.model} | ${w.turns} | ${(median(w.gaps) / 1000).toFixed(1)}s | ${tok(w.usage.output)} | ${tok(w.usage.cacheRead)} | ${tok(w.usage.cacheCreate)} | ${w.desc} |`,
+      `| ${hhmm(w.start)}-${hhmm(w.end)} | ${fmt(w.wall)} | ${Number.isFinite(w.firstEdit) ? fmt(w.firstEdit) : '-'} | ${fmt(w.gen)} | ${fmt(w.wall - w.gen)} | ${w.type} | ${w.model} | ${w.effort} | ${w.usage.calls} | ${(median(w.gaps) / 1000).toFixed(1)}s | ${w.desc} |`,
     );
   }
 
-  console.log('\n## background spans\n');
-  console.log('| start-end | duration | overlapped by workers | what |');
-  console.log('|---|---|---|---|');
-  for (const s of [...bg].sort((a, b) => a.start - b.start)) {
-    const overlap = spanUnion(
-      workers
-        .map(w => [Math.max(s.start, w.start), Math.min(s.end, w.end)])
-        .filter(([a, b]) => b > a),
-    );
+  console.log('\n## token ledger\n');
+  console.log(
+    '| agent | calls | input | cache rd | cache cr | out | 1st ctx | max ctx | hit |',
+  );
+  console.log('|---|---|---|---|---|---|---|---|---|');
+  const rows = [{ desc: ORCHESTRATOR, usage: ledger(ev) }, ...byStart];
+  const total = {
+    calls: 0,
+    input: 0,
+    cacheRead: 0,
+    cacheCreate: 0,
+    output: 0,
+    standing: 0,
+  };
+  for (const { desc, usage: u } of rows) {
+    for (const k of Object.keys(total)) total[k] += u[k];
     console.log(
-      `| ${hhmm(s.start)}-${hhmm(s.end)} | ${fmt(s.end - s.start)} | ${fmt(overlap)} | ${s.label} |`,
+      `| ${desc} | ${u.calls} | ${tok(u.input)} | ${tok(u.cacheRead)} | ${tok(u.cacheCreate)} | ${tok(u.output)} | ${tok(u.firstCtx)} | ${tok(u.maxCtx)} | ${pct(u.cacheRead, u.cacheRead + u.input + u.cacheCreate)} |`,
     );
   }
+  const ingested = total.input + total.cacheRead + total.cacheCreate;
+  console.log(
+    `| total | ${total.calls} | ${tok(total.input)} | ${tok(total.cacheRead)} | ${tok(total.cacheCreate)} | ${tok(total.output)} | | | ${pct(total.cacheRead, ingested)} |`,
+  );
+  console.log(
+    `\nread : write ${Math.round(ingested / Math.max(1, total.output))}:1  standing context (cache reads after each agent's first call) ${pct(total.standing, ingested)} of ingested`,
+  );
 
-  console.log('\n## worker Bash time by category\n');
+  console.log('\n## cost\n');
+  const cost = recs.findLast(e => e.type === 'cost-state');
+  if (cost) {
+    console.log(
+      `$${cost.totalCostUSD.toFixed(2)} total (harness cost-state; counts retries the transcripts do not)\n`,
+    );
+    console.log('| model | input | cache rd | cache cr | out | cost |');
+    console.log('|---|---|---|---|---|---|');
+    for (const [m, u] of Object.entries(cost.modelUsage ?? {})) {
+      console.log(
+        `| ${m} | ${tok(u.inputTokens)} | ${tok(u.cacheReadInputTokens)} | ${tok(u.cacheCreationInputTokens)} | ${tok(u.outputTokens)} | $${u.costUSD.toFixed(2)} |`,
+      );
+    }
+  } else {
+    console.log('no cost-state record — the session has not exited');
+  }
+
+  console.log('\n## Bash time by category\n');
   const cats = new Map();
-  for (const w of workers) {
-    for (const b of w.bash) {
-      const k = SLEEP.test(b.cmd)
-        ? 'sleep (waiting)'
-        : SUITE?.test(b.cmd)
-          ? 'suite'
-          : 'other';
+  for (const { who, bash } of [
+    { who: ORCHESTRATOR, bash: bashOf(orchRuns) },
+    ...workers.map(w => ({ who: 'workers', bash: w.bash })),
+  ]) {
+    for (const b of bash) {
+      const k = `${who}: ${
+        SLEEP.test(b.cmd)
+          ? 'sleep (waiting)'
+          : SUITE?.test(b.cmd)
+            ? 'suite'
+            : 'other'
+      }`;
       const row = cats.get(k) ?? { n: 0, ms: 0 };
       cats.set(k, { n: row.n + 1, ms: row.ms + b.dur });
     }
@@ -284,6 +379,28 @@ function main(transcript, suiteSrc) {
     console.log(`| ${k} | ${v.n} | ${fmt(v.ms)} |`);
   }
 
+  console.log('\n## files read by two or more agents\n');
+  const readers = new Map();
+  for (const { desc, runs } of [
+    { desc: ORCHESTRATOR, runs: orchRuns },
+    ...workers,
+  ]) {
+    for (const r of runs.filter(x => x.name === 'Read')) {
+      const row = readers.get(r.input.file_path) ?? { who: new Set(), n: 0 };
+      row.who.add(desc);
+      row.n++;
+      readers.set(r.input.file_path, row);
+    }
+  }
+  const shared = [...readers.entries()]
+    .filter(([, v]) => v.who.size >= 2)
+    .sort((a, b) => b[1].who.size - a[1].who.size)
+    .slice(0, 15);
+  console.log('| agents | reads | file |');
+  console.log('|---|---|---|');
+  for (const [file, v] of shared)
+    console.log(`| ${v.who.size} | ${v.n} | ${file} |`);
+
   console.log('\n## violation candidates\n');
   let flagged = false;
   const norm = cmd => {
@@ -291,21 +408,30 @@ function main(transcript, suiteSrc) {
     const seg = base.split(';').find(s => SUITE.test(s)) ?? base;
     return seg.split('|')[0].trim();
   };
+  const orchSuites = SUITE
+    ? bashOf(orchRuns).filter(b => SUITE.test(b.cmd))
+    : [];
+  if (orchSuites.length) {
+    flagged = true;
+    console.log(
+      `- orchestrator ran a suite: ${orchSuites.length} run(s), ${fmt(orchSuites.reduce((a, b) => a + b.dur, 0))}`,
+    );
+  }
   for (const w of workers) {
     const suites = SUITE ? w.bash.filter(b => SUITE.test(b.cmd)) : [];
     const sleeps = w.bash
       .filter(b => SLEEP.test(b.cmd))
       .sort((a, b) => a.start - b.start);
-    if (sleeps.length >= 2) {
+    if (sleeps.length >= 2 || sleeps.some(b => b.dur >= CACHE_TTL)) {
       flagged = true;
       console.log(
         `- sleep poll: ${w.desc} slept ${sleeps.length} times, ${fmt(sleeps.reduce((a, b) => a + b.dur, 0))} total — first at ${hhmm(sleeps[0].start)}: ${sleeps[0].cmd.slice(0, 60)}`,
       );
     }
-    if (/review/i.test(w.desc) && suites.length) {
+    if (!/clerk/i.test(`${w.type} ${w.desc}`) && suites.length) {
       flagged = true;
       console.log(
-        `- reviewer ran a suite: ${w.desc} — ${suites.length} run(s), ${fmt(suites.reduce((a, b) => a + b.dur, 0))}`,
+        `- suite outside the clerk: ${w.desc} — ${suites.length} run(s), ${fmt(suites.reduce((a, b) => a + b.dur, 0))}`,
       );
     }
     const clusters = new Map();
@@ -357,7 +483,7 @@ function main(transcript, suiteSrc) {
 
   if (!flagged) console.log('(none)');
   console.log(
-    '\nmeasure limits: thinking is encrypted (generation = gap before an assistant message); parallel tools overlap; owner wait folds attachments before a human message; a gap background work fully covered counts as orchestrator wait, partial coverage stays in gen.',
+    '\nmeasure limits: thinking is encrypted (generation = gap before an assistant message); parallel tools overlap; owner wait folds attachments before a human message; a gap background work fully covered counts as orchestrator wait, partial coverage stays in gen; transcript token sums run below cost-state, which counts retries.',
   );
 }
 

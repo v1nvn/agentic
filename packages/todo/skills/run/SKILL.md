@@ -1,6 +1,6 @@
 ---
 name: run
-description: Execute a progress/<plan>.md plan file unit by unit — fresh subagents per unit, each closed on its stated criteria, one commit per unit; landing the final unit closes the thread in the same sitting. Use when the user points at a plan file and asks to run it, fully or a named subset of units.
+description: Execute a progress/<plan>.md plan file unit by unit — fresh builder, reviewer and clerk subagents per unit, each unit closed on its stated criteria, one commit per unit; landing the final unit closes the thread in the same sitting. Use when the user points at a plan file and asks to run it, fully or a named subset of units.
 argument-hint: <plan> [units]
 ---
 
@@ -12,10 +12,11 @@ units to run — ids exactly as the plan names them (phase, step, block, unit), 
 stop and say so.
 
 The plan carries the work in the rules' progress-file shape: Goal, the Steps unit table
-(dependency order, close criteria, `model`, `review`), and its Plan section — reading
-lists, the enforcement inventory, run mechanics, stop rules, PR grouping, open
-questions, audit list. This skill carries the loop. Where the plan is silent, derive from the repo and CLAUDE.md,
-decide, and write the decision into the plan — inside the deviation law below.
+(dependency order, close criteria, `model`, `review`, `consult`), and its Plan section —
+reading lists, the tactical map, the enforcement inventory, run mechanics, stop rules,
+PR grouping, open questions, audit list. This skill carries the loop. Where the plan is
+silent, derive from the repo and CLAUDE.md, decide, and write the decision into the
+plan — inside the deviation law below.
 
 ## Deviations
 
@@ -25,93 +26,104 @@ recommendation and continues: the pick is said in one line as it is taken, writt
 the plan, and listed in the veto table; no pick is ruled silently. What stops the run
 and waits: a pick that touches money, names what a caller sees, forces a second
 deviation to land, touches a file the plan doesn't name, or mints or splits a unit —
-except a builder's split at the line ceiling (§Workers), which proceeds; a small early
+except a builder's split at the line ceiling, which proceeds; a small early
 deviation compounds into places the plan never chose. A plan's `**Run:**` line moves
-the split: `ask: all` posts every pick, `standing-pick: all` takes even money and names. A single mechanical pick inside
-the plan's named scope proceeds and is written into the plan. A protected test or snapshot that
+the split: `ask: all` posts every pick, `standing-pick: all` takes even money and names. A single mechanical pick inside the
+plan's named scope proceeds and is written into the plan. A protected test or snapshot that
 moves only by a rename the plan names, with no assertion line and no snapshot value changed
 otherwise, is such a pick: the enforcement script proves it and it goes in the veto table. A
 changed assertion, or a test deleted beyond the row's list, stops.
 
 ## Session frame
 
-The session is orchestrator, verifier and decision-maker only. The owner answers
-only what §Deviations posts. Every decision is written into the plan as it is made,
-into the section the pick affects (Steps, Plan, Design; open reviewer findings in
+The session is orchestrator and decision-maker only. It never builds, reviews or gates:
+it dispatches, commits, rules, routes review and passes tiers. Nothing falls back to the
+session — a reproduction, a gate, a script goes to the role that owns it. The owner
+answers only what §Deviations posts. Every decision is written into the plan as it is
+made, into the section the pick affects (Steps, Plan, Design; open reviewer findings in
 Current state), never a log section — the veto table lives only in the final report.
 The plan file, with its scratch notes and ritual records, is the resume record — a
 later session picks up from those alone; write no parallel run document. On resume,
-fold any scratch notes in first, then re-run the last landed unit's close criteria
-instead of trusting its row.
+fold any scratch notes in first, then have the clerk re-run the last landed unit's
+close criteria instead of trusting its row.
 
-## Models
+## Dispatch
 
-The plan names its models; this skill's defaults are the fallback.
+Every worker is a spawn of one of the plugin's three role agents. A role's file carries
+its law, so a brief carries only pointers. Never `fork` — a fork copies the
+orchestrator's context — and never another agent type.
+
+| role            | does                                                                                              |
+| --------------- | ------------------------------------------------------------------------------------------------- |
+| `todo:builder`  | builds a unit, or writes its tests red                                                            |
+| `todo:reviewer` | read-only: blind review, re-review, slice review, design or split consult, rescue diagnosis       |
+| `todo:clerk`    | the workspace gate, the enforcement script, scripts, tails, scratch drafts, close-criteria checks |
+
+The tier rides the dispatch. A cell's `model/effort` pair becomes the Agent call's
+`model` and `effort` parameters — `sonnet/low` dispatches with `model: "sonnet"`,
+`effort: "low"` — and they beat the role file's frontmatter. A blank cell passes
+neither, so the role file's defaults decide.
 
 - A `**Run:**` line names the orchestrator model only when the owner launches one other
   than the default; without it, the launching session orchestrates. A session on a
   different model than the line names says so before its first dispatch and continues —
   it cannot switch itself; the owner launched it.
-- A `model` column on the Steps table names that unit's builder: blank for the default,
-  `sonnet` for a row the plan marks mechanical (renames, deletions with named
-  replacements, doc sweeps) — its edits land in that unit's one commit, never their own —
-  or `owner` for a unit the run does not do: it is skipped, its dependents stop at it,
-  and the final report lists it as owed. The reviewer and test writer take the default
-  whatever the cell says — a review reads a diff against the plan, it does not re-do the
-  build. fable never builds: a builder's bill is cache
-  fees on its own context, every gate past five minutes re-writes it, and fable's cache
-  rates price the same build at multiples of opus's. A cell naming fable is out of shape
-  and hardening rewrites it to blank, said in one line and listed in the veto table.
-- A `review` column tiers the reviewer: `blind` (the default), `checklist` (`sonnet`,
-  the unit's close criteria and the loop's checklist core), or `none` — which the plan
-  must justify in the pre-flight picks and the final veto table.
-- **Consult:** fable, read-only, one brief and one answer — it runs no build and no gate,
-  so it never idles past its cache. It reaches a unit three ways:
-  - **before dispatch**, on a row that leaves design open or will pass the line ceiling:
-    it reads the code the row names, rules the open picks and the split, and the
-    orchestrator writes them into the row before the builder sees it;
-  - **as a slice reviewer**, beside the unit's blind reviewer, over only the diff the
-    plan marks high-stakes (its silent-failure carriers, money) — a review that
-    re-runs gates over a whole diff idles past the cache at fable's rates, so the
-    rest of the diff stays with the default reviewer;
-  - **the rescue** — once a unit's fix rounds are burned on the default, the
-    orchestrator may re-dispatch it to fable once, said in one line and
-    listed in the veto table.
-    The plan marks a row's consults in a `consult` column (`design`, `split`, `review`,
-    comma-separated); the orchestrator may also consult on a question the plan does not
-    mark, one brief per question, logged in the veto table.
-- Defaults: judgment roles (orchestrating, hardening, test-writing, building, reviewing,
-  fixing) are `opus`; extraction, scripts, re-measures, audits and web enumeration are
-  `sonnet`.
+- The `model` cell tiers the unit's builder: blank for the role default, a model or a
+  `model/effort` pair (`sonnet/low`), or `owner` for a unit the run does not do — it is
+  skipped, its dependents stop at it, and the final report lists it as owed.
+- The `review` cell tiers the unit's blind reviewer: blank for the role default, a
+  `model/effort` pair, or `none`. A pair or `none` holds only when the plan's Plan
+  section names why the unit is low-risk, and `none` is listed in the pre-flight picks
+  and the final veto table. A diff that crosses a silent-failure carrier (migrations,
+  wire bodies, signatures) is reviewed at the role default whatever the cell says.
+- The `consult` cell marks `todo:reviewer` consults, comma-separated, each at the tier
+  the plan names for it, else the role default:
+  - `design` or `split` — **before dispatch**, on a row that leaves design open or may
+    pass the line ceiling: the consult reads the code the row names and rules the open
+    picks and the split, and the orchestrator writes them into the row before the
+    builder sees it;
+  - `review` — **a slice review** beside the unit's blind review, over only the diff the
+    plan marks high-stakes (its silent-failure carriers, money).
+
+  The orchestrator may also consult on a question the plan does not mark, one brief per
+  question, logged in the veto table; the rescue (§Per-unit loop) is such a consult.
 
 ## Open
 
 1. Read the plan whole, the repo CLAUDE.md sections that bite, and the tracking rules
    (loaded above).
-2. Harden if needed. A plan without per-unit close criteria (testable sentences) and
-   reading lists is a design, not a runnable plan: the first unit is a docs-only
-   hardening unit that writes them — plus an enforcement inventory (tests that must
-   survive byte-for-byte, forbidden idioms, counts that must never rise) — into the
-   plan's Steps table and Plan section, and commits. Nothing builds before they exist.
-   A design that rests on a live measure has the measure run once at hardening, on the
-   cheap proxy; a measure that misses its bar reopens the design here, not mid-run.
-3. Resolve the scope to an ordered unit list. Steps the plan marks trivial may bundle
-   into one unit with one-line commits each. A row that carries unrelated risks — a coverage
-   change beside a money change — is split at hardening. The orchestrator reads no source, so
-   it never guesses a row's size: a row the plan marks `split` takes its consult before
-   dispatch, and for any other the line ceiling is a stop inside the build.
+2. Harden if needed. A plan without per-unit close criteria (testable sentences), reading
+   lists and the tactical map is a design, not a runnable plan: the first unit is a
+   docs-only hardening unit that writes them — plus an enforcement inventory (tests that
+   must survive byte-for-byte, forbidden idioms, counts that must never rise) and the
+   small-row line — into the plan's Steps table and Plan section, and commits. Nothing
+   builds before they exist. A design that rests on a live measure has the measure run
+   once at hardening, on the cheap proxy; a measure that misses its bar reopens the
+   design here, not mid-run.
+3. Resolve the scope to an ordered unit list. A row that carries unrelated risks — a
+   coverage change beside a money change — is split at hardening. The orchestrator reads
+   no source, so it never guesses a row's size: a row the plan marks `split` takes its
+   consult before dispatch, and for any other the line ceiling is a stop inside the build.
+   Small work is one dispatch. The rows the plan's `Small rows:` line names — a row
+   qualifies only when it leaves no design freedom (deletions, renames, doc fixes, swaps
+   to a named target), and nothing money-touching or design-bearing ever does — batch
+   into one builder dispatch per thread or PR group. The brief points at all of them; the
+   builder works them in sequence on their scoped gates and records each row's files; the
+   clerk runs one workspace gate at the batch's end; the orchestrator commits row by row
+   from those file lists, and rows sharing a file land in one commit naming both ids.
+   Then one blind review over the whole batch diff and one clerk check of every row's
+   close criteria. The pipeline count scales with risk, not with unit count.
 4. Derive the run mechanics:
-   - Gate command(s) from the repo (type-check/lint/test/build, or a workspace-wide
-     gate). Each unit's row may name its gate scope — the components it touches plus
-     their dependents; a row that names none takes the repo's whole gate, and the whole
-     gate runs at the group boundary either way. The full gate fires immediately before
-     a commit that changes code it exercises, and the unit's scratch notes name every firing and
-     what it answered; a firing that answered nothing is a deviation. A firing's log
-     answers every later question about it — re-running a suite to re-shape its output
-     is a firing that answered nothing, and a green full gate re-fires only for a
-     stated cause: a flake with the failure quoted, or changed code. Iteration inside
-     a unit uses scoped commands only. Where builds are slow, ration every run to the
-     narrowest scope that answers the question.
+   - Gates by construction. The tactical map pins each row's scoped gate lines — the
+     components the row touches plus their dependents, inside the builder's package
+     tree — and the builder runs only those. The workspace gate is the boundary's: the
+     clerk fires it immediately before a commit that changes code it exercises, and at
+     a PR group's end; a batch fires it once at its end, and the row commits that follow
+     that green fire nothing more. A firing re-fires only for a stated cause — changed
+     code, or a flake with the failure quoted — and the clerk flags a firing whose
+     extracted result matches the last on the same tree as one that answered nothing,
+     which is a deviation. Where builds are slow, ration every run to the narrowest
+     scope that answers the question.
    - Any A/B ritual the plan names: record before, record after — both records go to
      `progress/.scratch/<slug>/`, the ritual-record folder the rules keep until the
      thread closes — and land only on the plan's landing rule (e.g. green count up
@@ -125,13 +137,12 @@ The plan names its models; this skill's defaults are the fallback.
    - A ritual command longer than a few minutes is started by the orchestrator in the
      background, and its exit notifies it: a subagent is not woken by its own background
      command, and a sleep loop past five minutes re-writes the poller's whole cache each
-     poll. No worker polls with `sleep`, and no worker backgrounds a command — what it
-     cannot wait out in the foreground belongs to the orchestrator. While a ritual holds a resource the gate needs,
-     each active brief names the gate the resource permits and defers one full-gate
-     firing to the ritual's end. A `sonnet` writes the ritual's script and
-     reconciles its output. A unit held on an owner ruling runs its after pass on the
-     held tree meanwhile; the ruling re-runs only the inputs its change touches. A ritual
-     blocks only marking the PR ready for review — never a commit, a push or a dispatch.
+     poll. While a ritual holds a resource the gate needs, each active brief names the
+     gate the resource permits and defers one workspace-gate firing to the ritual's end.
+     The clerk writes the ritual's script and reconciles its output. A unit held on an
+     owner ruling runs its after pass on the held tree meanwhile; the ruling re-runs only
+     the inputs its change touches. A ritual blocks only marking the PR ready for
+     review — never a commit, a push or a dispatch.
    - PR topology from the plan's grouping; default one branch and one PR at the end.
      Every `gh pr create` names its base explicitly. The run opens PRs; it never
      merges and never pushes to the default branch.
@@ -146,94 +157,70 @@ The plan names its models; this skill's defaults are the fallback.
    never at pre-flight — the evidence it needs does not exist at launch.
 6. Preconditions before the first dispatch: tree clean on the plan's base (the default
    branch when the plan names none) — when the prompt asks for a worktree, the run creates
-   one on a new branch off that base and the check applies there; the gate green at the start; every unit on another
-   thread the scope is gated on has landed there — its closing test is in the tree, or
-   its plan's Steps table says so; the environment the scoped units need (cluster, env vars,
-   secrets, disk, `gh` auth, quiet neighbors — file watchers, IDE indexers and
-   test-discovery runners on the tree, where the machine has them). Any violation:
-   stop and say so.
+   one on a new branch off that base and the check applies there; the workspace gate
+   green at the start, fired by the clerk; every unit on another thread the scope is
+   gated on has landed there — its closing test is in the tree, or its plan's Steps
+   table says so; the environment the scoped units need (cluster, env vars, secrets,
+   disk, `gh` auth, quiet neighbors — file watchers, IDE indexers and test-discovery
+   runners on the tree, where the machine has them). Any violation: stop and say so.
 
 ## Workers
 
-- Each worker takes the model §Models resolves for its role. Never `fork` — a fork
-  copies the orchestrator's context.
-- One `sonnet` clerk per run, continued by message, owns the run's mechanics: it runs
-  the enforcement gate script after every commit and fix round and reports the red or
-  green line, collects gate tails and worker-report tails verbatim, drafts scratch
-  notes and veto-table rows, and at every builder report reads the builder's context
-  size off its transcript's last usage entry. It pastes raw command
-  output, never a summary of it, and decides nothing — a drafted line lands only when
-  the orchestrator accepts it, or untouched where the run pre-authorized its template.
-- Fresh agent per unit per role. Briefs point at the plan's section or row, name the
-  files the worker owns, and state what "done" means (the unit's verify clause).
-  Briefs never paste plan text. A brief that names a heavyweight ritual tool pins
-  its full invocation from the plan — filters, jobs, timeout, output; a worker never
-  explores a tool's options by trial runs. Where the plan does not yet pin one, the
-  orchestrator derives it once, writes it into the plan, and every brief thereafter
-  uses that line.
-- Workers read only their reading list and keep their context small. A builder the
-  clerk reads past the context ceiling (a third of its window) is ended at that report
-  and a successor continues from its state file: a subagent's cache expires after five
-  idle minutes, so one long gate re-writes the whole context at the write rate, and
-  compaction would pay the same bill invisibly. For the same reason a builder idle past
-  five minutes is not resumed: its next round goes to a successor. The builder keeps that
-  state file current — the step it has entered — so a successor resumes cold.
-- The line ceiling counts inserted lines only: deletions, snapshots and moves git detects are
-  free (`git diff --shortstat -M -- ':!*.snap'`). A builder past it stops at the next green
-  point, saves the full patch, and splits along the row's own clauses: each half gates green
-  alone and adds no bridge code, and the first keeps no path the second deletes unless that
-  path is already in the tree, because a split that needs a bridge lands two paths. The split is
-  written into the plan and reported. With no such split — a rename, a rework that deletes the
-  old path — the unit lands whole and the report says why.
-- Workers report in a fixed format under ~20 lines: diff stat, gate tail,
-  per-criterion proof, A/B verdict where the unit calls for one, deviations, surprises.
+- Fresh spawns per unit, every role. A worker inherits only the common base: its role
+  file and the plan; within a unit it is continued by message. Everything unit-private —
+  notes, state file, gate output — lives in the builder's and the clerk's per-worker
+  scratch files, a reviewer's in its report, and dies when the unit closes; the fold is the only way a
+  finding outlives its worker. No worker lives across units, and none carries another's
+  transcript.
+- Briefs point at the plan's row and sections, name the files the worker owns, and state
+  what "done" means (the unit's close criteria). Briefs never paste plan text. A brief
+  that names a heavyweight ritual tool pins its full invocation from the plan — filters,
+  jobs, timeout, output. Where the plan does not yet pin one, the orchestrator has it
+  derived once, writes it into the plan, and every brief thereafter uses that line.
+- A builder the clerk reads past the context ceiling (a third of its window) is ended at
+  that report and a successor continues from its state file: a subagent's cache expires
+  after five idle minutes, so one long gate re-writes the whole context at the write
+  rate. For the same reason a builder idle past five minutes is not resumed: its next
+  round goes to a successor.
 - The orchestrator never opens a source file to understand it. It reads reports, gate
-  output, `git diff` and `git show` diffs, and the diff classes the plan flags as silent-failure
-  carriers (migrations, wire bodies, signatures) — and may re-run anything to
-  reproduce a finding.
-- A worker stops only the processes it started, by the PID it recorded — never a
-  pattern kill, which takes down a ritual's processes on the same machine.
+  output, `git diff` and `git show` diffs, and the diff classes the plan flags as
+  silent-failure carriers (migrations, wire bodies, signatures).
+- Round-trips happen only at boundaries; each one wakes the orchestrator and re-reads
+  its whole context. A builder reports once — when it stops green, or on a deviation or
+  the line ceiling — never with mid-build progress. The clerk gets one message per
+  boundary carrying all of that boundary's work — the workspace gate, the enforcement
+  script, and at close the close criteria — and answers in one report.
 - A stalled or rate-limited worker is continued by message, never replaced. A
   successor starts from the worker's state file, and only once the original is gone.
 
 ## Per-unit loop
 
-1. Test writer first where the plan names the unit's tests: writes them red, commits
-   nothing, reports test names and files; the builder may not edit them. Where the
-   plan doesn't name tests, red-first rides in the builder's brief.
-2. Builder builds compiler/test-driven on the named files, writes no bridge code,
-   leaves protected tests untouched but for a rename §Deviations admits, runs the full
-   gate once, writes its unit's notes to its
-   per-worker scratch file under `progress/.scratch/`, writes what it learned into the
-   sections of later units that owe it, and stops green with the tree uncommitted. The
-   orchestrator commits (one line, no co-author trailer) and appends to or opens the PR,
-   because auto mode refuses a worker's commit. A deviation stops its item, not the
-   builder: it reports the finding and the options, continues every item that does not
-   depend on the answer, and nothing lands until the orchestrator answers.
-3. Where the enforcement inventory names checkables, a `sonnet` writes a scratchpad
-   gate script from it (protected-test hashes, forbidden-idiom count deltas,
-   comment-line delta, line ceilings); the clerk runs it after every commit and fix
-   round. Red items route back by message; the reviewer is not dispatched until
-   green.
-4. Reviewer: fresh. `blind` — the default — gets the diff and the plan's sections,
-   never the builder's report; `checklist` (`sonnet`) gets the diff, the unit's close
-   criteria and the checklist core below. A diff that crosses a silent-failure
-   carrier (migrations, wire bodies, signatures) is reviewed blind whatever the row
-   says. A row whose `consult` names `review` also takes a fable slice reviewer over the
-   diff the plan marks high-stakes (§Models). Findings only, `file:line` with a severity,
-   each claim verified before it is called a defect. Checklist core: unasked deviation
-   from the plan's tables; every seam crossed with a non-degenerate value; the one-way
-   rule (old path deleted in the same change); a test weakened to pass; the comment rule; tracking
-   references in code; files touched outside the brief.
+1. Test writer first where the plan names the unit's tests: a builder spawn whose brief
+   asks for the tests red; it commits nothing and reports test names and files, and the
+   unit's builder may not edit them. Where the plan doesn't name tests, red-first rides
+   in the builder's brief.
+2. The builder builds on the row's scoped gates and stops green with the tree
+   uncommitted. One clerk message fires the workspace gate and the enforcement script
+   together; on green the orchestrator commits
+   (one line, no co-author trailer) and appends to or opens the PR, because auto mode
+   refuses a worker's commit. A deviation stops its item, not the builder, and nothing
+   that depends on it lands until the orchestrator answers.
+3. Where the enforcement inventory names checkables, the clerk writes the gate script
+   from it once, and every boundary message runs it beside the workspace gate. Red
+   items route back by message; the reviewer is not dispatched until green.
+4. Review: a fresh `todo:reviewer`, blind — the diff and the plan's sections, never the
+   builder's report — at the tier the `review` cell names, plus a slice review where the
+   `consult` cell names `review`.
 5. Fix rounds go back to the builder by message, or to its successor under §Workers' idle
-   rule: at most two. A round whose diff
-   changes no code the full gate exercises — free comments, plan text, formatting,
-   docs the gate does not test — runs the repo's fast checks and the enforcement
-   script only; the full gate does not re-fire for it. A third means the unit
-   is wrong — the orchestrator reads the specific finding, not the diff, and may
-   take §Models' fable rescue from there. A fix round is verified by one re-review
-   scoped to that round's findings; a re-review opens no new question — what it finds
-   is a pick under §Deviations, or stops the run.
+   rule: at most two. A round whose diff changes no code the workspace gate exercises —
+   free comments, plan text, formatting, docs the gate does not test — runs the repo's
+   fast checks and the enforcement script only. A third means the unit is wrong: the
+   orchestrator reads the specific finding, not the diff, and may take the rescue — a
+   reviewer consult that diagnoses the failure — then one round to a fresh builder with
+   the diagnosis in its brief, at the tier the consult recommends and the orchestrator
+   picks; said in one line and listed
+   in the veto table. A fix round is verified by one re-review scoped to that round's
+   findings.
 6. Route a reported deviation through Deviations. A pick inside the plan's named
    scope: pick it by CLAUDE.md and the plan's own law, write it into the owning
    section, ripple-check later sections in the same edit, note it for the veto table,
@@ -245,12 +232,12 @@ The plan names its models; this skill's defaults are the fallback.
    question that touches money or would mint a unit is posted only after a read-only
    trace of the code it rests on, so every option it offers is buildable.
 7. Close the unit — only on its stated close criteria (greps, tests, gate firings),
-   never on the builder's say-so; review stays a blind subagent. Fold the unit's
-   notes into the plan per the rules, then dispatch the next. A finding outside the unit's
-   row does not hold the unit: the unit commits on its row, and the finding lands as its
-   own commit after its ruling.
-   Strictly serial: one lane, one warm build, no worktrees inside a run, no parallel
-   units. Read-only prep for the next unit — its trace, its before pass, its brief — runs
+   checked by the clerk, never on the builder's say-so. Fold the unit's scratch into the
+   plan per the rules — what later units need into their rows, what the tactical map
+   lacks into the map — delete the scratch, then dispatch the next. A finding outside the
+   unit's row does not hold the unit: the unit commits on its row, and the finding lands
+   as its own commit after its ruling.
+   Strictly serial: one unit at a time, no worktrees inside a run, no parallel units. Read-only prep for the next unit — its trace, its before pass, its brief — runs
    beside the current one; its build does not.
 8. A unit whose deliverable is a document or a dataset — nothing compiles, no gate —
    skips the test writer and the gate. Its reviewer checks the deliverable against
@@ -285,8 +272,8 @@ The plan names its models; this skill's defaults are the fallback.
   rules' closing paragraph, after the unit's own close has folded its notes into the thread file.
   Delete the thread's index entry as part of that close; mint any successor the picks
   created via `/todo:new` — its close-moment trigger.
-- Whole-run audit when the plan carries one: a `sonnet` writes and runs the script
-  from the plan's audit list, no builds.
+- Whole-run audit when the plan carries one: the clerk writes and runs the script from
+  the plan's audit list, no builds.
 - Index entries close only on green evidence.
 - Final report: PR URLs; the evidence ladder the plan tracks (start → per-unit →
   end); the veto table (question, pick, reason,
