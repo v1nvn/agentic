@@ -1436,6 +1436,70 @@ function renderStatusline(input) {
 	return emit(l1) + emit(l2);
 }
 //#endregion
+//#region src/render/facts.ts
+var TAIL_BYTES = 1 << 20;
+function intOf(value) {
+	return typeof value === "number" && Number.isFinite(value) ? value : 0;
+}
+function lastFacts(fd) {
+	const size = fstatSync(fd).size;
+	const length = Math.min(size, TAIL_BYTES);
+	const buffer = Buffer.alloc(length);
+	readSync(fd, buffer, 0, length, size - length);
+	const lines = buffer.toString("utf8").split("\n");
+	for (let i = lines.length - 1; i >= 0; i -= 1) {
+		let entry;
+		try {
+			entry = JSON.parse(lines[i]);
+		} catch {
+			continue;
+		}
+		const message = isRecord(entry) ? entry.message : void 0;
+		const usage = isRecord(message) ? message.usage : void 0;
+		if (!isRecord(usage)) continue;
+		const tokens = intOf(usage.input_tokens) + intOf(usage.cache_read_input_tokens) + intOf(usage.cache_creation_input_tokens);
+		if (tokens > 0) return {
+			effort: isRecord(entry) && typeof entry.effort === "string" ? entry.effort : "",
+			tokens
+		};
+	}
+	return null;
+}
+function taskFacts(transcriptPath, id) {
+	if (!/^[A-Za-z0-9_-]+$/.test(id)) return null;
+	const session = basename(transcriptPath, ".jsonl");
+	const path = join(dirname(transcriptPath), session, "subagents", `agent-${id}.jsonl`);
+	let fd;
+	try {
+		fd = openSync(path, "r");
+	} catch {
+		return null;
+	}
+	try {
+		return lastFacts(fd);
+	} finally {
+		closeSync(fd);
+	}
+}
+function transcriptFacts(payload) {
+	let root;
+	try {
+		root = JSON.parse(payload);
+	} catch {
+		return {};
+	}
+	const transcriptPath = isRecord(root) && typeof root.transcript_path === "string" ? root.transcript_path : "";
+	const tasks = isRecord(root) && Array.isArray(root.tasks) ? root.tasks : [];
+	if (transcriptPath === "") return {};
+	const map = {};
+	for (const task of tasks) {
+		if (!isRecord(task) || typeof task.id !== "string") continue;
+		const facts = taskFacts(transcriptPath, task.id);
+		if (facts !== null) map[task.id] = facts;
+	}
+	return map;
+}
+//#endregion
 //#region src/render/panel.ts
 var MS_THRESHOLD = 2e11;
 var TASK_ITEMS = [
@@ -1478,19 +1542,20 @@ function availColumns(tick) {
 	const columns = /^\d+$/.test(text) ? Number(text) : 200;
 	return Math.max(columns, 20) - 1;
 }
-function extractFields(task, usage) {
+function extractFields(task, facts) {
 	const id = cell(field(task, "id", ""));
+	const read = facts?.[id];
 	return {
 		ctx: cell(field(task, "contextWindowSize", 0)),
 		desc: cell(truncateDesc(jqText(field(task, "description", "")))),
-		effort: cell(field(task, "effort", "")),
+		effort: cell(read === void 0 ? jqText(field(task, "effort", "")) : read.effort),
 		id,
 		label: cell(field(task, "label", "")),
 		model: cell(field(task, "model", "")),
 		name: cell(field(task, "name", "")),
 		start: cell(field(task, "startTime", 0)),
 		status: cell(field(task, "status", "")),
-		tokens: cell(orElse(usage?.[id], field(task, "tokenCount", 0)))
+		tokens: cell(orElse(read?.tokens, field(task, "tokenCount", 0)))
 	};
 }
 function durationMs(startText, now) {
@@ -1613,7 +1678,7 @@ function renderPanel(input) {
 	let out = "";
 	for (const task of tasks) {
 		if (!isRecord(task)) continue;
-		const fields = extractFields(task, input.usage);
+		const fields = extractFields(task, input.facts);
 		if (fields.id === "") continue;
 		const row = fitRow(fields, working, input.now, layout, separators, avail);
 		const content = input.noColor === true ? textOf(row) : toSgr(row);
@@ -1723,67 +1788,6 @@ function resolvePaint(input) {
 	};
 }
 //#endregion
-//#region src/render/usage.ts
-var TAIL_BYTES = 1 << 20;
-function intOf(value) {
-	return typeof value === "number" && Number.isFinite(value) ? value : 0;
-}
-function lastUsage(fd) {
-	const size = fstatSync(fd).size;
-	const length = Math.min(size, TAIL_BYTES);
-	const buffer = Buffer.alloc(length);
-	readSync(fd, buffer, 0, length, size - length);
-	const lines = buffer.toString("utf8").split("\n");
-	for (let i = lines.length - 1; i >= 0; i -= 1) {
-		let entry;
-		try {
-			entry = JSON.parse(lines[i]);
-		} catch {
-			continue;
-		}
-		const message = isRecord(entry) ? entry.message : void 0;
-		const usage = isRecord(message) ? message.usage : void 0;
-		if (!isRecord(usage)) continue;
-		const tokens = intOf(usage.input_tokens) + intOf(usage.cache_read_input_tokens) + intOf(usage.cache_creation_input_tokens);
-		if (tokens > 0) return tokens;
-	}
-	return null;
-}
-function taskUsedContext(transcriptPath, id) {
-	if (!/^[A-Za-z0-9_-]+$/.test(id)) return null;
-	const session = basename(transcriptPath, ".jsonl");
-	const path = join(dirname(transcriptPath), session, "subagents", `agent-${id}.jsonl`);
-	let fd;
-	try {
-		fd = openSync(path, "r");
-	} catch {
-		return null;
-	}
-	try {
-		return lastUsage(fd);
-	} finally {
-		closeSync(fd);
-	}
-}
-function usedContextMap(payload) {
-	let root;
-	try {
-		root = JSON.parse(payload);
-	} catch {
-		return {};
-	}
-	const transcriptPath = isRecord(root) && typeof root.transcript_path === "string" ? root.transcript_path : "";
-	const tasks = isRecord(root) && Array.isArray(root.tasks) ? root.tasks : [];
-	if (transcriptPath === "") return {};
-	const map = {};
-	for (const task of tasks) {
-		if (!isRecord(task) || typeof task.id !== "string") continue;
-		const tokens = taskUsedContext(transcriptPath, task.id);
-		if (tokens !== null) map[task.id] = tokens;
-	}
-	return map;
-}
-//#endregion
 //#region src/render/entry.ts
 function readStdin() {
 	return new Promise((resolve, reject) => {
@@ -1818,7 +1822,7 @@ async function main() {
 			now,
 			payload,
 			picks: paint.picks,
-			usage: usedContextMap(payload),
+			facts: transcriptFacts(payload),
 			noColor
 		}));
 		return;

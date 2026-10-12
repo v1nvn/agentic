@@ -3,12 +3,14 @@ import { basename, dirname, join } from 'node:path';
 
 import { isRecord } from './jq.js';
 
-// The tick's tokenCount is documented as the subagent's running token count,
-// but the engine ships an output-flavored figure there (406 observed against
-// a real 36,820), so the panel reads the used context off the subagent's own
-// transcript: input + cache read + cache write of its last usage line, the
-// same arithmetic as the main line's total_input_tokens. Retire this module
-// when tokenCount matches its docs.
+// Two facts the tick under-reports, read off each subagent's own transcript:
+// used context (the tick's tokenCount is an output-flavored figure, 406
+// observed against a real 36,820) and the effort the run is actually at —
+// the tick's task.effort is the launch's explicit ask only, absent when the
+// effort is inherited. Both sit on the last usage line: tokens as input +
+// cache read + cache write (the main line's total_input_tokens arithmetic),
+// effort as the line's top-level field, the effective level as sent. Retire
+// the tokens half when tokenCount matches its docs.
 
 // One read window per task: the tail of the transcript, wide enough to hold
 // the tool results that can sit between a subagent's usage lines.
@@ -18,7 +20,12 @@ function intOf(value: unknown): number {
   return typeof value === 'number' && Number.isFinite(value) ? value : 0;
 }
 
-function lastUsage(fd: number): null | number {
+export interface TaskFacts {
+  readonly effort: string;
+  readonly tokens: number;
+}
+
+function lastFacts(fd: number): null | TaskFacts {
   const size = fstatSync(fd).size;
   const length = Math.min(size, TAIL_BYTES);
   const buffer = Buffer.alloc(length);
@@ -41,7 +48,9 @@ function lastUsage(fd: number): null | number {
       intOf(usage.cache_read_input_tokens) +
       intOf(usage.cache_creation_input_tokens);
     if (tokens > 0) {
-      return tokens;
+      const effort =
+        isRecord(entry) && typeof entry.effort === 'string' ? entry.effort : '';
+      return { effort, tokens };
     }
   }
   return null;
@@ -50,7 +59,7 @@ function lastUsage(fd: number): null | number {
 // A session's subagent transcripts sit beside its own jsonl, in the
 // session-id directory named after it: <project>/<session>.jsonl and
 // <project>/<session>/subagents/agent-<task id>.jsonl.
-function taskUsedContext(transcriptPath: string, id: string): null | number {
+function taskFacts(transcriptPath: string, id: string): null | TaskFacts {
   if (!/^[A-Za-z0-9_-]+$/.test(id)) {
     return null;
   }
@@ -68,13 +77,13 @@ function taskUsedContext(transcriptPath: string, id: string): null | number {
     return null;
   }
   try {
-    return lastUsage(fd);
+    return lastFacts(fd);
   } finally {
     closeSync(fd);
   }
 }
 
-export function usedContextMap(payload: string): Record<string, number> {
+export function transcriptFacts(payload: string): Record<string, TaskFacts> {
   let root: unknown;
   try {
     root = JSON.parse(payload);
@@ -89,14 +98,14 @@ export function usedContextMap(payload: string): Record<string, number> {
   if (transcriptPath === '') {
     return {};
   }
-  const map: Record<string, number> = {};
+  const map: Record<string, TaskFacts> = {};
   for (const task of tasks) {
     if (!isRecord(task) || typeof task.id !== 'string') {
       continue;
     }
-    const tokens = taskUsedContext(transcriptPath, task.id);
-    if (tokens !== null) {
-      map[task.id] = tokens;
+    const facts = taskFacts(transcriptPath, task.id);
+    if (facts !== null) {
+      map[task.id] = facts;
     }
   }
   return map;

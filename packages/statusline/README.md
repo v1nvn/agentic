@@ -95,7 +95,7 @@ Node ≥ 22. One workspace dep: `@v1nvn/agentic-core` (usage/exit helpers).
 | `src/render/payload.ts`                | the stdin payload types + parse                                                                              |
 | `src/render/git.ts`                    | the git reads                                                                                                |
 | `src/render/panel.ts`                  | the agent-panel renderer — the theme's layout over the six task items, its own `vlen` and fit ladder        |
-| `src/render/usage.ts`                 | the subagent used-context read — the last usage line of each task's own transcript, `tokenCount` the fallback until the engine's figure matches its docs |
+| `src/render/facts.ts`                  | the subagent transcript read — used context and the effort actually run at, off each task's last usage line; `tokenCount` and the ask the fallbacks     |
 | `src/render/awk.ts`                    | printf-style decimal formatting on exact IEEE bits                                                           |
 | `src/render/capture.ts`                | the capture tee + `DATA_DIR`                                                                                 |
 | `src/render/index.ts`                  | the in-process barrel the CLI renders through                                                                |

@@ -7,6 +7,7 @@ import {
   toSgr,
 } from '@v1nvn/agentic-core/draw';
 
+import type { TaskFacts } from './facts.js';
 import type { GitFacts } from './git.js';
 import type { FitStep } from './items.js';
 import type { Row } from './payload.js';
@@ -55,12 +56,12 @@ const PANEL_STEPS: readonly FitStep[] = [
 ];
 
 export interface PanelInput {
+  readonly facts?: Readonly<Record<string, TaskFacts>>;
   readonly layout?: string;
   readonly noColor?: boolean;
   readonly now: number;
   readonly payload: string;
   readonly picks?: Readonly<Record<string, string>>;
-  readonly usage?: Readonly<Record<string, number>>;
 }
 
 interface TaskFields {
@@ -114,22 +115,28 @@ function availColumns(tick: unknown): number {
   return Math.max(columns, 20) - 1;
 }
 
+// The transcript facts are the run's truth — an empty effort on a facts
+// entry is a model that runs no effort, not a fall-through to the launch's
+// ask; the ask paints only until the first reply lands.
 function extractFields(
   task: Record<string, unknown>,
-  usage: Readonly<Record<string, number>> | undefined,
+  facts: Readonly<Record<string, TaskFacts>> | undefined,
 ): TaskFields {
   const id = cell(field(task, 'id', ''));
+  const read = facts?.[id];
   return {
     ctx: cell(field(task, 'contextWindowSize', 0)),
     desc: cell(truncateDesc(jqText(field(task, 'description', '')))),
-    effort: cell(field(task, 'effort', '')),
+    effort: cell(
+      read === undefined ? jqText(field(task, 'effort', '')) : read.effort,
+    ),
     id,
     label: cell(field(task, 'label', '')),
     model: cell(field(task, 'model', '')),
     name: cell(field(task, 'name', '')),
     start: cell(field(task, 'startTime', 0)),
     status: cell(field(task, 'status', '')),
-    tokens: cell(orElse(usage?.[id], field(task, 'tokenCount', 0))),
+    tokens: cell(orElse(read?.tokens, field(task, 'tokenCount', 0))),
   };
 }
 
@@ -326,7 +333,7 @@ export function renderPanel(input: PanelInput): string {
     if (!isRecord(task)) {
       continue;
     }
-    const fields = extractFields(task, input.usage);
+    const fields = extractFields(task, input.facts);
     if (fields.id === '') {
       continue;
     }
