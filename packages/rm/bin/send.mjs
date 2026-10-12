@@ -1,11 +1,11 @@
 #!/usr/bin/env node
-import fs, { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
-import { homedir, tmpdir } from "node:os";
-import path, { join } from "node:path";
 import { EventEmitter } from "node:events";
 import childProcess, { spawnSync } from "node:child_process";
+import path, { join } from "node:path";
+import fs, { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import process$1 from "node:process";
 import { stripVTControlCharacters } from "node:util";
+import { homedir, tmpdir } from "node:os";
 //#region ../core/dist/draw.js
 function pad2(n) {
 	return String(n).padStart(2, "0");
@@ -17,114 +17,6 @@ function localStamp(now, clock) {
 	const hhmm = `${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
 	return clock === "second" ? `${day} ${hhmm}:${pad2(now.getSeconds())}` : `${day} ${hhmm}`;
 }
-//#endregion
-//#region ../core/dist/index.js
-var HelpRequested = class extends Error {
-	command;
-	constructor(command) {
-		super(`${command.name()} --help`);
-		this.command = command;
-	}
-};
-function parseQuietly(program, args) {
-	function quiet(command) {
-		command.configureOutput({
-			writeOut: () => void 0,
-			writeErr: () => void 0
-		});
-		command.exitOverride((err) => {
-			const code = err.code;
-			if (code === "commander.help" || code === "commander.helpDisplayed") throw new HelpRequested(command);
-			throw err;
-		});
-		command.commands.forEach(quiet);
-	}
-	try {
-		quiet(program);
-		program.parse([...args], { from: "user" });
-		return program;
-	} catch (err) {
-		return err instanceof HelpRequested ? err : void 0;
-	}
-}
-function exitWithCode(code) {
-	process.exit(code);
-}
-function printHelpAndExit(command) {
-	console.log(command.helpInformation());
-	exitWithCode(0);
-}
-function printUsageAndExit(program) {
-	console.error(program.helpInformation());
-	exitWithCode(1);
-}
-async function runMain(main) {
-	try {
-		await main();
-	} catch (e) {
-		console.error(e.message);
-		exitWithCode(1);
-	}
-}
-/** A markdown file's contents, with the CLI's no-such-file error. */
-function readMarkdownFile(path) {
-	if (!statSync(path, { throwIfNoEntry: false })?.isFile()) throw new Error(`no such file: ${path}`);
-	return readFileSync(path, "utf8");
-}
-function isFile(path) {
-	try {
-		return statSync(path).isFile();
-	} catch {
-		return false;
-	}
-}
-function textBlocks(entry) {
-	const content = entry.message?.content;
-	if (entry.type !== "assistant" || !Array.isArray(content)) return;
-	const blocks = content.filter((b) => typeof b === "object" && b !== null && b.type === "text");
-	return blocks.length > 0 ? blocks : void 0;
-}
-function claudeProjectsDir() {
-	const claudeDir = process.env.CLAUDE_DIR ?? join(homedir(), ".claude");
-	return join(claudeDir, "projects");
-}
-/**
-* The last assistant text reply from a Claude Code session, reproducing Claude
-* Code's `/copy` byte-for-byte: the last assistant entry that contains a
-* `text` block, only its `text` block(s) (tool_use / thinking dropped), blocks
-* joined with a blank line, and no trailing newline.
-*
-* @param arg a transcript file, a session UUID under the project dir, or
-*   nothing to use the newest session for the current project.
-*/
-function lastReply(arg) {
-	const proj = (process.env.CLAUDE_PROJECT_DIR ?? process.cwd()).replaceAll("/", "-");
-	const projDir = join(claudeProjectsDir(), proj);
-	let file;
-	if (arg !== void 0) file = isFile(arg) ? arg : join(projDir, `${arg}.jsonl`);
-	else if (existsSync(projDir)) {
-		const newest = readdirSync(projDir).filter((f) => f.endsWith(".jsonl")).map((f) => ({
-			f,
-			mtimeMs: statSync(join(projDir, f)).mtimeMs
-		})).sort((a, b) => b.mtimeMs - a.mtimeMs).at(0);
-		if (newest) file = join(projDir, newest.f);
-	}
-	if (file === void 0 || !isFile(file)) throw new Error(`no session transcript found in ${projDir}`);
-	let last;
-	for (const line of readFileSync(file, "utf8").split("\n")) {
-		if (!line.includes("\"assistant\"")) continue;
-		let entry;
-		try {
-			entry = JSON.parse(line);
-		} catch {
-			continue;
-		}
-		const blocks = textBlocks(entry);
-		if (blocks) last = blocks;
-	}
-	return (last ?? []).map((b) => b.text ?? "").join("\n\n");
-}
-Number.MAX_SAFE_INTEGER;
 //#endregion
 //#region ../../node_modules/commander/lib/error.js
 /**
@@ -3080,6 +2972,114 @@ function useColor() {
 	if (process$1.env.FORCE_COLOR || process$1.env.CLICOLOR_FORCE !== void 0) return true;
 }
 new Command();
+//#endregion
+//#region ../core/dist/index.js
+var HelpRequested = class extends Error {
+	command;
+	constructor(command) {
+		super(`${command.name()} --help`);
+		this.command = command;
+	}
+};
+function parseQuietly(program, args) {
+	function quiet(command) {
+		command.configureOutput({
+			writeOut: () => void 0,
+			writeErr: () => void 0
+		});
+		command.exitOverride((err) => {
+			const code = err.code;
+			if (code === "commander.help" || code === "commander.helpDisplayed") throw new HelpRequested(command);
+			throw err;
+		});
+		command.commands.forEach(quiet);
+	}
+	try {
+		quiet(program);
+		program.parse([...args], { from: "user" });
+		return program;
+	} catch (err) {
+		return err instanceof HelpRequested ? err : void 0;
+	}
+}
+function exitWithCode(code) {
+	process.exit(code);
+}
+function printHelpAndExit(command) {
+	console.log(command.helpInformation());
+	exitWithCode(0);
+}
+function printUsageAndExit(program) {
+	console.error(program.helpInformation());
+	exitWithCode(1);
+}
+async function runMain(main) {
+	try {
+		await main();
+	} catch (e) {
+		console.error(e.message);
+		exitWithCode(1);
+	}
+}
+/** A markdown file's contents, with the CLI's no-such-file error. */
+function readMarkdownFile(path) {
+	if (!statSync(path, { throwIfNoEntry: false })?.isFile()) throw new Error(`no such file: ${path}`);
+	return readFileSync(path, "utf8");
+}
+function isFile(path) {
+	try {
+		return statSync(path).isFile();
+	} catch {
+		return false;
+	}
+}
+function textBlocks(entry) {
+	const content = entry.message?.content;
+	if (entry.type !== "assistant" || !Array.isArray(content)) return;
+	const blocks = content.filter((b) => typeof b === "object" && b !== null && b.type === "text");
+	return blocks.length > 0 ? blocks : void 0;
+}
+function claudeProjectsDir() {
+	const claudeDir = process.env.CLAUDE_DIR ?? join(homedir(), ".claude");
+	return join(claudeDir, "projects");
+}
+/**
+* The last assistant text reply from a Claude Code session, reproducing Claude
+* Code's `/copy` byte-for-byte: the last assistant entry that contains a
+* `text` block, only its `text` block(s) (tool_use / thinking dropped), blocks
+* joined with a blank line, and no trailing newline.
+*
+* @param arg a transcript file, a session UUID under the project dir, or
+*   nothing to use the newest session for the current project.
+*/
+function lastReply(arg) {
+	const proj = (process.env.CLAUDE_PROJECT_DIR ?? process.cwd()).replaceAll("/", "-");
+	const projDir = join(claudeProjectsDir(), proj);
+	let file;
+	if (arg !== void 0) file = isFile(arg) ? arg : join(projDir, `${arg}.jsonl`);
+	else if (existsSync(projDir)) {
+		const newest = readdirSync(projDir).filter((f) => f.endsWith(".jsonl")).map((f) => ({
+			f,
+			mtimeMs: statSync(join(projDir, f)).mtimeMs
+		})).sort((a, b) => b.mtimeMs - a.mtimeMs).at(0);
+		if (newest) file = join(projDir, newest.f);
+	}
+	if (file === void 0 || !isFile(file)) throw new Error(`no session transcript found in ${projDir}`);
+	let last;
+	for (const line of readFileSync(file, "utf8").split("\n")) {
+		if (!line.includes("\"assistant\"")) continue;
+		let entry;
+		try {
+			entry = JSON.parse(line);
+		} catch {
+			continue;
+		}
+		const blocks = textBlocks(entry);
+		if (blocks) last = blocks;
+	}
+	return (last ?? []).map((b) => b.text ?? "").join("\n\n");
+}
+Number.MAX_SAFE_INTEGER;
 //#endregion
 //#region src/send.ts
 /**

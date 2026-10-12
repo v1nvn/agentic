@@ -1,65 +1,11 @@
 #!/usr/bin/env node
-import fs, { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
-import { homedir } from "node:os";
-import path, { join } from "node:path";
 import { EventEmitter } from "node:events";
 import childProcess from "node:child_process";
+import path, { join } from "node:path";
+import fs, { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import process$1 from "node:process";
 import { stripVTControlCharacters } from "node:util";
-//#region ../core/dist/index.js
-var HelpRequested = class extends Error {
-	command;
-	constructor(command) {
-		super(`${command.name()} --help`);
-		this.command = command;
-	}
-};
-function parseQuietly(program, args) {
-	function quiet(command) {
-		command.configureOutput({
-			writeOut: () => void 0,
-			writeErr: () => void 0
-		});
-		command.exitOverride((err) => {
-			const code = err.code;
-			if (code === "commander.help" || code === "commander.helpDisplayed") throw new HelpRequested(command);
-			throw err;
-		});
-		command.commands.forEach(quiet);
-	}
-	try {
-		quiet(program);
-		program.parse([...args], { from: "user" });
-		return program;
-	} catch (err) {
-		return err instanceof HelpRequested ? err : void 0;
-	}
-}
-function exitWithCode(code) {
-	process.exit(code);
-}
-function printHelpAndExit(command) {
-	console.log(command.helpInformation());
-	exitWithCode(0);
-}
-function printUsageAndExit(program) {
-	console.error(program.helpInformation());
-	exitWithCode(1);
-}
-async function runMain(main) {
-	try {
-		await main();
-	} catch (e) {
-		console.error(e.message);
-		exitWithCode(1);
-	}
-}
-function claudeProjectsDir() {
-	const claudeDir = process.env.CLAUDE_DIR ?? join(homedir(), ".claude");
-	return join(claudeDir, "projects");
-}
-Number.MAX_SAFE_INTEGER;
-//#endregion
+import { homedir } from "node:os";
 //#region ../../node_modules/commander/lib/error.js
 /**
 * CommanderError class
@@ -3014,6 +2960,60 @@ function useColor() {
 	if (process$1.env.FORCE_COLOR || process$1.env.CLICOLOR_FORCE !== void 0) return true;
 }
 new Command();
+//#endregion
+//#region ../core/dist/index.js
+var HelpRequested = class extends Error {
+	command;
+	constructor(command) {
+		super(`${command.name()} --help`);
+		this.command = command;
+	}
+};
+function parseQuietly(program, args) {
+	function quiet(command) {
+		command.configureOutput({
+			writeOut: () => void 0,
+			writeErr: () => void 0
+		});
+		command.exitOverride((err) => {
+			const code = err.code;
+			if (code === "commander.help" || code === "commander.helpDisplayed") throw new HelpRequested(command);
+			throw err;
+		});
+		command.commands.forEach(quiet);
+	}
+	try {
+		quiet(program);
+		program.parse([...args], { from: "user" });
+		return program;
+	} catch (err) {
+		return err instanceof HelpRequested ? err : void 0;
+	}
+}
+function exitWithCode(code) {
+	process.exit(code);
+}
+function printHelpAndExit(command) {
+	console.log(command.helpInformation());
+	exitWithCode(0);
+}
+function printUsageAndExit(program) {
+	console.error(program.helpInformation());
+	exitWithCode(1);
+}
+async function runMain(main) {
+	try {
+		await main();
+	} catch (e) {
+		console.error(e.message);
+		exitWithCode(1);
+	}
+}
+function claudeProjectsDir() {
+	const claudeDir = process.env.CLAUDE_DIR ?? join(homedir(), ".claude");
+	return join(claudeDir, "projects");
+}
+Number.MAX_SAFE_INTEGER;
 //#endregion
 //#region src/cli.ts
 /**

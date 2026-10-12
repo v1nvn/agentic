@@ -1,450 +1,13 @@
 #!/usr/bin/env node
-import fs from "node:fs";
-import path from "node:path";
 import { EventEmitter } from "node:events";
 import childProcess from "node:child_process";
+import path from "node:path";
+import fs from "node:fs";
 import process$1 from "node:process";
 import { stripVTControlCharacters } from "node:util";
 //#region ../core/dist/draw.js
 function pad2$1(n) {
 	return String(n).padStart(2, "0");
-}
-//#endregion
-//#region ../core/dist/index.js
-var HelpRequested = class extends Error {
-	command;
-	constructor(command) {
-		super(`${command.name()} --help`);
-		this.command = command;
-	}
-};
-function parseQuietly(program, args) {
-	function quiet(command) {
-		command.configureOutput({
-			writeOut: () => void 0,
-			writeErr: () => void 0
-		});
-		command.exitOverride((err) => {
-			const code = err.code;
-			if (code === "commander.help" || code === "commander.helpDisplayed") throw new HelpRequested(command);
-			throw err;
-		});
-		command.commands.forEach(quiet);
-	}
-	try {
-		quiet(program);
-		program.parse([...args], { from: "user" });
-		return program;
-	} catch (err) {
-		return err instanceof HelpRequested ? err : void 0;
-	}
-}
-function exitWithCode(code) {
-	process.exit(code);
-}
-function printHelpAndExit(command) {
-	console.log(command.helpInformation());
-	exitWithCode(0);
-}
-function printUsageAndExit(program) {
-	console.error(program.helpInformation());
-	exitWithCode(1);
-}
-async function runMain(main) {
-	try {
-		await main();
-	} catch (e) {
-		console.error(e.message);
-		exitWithCode(1);
-	}
-}
-Number.MAX_SAFE_INTEGER;
-//#endregion
-//#region hooks/kit/draw.ts
-function line(...segments) {
-	return segments;
-}
-function doc(...rows) {
-	return rows;
-}
-function plain(text) {
-	return { text };
-}
-function dim(text) {
-	return {
-		text,
-		ink: "dim"
-	};
-}
-function bold(text) {
-	return {
-		text,
-		ink: "bold"
-	};
-}
-function rowsOf(rows) {
-	return rows.every((r) => Array.isArray(r)) ? rows : [rows];
-}
-function textOf(rows) {
-	return rowsOf(rows).map((row) => row.map((seg) => seg.text).join("")).join("\n");
-}
-var EIGHTHS = [
-	"",
-	"▏",
-	"▎",
-	"▍",
-	"▌",
-	"▋",
-	"▊",
-	"▉"
-];
-function rule(width = 68) {
-	return "─".repeat(Math.max(0, width));
-}
-function pad(text, width, side) {
-	if (text.length >= width) return text;
-	const gap = " ".repeat(width - text.length);
-	return side === "left" ? gap + text : text + gap;
-}
-function meter(pct, width, filled = "green") {
-	const n = Math.max(0, Math.min(width, Math.round((typeof pct === "number" && Number.isFinite(pct) ? pct : 0) / 100 * width)));
-	return line({
-		text: "█".repeat(n),
-		ink: filled
-	}, {
-		text: "·".repeat(width - n),
-		ink: "dim"
-	});
-}
-/** Fixed-width bar field: full blocks, an eighth-fraction edge, spaces to width. */
-function bar(value, max, width) {
-	if (!(value > 0) || !(max > 0)) return " ".repeat(width);
-	const scaled = value / max * width;
-	let full = Math.floor(scaled);
-	let fi = Math.round((scaled - full) * 8);
-	if (fi === 8) {
-		full += 1;
-		fi = 0;
-	}
-	if (full === 0 && fi === 0) fi = 1;
-	let out = "█".repeat(Math.min(full, width));
-	if (full < width && fi > 0) out += EIGHTHS[fi] ?? "";
-	return pad(out, width, "right");
-}
-function pad2(n) {
-	return String(n).padStart(2, "0");
-}
-var MONTHS = [
-	"Jan",
-	"Feb",
-	"Mar",
-	"Apr",
-	"May",
-	"Jun",
-	"Jul",
-	"Aug",
-	"Sep",
-	"Oct",
-	"Nov",
-	"Dec"
-];
-/** Compact count: 1.2K / 3.4M / 5.6B; '—' for absent or NaN. */
-function fmtTokens(n) {
-	if (n == null || Number.isNaN(n)) return "—";
-	if (n >= 1e9) return (n / 1e9).toFixed(1) + "B";
-	if (n >= 1e6) return (n / 1e6).toFixed(1) + "M";
-	if (n >= 1e3) return (n / 1e3).toFixed(1) + "K";
-	return String(n);
-}
-/** Grouped integer, en-US separators; 0 for absent. */
-function fmtNum(n) {
-	return (n || 0).toLocaleString("en-US");
-}
-//#endregion
-//#region src/format.ts
-var VBLOCKS = "▁▂▃▄▅▆▇";
-function parseSlot(s) {
-	const m = /^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})/.exec(s ?? "");
-	if (!m) return null;
-	const [, mo, d, hh, mm] = m.slice(1);
-	return {
-		h: +hh,
-		day: `${MONTHS[+mo - 1]} ${d}`,
-		time: `${hh}:${mm}`
-	};
-}
-/**
-* Re-express a naive "YYYY-MM-DD HH:MM" string from one UTC offset to another.
-* Offsets are minutes east of UTC (Beijing = 480, IST = 330). Pure — does not
-* depend on the runtime timezone, so it is deterministic under test.
-*/
-function shiftSlot(s, fromOffsetMin, toOffsetMin) {
-	const m = /^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})/.exec(s);
-	if (!m) return null;
-	const [y, mo, d, hh, mm] = m.slice(1);
-	const utcMs = Date.UTC(+y, +mo - 1, +d, +hh, +mm) - fromOffsetMin * 6e4;
-	const dt = new Date(utcMs + toOffsetMin * 6e4);
-	return {
-		h: dt.getUTCHours(),
-		day: `${MONTHS[dt.getUTCMonth()]} ${pad2(dt.getUTCDate())}`,
-		time: `${pad2(dt.getUTCHours())}:${pad2(dt.getUTCMinutes())}`
-	};
-}
-function friendlyTool(code) {
-	switch ((code ?? "").toLowerCase()) {
-		case "search-prime": return "web search";
-		case "web-reader": return "web read";
-		default: return code || "other";
-	}
-}
-function idleRuns(tok) {
-	const runs = [];
-	let i = 0;
-	while (i < tok.length) if ((tok[i] || 0) === 0) {
-		let j = i;
-		while (j < tok.length && (tok[j] || 0) === 0) j++;
-		runs.push({
-			i,
-			j: j - 1,
-			len: j - i
-		});
-		i = j;
-	} else i++;
-	return runs;
-}
-function idleLabel(run, x, slotFn) {
-	const a = slotFn(x[run.i] ?? "");
-	const b = slotFn(x[run.j] ?? "");
-	if (!a || !b) return `idle (${run.len}h)`;
-	return `idle ${`${a.day} ${a.time}`} → ${a.day === b.day ? b.time : `${b.day} ${b.time}`} (${run.len}h)`;
-}
-function isPeakBucket(s) {
-	const m = /^(\d{4})-(\d{2})-(\d{2}) (\d{2}):/.exec(s ?? "");
-	if (!m) return false;
-	const [y, mo, d, hh] = m.slice(1);
-	const wd = new Date(Date.UTC(+y, +mo - 1, +d)).getUTCDay();
-	return wd >= 1 && wd <= 5 && +hh >= 14 && +hh <= 17;
-}
-/** Local-time start/end of the 14:00–18:00 Beijing peak window (e.g. 11:30 / 15:30). */
-function localPeakWindow(apiOffsetMin, toOffsetMin) {
-	const a = shiftSlot("2000-01-03 14:00", apiOffsetMin, toOffsetMin);
-	const b = shiftSlot("2000-01-03 18:00", apiOffsetMin, toOffsetMin);
-	if (!a || !b) return null;
-	return {
-		start: a.time,
-		end: b.time
-	};
-}
-/**
-* Vertical bar chart of hourly tokens. Returns an array of plain-text lines
-* (without the section header), or null if there are fewer than 2 buckets.
-*
-* Bars are scaled to `maxTok` across `ROWS` rows; the topmost filled cell of a
-* bar uses a fractional lower-block glyph (▁▂▃▄▅▆▇) for sub-row height. The
-* y-axis labels only the peak (top) and 0 (baseline); the header window and the
-* caller's peak annotation carry the exact values.
-*/
-function hourlyVerticalChart({ x, tok, nh, maxTok, peakIdx, slotFn }) {
-	const ROWS = 6;
-	if (nh < 2 || maxTok <= 0) return null;
-	const lines = [];
-	const maxLab = fmtTokens(maxTok);
-	const L = maxLab.length;
-	const AXIS = 1 + L + 1;
-	const P0 = AXIS + 2;
-	const PW = 68 - P0;
-	const slot = Math.max(1, Math.floor(PW / nh));
-	const barW = slot >= 2 ? slot - 1 : 1;
-	function barLeft(i) {
-		return P0 + i * slot;
-	}
-	function barCenter(i) {
-		return barLeft(i) + Math.floor(barW / 2);
-	}
-	const usedCols = nh * slot;
-	function blank() {
-		return Array(68).fill(" ");
-	}
-	function glyph(i, r) {
-		const v = tok[i] || 0;
-		if (v <= 0) return " ";
-		const fill = v / maxTok * ROWS - r;
-		if (fill >= 1) return "█";
-		if (fill > 0) {
-			let e = Math.round(fill * 8);
-			if (e < 1) e = 1;
-			if (e > 7) e = 7;
-			return VBLOCKS[e - 1] ?? " ";
-		}
-		return " ";
-	}
-	for (let r = 5; r >= 0; r--) {
-		const line = blank();
-		line[AXIS] = r === 5 ? "┤" : "│";
-		if (r === 5) for (let k = 0; k < L; k++) line[AXIS - 1 - L + k] = maxLab[k] ?? " ";
-		for (let i = 0; i < nh; i++) {
-			const g = glyph(i, r);
-			if (g !== " ") for (let c = 0; c < barW; c++) line[barLeft(i) + c] = g;
-		}
-		lines.push(line.join("").trimEnd());
-	}
-	function slotOf(i) {
-		return slotFn(x[i] ?? "");
-	}
-	function isTick(i) {
-		if (i === 0 || i === nh - 1) return true;
-		const s = slotOf(i);
-		return !!s && s.h % 6 === 0;
-	}
-	const base = blank();
-	base[AXIS - 2] = "0";
-	base[AXIS] = "└";
-	for (let c = AXIS + 1; c < P0 + usedCols; c++) base[c] = "─";
-	for (let i = 0; i < nh; i++) if (isTick(i)) base[barCenter(i)] = "┬";
-	lines.push(base.join("").trimEnd());
-	const hr = blank();
-	let last = -10;
-	for (let i = 0; i < nh; i++) {
-		if (!isTick(i)) continue;
-		const col = barCenter(i);
-		if (col - last < 3) continue;
-		const s = slotOf(i);
-		const txt = s ? pad2(s.h) : "  ";
-		hr[col] = txt.charAt(0);
-		hr[col + 1] = txt.charAt(1);
-		last = col;
-	}
-	lines.push(hr.join("").trimEnd());
-	const day = blank();
-	let lastDay = null;
-	last = -10;
-	for (let i = 0; i < nh; i++) {
-		if (!isTick(i)) continue;
-		const s = slotOf(i);
-		if (!s || s.day === lastDay) continue;
-		const col = barCenter(i);
-		if (col - last >= s.day.length && col + s.day.length <= 68) {
-			for (let k = 0; k < s.day.length; k++) day[col + k] = s.day[k] ?? " ";
-			lastDay = s.day;
-			last = col + s.day.length;
-		}
-	}
-	if (day.some((c) => c !== " ")) lines.push(day.join("").trimEnd());
-	const mark = blank();
-	for (let i = 0; i < nh; i++) if (isPeakBucket(x[i])) mark[barCenter(i)] = "↑";
-	if (peakIdx >= 0) mark[barCenter(peakIdx)] = "◂";
-	if (mark.some((c) => c !== " ")) lines.push(mark.join("").trimEnd());
-	return lines;
-}
-function reportLines({ platform, model, tool, quota, apiOffsetMin = 480, localOffsetMin, now = /* @__PURE__ */ new Date() }) {
-	const out = [];
-	const toOffset = localOffsetMin != null ? localOffsetMin : -(/* @__PURE__ */ new Date()).getTimezoneOffset();
-	function convertSlot(s) {
-		return shiftSlot(s, apiOffsetMin, toOffset) ?? parseSlot(s);
-	}
-	const x = model.x_time ?? [];
-	const tok = model.tokensUsage ?? [];
-	const calls = model.modelCallCount ?? [];
-	const nh = x.length;
-	const tu = model.totalUsage ?? {};
-	const total = tu.totalTokensUsage != null ? tu.totalTokensUsage : tok.reduce((a, b) => a + (b || 0), 0);
-	const totalCalls = tu.totalModelCallCount != null ? tu.totalModelCallCount : calls.reduce((a, b) => a + (b || 0), 0);
-	let peakIdx = -1;
-	let peakTok = 0;
-	for (let i = 0; i < tok.length; i++) {
-		const t = tok[i] || 0;
-		if (t > peakTok) {
-			peakTok = t;
-			peakIdx = i;
-		}
-	}
-	const peakCalls = peakIdx >= 0 ? calls[peakIdx] || 0 : 0;
-	const pctPeak = total > 0 ? peakTok / total * 100 : 0;
-	const peakSlot = peakIdx >= 0 ? convertSlot(x[peakIdx] ?? "") : null;
-	const level = quota.level ? quota.level.charAt(0).toUpperCase() + quota.level.slice(1) : "";
-	const left = ` GLM Coding Plan${level ? " · " + level : ""}`;
-	const firstSlot = convertSlot(x[0] ?? "");
-	const lastSlot = convertSlot(x[nh - 1] ?? "");
-	const win = firstSlot && lastSlot ? `${firstSlot.day} ${firstSlot.time} → ${lastSlot.day} ${lastSlot.time} · ${nh}h` : platform;
-	out.push(line(plain(rule())));
-	out.push(line(bold(left), dim(pad(win, 68 - left.length, "left"))));
-	out.push(line(plain(rule())));
-	const head = plain(` ${fmtTokens(total)} tokens across ${fmtNum(totalCalls)} model calls`);
-	out.push(line());
-	if (peakIdx >= 0 && peakSlot) {
-		out.push(line(head, plain(" — ")));
-		out.push(line(bold(`${Math.round(pctPeak)}%`), plain(" of it in a single hour")));
-		out.push(line(plain(` (${peakSlot.day} ${peakSlot.time}, ${fmtTokens(peakTok)} tokens / ${fmtNum(peakCalls)} calls).`)));
-	} else out.push(line(head, plain(".")));
-	const activeHours = tok.filter((t) => t > 0).length;
-	const longest = idleRuns(tok).filter((r) => r.len >= 2).sort((a, b) => b.len - a.len).at(0);
-	const tt = tool.totalUsage ?? {};
-	const searchN = tt.totalNetworkSearchCount || 0;
-	const readN = tt.totalWebReadMcpCount || 0;
-	const zreadN = tt.totalZreadMcpCount || 0;
-	const toolTotal = tt.totalSearchMcpCount != null ? tt.totalSearchMcpCount : searchN + readN + zreadN;
-	let peakWinActive = 0;
-	let peakWinTokens = 0;
-	for (let k = 0; k < nh; k++) if (isPeakBucket(x[k]) && (tok[k] || 0) > 0) {
-		peakWinActive++;
-		peakWinTokens += tok[k] || 0;
-	}
-	const peakWinPct = total > 0 ? peakWinTokens / total * 100 : 0;
-	const peakWin = localPeakWindow(apiOffsetMin, toOffset);
-	out.push(line());
-	out.push(line(plain(` Peak     ${pad(peakSlot ? peakSlot.day + " " + peakSlot.time : "—", 15, "right")}${pad(fmtTokens(peakTok), 7, "left")} tokens · ${pad(fmtNum(peakCalls), 5, "left")} calls`)));
-	out.push(line(plain(` Active   ${pad(`${activeHours} / ${nh} hours`, 15, "right")}${longest ? idleLabel(longest, x, convertSlot) : "no idle gaps"}`)));
-	out.push(line(plain(` Tools    ${pad(`${toolTotal} calls`, 15, "right")}${searchN} searches · ${readN} reads${zreadN ? ` · ${zreadN} zread` : ""}`)));
-	if (peakWin) out.push(line(plain(` Peak hrs Mon–Fri ${peakWin.start}–${peakWin.end} · GLM-5.2 3× · ${peakWinActive}h active · ${fmtTokens(peakWinTokens)} (`), bold(`${Math.round(peakWinPct)}%`), plain(")")));
-	out.push(line());
-	out.push(line(dim(" Hourly tokens · ↑ peak hour " + "─".repeat(Math.max(0, 39)))));
-	const chartLines = hourlyVerticalChart({
-		x,
-		tok,
-		nh,
-		maxTok: peakTok || 1,
-		peakIdx,
-		slotFn: convertSlot
-	});
-	if (chartLines) {
-		out.push(...chartLines.map((l) => line(plain(l))));
-		if (peakIdx >= 0 && peakSlot) out.push(line(plain(`   ◂ peak  ${peakSlot.day} ${peakSlot.time}  ${fmtTokens(peakTok)} tokens · ${fmtNum(peakCalls)} calls`)));
-	} else out.push(line(plain("   (not enough hourly data to chart)")));
-	out.push(line());
-	out.push(line(dim(" Model mix " + "─".repeat(Math.max(0, 57)))));
-	const mixSrc = model.modelSummaryList ?? model.modelDataList ?? [];
-	const denom = mixSrc.reduce((a, m) => a + (m.totalTokens ?? 0), 0) || 1;
-	const mixSorted = [...mixSrc].sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
-	for (const m of mixSorted) {
-		const pct = (m.totalTokens ?? 0) / denom * 100;
-		out.push(line(plain(`   ${pad(m.modelName || "?", 11, "right")}${pad(fmtTokens(m.totalTokens), 8, "left")}  `), bold(pad(pct.toFixed(1) + "%", 6, "left")), plain(`  ${bar(pct, 100, 20)}`)));
-	}
-	out.push(line());
-	out.push(line(dim(" Limits " + "─".repeat(Math.max(0, 60)))));
-	const bj = new Date(now.getTime() + apiOffsetMin * 6e4);
-	const bjDay = bj.getUTCDay();
-	const elapsedMin = bjDay >= 1 && bjDay <= 5 ? Math.max(0, Math.min(240, (bj.getUTCHours() - 14) * 60 + bj.getUTCMinutes())) : 0;
-	if (peakWin) out.push(line(dim(`   ${pad("Peak", 16, "right")}`), plain(`${pad(peakWin.start, 5, "left")}  `), ...meter(Math.round(elapsedMin / 240 * 100), 22), plain(`  ${peakWin.end}`)));
-	const limits = quota.limits ?? [];
-	const mcp = limits.find((l) => /mcp/i.test(l.type ?? ""));
-	const tok5 = limits.find((l) => /token/i.test(l.type ?? ""));
-	if (tok5) {
-		const reset = new Date(tok5.nextResetTime ?? "").toLocaleTimeString("en-IN");
-		out.push(line(dim(`   ${pad("Tokens · 5h", 16, "right")}`), bold(pad(`${tok5.percentage || 0}%`, 5, "left")), plain("  "), ...meter(tok5.percentage, 22), plain(`  ${reset}`)));
-	}
-	if (tok5 && mcp) out.push(line());
-	if (mcp) {
-		const reset = new Date(mcp.nextResetTime ?? "").toLocaleString("en-IN");
-		out.push(line(dim(`   ${pad("MCP · this month", 16, "right")}`), bold(pad(`${mcp.percentage || 0}%`, 5, "left")), plain("  "), ...meter(mcp.percentage, 22), plain(`  ${reset}`)));
-		const parts = (mcp.usageDetails ?? []).map((d) => `${friendlyTool(d.modelCode)} ${fmtNum(d.usage)}`).join("  ");
-		if (parts) out.push(line(plain(`   ${fmtNum(mcp.currentUsage)}M / ${fmtNum(mcp.totol)}M · ${parts}`)));
-	}
-	out.push(line());
-	out.push(line(plain(rule())));
-	return out;
-}
-function render(input) {
-	return textOf(doc(...reportLines(input)));
 }
 //#endregion
 //#region ../../node_modules/commander/lib/error.js
@@ -3401,6 +2964,443 @@ function useColor() {
 	if (process$1.env.FORCE_COLOR || process$1.env.CLICOLOR_FORCE !== void 0) return true;
 }
 new Command();
+//#endregion
+//#region ../core/dist/index.js
+var HelpRequested = class extends Error {
+	command;
+	constructor(command) {
+		super(`${command.name()} --help`);
+		this.command = command;
+	}
+};
+function parseQuietly(program, args) {
+	function quiet(command) {
+		command.configureOutput({
+			writeOut: () => void 0,
+			writeErr: () => void 0
+		});
+		command.exitOverride((err) => {
+			const code = err.code;
+			if (code === "commander.help" || code === "commander.helpDisplayed") throw new HelpRequested(command);
+			throw err;
+		});
+		command.commands.forEach(quiet);
+	}
+	try {
+		quiet(program);
+		program.parse([...args], { from: "user" });
+		return program;
+	} catch (err) {
+		return err instanceof HelpRequested ? err : void 0;
+	}
+}
+function exitWithCode(code) {
+	process.exit(code);
+}
+function printHelpAndExit(command) {
+	console.log(command.helpInformation());
+	exitWithCode(0);
+}
+function printUsageAndExit(program) {
+	console.error(program.helpInformation());
+	exitWithCode(1);
+}
+async function runMain(main) {
+	try {
+		await main();
+	} catch (e) {
+		console.error(e.message);
+		exitWithCode(1);
+	}
+}
+Number.MAX_SAFE_INTEGER;
+//#endregion
+//#region hooks/kit/draw.ts
+function line(...segments) {
+	return segments;
+}
+function doc(...rows) {
+	return rows;
+}
+function plain(text) {
+	return { text };
+}
+function dim(text) {
+	return {
+		text,
+		ink: "dim"
+	};
+}
+function bold(text) {
+	return {
+		text,
+		ink: "bold"
+	};
+}
+function rowsOf(rows) {
+	return rows.every((r) => Array.isArray(r)) ? rows : [rows];
+}
+function textOf(rows) {
+	return rowsOf(rows).map((row) => row.map((seg) => seg.text).join("")).join("\n");
+}
+var EIGHTHS = [
+	"",
+	"▏",
+	"▎",
+	"▍",
+	"▌",
+	"▋",
+	"▊",
+	"▉"
+];
+function rule(width = 68) {
+	return "─".repeat(Math.max(0, width));
+}
+function pad(text, width, side) {
+	if (text.length >= width) return text;
+	const gap = " ".repeat(width - text.length);
+	return side === "left" ? gap + text : text + gap;
+}
+function meter(pct, width, filled = "green") {
+	const n = Math.max(0, Math.min(width, Math.round((typeof pct === "number" && Number.isFinite(pct) ? pct : 0) / 100 * width)));
+	return line({
+		text: "█".repeat(n),
+		ink: filled
+	}, {
+		text: "·".repeat(width - n),
+		ink: "dim"
+	});
+}
+/** Fixed-width bar field: full blocks, an eighth-fraction edge, spaces to width. */
+function bar(value, max, width) {
+	if (!(value > 0) || !(max > 0)) return " ".repeat(width);
+	const scaled = value / max * width;
+	let full = Math.floor(scaled);
+	let fi = Math.round((scaled - full) * 8);
+	if (fi === 8) {
+		full += 1;
+		fi = 0;
+	}
+	if (full === 0 && fi === 0) fi = 1;
+	let out = "█".repeat(Math.min(full, width));
+	if (full < width && fi > 0) out += EIGHTHS[fi] ?? "";
+	return pad(out, width, "right");
+}
+function pad2(n) {
+	return String(n).padStart(2, "0");
+}
+var MONTHS = [
+	"Jan",
+	"Feb",
+	"Mar",
+	"Apr",
+	"May",
+	"Jun",
+	"Jul",
+	"Aug",
+	"Sep",
+	"Oct",
+	"Nov",
+	"Dec"
+];
+/** Compact count: 1.2K / 3.4M / 5.6B; '—' for absent or NaN. */
+function fmtTokens(n) {
+	if (n == null || Number.isNaN(n)) return "—";
+	if (n >= 1e9) return (n / 1e9).toFixed(1) + "B";
+	if (n >= 1e6) return (n / 1e6).toFixed(1) + "M";
+	if (n >= 1e3) return (n / 1e3).toFixed(1) + "K";
+	return String(n);
+}
+/** Grouped integer, en-US separators; 0 for absent. */
+function fmtNum(n) {
+	return (n || 0).toLocaleString("en-US");
+}
+//#endregion
+//#region src/format.ts
+var VBLOCKS = "▁▂▃▄▅▆▇";
+function parseSlot(s) {
+	const m = /^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})/.exec(s ?? "");
+	if (!m) return null;
+	const [, mo, d, hh, mm] = m.slice(1);
+	return {
+		h: +hh,
+		day: `${MONTHS[+mo - 1]} ${d}`,
+		time: `${hh}:${mm}`
+	};
+}
+/**
+* Re-express a naive "YYYY-MM-DD HH:MM" string from one UTC offset to another.
+* Offsets are minutes east of UTC (Beijing = 480, IST = 330). Pure — does not
+* depend on the runtime timezone, so it is deterministic under test.
+*/
+function shiftSlot(s, fromOffsetMin, toOffsetMin) {
+	const m = /^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})/.exec(s);
+	if (!m) return null;
+	const [y, mo, d, hh, mm] = m.slice(1);
+	const utcMs = Date.UTC(+y, +mo - 1, +d, +hh, +mm) - fromOffsetMin * 6e4;
+	const dt = new Date(utcMs + toOffsetMin * 6e4);
+	return {
+		h: dt.getUTCHours(),
+		day: `${MONTHS[dt.getUTCMonth()]} ${pad2(dt.getUTCDate())}`,
+		time: `${pad2(dt.getUTCHours())}:${pad2(dt.getUTCMinutes())}`
+	};
+}
+function friendlyTool(code) {
+	switch ((code ?? "").toLowerCase()) {
+		case "search-prime": return "web search";
+		case "web-reader": return "web read";
+		default: return code || "other";
+	}
+}
+function idleRuns(tok) {
+	const runs = [];
+	let i = 0;
+	while (i < tok.length) if ((tok[i] || 0) === 0) {
+		let j = i;
+		while (j < tok.length && (tok[j] || 0) === 0) j++;
+		runs.push({
+			i,
+			j: j - 1,
+			len: j - i
+		});
+		i = j;
+	} else i++;
+	return runs;
+}
+function idleLabel(run, x, slotFn) {
+	const a = slotFn(x[run.i] ?? "");
+	const b = slotFn(x[run.j] ?? "");
+	if (!a || !b) return `idle (${run.len}h)`;
+	return `idle ${`${a.day} ${a.time}`} → ${a.day === b.day ? b.time : `${b.day} ${b.time}`} (${run.len}h)`;
+}
+function isPeakBucket(s) {
+	const m = /^(\d{4})-(\d{2})-(\d{2}) (\d{2}):/.exec(s ?? "");
+	if (!m) return false;
+	const [y, mo, d, hh] = m.slice(1);
+	const wd = new Date(Date.UTC(+y, +mo - 1, +d)).getUTCDay();
+	return wd >= 1 && wd <= 5 && +hh >= 14 && +hh <= 17;
+}
+/** Local-time start/end of the 14:00–18:00 Beijing peak window (e.g. 11:30 / 15:30). */
+function localPeakWindow(apiOffsetMin, toOffsetMin) {
+	const a = shiftSlot("2000-01-03 14:00", apiOffsetMin, toOffsetMin);
+	const b = shiftSlot("2000-01-03 18:00", apiOffsetMin, toOffsetMin);
+	if (!a || !b) return null;
+	return {
+		start: a.time,
+		end: b.time
+	};
+}
+/**
+* Vertical bar chart of hourly tokens. Returns an array of plain-text lines
+* (without the section header), or null if there are fewer than 2 buckets.
+*
+* Bars are scaled to `maxTok` across `ROWS` rows; the topmost filled cell of a
+* bar uses a fractional lower-block glyph (▁▂▃▄▅▆▇) for sub-row height. The
+* y-axis labels only the peak (top) and 0 (baseline); the header window and the
+* caller's peak annotation carry the exact values.
+*/
+function hourlyVerticalChart({ x, tok, nh, maxTok, peakIdx, slotFn }) {
+	const ROWS = 6;
+	if (nh < 2 || maxTok <= 0) return null;
+	const lines = [];
+	const maxLab = fmtTokens(maxTok);
+	const L = maxLab.length;
+	const AXIS = 1 + L + 1;
+	const P0 = AXIS + 2;
+	const PW = 68 - P0;
+	const slot = Math.max(1, Math.floor(PW / nh));
+	const barW = slot >= 2 ? slot - 1 : 1;
+	function barLeft(i) {
+		return P0 + i * slot;
+	}
+	function barCenter(i) {
+		return barLeft(i) + Math.floor(barW / 2);
+	}
+	const usedCols = nh * slot;
+	function blank() {
+		return Array(68).fill(" ");
+	}
+	function glyph(i, r) {
+		const v = tok[i] || 0;
+		if (v <= 0) return " ";
+		const fill = v / maxTok * ROWS - r;
+		if (fill >= 1) return "█";
+		if (fill > 0) {
+			let e = Math.round(fill * 8);
+			if (e < 1) e = 1;
+			if (e > 7) e = 7;
+			return VBLOCKS[e - 1] ?? " ";
+		}
+		return " ";
+	}
+	for (let r = 5; r >= 0; r--) {
+		const line = blank();
+		line[AXIS] = r === 5 ? "┤" : "│";
+		if (r === 5) for (let k = 0; k < L; k++) line[AXIS - 1 - L + k] = maxLab[k] ?? " ";
+		for (let i = 0; i < nh; i++) {
+			const g = glyph(i, r);
+			if (g !== " ") for (let c = 0; c < barW; c++) line[barLeft(i) + c] = g;
+		}
+		lines.push(line.join("").trimEnd());
+	}
+	function slotOf(i) {
+		return slotFn(x[i] ?? "");
+	}
+	function isTick(i) {
+		if (i === 0 || i === nh - 1) return true;
+		const s = slotOf(i);
+		return !!s && s.h % 6 === 0;
+	}
+	const base = blank();
+	base[AXIS - 2] = "0";
+	base[AXIS] = "└";
+	for (let c = AXIS + 1; c < P0 + usedCols; c++) base[c] = "─";
+	for (let i = 0; i < nh; i++) if (isTick(i)) base[barCenter(i)] = "┬";
+	lines.push(base.join("").trimEnd());
+	const hr = blank();
+	let last = -10;
+	for (let i = 0; i < nh; i++) {
+		if (!isTick(i)) continue;
+		const col = barCenter(i);
+		if (col - last < 3) continue;
+		const s = slotOf(i);
+		const txt = s ? pad2(s.h) : "  ";
+		hr[col] = txt.charAt(0);
+		hr[col + 1] = txt.charAt(1);
+		last = col;
+	}
+	lines.push(hr.join("").trimEnd());
+	const day = blank();
+	let lastDay = null;
+	last = -10;
+	for (let i = 0; i < nh; i++) {
+		if (!isTick(i)) continue;
+		const s = slotOf(i);
+		if (!s || s.day === lastDay) continue;
+		const col = barCenter(i);
+		if (col - last >= s.day.length && col + s.day.length <= 68) {
+			for (let k = 0; k < s.day.length; k++) day[col + k] = s.day[k] ?? " ";
+			lastDay = s.day;
+			last = col + s.day.length;
+		}
+	}
+	if (day.some((c) => c !== " ")) lines.push(day.join("").trimEnd());
+	const mark = blank();
+	for (let i = 0; i < nh; i++) if (isPeakBucket(x[i])) mark[barCenter(i)] = "↑";
+	if (peakIdx >= 0) mark[barCenter(peakIdx)] = "◂";
+	if (mark.some((c) => c !== " ")) lines.push(mark.join("").trimEnd());
+	return lines;
+}
+function reportLines({ platform, model, tool, quota, apiOffsetMin = 480, localOffsetMin, now = /* @__PURE__ */ new Date() }) {
+	const out = [];
+	const toOffset = localOffsetMin != null ? localOffsetMin : -(/* @__PURE__ */ new Date()).getTimezoneOffset();
+	function convertSlot(s) {
+		return shiftSlot(s, apiOffsetMin, toOffset) ?? parseSlot(s);
+	}
+	const x = model.x_time ?? [];
+	const tok = model.tokensUsage ?? [];
+	const calls = model.modelCallCount ?? [];
+	const nh = x.length;
+	const tu = model.totalUsage ?? {};
+	const total = tu.totalTokensUsage != null ? tu.totalTokensUsage : tok.reduce((a, b) => a + (b || 0), 0);
+	const totalCalls = tu.totalModelCallCount != null ? tu.totalModelCallCount : calls.reduce((a, b) => a + (b || 0), 0);
+	let peakIdx = -1;
+	let peakTok = 0;
+	for (let i = 0; i < tok.length; i++) {
+		const t = tok[i] || 0;
+		if (t > peakTok) {
+			peakTok = t;
+			peakIdx = i;
+		}
+	}
+	const peakCalls = peakIdx >= 0 ? calls[peakIdx] || 0 : 0;
+	const pctPeak = total > 0 ? peakTok / total * 100 : 0;
+	const peakSlot = peakIdx >= 0 ? convertSlot(x[peakIdx] ?? "") : null;
+	const level = quota.level ? quota.level.charAt(0).toUpperCase() + quota.level.slice(1) : "";
+	const left = ` GLM Coding Plan${level ? " · " + level : ""}`;
+	const firstSlot = convertSlot(x[0] ?? "");
+	const lastSlot = convertSlot(x[nh - 1] ?? "");
+	const win = firstSlot && lastSlot ? `${firstSlot.day} ${firstSlot.time} → ${lastSlot.day} ${lastSlot.time} · ${nh}h` : platform;
+	out.push(line(plain(rule())));
+	out.push(line(bold(left), dim(pad(win, 68 - left.length, "left"))));
+	out.push(line(plain(rule())));
+	const head = plain(` ${fmtTokens(total)} tokens across ${fmtNum(totalCalls)} model calls`);
+	out.push(line());
+	if (peakIdx >= 0 && peakSlot) {
+		out.push(line(head, plain(" — ")));
+		out.push(line(bold(`${Math.round(pctPeak)}%`), plain(" of it in a single hour")));
+		out.push(line(plain(` (${peakSlot.day} ${peakSlot.time}, ${fmtTokens(peakTok)} tokens / ${fmtNum(peakCalls)} calls).`)));
+	} else out.push(line(head, plain(".")));
+	const activeHours = tok.filter((t) => t > 0).length;
+	const longest = idleRuns(tok).filter((r) => r.len >= 2).sort((a, b) => b.len - a.len).at(0);
+	const tt = tool.totalUsage ?? {};
+	const searchN = tt.totalNetworkSearchCount || 0;
+	const readN = tt.totalWebReadMcpCount || 0;
+	const zreadN = tt.totalZreadMcpCount || 0;
+	const toolTotal = tt.totalSearchMcpCount != null ? tt.totalSearchMcpCount : searchN + readN + zreadN;
+	let peakWinActive = 0;
+	let peakWinTokens = 0;
+	for (let k = 0; k < nh; k++) if (isPeakBucket(x[k]) && (tok[k] || 0) > 0) {
+		peakWinActive++;
+		peakWinTokens += tok[k] || 0;
+	}
+	const peakWinPct = total > 0 ? peakWinTokens / total * 100 : 0;
+	const peakWin = localPeakWindow(apiOffsetMin, toOffset);
+	out.push(line());
+	out.push(line(plain(` Peak     ${pad(peakSlot ? peakSlot.day + " " + peakSlot.time : "—", 15, "right")}${pad(fmtTokens(peakTok), 7, "left")} tokens · ${pad(fmtNum(peakCalls), 5, "left")} calls`)));
+	out.push(line(plain(` Active   ${pad(`${activeHours} / ${nh} hours`, 15, "right")}${longest ? idleLabel(longest, x, convertSlot) : "no idle gaps"}`)));
+	out.push(line(plain(` Tools    ${pad(`${toolTotal} calls`, 15, "right")}${searchN} searches · ${readN} reads${zreadN ? ` · ${zreadN} zread` : ""}`)));
+	if (peakWin) out.push(line(plain(` Peak hrs Mon–Fri ${peakWin.start}–${peakWin.end} · GLM-5.2 3× · ${peakWinActive}h active · ${fmtTokens(peakWinTokens)} (`), bold(`${Math.round(peakWinPct)}%`), plain(")")));
+	out.push(line());
+	out.push(line(dim(" Hourly tokens · ↑ peak hour " + "─".repeat(Math.max(0, 39)))));
+	const chartLines = hourlyVerticalChart({
+		x,
+		tok,
+		nh,
+		maxTok: peakTok || 1,
+		peakIdx,
+		slotFn: convertSlot
+	});
+	if (chartLines) {
+		out.push(...chartLines.map((l) => line(plain(l))));
+		if (peakIdx >= 0 && peakSlot) out.push(line(plain(`   ◂ peak  ${peakSlot.day} ${peakSlot.time}  ${fmtTokens(peakTok)} tokens · ${fmtNum(peakCalls)} calls`)));
+	} else out.push(line(plain("   (not enough hourly data to chart)")));
+	out.push(line());
+	out.push(line(dim(" Model mix " + "─".repeat(Math.max(0, 57)))));
+	const mixSrc = model.modelSummaryList ?? model.modelDataList ?? [];
+	const denom = mixSrc.reduce((a, m) => a + (m.totalTokens ?? 0), 0) || 1;
+	const mixSorted = [...mixSrc].sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+	for (const m of mixSorted) {
+		const pct = (m.totalTokens ?? 0) / denom * 100;
+		out.push(line(plain(`   ${pad(m.modelName || "?", 11, "right")}${pad(fmtTokens(m.totalTokens), 8, "left")}  `), bold(pad(pct.toFixed(1) + "%", 6, "left")), plain(`  ${bar(pct, 100, 20)}`)));
+	}
+	out.push(line());
+	out.push(line(dim(" Limits " + "─".repeat(Math.max(0, 60)))));
+	const bj = new Date(now.getTime() + apiOffsetMin * 6e4);
+	const bjDay = bj.getUTCDay();
+	const elapsedMin = bjDay >= 1 && bjDay <= 5 ? Math.max(0, Math.min(240, (bj.getUTCHours() - 14) * 60 + bj.getUTCMinutes())) : 0;
+	if (peakWin) out.push(line(dim(`   ${pad("Peak", 16, "right")}`), plain(`${pad(peakWin.start, 5, "left")}  `), ...meter(Math.round(elapsedMin / 240 * 100), 22), plain(`  ${peakWin.end}`)));
+	const limits = quota.limits ?? [];
+	const mcp = limits.find((l) => /mcp/i.test(l.type ?? ""));
+	const tok5 = limits.find((l) => /token/i.test(l.type ?? ""));
+	if (tok5) {
+		const reset = new Date(tok5.nextResetTime ?? "").toLocaleTimeString("en-IN");
+		out.push(line(dim(`   ${pad("Tokens · 5h", 16, "right")}`), bold(pad(`${tok5.percentage || 0}%`, 5, "left")), plain("  "), ...meter(tok5.percentage, 22), plain(`  ${reset}`)));
+	}
+	if (tok5 && mcp) out.push(line());
+	if (mcp) {
+		const reset = new Date(mcp.nextResetTime ?? "").toLocaleString("en-IN");
+		out.push(line(dim(`   ${pad("MCP · this month", 16, "right")}`), bold(pad(`${mcp.percentage || 0}%`, 5, "left")), plain("  "), ...meter(mcp.percentage, 22), plain(`  ${reset}`)));
+		const parts = (mcp.usageDetails ?? []).map((d) => `${friendlyTool(d.modelCode)} ${fmtNum(d.usage)}`).join("  ");
+		if (parts) out.push(line(plain(`   ${fmtNum(mcp.currentUsage)}M / ${fmtNum(mcp.totol)}M · ${parts}`)));
+	}
+	out.push(line());
+	out.push(line(plain(rule())));
+	return out;
+}
+function render(input) {
+	return textOf(doc(...reportLines(input)));
+}
 //#endregion
 //#region src/resolve.ts
 var DEFAULT_BASE_URL = "https://api.z.ai";
