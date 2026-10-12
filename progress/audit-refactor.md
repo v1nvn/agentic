@@ -12,7 +12,11 @@ Behavior changes only where a ruling names it; everything else is structure.
 
 ## Current state
 
-B1, B8 and B9 landed. The drawing kit (`core/src/draw.ts` — glyphs, documents,
+B1, B8, B9 and B10 landed. zai's `--json` ships the raw payload with the
+island rendering it (one exec-accept-render door with tokens); rm and zai
+carry no `@v1nvn/tokens` dependency (lockfile regenerated, immutable install
+green); tokens' `./text` export is gone — semver minor, owner-ruled. The
+drawing kit (`core/src/draw.ts` — glyphs, documents,
 the `toSgr` skin and its inverse `stripSgr`) and the mod kit (`core/src/mod.ts`
 + `core/src/stub.ts`) stamp byte-exact copies from `stamp.manifest.json` into
 every home's `hooks/kit/` and `tests/kit/` (20 entries; the frozen guard
@@ -34,8 +38,7 @@ feasibility) shaped B1/B8 below. Every Plan-section anchor re-verified against
 
 ## Next step
 
-B10 — zai raw door and the `/text` break; the semver question posts with its
-dispatch.
+B2 — readability layers enforced.
 
 ## Steps
 
@@ -45,7 +48,7 @@ dispatch.
 | B1  | the drawing kit and the stamp, proven on rm |            |        |         | kit exports branded `Line`/`Doc`, closed ink kinds with parametric constructors, glyphs, layout constants, one parameterized local date-time formatter; `yarn build` stamps `.ts` source copies byte-exact from a manifest; a probed hand-edit, an orphaned stamp and a foreign-stamp import all go red; rm's `lineOf` and `pad2` come from the kit; core's package.json description states the stamp truthfully; rm's suite and gates green — landed `4f11a8b` + `d67e8e7`                                                                                                                           |
 | B8  | the mod kit across the four homes           |            |        |         | `lineOf`, the exec/accept/parse door, pane chrome (frame, empty, refresh as fields), refresh-while-open and tick cleanup are stamped helpers in all four homes; command registration is declarative for the exec shape; event-fed state stays `on()` with reducers feeding pane renders; every hooks module is thin over the kit — no hand-rolled copy of what the kit owns; `plugin validate` + `plugin test` ×4 green; references/mods.md rewritten to the stamp; engine tests ride the stamped helpers — landed `0040f55` + fix `6c59b1a`, whole by ceiling ruling (3004 of 3757 insertions are guard-proven stamps; no per-home partition meets 400 as written) |
 | B9  | statusline onto the kit                     |            |        |         | `SEGMENTS` returns documents; `toSgr` is the only escape emitter — no SGR literal outside the kit (grep); themes compute special colors through the kit's parametric ink constructors; both golden sets regenerated — landed `bfdfd5a`+`fcda8e4`+`67215dc` (clause split) + review round `af16d42`, goldens byte-identical                                                                                                                                                       |
-| B10 | zai raw door and the `/text` break          |            |        |         | zai's `--json` ships the raw payload, its island renders it — one exec-accept-render door with tokens; rm and zai carry no `@v1nvn/tokens` dependency; `@v1nvn/tokens`'s `/text` export removed (semver step is the owner's call, never silent)                                                                                                                                                                                                                                                           |
+| B10 | zai raw door and the `/text` break          |            |        |         | zai's `--json` ships the raw payload, its island renders it — one exec-accept-render door with tokens; rm and zai carry no `@v1nvn/tokens` dependency; `@v1nvn/tokens`'s `/text` export removed (semver step is the owner's call, never silent) — landed `acf78a9` + fix `92b2c5b`, semver minor owner-ruled, live-probed via `--plugin-dir` against a loopback mock                                                                                                                                                                                                                                                           |
 | B2  | readability layers enforced                 |            |        |         | math, tables, footnotes and resolver's class list + derived language tokens move down together — policy imports downward, legal; a pin test asserts nothing under `pipeline/` imports `../policy`; suite green; the AGENTS.md layer rule is true without editing it                                                                                                                                                                                                                                       |
 | B3  | statusline ruled changes                    |            |        |         | live `configure --theme rich` writes the theme's picks to the panel key and the agent row draws the theme's bar; live narrow-terminal probe: a gauge line falls to flat; the engine's demote guard is deleted outright — `indexOf` −1 reads as before-rung-0, matching the panel exactly; both golden sets regenerated                                                                                                                                                                                    |
 | B4  | the servers' kit and handler wrapper        |            |        |         | both suites green; one handler wrapper (try/catch + log + schema-parse + defaults) serves every tool — readability's 12× try/catch, 9× unpack, 6× defaults blocks and omlx's `.catch()` twins gone; `registerTool` call sites, output schemas and capability gating stay per-server; dev-harness, error kit, `loggerFromEnv`, a server vite variant live in core; no `LoopbackTransport` remains                                                                                                          |
@@ -118,9 +121,14 @@ dispatch.
   the bare specifier breaks the engine loader).
 - **B10 — one door, one break.** zai's `--json` goes raw with its island
   rendering; the hand-synced `.d.ts` mirrors die (`tokens/types/index.d.ts`
-  keeps only its `declare-module` block); rm's `pad2` from core; zai's
-  `format.ts` `tokens/text` imports rewire to the kit so the dependency drop
-  is possible; `/text` export removed.
+  keeps only its `declare-module` block; zai's `types/index.d.ts` follows the
+  wire body); rm's `pad2` from core; zai's `format.ts` `tokens/text` imports
+  rewire to the kit so the dependency drop is possible — `fmtTokens`, `fmtNum`
+  and `MONTHS` promote into the kit beside `localStamp`/`pad2` (format
+  primitives, one home), and with the raw door making format.ts
+  engine-loaded its kit imports ride the home's stamp (B9's consumer-class
+  ruling); `/text` export removed — semver step minor, owner-ruled, no
+  markers written by the run.
 - **B4 — wrapper, not registry.** The blind review showed a tool registry must
   learn output schemas, capability gating and the resources family — surface,
   not structure. The handler wrapper alone owns the error-drift class.
@@ -168,9 +176,11 @@ Anchors verified at `304cba6`. Scoped gates answer the row; the workspace gate
   `REGEN_GOLDENS=1 yarn workspace @v1nvn/statusline test`.
 - **B10** — `packages/zai/src/usage.ts` (:6 `pad2` import dies),
   `packages/zai/src/format.ts` (:25-27 — the `@v1nvn/tokens/text` imports
-  rewire to the kit; npm side imports core directly, the bins' discipline),
-  `packages/zai/src/index.ts` (`--json` raw), `packages/zai/hooks/register.tsx`
-  (island renders raw), `packages/zai/package.json` (:41 tokens dep dies);
+  rewire to the home's stamped kit; the raw door makes this file
+  engine-loaded), `packages/zai/src/index.ts` (`--json` raw),
+  `packages/zai/hooks/register.tsx`
+  (island renders raw), `packages/zai/package.json` (:41 tokens dep dies),
+  `packages/zai/types/index.d.ts` (follows the raw wire body);
   `packages/rm/src/send.ts` (:10 `pad2` → core), `packages/rm/package.json`
   (tokens dep dies); `packages/tokens/package.json` (:10-12 `./text` export
   removed), `packages/tokens/types/index.d.ts` (only `declare-module` remains).
@@ -242,9 +252,12 @@ Anchors verified at `304cba6`. Scoped gates answer the row; the workspace gate
   imported outside `packages/core`; after B10, `@v1nvn/tokens` in rm's or
   zai's dependency list, and a `./text` export in tokens' package.json.
 - **Never-rising counts:** a touched file's comment-line count never rises
-  (stamped copies and the regenerated `types/claude-code.d.ts` are exempt —
-  stamped, not authored); greps run from the root over live surfaces only
-  (`':!archive' ':!progress'`) — archive records stay verbatim.
+  (exempt: stamped copies and regenerated files — stamped, not authored;
+  eslint directives; a doc line carrying a format contract the signature
+  cannot, in the kit's `localStamp`/`bar` convention; a cited external
+  contract, like the validator's self-contained-types rule); greps run from
+  the root over live surfaces only (`':!archive' ':!progress'`) — archive
+  records stay verbatim.
 
 ## Small rows
 
@@ -273,9 +286,10 @@ saves the patch to scratch, and splits along its own clauses.
 - Scoped gates live in the tactical map; a golden regen is a ritual, recorded
   with its command and tail in `progress/.scratch/audit-refactor/` alongside
   before/after captures.
-- **Live-probe protocol:** before probing a mod home live, reinstall the plugin
-  from the tree — a cached pre-stamp install runs old hooks. CLI probes run on
-  built dist (`yarn build` first).
+- **Live-probe protocol:** the installed marketplace resolves from GitHub
+  main, not the tree — live mod probes run `claude --plugin-dir <tree
+  package>` against a loopback mock; CLI probes run on built dist (`yarn
+  build` first).
 - One commit per unit, conventional one-liner. One branch `audit-refactor`, one
   PR at the end, base `main` named explicitly.
 
@@ -283,9 +297,7 @@ saves the patch to scratch, and splits along its own clauses.
 
 A pick that touches money, names what a caller sees, forces a second
 deviation, touches a file the plan doesn't name, or mints or splits a unit
-stops for the owner; a builder's split at the line ceiling proceeds. B10's
-semver step for removing the `/text` export is posted to the owner when the
-run reaches B10 — never silent, never chosen by the run.
+stops for the owner; a builder's split at the line ceiling proceeds.
 
 ## Audit list
 
@@ -306,12 +318,6 @@ yarn workspace @v1nvn/agentic-core test                                       # 
 
 Plus the count checks: every touched file's comment-line count at or below its
 pre-unit value; the stamp manifest's copies byte-equal after `yarn build`.
-
-## Open questions
-
-- **B10:** the semver step for removing `@v1nvn/tokens`'s `./text` export and
-  dropping the rm/zai dependency — major vs minor is the owner's call; posted
-  when the run reaches B10, never silent.
 
 ## Design
 
