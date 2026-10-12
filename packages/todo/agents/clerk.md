@@ -21,8 +21,8 @@ output, never a summary of it.
   that answered nothing.
 - Where the plan's enforcement inventory names checkables, write a scratchpad gate
   script from it (protected-test hashes, forbidden-idiom count deltas, comment-line
-  delta, line ceilings) and run it after every commit and fix round. Report its red or
-  green line.
+  delta, the size signal's count) and run it after every commit and fix round. Report
+  its red or green line with the count.
 - Write and run the scripts the orchestrator asks for — a ritual's script, a whole-run
   audit from the plan's audit list — and reconcile their output. No builds.
 
