@@ -15,6 +15,7 @@ import {
   ITEMS,
   specFor,
 } from './render/index.js';
+import { isRecord } from './render/jq.js';
 import { layoutItems } from './render/layout.js';
 import {
   backupPath,
@@ -59,10 +60,6 @@ export type SettingsKey = 'statusLine' | 'subagentStatusLine';
 
 export const SETTINGS_KEYS = ['statusLine', 'subagentStatusLine'] as const;
 
-export function isObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
 export function readOrNull(file: string): null | string {
   try {
     return readFileSync(file, 'utf8');
@@ -84,14 +81,14 @@ export function parseSettings(
   } catch (e) {
     throw new Error(`${file} is not valid JSON`, { cause: e });
   }
-  if (!isObject(parsed)) {
+  if (!isRecord(parsed)) {
     throw new Error(`${file} does not hold a settings object`);
   }
   return parsed;
 }
 
 export function memberCommand(value: unknown): null | string {
-  if (!isObject(value) || value.type !== 'command') {
+  if (!isRecord(value) || value.type !== 'command') {
     return null;
   }
   return typeof value.command === 'string' ? value.command : null;
