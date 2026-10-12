@@ -1,7 +1,7 @@
-import { runCli } from '@v1nvn/agentic-core';
+import { buildCli, runCli } from '@v1nvn/agentic-core';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { buildProgram, usageSpec } from '../src/cli.js';
+import { usageSpec } from '../src/cli.js';
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -42,9 +42,9 @@ describe('the runCli door', () => {
   });
 });
 
-describe('buildProgram help', () => {
+describe('buildCli help', () => {
   it('bare lists the usage command; its flags live on the command', () => {
-    const program = buildProgram();
+    const program = buildCli(usageSpec());
     expect(program.helpInformation()).toContain('usage');
     const usage = program.commands.find(c => c.name() === 'usage');
     expect(usage?.helpInformation()).toContain('--json');

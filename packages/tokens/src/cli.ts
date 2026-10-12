@@ -1,4 +1,4 @@
-import { buildCli, type CliRun, type CliSpec } from '@v1nvn/agentic-core';
+import type { CliRun, CliSpec } from '@v1nvn/agentic-core';
 
 export function usageSpec(run?: CliRun): CliSpec {
   return {
@@ -20,8 +20,4 @@ export function usageSpec(run?: CliRun): CliSpec {
       },
     ],
   };
-}
-
-export function buildProgram() {
-  return buildCli(usageSpec());
 }

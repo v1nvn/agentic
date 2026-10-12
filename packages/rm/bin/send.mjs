@@ -3079,11 +3079,11 @@ async function runCli(spec, argv, onHelp) {
 		return 0;
 	}
 	const invocation = parsed;
+	if (spec.version !== void 0 && invocation.root.version === true) {
+		process.stdout.write(`${spec.version}\n`);
+		return 0;
+	}
 	if (invocation.command === void 0) {
-		if (spec.version !== void 0 && invocation.root.version === true) {
-			process.stdout.write(`${spec.version}\n`);
-			return 0;
-		}
 		if ((spec.commands?.length ?? 0) > 0) return usageError(spec);
 		return spec.run === void 0 ? 0 : await call(spec.run, invocation.options, invocation.args);
 	}

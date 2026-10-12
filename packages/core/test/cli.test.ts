@@ -88,6 +88,19 @@ describe('runCli', () => {
     expect(io.out()).toBe('1.2.3\n');
   });
 
+  it('the version flag wins even when a subcommand also parses', async () => {
+    const io = spyStdio();
+    const run = vi.fn();
+    expect(
+      await runCli({ ...spec(), commands: [{ ...spec().commands![0]!, run }] }, [
+        '--version',
+        'inner',
+      ]),
+    ).toBe(0);
+    expect(io.out()).toBe('1.2.3\n');
+    expect(run).not.toHaveBeenCalled();
+  });
+
   it('hands the help payload to the hook instead of printing', async () => {
     const io = spyStdio();
     const hook = vi.fn(() => 7);

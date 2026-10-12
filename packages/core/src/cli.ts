@@ -208,11 +208,11 @@ export async function runCli(
     return 0;
   }
   const invocation = parsed as CliInvocation;
+  if (spec.version !== undefined && invocation.root.version === true) {
+    process.stdout.write(`${spec.version}\n`);
+    return 0;
+  }
   if (invocation.command === undefined) {
-    if (spec.version !== undefined && invocation.root.version === true) {
-      process.stdout.write(`${spec.version}\n`);
-      return 0;
-    }
     if ((spec.commands?.length ?? 0) > 0) {
       return usageError(spec);
     }
