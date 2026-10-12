@@ -18,7 +18,7 @@ function walk(dir: string): string[] {
 
 test('nothing under src/pipeline imports ../policy (the arrow runs policy → pipeline)', () => {
   const offenders = walk(pipelineDir).filter(path =>
-    /['"]\.\.\/policy\//.test(readFileSync(path, 'utf8')),
+    /\.\.\/policy\//.test(readFileSync(path, 'utf8')),
   );
   expect(offenders).toEqual([]);
 });

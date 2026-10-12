@@ -70,7 +70,7 @@ interface GridCandidate {
 }
 
 // Pad ragged rows to the max cell width so the matrix is rectangular — the
-// GFM/CSV/JSON renderers in policy/tables.ts assume a dense grid (the
+// GFM/CSV/JSON renderers in pipeline/tables.ts assume a dense grid (the
 // delimiter row is derived from row-0 width, so a short row would mis-align
 // every column). Mirrors parseTableMatrix's dense-pad step.
 // `evidence` separates the detected cluster from the emitted matrix: rowCount
