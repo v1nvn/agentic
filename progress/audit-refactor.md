@@ -12,7 +12,12 @@ Behavior changes only where a ruling names it; everything else is structure.
 
 ## Current state
 
-B1, B8, B9, B10, B2, B3 and B4 landed; B5–B7 remain. B4: one handler
+B1, B8, B9, B10, B2, B3, B4 and B5 landed; B6–B7 remain. B5: the panel
+shares the engine's parser (`parseLayout` home `render/layout.ts`; unknown
+item warns once, malformed renders the bare head — both pinned), one
+`validatePick` in `items.ts`, `isRecord` adopted, `runMain` at `index.ts`;
+the render build is per-entry (`codeSplitting: false`) so both entries stay
+standalone — the committed `render.mjs` re-synced machine-proven. B4: one handler
 wrapper (`toolHandler`) and the error kit, `loggerFromEnv`, `serverVite` +
 `runDevServer` live in core and serve both servers — every tool routes
 through `tool()` bound once per server, `registerTool` sites/output
@@ -54,7 +59,7 @@ feasibility) shaped B1/B8 below. Every Plan-section anchor re-verified against
 
 ## Next step
 
-B5 — statusline internal dedup.
+B6 — todo rules sentence.
 
 ## Steps
 
@@ -68,7 +73,7 @@ B5 — statusline internal dedup.
 | B2  | readability layers enforced                 |            |        |         | math, tables, footnotes and resolver's class list + derived language tokens move down together — policy imports downward, legal; a pin test asserts nothing under `pipeline/` imports `../policy`; suite green; the AGENTS.md layer rule is true without editing it — landed `7af19f2` + fix `ceee90b` (cell-text and grid-detector rode as pin entailments; context.ts keeps local structural types per the law's second clause)                                                                                                                                                                                                                                       |
 | B3  | statusline ruled changes                    |            |        |         | live `configure --theme rich` writes the theme's picks to the panel key and the agent row draws the theme's bar; live narrow-terminal probe: a gauge line falls to flat; the engine's demote guard is deleted outright — `indexOf` −1 reads as before-rung-0, matching the panel exactly; both golden sets regenerated, goldens byte-identical with the trace recorded (corpora never pass settings keys; the guard never fired in them), the new behavior pinned by two red-first tests; G2b read as decisions-ride-the-key (theme variants resolve at paint — the expansion reading would mirror resolvePaint); one LOW open finding rides B5 — landed `1106304`, blind review clean                                                                                                                                                                                    |
 | B4  | the servers' kit and handler wrapper        |            |        |         | both suites green; one handler wrapper (try/catch + log + schema-parse + defaults) serves every tool — readability's 12× try/catch, 9× unpack, 6× defaults blocks and omlx's `.catch()` twins gone; `registerTool` call sites, output schemas and capability gating stay per-server; dev-harness, error kit, `loggerFromEnv`, a server vite variant live in core; no `LoopbackTransport` remains — landed `906184b`+`5702db8` (clause split 291+204 over the 400 ceiling) + review round (one `withSchemaDefaults` helper for the six sentinel sites, omlx's level restored to fixed `'info'`, dead `ReloadableRunner` deleted, `loggerFromEnv` pinned in core's suite, dual-boot dev smoke clean)                                                                                                          |
-| B5  | statusline internal dedup                   | sonnet/low |        |         | panel shares the engine's layout parser: parse with the full known set (an unknown item warns once), then filter to task items; one pick-validation helper in `items.ts`; `isObject` → `isRecord`; `index.ts:23-30` `run()` → core's `runMain`                                                                                                                                                                                                                                                            |
+| B5  | statusline internal dedup                   | sonnet/low |        |         | panel shares the engine's layout parser: parse with the full known set (an unknown item warns once), then filter to task items; one pick-validation helper in `items.ts`; `isObject` → `isRecord`; `index.ts:23-30` `run()` → core's `runMain` — landed `2a84358` + pin round `c92e8a3` (the two warn deltas pinned at the panel door; goldens byte-stable throughout; per-entry render builds keep the standalone-entry contract under the new code sharing)                                                                                                                                                                                                                                                            |
 | B6  | todo rules sentence                         | sonnet/low |        |         | rules states `references/` is created on first promotion; init unchanged; rules/init/README agree                                                                                                                                                                                                                                                                                                                                                                                                         |
 | B7  | the CLI kit                                 |            |        |         | all six CLIs declare commands and import no commander; `runCli` supports options-as-data and a help-payload hook (statusline's recover protocol, dynamic per-item options, TTY wizard dispatch all expressible); help exits 0 and routes to the subcommand on every CLI, live-probed ×6; A1's minimal fix deleted in this change                                                                                                                                                                          |
 
@@ -233,13 +238,12 @@ Anchors verified at `304cba6`. Scoped gates answer the row; the workspace gate
   (`InMemoryTransport.createLinkedPair()`), `packages/readability/test/config.test.ts`,
   `packages/core/test/logger.test.ts` (loggerFromEnv pin). Gates: the three
   workspace suites, all green.
-- **B5** — `packages/statusline/src/render/panel.ts` + `layout.ts` (shares the
-  engine's parser), `items.ts` (pick-validation helper), `install-record.ts`
-  (:25 `isObject` → `jq.ts:5` `isRecord`), `index.ts` (:23-30 `run()` →
-  `runMain`, `core/src/cli.ts:53`); lands B3's open review finding —
-  resolve.ts:148-149's comment reworded to the generic truth (the panel key
-  carries every item decision). Gates:
-  `yarn workspace @v1nvn/statusline test`.
+- **B5** (landed) — `packages/statusline/src/render/{panel,layout,items,engine,theme,install-record}.ts`
+  (parseLayout's one home layout.ts; `warn` beside `validatePick` in items.ts),
+  `src/index.ts` (runMain), `src/resolve.ts` (B3's finding reworded),
+  `packages/statusline/{vite.config.ts,package.json}` (per-entry render modes,
+  `codeSplitting: false`), `test/panel-warn.test.ts` (the delta pins).
+  Gates: the statusline suite (19 files / 375 tests); goldens byte-stable.
 - **B6** — `packages/todo/skills/rules/SKILL.md` (one sentence: `references/`
   is created on first promotion); agreement check against
   `skills/init/SKILL.md` and the todo README. No scoped gate — docs-only; the
