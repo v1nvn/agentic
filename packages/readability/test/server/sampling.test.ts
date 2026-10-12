@@ -1,4 +1,5 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import {
   CallToolResultSchema,
   CreateMessageRequestSchema,
@@ -8,35 +9,6 @@ import { describe, expect, it } from 'vitest';
 
 import { createServer } from '../../src/server.js';
 
-interface LoopbackTransport {
-  onmessage?: (message: unknown) => void;
-  onclose?: () => void;
-  onerror?: (error: unknown) => void;
-  start(): Promise<void>;
-  send(message: unknown): Promise<void>;
-  close(): Promise<void>;
-}
-
-function linkedTransports(): [LoopbackTransport, LoopbackTransport] {
-  let a: LoopbackTransport;
-  let b: LoopbackTransport;
-  a = {
-    close: async () => {},
-    send: async message => {
-      b.onmessage?.(message);
-    },
-    start: async () => {},
-  };
-  b = {
-    close: async () => {},
-    send: async message => {
-      a.onmessage?.(message);
-    },
-    start: async () => {},
-  };
-  return [a, b];
-}
-
 // Mirrors registration.test.ts but the client is constructed ADVERTISING the
 // sampling capability. createServer wires the `initialized` hook itself, so the
 // gate fires after the initialize handshake and lists the summarize tool.
@@ -44,7 +16,7 @@ async function connect(opts?: {
   sampling?: boolean;
 }): Promise<{ client: Client; close: () => Promise<void> }> {
   const server = createServer();
-  const [serverT, clientT] = linkedTransports();
+  const [serverT, clientT] = InMemoryTransport.createLinkedPair();
   await server.connect(serverT);
   const client = new Client(
     { name: 'test-client', version: '0.0.0' },

@@ -1,4 +1,5 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import {
   ListResourcesResultSchema,
   ListResourceTemplatesResultSchema,
@@ -15,40 +16,11 @@ import {
 } from '../../src/resources.js';
 import { createMcpServer } from '../../src/server.js';
 
-interface LoopbackTransport {
-  onmessage?: (message: unknown) => void;
-  onclose?: () => void;
-  onerror?: (error: unknown) => void;
-  start(): Promise<void>;
-  send(message: unknown): Promise<void>;
-  close(): Promise<void>;
-}
-
-function linkedTransports(): [LoopbackTransport, LoopbackTransport] {
-  let a: LoopbackTransport;
-  let b: LoopbackTransport;
-  a = {
-    close: async () => {},
-    send: async message => {
-      b.onmessage?.(message);
-    },
-    start: async () => {},
-  };
-  b = {
-    close: async () => {},
-    send: async message => {
-      a.onmessage?.(message);
-    },
-    start: async () => {},
-  };
-  return [a, b];
-}
-
 async function connect(server: ReturnType<typeof createMcpServer>): Promise<{
   client: Client;
   close: () => Promise<void>;
 }> {
-  const [serverT, clientT] = linkedTransports();
+  const [serverT, clientT] = InMemoryTransport.createLinkedPair();
   await server.connect(serverT);
   const client = new Client({ name: 'test-client', version: '0.0.0' });
   await client.connect(clientT);
