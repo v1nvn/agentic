@@ -26,8 +26,9 @@ recommendation and continues: the pick is said in one line as it is taken, writt
 the plan, and listed in the veto table; no pick is ruled silently. What stops the run
 and waits: a pick that touches money, names what a caller sees, forces a second
 deviation to land, touches a file the plan doesn't name, or mints or splits a unit —
-except a builder's split at the line ceiling, which proceeds; a small early
-deviation compounds into places the plan never chose. A plan's `**Run:**` line moves
+a small early deviation compounds into places the plan never chose. The list is a
+floor: a big deviation stops for the owner whether or not the list names it.
+A plan's `**Run:**` line moves
 the split: `ask: all` posts every pick, `standing-pick: all` takes even money and names. A single mechanical pick inside the
 plan's named scope proceeds and is written into the plan. A protected test or snapshot that
 moves only by a rename the plan names, with no assertion line and no snapshot value changed
@@ -62,7 +63,9 @@ orchestrator's context — and never another agent type.
 The tier rides the dispatch. A cell's `model/effort` pair becomes the Agent call's
 `model` and `effort` parameters — `sonnet/low` dispatches with `model: "sonnet"`,
 `effort: "low"` — and they beat the role file's frontmatter. A blank cell passes
-neither, so the role file's defaults decide.
+neither, so the role file's defaults decide. The cell is the tier's only source — the
+orchestrator never passes its own model or a pick of its own; a different tier is an
+owner ruling, written into the row before the dispatch.
 
 - A `**Run:**` line names the orchestrator model only when the owner launches one other
   than the default; without it, the launching session orchestrates. A session on a
@@ -79,7 +82,7 @@ neither, so the role file's defaults decide.
 - The `consult` cell marks `todo:reviewer` consults, comma-separated, each at the tier
   the plan names for it, else the role default:
   - `design` or `split` — **before dispatch**, on a row that leaves design open or may
-    pass the line ceiling: the consult reads the code the row names and rules the open
+    pass the size signal: the consult reads the code the row names and rules the open
     picks and the split, and the orchestrator writes them into the row before the
     builder sees it;
   - `review` — **a slice review** beside the unit's blind review, over only the diff the
@@ -103,7 +106,8 @@ neither, so the role file's defaults decide.
 3. Resolve the scope to an ordered unit list. A row that carries unrelated risks — a
    coverage change beside a money change — is split at hardening. The orchestrator reads
    no source, so it never guesses a row's size: a row the plan marks `split` takes its
-   consult before dispatch, and for any other the line ceiling is a stop inside the build.
+   consult before dispatch; for any other, the size signal organizes its review and
+   stops nothing.
    Small work is one dispatch. The rows the plan's `Small rows:` line names — a row
    qualifies only when it leaves no design freedom (deletions, renames, doc fixes, swaps
    to a named target), and nothing money-touching or design-bearing ever does — batch
@@ -186,8 +190,8 @@ neither, so the role file's defaults decide.
   output, `git diff` and `git show` diffs, and the diff classes the plan flags as
   silent-failure carriers (migrations, wire bodies, signatures).
 - Round-trips happen only at boundaries; each one wakes the orchestrator and re-reads
-  its whole context. A builder reports once — when it stops green, or on a deviation or
-  the line ceiling — never with mid-build progress. The clerk gets one message per
+  its whole context. A builder reports once — when it stops green, or on a
+  deviation — never with mid-build progress. The clerk gets one message per
   boundary carrying all of that boundary's work — the workspace gate, the enforcement
   script, and at close the close criteria — and answers in one report.
 - A stalled or rate-limited worker is continued by message, never replaced. A
@@ -201,10 +205,11 @@ neither, so the role file's defaults decide.
    in the builder's brief.
 2. The builder builds on the row's scoped gates and stops green with the tree
    uncommitted. One clerk message fires the workspace gate and the enforcement script
-   together; on green the orchestrator commits
-   (one line, no co-author trailer) and appends to or opens the PR, because auto mode
-   refuses a worker's commit. A deviation stops its item, not the builder, and nothing
-   that depends on it lands until the orchestrator answers.
+   together; on green the orchestrator commits the build as one commit (one line, no
+   co-author trailer) and appends to or opens the PR, because auto mode refuses a
+   worker's commit. The lockfile, README and docs the gate exercises ride that commit;
+   a build split across commits is a deviation. A deviation stops its item, not the
+   builder, and nothing that depends on it lands until the orchestrator answers.
 3. Where the enforcement inventory names checkables, the clerk writes the gate script
    from it once, and every boundary message runs it beside the workspace gate. Red
    items route back by message; the reviewer is not dispatched until green.

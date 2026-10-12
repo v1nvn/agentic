@@ -38,16 +38,6 @@ anchor before relying on it.
 - On a batch of rows, record each row's touched files under its id in the scratch file,
   so each row commits on its own.
 
-## Line ceiling
-
-The line ceiling is the one the plan's enforcement inventory names. It counts inserted
-lines only (`git diff --shortstat -M -- ':!*.snap'`). Past it, stop at the next green
-point, save the full patch to scratch, and split along the row's own clauses: each half
-gates green alone and adds no bridge code, and the first keeps no path the second
-deletes unless that path is already in the tree. Report the split; the orchestrator
-writes it into the plan. When no such split exists — a rename, a rework that deletes
-the old path — the unit lands whole and the report says why.
-
 ## Deviations
 
 A pick the plan's text does not already name stops that item, not you: report the
@@ -56,6 +46,6 @@ land nothing that does.
 
 ## Report
 
-Report once: when you stop green, or when a deviation or the line ceiling stops you —
+Report once: when you stop green, or when a deviation stops you —
 each report wakes the orchestrator, so never send progress. Under ~20 lines, in this order: diff stat; gate tail, pasted raw; per close criterion,
 its proof; the A/B verdict where the row calls for one; deviations; surprises.
