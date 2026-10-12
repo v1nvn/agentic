@@ -8,11 +8,11 @@ Every `progress/` plan under `~/git` (two levels deep) is on the todo 0.43.0 Ste
 
 ## Current state
 
-Scanned: 34 plan files across seven repos — agentic 4, firstmenu 5, homelab-gitops 2, stonks 5, streamdeck 1, enhansome/webapp 4, ormi/testril 13. Drift: 24 files on the old five-column table (no `consult` column); 15 `checklist` review cells (audit-refactor 5, rules-plugin 4, rulings-port 5, webapp slug-addressing 1); bare `sonnet` model cells carrying the old "mechanical row" meaning; six no-table files (firstmenu resource-monitor, homelab offsite-backups, stonks kite/kotak book reviews + smallcap-battery, testril refund-undelivered) and webapp's `finding/disposition` search-audit table — each ruled by audit, not force-migrated. testril's three x402 files are already on the new shape. Units 1 and 3 are migrated this sitting, both awaiting their `/todo:audit` passes and commits; the owner ruled the pull — agentic lands before the rest so the audit-refactor `/todo:run` tests the role agents before the mass migration.
+Scanned: 34 plan files across seven repos — agentic 4, firstmenu 5, homelab-gitops 2, stonks 5, streamdeck 1, enhansome/webapp 4, ormi/testril 13. Drift: 24 files on the old five-column table (no `consult` column); 15 `checklist` review cells (audit-refactor 5, rules-plugin 4, rulings-port 5, webapp slug-addressing 1); bare `sonnet` model cells carrying the old "mechanical row" meaning; six no-table files (firstmenu resource-monitor, homelab offsite-backups, stonks kite/kotak book reviews + smallcap-battery, testril refund-undelivered) and webapp's `finding/disposition` search-audit table — each ruled by audit, not force-migrated. testril's three x402 files are already on the new shape. Unit 3 landed `304cba6` — the park's trigger fired, audit-refactor un-parked and its `/todo:run` is live. Unit 1 is migrated but uncommitted in homelab-gitops. `tokencount-reader.md`, minted after the scan, is ruled by the no-table clause — a standing watch loop owing no Steps, `/todo:audit` clean over it. The owner ruled the pull — agentic landed first so the audit-refactor run tests the role agents before the mass migration.
 
 ## Next step
 
-Owner runs `/todo:audit` in homelab-gitops and here over units 1 and 3; on clean, the parked audit-refactor thread un-parks and its `/todo:run` is the live test, then units 2, 4–7 fan out.
+Owner runs `/todo:audit` in homelab-gitops over unit 1 and commits it — the last gate before units 2, 4–7 fan out.
 
 ## Steps
 

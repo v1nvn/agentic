@@ -57,4 +57,4 @@ Triage the four pipeline-level losses (steps 1a–1d): pick the first to fix and
 | Live quote / ticker pages     | NSE/BSE quote pages, Google/Yahoo Finance       | client-rendered shells — browser-render captures only                           |
 | Rating rationales             | CRISIL/ICRA/CARE pages                          | document-adjacent HTML around PDF links                                         |
 
-**Source allowlist.** The stonks repo's Tier-2 source allowlist (`progress/source-tiers.md` there) names the sources real usage reads; every allowlisted source whose extraction loses becomes a fixture here, and `suggest_preset` turns it into a validated per-site adapter.                                          |
+**Source allowlist.** The stonks repo's Tier-2 source allowlist (`progress/source-tiers.md` there) names the sources real usage reads; every allowlisted source whose extraction loses becomes a fixture here, and `suggest_preset` turns it into a validated per-site adapter.

@@ -91,9 +91,9 @@ gates R1's bin wiring. Delete the scratch after.
   compiler would delete exactly those two while adding a compiler to own. `bodies`
   stays — prism and diff run headless fine. `diagram` is new: free mermaid text for
   flowcharts, state and everything else, loaded only by pages that use it. Evidence
-  (greps over `~/.claude/rulings/`): three PAGE-format pages (a fourth,
-  `popover-rhythm`, is hand-built with no page.js), sixteen rulings — eight `seq`,
-  all with ledger, eight `bodies`, sixteen overlay blocks; step `in` used nine
+  (greps over `~/.claude/rulings/`): four PAGE-format pages (a fifth,
+  `popover-rhythm`, is hand-built with no page.js), eighteen rulings — ten `seq`,
+  all with ledger, eight `bodies`, eighteen overlay blocks; step `in` used nine
   times, `needs` once, `when` never.
 - **Static page, chat answer protocol.** The interactive gating had zero uses; picks
   already came back in chat as `G1a, G2c`; the compare matrix and every view render

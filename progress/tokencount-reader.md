@@ -6,11 +6,12 @@
 
 ## Current state
 
-On 2.1.296 the engine's tokenCount is an output-flavored figure for background `local_agent` tasks — 19 to 406 observed against real contexts of 16k to 203k — while in-process teammates' tokenCount tracks real usage. The panel reads each task's own transcript (`<project>/<session>/subagents/agent-<id>.jsonl`, last `message.usage`: input + cache read + cache write) and falls back to tokenCount when no transcript is read.
+On 2.1.296 the engine's tokenCount is an output-flavored figure for background `local_agent` tasks — 19 to 406 observed against real contexts of 16k to 203k — while in-process teammates' tokenCount tracks real usage. The panel reads each task's own transcript (`<project>/<session>/subagents/agent-<id>.jsonl`, last `message.usage`: input + cache read + cache write) and falls back to tokenCount when no transcript is read. No changelog has touched
+it through 2.1.296.
 
 ## Next step
 
-Watch each Claude Code changelog for a subagentStatusLine tokenCount entry; none through 2.1.296.
+Watch each Claude Code changelog for a subagentStatusLine tokenCount entry.
 
 ## Plan
 

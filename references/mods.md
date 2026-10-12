@@ -49,14 +49,14 @@ fresh install needs.
 
 ## The mod kit
 
-Every hooks module is thin over the stamped kit (`hooks/kit/mod.js` beside
-`draw.js`); a hand-rolled copy of anything the kit owns is a defect. The kit
+Every hooks module is thin over the stamped kit (`hooks/kit/mod.ts` beside
+`draw.ts`); a hand-rolled copy of anything the kit owns is a defect. The kit
 is JSX-free `.ts` — panes stay the home's `.tsx`, event-fed state stays the
 engine's own `on()` with the home's reducers feeding pane renders.
 
 | Helper | Owns |
 | ------ | ---- |
-| `lineOf` (draw.js) | the one line an exec shows: refusal, stdout, stderr, fallback |
+| `lineOf` (draw.ts) | the one line an exec shows: refusal, stdout, stderr, fallback |
 | `acceptJson` | the exec/accept/parse door: stdout parsed and accepted, or the failure line — a refused door keeps the pane's last good value |
 | `PaneSpec` | pane chrome as fields: `frame` (sizing via `paneRows`), `empty`, `refreshMs` (the re-scan cadence, gated by `showsPane`) |
 | `CommandSpec` | the exec command's descriptor; the home's one `session.start` loops over its declared list |
