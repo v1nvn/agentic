@@ -14,7 +14,7 @@ import { toMarkdown } from '../pipeline/turndown.js';
 import { assembleDiagnostics, TraceCollector } from '../policy/diagnostics.js';
 import { computeTextMetrics, nonEmpty } from '../policy/text.js';
 import { truncateMarkdown } from '../policy/truncate.js';
-import { fromLocalPath } from './html-source.js';
+import { fromLocalPath, withSchemaDefaults } from './html-source.js';
 import { outputSchemaShape } from './output-schema.js';
 import {
   type HtmlToMarkdownFromHtmlInput,
@@ -46,10 +46,7 @@ export function htmlToMarkdownFromHtml(
     cleanChrome,
     tables,
     debug,
-  } = {
-    ...htmlToMarkdownInputSchema.parse({ localPath: '' }),
-    ...input,
-  };
+  } = withSchemaDefaults(htmlToMarkdownInputSchema, input);
 
   const trace = new TraceCollector(debug);
 

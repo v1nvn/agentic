@@ -5,7 +5,7 @@ import type { ToolHandle } from '../server.js';
 
 import { tool } from '../handler.js';
 import { buildExplainReport } from '../policy/explain.js';
-import { fromLocalPath } from './html-source.js';
+import { fromLocalPath, withSchemaDefaults } from './html-source.js';
 import {
   type FromHtmlInput,
   localPathField,
@@ -248,10 +248,10 @@ function renderText(report: ExplainReport): string {
 export function explainFromHtml(
   input: Readonly<ExplainFromHtmlInput>,
 ): CallToolResult {
-  const { html, baseUrl, selectors, topN } = {
-    ...explainInputSchema.parse({ localPath: '' }),
-    ...input,
-  };
+  const { html, baseUrl, selectors, topN } = withSchemaDefaults(
+    explainInputSchema,
+    input,
+  );
   const report = buildExplainReport({
     html,
     selectors,

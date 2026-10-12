@@ -1,11 +1,6 @@
-// Structural stand-ins for vite's dev server and module runner — the shared
-// hot-reload wiring below must not pull vite into core's runtime surface; the
-// MCP packages pass their real instances through.
-export interface ReloadableRunner {
-  readonly evaluatedModules: { clear(): void };
-  import<T>(entry: string): Promise<T>;
-}
-
+// A structural stand-in for vite's dev server — the shared hot-reload wiring
+// below must not pull vite into core's runtime surface; vite.ts passes the
+// real instance through.
 export interface WatchableDevServer {
   close(): Promise<unknown>;
   readonly watcher: {

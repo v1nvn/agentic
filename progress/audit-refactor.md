@@ -12,7 +12,16 @@ Behavior changes only where a ruling names it; everything else is structure.
 
 ## Current state
 
-B1, B8, B9, B10, B2 and B3 landed; B4–B7 remain. B3: every configure
+B1, B8, B9, B10, B2, B3 and B4 landed; B5–B7 remain. B4: one handler
+wrapper (`toolHandler`) and the error kit, `loggerFromEnv`, `serverVite` +
+`runDevServer` live in core and serve both servers — every tool routes
+through `tool()` bound once per server, `registerTool` sites/output
+schemas/capability gating untouched, the three server tests ride
+`InMemoryTransport.createLinkedPair()`, `LoopbackTransport` gone (grep
+empty), omlx's log level fixed `'info'` (no env knob), one
+`withSchemaDefaults` helper owns the defaults merge, dual-boot dev smoke
+clean (`server.ws: false` — Vite 8 spins the HMR ws from `ws`, not `hmr`).
+B3: every configure
 decision rides the panel key (the style-only filter dead, pinned by seven
 tests) and an off-rung pick demotes in the engine exactly as in the panel —
 the guard deleted, goldens byte-identical with the trace recorded.
@@ -45,7 +54,7 @@ feasibility) shaped B1/B8 below. Every Plan-section anchor re-verified against
 
 ## Next step
 
-B4 — the servers' kit and handler wrapper.
+B5 — statusline internal dedup.
 
 ## Steps
 
@@ -58,7 +67,7 @@ B4 — the servers' kit and handler wrapper.
 | B10 | zai raw door and the `/text` break          |            |        |         | zai's `--json` ships the raw payload, its island renders it — one exec-accept-render door with tokens; rm and zai carry no `@v1nvn/tokens` dependency; `@v1nvn/tokens`'s `/text` export removed (semver step is the owner's call, never silent) — landed `acf78a9` + fix `92b2c5b`, semver minor owner-ruled, live-probed via `--plugin-dir` against a loopback mock                                                                                                                                                                                                                                                           |
 | B2  | readability layers enforced                 |            |        |         | math, tables, footnotes and resolver's class list + derived language tokens move down together — policy imports downward, legal; a pin test asserts nothing under `pipeline/` imports `../policy`; suite green; the AGENTS.md layer rule is true without editing it — landed `7af19f2` + fix `ceee90b` (cell-text and grid-detector rode as pin entailments; context.ts keeps local structural types per the law's second clause)                                                                                                                                                                                                                                       |
 | B3  | statusline ruled changes                    |            |        |         | live `configure --theme rich` writes the theme's picks to the panel key and the agent row draws the theme's bar; live narrow-terminal probe: a gauge line falls to flat; the engine's demote guard is deleted outright — `indexOf` −1 reads as before-rung-0, matching the panel exactly; both golden sets regenerated, goldens byte-identical with the trace recorded (corpora never pass settings keys; the guard never fired in them), the new behavior pinned by two red-first tests; G2b read as decisions-ride-the-key (theme variants resolve at paint — the expansion reading would mirror resolvePaint); one LOW open finding rides B5 — landed `1106304`, blind review clean                                                                                                                                                                                    |
-| B4  | the servers' kit and handler wrapper        |            |        |         | both suites green; one handler wrapper (try/catch + log + schema-parse + defaults) serves every tool — readability's 12× try/catch, 9× unpack, 6× defaults blocks and omlx's `.catch()` twins gone; `registerTool` call sites, output schemas and capability gating stay per-server; dev-harness, error kit, `loggerFromEnv`, a server vite variant live in core; no `LoopbackTransport` remains                                                                                                          |
+| B4  | the servers' kit and handler wrapper        |            |        |         | both suites green; one handler wrapper (try/catch + log + schema-parse + defaults) serves every tool — readability's 12× try/catch, 9× unpack, 6× defaults blocks and omlx's `.catch()` twins gone; `registerTool` call sites, output schemas and capability gating stay per-server; dev-harness, error kit, `loggerFromEnv`, a server vite variant live in core; no `LoopbackTransport` remains — landed `906184b`+`5702db8` (clause split 291+204 over the 400 ceiling) + review round (one `withSchemaDefaults` helper for the six sentinel sites, omlx's level restored to fixed `'info'`, dead `ReloadableRunner` deleted, `loggerFromEnv` pinned in core's suite, dual-boot dev smoke clean)                                                                                                          |
 | B5  | statusline internal dedup                   | sonnet/low |        |         | panel shares the engine's layout parser: parse with the full known set (an unknown item warns once), then filter to task items; one pick-validation helper in `items.ts`; `isObject` → `isRecord`; `index.ts:23-30` `run()` → core's `runMain`                                                                                                                                                                                                                                                            |
 | B6  | todo rules sentence                         | sonnet/low |        |         | rules states `references/` is created on first promotion; init unchanged; rules/init/README agree                                                                                                                                                                                                                                                                                                                                                                                                         |
 | B7  | the CLI kit                                 |            |        |         | all six CLIs declare commands and import no commander; `runCli` supports options-as-data and a help-payload hook (statusline's recover protocol, dynamic per-item options, TTY wizard dispatch all expressible); help exits 0 and routes to the subcommand on every CLI, live-probed ×6; A1's minimal fix deleted in this change                                                                                                                                                                          |
@@ -145,7 +154,9 @@ B4 — the servers' kit and handler wrapper.
   Dev-harness (`readability/src/dev.ts:36-114`, `omlx/src/dev.ts:31-84`; core
   already owns `watchWithReload` in `core/src/dev.ts` and `modVite` in
   `core/src/vite.ts`), error kit, `loggerFromEnv`, server vite variant, SDK
-  transport (`InMemoryTransport.createLinkedPair()`) as before.
+  transport (`InMemoryTransport.createLinkedPair()`) as before. `loggerFromEnv`
+  adoption is readability's status quo — omlx's level stays fixed `'info'`, no
+  new env knob (behavior changes only where a ruling names it).
 - **B7 — runCli.** Owns commander: help exits 0, subcommand help routes, quiet
   output. Homes declare commands; options may be generated from data;
   a help-payload hook replaces statusline's `HelpRequested` protocol
@@ -212,13 +223,16 @@ Anchors verified at `304cba6`. Scoped gates answer the row; the workspace gate
   `yarn build`): `node packages/statusline/dist/index.js configure --theme rich`
   then a real-status read, and a narrow-terminal panel render (gauge falls
   flat) — before/after captures to `progress/.scratch/audit-refactor/`.
-- **B4** — `packages/core/src/{dev.ts,vite.ts,logger.ts}` + new error kit and
-  `loggerFromEnv`; `packages/readability/src/{server.ts,dev.ts,errors.ts,logger.ts,tools/*.ts}`;
-  `packages/omlx/src/{server.ts,omlx.ts,dev.ts,errors.ts,logger.ts,tools/*.ts}`;
+- **B4** (landed) — `packages/core/src/{mcp.ts,logger.ts,vite.ts,dev.ts,index.ts}`
+  (wrapper `toolHandler`, `loggerFromEnv`, `serverVite`/`runDevServer`, barrel line);
+  `packages/{readability,omlx}/src/{handler.ts,errors.ts,logger.ts,config.ts}` and
+  readability's `{cli,index,preset-cache,sampling}.ts` + `tools/*` (the six sentinel
+  sites one `withSchemaDefaults` in `tools/html-source.ts`); both homes'
+  `src/dev.ts` + `vite.config.ts` thin over the core harness;
   `packages/readability/test/server/{registration,sampling,resources}.test.ts`
-  (`LoopbackTransport` at :14/:11/:18 → `InMemoryTransport.createLinkedPair()`).
-  Gates: `yarn workspace @v1nvn/agentic-core test`,
-  `yarn workspace @v1nvn/readability test`, `yarn workspace @v1nvn/omlx test`.
+  (`InMemoryTransport.createLinkedPair()`), `packages/readability/test/config.test.ts`,
+  `packages/core/test/logger.test.ts` (loggerFromEnv pin). Gates: the three
+  workspace suites, all green.
 - **B5** — `packages/statusline/src/render/panel.ts` + `layout.ts` (shares the
   engine's parser), `items.ts` (pick-validation helper), `install-record.ts`
   (:25 `isObject` → `jq.ts:5` `isRecord`), `index.ts` (:23-30 `run()` →
@@ -266,8 +280,10 @@ Anchors verified at `304cba6`. Scoped gates answer the row; the workspace gate
 - **Never-rising counts:** a touched file's comment-line count never rises
   (exempt: stamped copies and regenerated files — stamped, not authored;
   eslint directives; a doc line carrying a format contract the signature
-  cannot, in the kit's `localStamp`/`bar` convention; a cited external
-  contract, like the validator's self-contained-types rule); greps run from
+  cannot, in the kit's `localStamp`/`bar` convention; and any line of the
+  comment law's three surviving kinds — an invariant the code cannot carry, a
+  cited external contract like the validator's self-contained-types rule, a
+  note that something which looks wrong is in fact correct); greps run from
   the root over live surfaces only (`':!archive' ':!progress'`) — archive
   records stay verbatim.
 

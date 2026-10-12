@@ -24,3 +24,10 @@ export function fromLocalPath<T extends { localPath: string }>(
   const { localPath, ...rest } = input;
   return { ...rest, html: readHtmlFile(localPath) };
 }
+
+export function withSchemaDefaults<
+  T extends { localPath: string },
+  I extends FromHtmlInput<T>,
+>(schema: { parse(raw: unknown): T }, input: I): I & T {
+  return { ...schema.parse({ localPath: '' }), ...input };
+}

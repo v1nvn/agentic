@@ -25,10 +25,9 @@ export interface ToolInputSchema<Args> {
 }
 
 /**
- * Bind a server's logger and error rendering once; every tool's handler is
- * then `tool(name, run, schema?)` — the wrapper owns the error-drift class:
- * a thrown or rejected error (zod parse included) logs and answers an
- * `isError` result instead of escaping the tool call.
+ * The wrapper owns the error-drift class: a thrown or rejected error (zod
+ * parse included) logs and answers an `isError` result instead of escaping
+ * the tool call.
  */
 export function toolHandler<Result>(
   log: Logger,

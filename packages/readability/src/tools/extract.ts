@@ -27,7 +27,7 @@ import { resolvePreset } from '../policy/presets.js';
 import { computeTextMetrics } from '../policy/text.js';
 import { truncateMarkdown } from '../policy/truncate.js';
 import * as cache from '../resources.js';
-import { fromLocalPath } from './html-source.js';
+import { fromLocalPath, withSchemaDefaults } from './html-source.js';
 import { outputSchemaShape } from './output-schema.js';
 import {
   type ExtractFromHtmlInput,
@@ -54,16 +54,10 @@ export interface ExtractWorkerInput extends ExtractFromHtmlInput {
   readonly resolvePreset?: boolean;
 }
 
-// A sentinel parse materializes every `.default()` so callers passing a subset
-// of the knobs (extract_section's scoped delegation, the CLI, tests) still
-// reach the worker with a complete input.
 export function extractArticleFromHtml(
   input: Readonly<ExtractWorkerInput>,
 ): CallToolResult {
-  const merged = {
-    ...extractInputSchema.parse({ localPath: '' }),
-    ...input,
-  };
+  const merged = withSchemaDefaults(extractInputSchema, input);
   const {
     html,
     baseUrl,

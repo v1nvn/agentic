@@ -4,7 +4,7 @@ import { tool } from '../handler.js';
 import { buildDocument } from '../pipeline/dom.js';
 import { applySelectors } from '../pipeline/normalize.js';
 import { absolutize } from '../pipeline/urls.js';
-import { fromLocalPath } from './html-source.js';
+import { fromLocalPath, withSchemaDefaults } from './html-source.js';
 import { extractLinksOutputShape } from './output-schema.js';
 import {
   type ExtractLinksFromHtmlInput,
@@ -66,10 +66,10 @@ function pruneUnsafeRoots(document: Document): void {
 export function extractLinksFromHtml(
   input: Readonly<ExtractLinksFromHtmlInput>,
 ): CallToolResult {
-  const { html, baseUrl, sameOriginOnly, selectors } = {
-    ...extractLinksInputSchema.parse({ localPath: '' }),
-    ...input,
-  };
+  const { html, baseUrl, sameOriginOnly, selectors } = withSchemaDefaults(
+    extractLinksInputSchema,
+    input,
+  );
 
   const { document } = buildDocument(html, baseUrl);
   applySelectors(document, selectors);

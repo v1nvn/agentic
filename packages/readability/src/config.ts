@@ -31,10 +31,7 @@ When the client advertises MCP \`sampling\`, two more tools appear: \`summarize\
 
 Failures come back as \`isError: true\` results, never thrown.`;
 
-export function loadConfig(
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  _env: NodeJS.ProcessEnv = process.env,
-): ServerConfig {
+export function loadConfig(): ServerConfig {
   return {
     name: 'readability',
     version: pkg.version,

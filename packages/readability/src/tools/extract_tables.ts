@@ -8,7 +8,7 @@ import {
   renderTable,
   resolveHeaderKeys,
 } from '../pipeline/tables.js';
-import { fromLocalPath } from './html-source.js';
+import { fromLocalPath, withSchemaDefaults } from './html-source.js';
 import { extractTablesOutputShape } from './output-schema.js';
 import {
   type ExtractTablesFromHtmlInput,
@@ -37,10 +37,10 @@ export function extractTables(rawArgs: unknown): CallToolResult {
 export function extractTablesFromHtml(
   input: Readonly<ExtractTablesFromHtmlInput>,
 ): CallToolResult {
-  const { html, baseUrl, format, selectors } = {
-    ...extractTablesInputSchema.parse({ localPath: '' }),
-    ...input,
-  };
+  const { html, baseUrl, format, selectors } = withSchemaDefaults(
+    extractTablesInputSchema,
+    input,
+  );
 
   // Skip normalizeDocument/Readability on purpose: this tool exists to reach
   // tables that live outside the scored article (nav, aside, boilerplate), which

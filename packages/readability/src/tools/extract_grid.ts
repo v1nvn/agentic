@@ -5,7 +5,7 @@ import { buildDocument } from '../pipeline/dom.js';
 import { applySelectors } from '../pipeline/normalize.js';
 import { renderTable } from '../pipeline/tables.js';
 import { detectGrid } from '../policy/grid-detector.js';
-import { fromLocalPath } from './html-source.js';
+import { fromLocalPath, withSchemaDefaults } from './html-source.js';
 import { extractGridOutputShape } from './output-schema.js';
 import {
   type ExtractGridFromHtmlInput,
@@ -27,10 +27,8 @@ const NO_GRID = '(no repeating grid found)';
 export function extractGridFromHtml(
   input: Readonly<ExtractGridFromHtmlInput>,
 ): CallToolResult {
-  const { html, baseUrl, format, selectors, rowSelector, cellSelector } = {
-    ...extractGridInputSchema.parse({ localPath: '' }),
-    ...input,
-  };
+  const { html, baseUrl, format, selectors, rowSelector, cellSelector } =
+    withSchemaDefaults(extractGridInputSchema, input);
 
   // Same raw-DOM rationale as extract_tables/extract_list: the repeating grid
   // lives in statically-rendered divs that Readability/normalize would discard

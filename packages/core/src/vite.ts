@@ -123,8 +123,10 @@ export interface DevSession<T> {
  * The hot-reload harness every MCP-server dev entry runs. The transport and
  * McpServer are single-use under the SDK (`StdioServerTransport.start()`
  * throws on a second call), so `start` creates and connects them once and
- * only the registrations swap on each file change. `entry` is the module that
- * exports the registration families, at `<package root>/src/<name>.ts`.
+ * only the registrations swap on each file change. `start` must register
+ * before connecting — the SDK's `registerCapabilities` throws post-connect.
+ * `entry` is the module that exports the registration families, at
+ * `<package root>/src/<name>.ts`.
  */
 export async function runDevServer<T>(options: {
   entry: string;
@@ -153,6 +155,8 @@ export async function runDevServer<T>(options: {
   async function runOneReload(): Promise<void> {
     try {
       runner.evaluatedModules.clear();
+      // Import the next module before reload removes the live
+      // registrations: a failed import leaves what is serving intact.
       const next = await runner.import<T>(options.entry);
       session.reload(next);
       options.log.info('[reload] success');
