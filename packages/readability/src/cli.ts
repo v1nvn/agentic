@@ -1,7 +1,10 @@
-import { HelpRequested, parseQuietly } from '@v1nvn/agentic-core';
+import {
+  describeError,
+  HelpRequested,
+  parseQuietly,
+} from '@v1nvn/agentic-core';
 import { Command, InvalidArgumentError, Option } from 'commander';
 
-import { describeError } from './errors.js';
 import { extractArticleFromHtml } from './tools/extract.js';
 import { readHtmlFile } from './tools/html-source.js';
 

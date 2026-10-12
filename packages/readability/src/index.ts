@@ -1,8 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { shutdownOnSignals } from '@v1nvn/agentic-core';
+import { describeError, shutdownOnSignals } from '@v1nvn/agentic-core';
 
-import { describeError } from './errors.js';
 import { createServer } from './server.js';
 
 if (process.argv[2] === 'extract') {

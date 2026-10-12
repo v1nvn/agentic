@@ -299,7 +299,9 @@ saves the patch to scratch, and splits along its own clauses.
   with its command and tail in `progress/.scratch/audit-refactor/` alongside
   before/after captures. The run's enforcement script lives at
   `progress/.scratch/audit-refactor/enforce.mjs` — every boundary runs it;
-  extend its state table as units land (B2/B10 already flipped).
+  extend its state table as units land (B2/B10 already flipped). Baselines
+  track the tree the run builds on: an out-of-run commit on the branch rebases
+  them (panel.ts 19 → 22 at `df3d9f9`, from `7b7570e`).
 - **Live-probe protocol:** the installed marketplace resolves from GitHub
   main, not the tree — live mod probes run `claude --plugin-dir <tree
   package>` against a loopback mock; CLI probes run on built dist (`yarn

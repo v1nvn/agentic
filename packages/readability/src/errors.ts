@@ -1,15 +1,4 @@
-import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
-
-export interface TextContent {
-  readonly text: string;
-  readonly type: 'text';
-}
-
-export interface ErrorResult {
-  // Mutable so the literal assigns to the SDK's CallToolResult (mutable content).
-  readonly content: TextContent[];
-  readonly isError: true;
-}
+import { describeError, type ErrorResult } from '@v1nvn/agentic-core';
 
 export class ExtractionError extends Error {
   public override readonly cause: unknown;
@@ -21,14 +10,7 @@ export class ExtractionError extends Error {
   }
 }
 
-export function describeError(err: unknown): string {
-  if (err instanceof Error) {
-    return err.message;
-  }
-  return String(err);
-}
-
-export function toErrorResult(err: unknown): CallToolResult {
+export function toErrorResult(err: unknown): ErrorResult {
   const label = err instanceof ExtractionError ? err.name : 'Error';
   return {
     isError: true,

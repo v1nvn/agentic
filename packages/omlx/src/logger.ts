@@ -1,3 +1,3 @@
-import { Logger } from '@v1nvn/agentic-core';
+import { loggerFromEnv } from '@v1nvn/agentic-core';
 
-export const logger = new Logger('info');
+export const logger = loggerFromEnv(process.env, 'OMLX_LOG_LEVEL');

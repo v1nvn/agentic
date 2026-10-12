@@ -1,5 +1,7 @@
 import { readFileSync } from 'node:fs';
 
+import type { FromHtmlInput } from './schemas.js';
+
 export function readHtmlFile(localPath: string): string {
   const raw = readFileSync(localPath, 'utf8');
   const trimmed = raw.trim();
@@ -14,4 +16,11 @@ export function readHtmlFile(localPath: string): string {
   } catch {
     return raw;
   }
+}
+
+export function fromLocalPath<T extends { localPath: string }>(
+  input: T,
+): FromHtmlInput<T> {
+  const { localPath, ...rest } = input;
+  return { ...rest, html: readHtmlFile(localPath) };
 }

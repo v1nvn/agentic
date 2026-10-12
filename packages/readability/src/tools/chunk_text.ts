@@ -1,11 +1,14 @@
 import type { Chunk } from '../policy/chunk.js';
 import type { ToolHandle } from '../server.js';
 
-import { describeError, toErrorResult } from '../errors.js';
-import { logger } from '../logger.js';
+import { tool } from '../handler.js';
 import { chunkMarkdown } from '../policy/chunk.js';
 import { chunkTextOutputShape } from './output-schema.js';
-import { chunkTextInputSchema, chunkTextInputShape } from './schemas.js';
+import {
+  type ChunkTextInput,
+  chunkTextInputSchema,
+  chunkTextInputShape,
+} from './schemas.js';
 
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
@@ -24,8 +27,9 @@ function renderChunkIndex(chunks: readonly Chunk[]): string {
     .join('\n\n');
 }
 
-export function chunkTextDocument(rawArgs: unknown): CallToolResult {
-  const args = chunkTextInputSchema.parse(rawArgs);
+export function chunkTextDocument(
+  args: Readonly<ChunkTextInput>,
+): CallToolResult {
   const { text, maxTokens, overlap, strategy } = args;
   const chunks = chunkMarkdown(text, { maxTokens, overlap, strategy });
   const content = renderChunkIndex(chunks);
@@ -41,14 +45,11 @@ export function chunkTextDocument(rawArgs: unknown): CallToolResult {
 
 export const CHUNK_TEXT_TOOL_DESCRIPTION = `Split already-extracted text into token-bounded chunks for embedding/RAG. Each chunk carries its index, tokenCount (chars/4), and the nearest preceding markdown heading as headingContext. Operates on any text — pair with the \`chunk\` option on \`extract\` when you want chunks inline with the extraction. The server fetches nothing: \`text\` is the only input.`;
 
-export function chunkTextHandler(args: unknown): CallToolResult {
-  try {
-    return chunkTextDocument(args);
-  } catch (err) {
-    logger.error(`chunk_text failed: ${describeError(err)}`);
-    return toErrorResult(err);
-  }
-}
+export const chunkTextHandler = tool(
+  'chunk_text',
+  chunkTextDocument,
+  chunkTextInputSchema,
+);
 
 export function registerChunkTextTool(server: McpServer): ToolHandle {
   return server.registerTool(

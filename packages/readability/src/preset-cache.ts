@@ -4,6 +4,7 @@
 // detector-checked per page (policy/presets.ts), so eviction here is disk
 // hygiene only.
 
+import { describeError } from '@v1nvn/agentic-core';
 import {
   mkdirSync,
   readdirSync,
@@ -18,7 +19,6 @@ import { z } from 'zod';
 
 import type { SitePreset } from './policy/presets.js';
 
-import { describeError } from './errors.js';
 import { logger } from './logger.js';
 import { addPreset, normalizeSiteKey } from './policy/presets.js';
 

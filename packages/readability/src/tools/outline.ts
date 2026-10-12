@@ -1,11 +1,10 @@
 import type { ToolHandle } from '../server.js';
 
-import { describeError, toErrorResult } from '../errors.js';
-import { logger } from '../logger.js';
+import { tool } from '../handler.js';
 import { buildDocument } from '../pipeline/dom.js';
 import { applySelectors, normalizeDocument } from '../pipeline/normalize.js';
 import { resolveOutline } from '../policy/outline.js';
-import { readHtmlFile } from './html-source.js';
+import { fromLocalPath } from './html-source.js';
 import { outlineOutputShape } from './output-schema.js';
 import {
   type OutlineFromHtmlInput,
@@ -26,11 +25,6 @@ function renderOutlineToc(
   return outline
     .map(entry => `${'  '.repeat(entry.level - 1)}- ${entry.text}`)
     .join('\n');
-}
-
-export function outlineDocument(rawArgs: unknown): CallToolResult {
-  const { localPath, ...rest } = outlineInputSchema.parse(rawArgs);
-  return outlineDocumentFromHtml({ html: readHtmlFile(localPath), ...rest });
 }
 
 export function outlineDocumentFromHtml(
@@ -63,14 +57,11 @@ export function outlineDocumentFromHtml(
 
 export const OUTLINE_TOOL_DESCRIPTION = `Return the document outline (h1-h6 headings with stable anchor ids) of already-rendered (post-JavaScript) HTML as a cheap pre-check before full extraction. No Readability scoring, no Turndown, no sanitization — a pure heading walk. The server fetches nothing: \`localPath\` is the only source, and \`baseUrl\` is origin context only (never fetched).`;
 
-export function outlineHandler(args: unknown): CallToolResult {
-  try {
-    return outlineDocument(args);
-  } catch (err) {
-    logger.error(`outline failed: ${describeError(err)}`);
-    return toErrorResult(err);
-  }
-}
+export const outlineHandler = tool(
+  'outline',
+  input => outlineDocumentFromHtml(fromLocalPath(input)),
+  outlineInputSchema,
+);
 
 export function registerOutlineTool(server: McpServer): ToolHandle {
   return server.registerTool(

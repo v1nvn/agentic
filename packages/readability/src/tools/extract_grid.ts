@@ -1,16 +1,14 @@
 import type { ToolHandle } from '../server.js';
 
-import { describeError, toErrorResult } from '../errors.js';
-import { logger } from '../logger.js';
+import { tool } from '../handler.js';
 import { buildDocument } from '../pipeline/dom.js';
 import { applySelectors } from '../pipeline/normalize.js';
 import { renderTable } from '../pipeline/tables.js';
 import { detectGrid } from '../policy/grid-detector.js';
-import { readHtmlFile } from './html-source.js';
+import { fromLocalPath } from './html-source.js';
 import { extractGridOutputShape } from './output-schema.js';
 import {
   type ExtractGridFromHtmlInput,
-  type ExtractGridInput,
   extractGridInputSchema,
   extractGridInputShape,
 } from './schemas.js';
@@ -26,20 +24,11 @@ interface GridEntry {
 
 const NO_GRID = '(no repeating grid found)';
 
-export function extractGrid(rawArgs: unknown): CallToolResult {
-  const { localPath, ...rest } = extractGridInputSchema.parse(rawArgs);
-  return extractGridFromHtml({ html: readHtmlFile(localPath), ...rest });
-}
-
-// Schema defaults for callers that pass only a subset of the knobs (format).
-const DEFAULTS: Omit<ExtractGridInput, 'localPath'> =
-  extractGridInputSchema.parse({ localPath: '' });
-
 export function extractGridFromHtml(
   input: Readonly<ExtractGridFromHtmlInput>,
 ): CallToolResult {
   const { html, baseUrl, format, selectors, rowSelector, cellSelector } = {
-    ...DEFAULTS,
+    ...extractGridInputSchema.parse({ localPath: '' }),
     ...input,
   };
 
@@ -82,14 +71,11 @@ export function extractGridFromHtml(
 
 export const EXTRACT_GRID_TOOL_DESCRIPTION = `Detect and extract a CSS-grid / div "table" from already-rendered (post-JavaScript) HTML — the div equivalent of \`extract_tables\` for SPAs that render data into repeating \`<div>\` rows instead of \`<table>\`. Supports auto-detect (find the container whose direct children form the largest same-shape sibling group of ≥3 rows, each row a set of ≥2 direct element-children) and explicit \`rowSelector\` + \`cellSelector\` selector mode (cells scoped to each row subtree). Renders the matrix through the SAME gfm/csv/json renderer as \`extract_tables\`. Runs no Readability, no Turndown, no sanitization — the server fetches nothing: \`localPath\` is the only source, and \`baseUrl\` (optional) is origin context only.`;
 
-export function extractGridHandler(args: unknown): CallToolResult {
-  try {
-    return extractGrid(args);
-  } catch (err) {
-    logger.error(`extract_grid failed: ${describeError(err)}`);
-    return toErrorResult(err);
-  }
-}
+export const extractGridHandler = tool(
+  'extract_grid',
+  input => extractGridFromHtml(fromLocalPath(input)),
+  extractGridInputSchema,
+);
 
 export function registerExtractGridTool(server: McpServer): ToolHandle {
   return server.registerTool(

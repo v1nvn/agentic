@@ -6,9 +6,8 @@ import type { SelectorViolation } from '../policy/selector-lint.js';
 import type { ToolHandle } from '../server.js';
 import type { StructuredContent } from './output-schema.js';
 
-import { describeError, toErrorResult } from '../errors.js';
+import { tool } from '../handler.js';
 import { sampleJson, SuggestParseError } from '../host-sampling.js';
-import { logger } from '../logger.js';
 import { buildDocument } from '../pipeline/dom.js';
 import { normalizeDocument, resolveLazyImages } from '../pipeline/normalize.js';
 import { assessLostSignal } from '../policy/lost-signal.js';
@@ -202,15 +201,11 @@ export function registerSuggestPresetTool(server: McpServer): ToolHandle {
       inputSchema: suggestPresetInputShape,
       outputSchema: suggestPresetOutputShape,
     },
-    async (rawArgs: unknown): Promise<CallToolResult> => {
-      const args = suggestPresetInputSchema.parse(rawArgs);
-      try {
-        return await runSuggestLoop(args, server);
-      } catch (err) {
-        logger.error(`suggest_preset failed: ${describeError(err)}`);
-        return toErrorResult(err);
-      }
-    },
+    tool(
+      'suggest_preset',
+      args => runSuggestLoop(args, server),
+      suggestPresetInputSchema,
+    ),
   );
 }
 

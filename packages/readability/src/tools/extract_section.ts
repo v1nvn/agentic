@@ -1,12 +1,12 @@
 import type { ToolHandle } from '../server.js';
 
-import { describeError, ExtractionError, toErrorResult } from '../errors.js';
-import { logger } from '../logger.js';
+import { ExtractionError } from '../errors.js';
+import { tool } from '../handler.js';
 import { buildDocument } from '../pipeline/dom.js';
 import { normalizeDocument } from '../pipeline/normalize.js';
 import { scopeToHeading } from '../policy/section.js';
 import { extractArticleFromHtml } from './extract.js';
-import { readHtmlFile } from './html-source.js';
+import { fromLocalPath } from './html-source.js';
 import { outputSchemaShape } from './output-schema.js';
 import {
   type ExtractSectionFromHtmlInput,
@@ -18,11 +18,6 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
 const SECTION_SCOPE_SELECTOR = '[data-rdrm-section-scope]';
-
-export function extractSection(rawArgs: unknown): CallToolResult {
-  const { localPath, ...rest } = extractSectionInputSchema.parse(rawArgs);
-  return extractSectionFromHtml({ html: readHtmlFile(localPath), ...rest });
-}
 
 export function extractSectionFromHtml(
   input: Readonly<ExtractSectionFromHtmlInput>,
@@ -69,14 +64,11 @@ export function extractSectionFromHtml(
 
 export const EXTRACT_SECTION_TOOL_DESCRIPTION = `Extract one section of an already-rendered (post-JavaScript) HTML document and return its Markdown + metadata + diagnostics — a thin resolver over extract’s \`selectors.include\` path, not a new extractor. Pick the section by CSS \`selector\` (passed straight through) OR by \`heading\` text (case-insensitive, first match wins; the section spans from the matched heading to the next same-or-higher-level heading). Exactly one of \`selector\`/\`heading\` is required. The server fetches nothing: \`localPath\` is the only source, and \`baseUrl\` (optional) is origin context only (never fetched).`;
 
-export function extractSectionHandler(args: unknown): CallToolResult {
-  try {
-    return extractSection(args);
-  } catch (err) {
-    logger.error(`extract_section failed: ${describeError(err)}`);
-    return toErrorResult(err);
-  }
-}
+export const extractSectionHandler = tool(
+  'extract_section',
+  input => extractSectionFromHtml(fromLocalPath(input)),
+  extractSectionInputSchema,
+);
 
 export function registerExtractSectionTool(server: McpServer): ToolHandle {
   return server.registerTool(

@@ -6,7 +6,11 @@
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { shutdownOnSignals, watchWithReload } from '@v1nvn/agentic-core';
+import {
+  describeError,
+  shutdownOnSignals,
+  watchWithReload,
+} from '@v1nvn/agentic-core';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
@@ -16,7 +20,6 @@ import {
 
 import type { PresetCacheReport } from './preset-cache.js';
 
-import { describeError } from './errors.js';
 import { logger } from './logger.js';
 
 // Loaded through Vite (not imported statically) so the runner controls its cache

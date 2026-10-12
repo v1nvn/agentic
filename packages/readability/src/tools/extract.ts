@@ -1,7 +1,8 @@
 import type { SanitizationDiagnostics } from '../pipeline/context.js';
 import type { ToolHandle } from '../server.js';
 
-import { describeError, ExtractionError, toErrorResult } from '../errors.js';
+import { ExtractionError } from '../errors.js';
+import { tool } from '../handler.js';
 import { logger } from '../logger.js';
 import { formatPayload } from '../output/format.js';
 import { buildDocument } from '../pipeline/dom.js';
@@ -26,11 +27,10 @@ import { resolvePreset } from '../policy/presets.js';
 import { computeTextMetrics } from '../policy/text.js';
 import { truncateMarkdown } from '../policy/truncate.js';
 import * as cache from '../resources.js';
-import { readHtmlFile } from './html-source.js';
+import { fromLocalPath } from './html-source.js';
 import { outputSchemaShape } from './output-schema.js';
 import {
   type ExtractFromHtmlInput,
-  type ExtractInput,
   extractInputSchema,
   extractInputShape,
 } from './schemas.js';
@@ -42,18 +42,10 @@ import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 const EXTRACTED_NODE = 'readability';
 
 export function extractArticle(rawArgs: unknown): CallToolResult {
-  const { localPath, ...rest } = extractInputSchema.parse(rawArgs);
-  return extractArticleFromHtml({ html: readHtmlFile(localPath), ...rest });
+  return extractArticleFromHtml(
+    fromLocalPath(extractInputSchema.parse(rawArgs)),
+  );
 }
-
-// Schema defaults materialized once. Callers that pass only a subset of the
-// knobs (extract_section's scoped delegation, the CLI, tests) get the rest
-// filled from here, so the worker always sees a complete input. `localPath` is
-// required only to anchor the source; a sentinel parse materializes every
-// `.default()` and the type narrows it back out.
-const DEFAULTS: Omit<ExtractInput, 'localPath'> = extractInputSchema.parse({
-  localPath: '',
-});
 
 // Internal worker option, never in the zod schema: the only caller that turns
 // preset resolution off is extract_section, whose re-serialized subtree document
@@ -62,10 +54,16 @@ export interface ExtractWorkerInput extends ExtractFromHtmlInput {
   readonly resolvePreset?: boolean;
 }
 
+// A sentinel parse materializes every `.default()` so callers passing a subset
+// of the knobs (extract_section's scoped delegation, the CLI, tests) still
+// reach the worker with a complete input.
 export function extractArticleFromHtml(
   input: Readonly<ExtractWorkerInput>,
 ): CallToolResult {
-  const merged = { ...DEFAULTS, ...input };
+  const merged = {
+    ...extractInputSchema.parse({ localPath: '' }),
+    ...input,
+  };
   const {
     html,
     baseUrl,
@@ -360,14 +358,7 @@ export function extractArticleFromHtml(
 
 export const EXTRACT_TOOL_DESCRIPTION = `Extract the main article from already-rendered (post-JavaScript) HTML and return clean Markdown plus metadata and diagnostics. The server fetches nothing: \`localPath\` (a file holding the rendered HTML, e.g. \`document.documentElement.outerHTML\` written to disk by a browser/devtools capture) is the only source, and \`baseUrl\` (optional) is used solely to absolutize relative links.`;
 
-export function extractHandler(args: unknown): CallToolResult {
-  try {
-    return extractArticle(args);
-  } catch (err) {
-    logger.error(`extract failed: ${describeError(err)}`);
-    return toErrorResult(err);
-  }
-}
+export const extractHandler = tool('extract', extractArticle);
 
 export function registerExtractTool(server: McpServer): ToolHandle {
   return server.registerTool(
