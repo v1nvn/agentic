@@ -129,6 +129,23 @@ describe('rate=strip negative reset deltas', () => {
   });
 });
 
+describe('off-rung demote', () => {
+  it('a gauge bar falls down the rungs when the row overflows', () => {
+    if (!demo) {
+      throw new Error('demo home not materialized');
+    }
+    const lines = linesOf(
+      renderAt(demo, loadPayload('p1'), {
+        columns: 24,
+        layout: '{bar}',
+        picks: { bar: 'gauge' },
+      }),
+    );
+    expectFits(lines, 24);
+    expect(stripSgr(lines[0]), 'gauge moon still drawn').not.toContain('◑');
+  });
+});
+
 // live MODELD=1 strips a trailing "[...]" from the model display name; the
 // corpus pins the strip at 58 and 36 — 75 pins the bracket surviving below
 // the model rung.

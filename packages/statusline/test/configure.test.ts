@@ -129,7 +129,15 @@ describe('configure: writes (contract 3)', () => {
       ]),
     );
     expect(settingsCommand(home, 'subagentStatusLine')).toBe(
-      subagentKeyValue(null, []),
+      subagentKeyValue(null, [
+        '--model=block',
+        '--effort=dim',
+        '--cwd=full',
+        '--branch=last',
+        '--bar=gauge',
+        '--tokens=compact',
+        '--cache-expiry=fuse',
+      ]),
     );
     expect(readdirSync(join(home, DATA_DIR)).sort(), 'data dir').toEqual([
       'backup.json',
@@ -285,6 +293,19 @@ describe('configure: --theme', () => {
     );
   });
 
+  it('an item decision rides the panel key too — the panel honors model, effort, bar, tokens and duration', () => {
+    const home = homes.newHome();
+
+    configure({ home, theme: 'lean', variants: { bar: 'gauge' } });
+
+    expect(settingsCommand(home, 'statusLine')).toBe(
+      mainKeyValue('lean', null, ['--bar=gauge']),
+    );
+    expect(settingsCommand(home, 'subagentStatusLine')).toBe(
+      subagentKeyValue('lean', ['--bar=gauge']),
+    );
+  });
+
   it('a theme write replaces a seeded ours key with the theme decision alone', () => {
     const home = homes.newHome();
     writeSettings(
@@ -406,7 +427,7 @@ describe('configure: settings refusal (E4 port)', () => {
       mainKeyValue(null, '{model}', ['--model=block']),
     );
     expect(settingsCommand(home, 'subagentStatusLine')).toBe(
-      subagentKeyValue(null, []),
+      subagentKeyValue(null, ['--model=block']),
     );
     const settings = JSON.parse(readFileSync(settingsPath(home), 'utf8'));
     expect(settings.model).toBe('opus-4');

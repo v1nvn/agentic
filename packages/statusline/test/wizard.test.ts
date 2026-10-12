@@ -382,7 +382,7 @@ describe('wizard: a theme pick saved', () => {
       mainKeyValue('lean', null, ['--bar=none']),
     );
     expect(settingsCommand(home, 'subagentStatusLine')).toBe(
-      subagentKeyValue('lean', []),
+      subagentKeyValue('lean', ['--bar=none']),
     );
   });
 

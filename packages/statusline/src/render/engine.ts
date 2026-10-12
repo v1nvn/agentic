@@ -180,9 +180,6 @@ export function renderStatusline(input: RenderInput): string {
       return;
     }
     const at = order.indexOf(picks[item]);
-    if (at === -1) {
-      return;
-    }
     if (order.slice(at + 1).includes(target)) {
       picks[item] = target;
     }

@@ -1405,7 +1405,6 @@ function renderStatusline(input) {
 		const order = RUNG_ORDERS[item];
 		if (order === void 0) return;
 		const at = order.indexOf(picks[item]);
-		if (at === -1) return;
 		if (order.slice(at + 1).includes(target)) picks[item] = target;
 	}
 	function resetRungs() {

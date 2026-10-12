@@ -17,11 +17,15 @@ const GOLDEN_MAIN = `node "$HOME/.claude/plugins/data/statusline-agentic/render.
 
 const GOLDEN_SUB = `node "$HOME/.claude/plugins/data/statusline-agentic/render.mjs" --subagent || true`;
 
+const GOLDEN_SUB_SWAPS = `node "$HOME/.claude/plugins/data/statusline-agentic/render.mjs" --subagent --model=block --effort=dim || true`;
+
 const GOLDEN_THEME = `node "$HOME/.claude/plugins/data/statusline-agentic/render.mjs" --theme=lean || true`;
 
 const GOLDEN_THEME_SWAP = `node "$HOME/.claude/plugins/data/statusline-agentic/render.mjs" --theme=lean --bar=gauge || true`;
 
 const GOLDEN_THEME_SUB = `node "$HOME/.claude/plugins/data/statusline-agentic/render.mjs" --subagent --theme=lean || true`;
+
+const GOLDEN_THEME_SUB_SWAP = `node "$HOME/.claude/plugins/data/statusline-agentic/render.mjs" --subagent --theme=lean --bar=gauge || true`;
 
 const homes = createHomes();
 
@@ -46,7 +50,7 @@ describe('configure: golden key values (ruling 1)', () => {
     });
     expect(settings.subagentStatusLine).toEqual({
       type: 'command',
-      command: GOLDEN_SUB,
+      command: GOLDEN_SUB_SWAPS,
     });
 
     expect(
@@ -68,10 +72,12 @@ describe('configure: golden key values (ruling 1)', () => {
 
     expect(settingsCommand(swapped, 'statusLine')).toBe(GOLDEN_THEME_SWAP);
     expect(settingsCommand(swapped, 'subagentStatusLine')).toBe(
-      GOLDEN_THEME_SUB,
+      GOLDEN_THEME_SUB_SWAP,
     );
     expect(mainKeyValue('lean', null, ['--bar=gauge'])).toBe(GOLDEN_THEME_SWAP);
-    expect(subagentKeyValue('lean', [])).toBe(GOLDEN_THEME_SUB);
+    expect(subagentKeyValue('lean', ['--bar=gauge'])).toBe(
+      GOLDEN_THEME_SUB_SWAP,
+    );
   });
 });
 

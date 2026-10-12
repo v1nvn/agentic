@@ -478,11 +478,7 @@ export function configure(options: ConfigureOptions): void {
     options.home,
     {
       statusLine: mainKeyValue(options.theme ?? null, layout, flags),
-      // The panel consumes one decision — style.
-      subagentStatusLine: subagentKeyValue(
-        options.theme ?? null,
-        flags.filter(flag => flag.startsWith('--style=')),
-      ),
+      subagentStatusLine: subagentKeyValue(options.theme ?? null, flags),
     },
     options.force ?? false,
   );

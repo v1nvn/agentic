@@ -64,7 +64,7 @@ describe('configure on a scratch home (rulings 1 and 4)', () => {
       mainKeyValue(null, '{model bar}', ['--model=block', '--bar=gauge']),
     );
     expect(settingsCommand(home, 'subagentStatusLine')).toBe(
-      subagentKeyValue(null, []),
+      subagentKeyValue(null, ['--model=block', '--bar=gauge']),
     );
 
     const written = Object.keys(snapshotTree(join(home, '.claude'))).sort();
