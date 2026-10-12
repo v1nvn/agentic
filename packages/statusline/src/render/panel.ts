@@ -51,6 +51,7 @@ export interface PanelInput {
   readonly now: number;
   readonly payload: string;
   readonly picks?: Readonly<Record<string, string>>;
+  readonly usage?: Readonly<Record<string, number>>;
 }
 
 interface TaskFields {
@@ -104,18 +105,22 @@ function availColumns(tick: unknown): number {
   return Math.max(columns, 20) - 1;
 }
 
-function extractFields(task: Record<string, unknown>): TaskFields {
+function extractFields(
+  task: Record<string, unknown>,
+  usage: Readonly<Record<string, number>> | undefined,
+): TaskFields {
+  const id = cell(field(task, 'id', ''));
   return {
     ctx: cell(field(task, 'contextWindowSize', 0)),
     desc: cell(truncateDesc(jqText(field(task, 'description', '')))),
     effort: cell(field(task, 'effort', '')),
-    id: cell(field(task, 'id', '')),
+    id,
     label: cell(field(task, 'label', '')),
     model: cell(field(task, 'model', '')),
     name: cell(field(task, 'name', '')),
     start: cell(field(task, 'startTime', 0)),
     status: cell(field(task, 'status', '')),
-    tokens: cell(field(task, 'tokenCount', 0)),
+    tokens: cell(orElse(usage?.[id], field(task, 'tokenCount', 0))),
   };
 }
 
@@ -291,7 +296,7 @@ export function renderPanel(input: PanelInput): string {
     if (!isRecord(task)) {
       continue;
     }
-    const fields = extractFields(task);
+    const fields = extractFields(task, input.usage);
     if (fields.id === '') {
       continue;
     }

@@ -3,6 +3,7 @@ import { capturePayload } from './capture.js';
 import { renderStatusline } from './engine.js';
 import { renderPanel } from './panel.js';
 import { resolvePaint } from './theme.js';
+import { usedContextMap } from './usage.js';
 
 // The render.mjs entry the settings keys spawn: decisions ride argv, ambient
 // state rides env — NO_COLOR, COLUMNS, HOME stay environment because the
@@ -50,6 +51,7 @@ async function main(): Promise<void> {
         now,
         payload,
         picks: paint.picks,
+        usage: usedContextMap(payload),
         noColor,
       }),
     );
