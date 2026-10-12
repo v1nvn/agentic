@@ -2970,45 +2970,114 @@ var HelpRequested = class extends Error {
 		this.command = command;
 	}
 };
-function parseQuietly(program, args) {
-	function quiet(command) {
-		command.configureOutput({
-			writeOut: () => void 0,
-			writeErr: () => void 0
-		});
-		command.exitOverride((err) => {
-			const code = err.code;
-			if (code === "commander.help" || code === "commander.helpDisplayed") throw new HelpRequested(command);
-			throw err;
-		});
-		command.commands.forEach(quiet);
+function addOption(cmd, option) {
+	if (option.env === void 0 && option.choices === void 0 && option.default === void 0 && option.parse === void 0) {
+		cmd.option(option.flags, option.description);
+		return;
 	}
+	const built = new Option(option.flags, option.description);
+	if (option.env !== void 0) built.env(option.env);
+	if (option.choices !== void 0) built.choices(option.choices);
+	if (option.default !== void 0) built.default(option.default);
+	if (option.parse !== void 0) built.argParser(option.parse);
+	cmd.addOption(built);
+}
+function wire(cmd, spec, program, isRoot, sink) {
+	if (spec.description !== void 0) cmd.description(spec.description);
+	if (spec.argument !== void 0) cmd.argument(spec.argument.flags, spec.argument.description);
+	for (const option of spec.options ?? []) addOption(cmd, option);
+	if (isRoot && spec.version !== void 0) cmd.option("-V, --version", "print the version and exit");
+	cmd.action((...all) => {
+		const options = all.at(-2);
+		const command = all.at(-1);
+		sink?.({
+			command: isRoot ? void 0 : spec.name,
+			options,
+			args: command.args,
+			root: program.opts()
+		});
+	});
+	for (const sub of spec.commands ?? []) {
+		const child = new Command(sub.name);
+		wire(child, sub, program, false, sink);
+		cmd.addCommand(child);
+	}
+}
+function materialize(spec, sink) {
+	const program = new Command(spec.name);
+	wire(program, spec, program, true, sink);
+	return program;
+}
+function quiet(command) {
+	command.configureOutput({
+		writeOut: () => void 0,
+		writeErr: () => void 0
+	});
+	command.exitOverride((err) => {
+		const code = err.code;
+		if (code === "commander.help" || code === "commander.helpDisplayed") throw new HelpRequested(command);
+		throw err;
+	});
+	command.commands.forEach(quiet);
+}
+function parseCli(spec, argv, onHelp) {
+	let invocation;
+	const program = materialize(spec, (found) => {
+		invocation = found;
+	});
+	quiet(program);
 	try {
-		quiet(program);
-		program.parse([...args], { from: "user" });
-		return program;
+		program.parse([...argv], { from: "user" });
 	} catch (err) {
-		return err instanceof HelpRequested ? err : void 0;
+		if (!(err instanceof HelpRequested)) return;
+		return onHelp !== void 0 ? onHelp(err.command.name(), err.command.helpInformation()) : err;
 	}
+	return invocation;
 }
-function exitWithCode(code) {
-	process.exit(code);
+function helpTextFor(spec, topic) {
+	const program = materialize(spec);
+	const command = topic === spec.name ? program : program.commands.find((c) => c.name() === topic);
+	if (command === void 0) throw new Error(`no '${topic}' command to describe`);
+	return command.helpInformation();
 }
-function printHelpAndExit(command) {
-	console.log(command.helpInformation());
-	exitWithCode(0);
+function usageError(spec) {
+	process.stderr.write(`${helpTextFor(spec, spec.name)}\n`);
+	return spec.usageExit ?? 1;
 }
-function printUsageAndExit(program) {
-	console.error(program.helpInformation());
-	exitWithCode(1);
-}
-async function runMain(main) {
+async function call(run, options, args) {
 	try {
-		await main();
-	} catch (e) {
-		console.error(e.message);
-		exitWithCode(1);
+		return await run(options, args) ?? 0;
+	} catch (err) {
+		console.error(err.message);
+		return 1;
 	}
+}
+async function runCli(spec, argv, onHelp) {
+	let asked;
+	const parsed = parseCli(spec, argv, (topic, text) => {
+		asked = {
+			topic,
+			text
+		};
+		return 0;
+	});
+	if (parsed === void 0) return usageError(spec);
+	if (asked !== void 0) {
+		if (onHelp !== void 0) return onHelp(asked.topic, asked.text) ?? 0;
+		process.stdout.write(`${asked.text}\n`);
+		return 0;
+	}
+	const invocation = parsed;
+	if (invocation.command === void 0) {
+		if (spec.version !== void 0 && invocation.root.version === true) {
+			process.stdout.write(`${spec.version}\n`);
+			return 0;
+		}
+		if ((spec.commands?.length ?? 0) > 0) return usageError(spec);
+		return spec.run === void 0 ? 0 : await call(spec.run, invocation.options, invocation.args);
+	}
+	const sub = spec.commands?.find((c) => c.name === invocation.command);
+	return sub?.run === void 0 ? 0 : await call(sub.run, invocation.options, invocation.args);
 }
 function readAll(stream) {
 	return new Promise((resolve, reject) => {
@@ -3149,20 +3218,24 @@ function mdSend(markdown, view = false) {
 }
 //#endregion
 //#region src/index.ts
-var program = new Command().name("md-send").description("Send a Markdown reply to the Markdown-Viewer as a #share= URL").argument("[file]", "Markdown file, - for stdin; the last reply when omitted").option("--view", "open the viewer read-only, without the edit pane");
-var asked = parseQuietly(program, process.argv.slice(2));
-if (asked instanceof HelpRequested) printHelpAndExit(asked.command);
-var parsed = asked ?? printUsageAndExit(program);
-var arg = parsed.args.at(0);
-var { view } = parsed.opts();
-function readMarkdown() {
-	if (arg === "-") return readStdin();
-	if (arg === void 0) return lastReply();
-	return readMarkdownFile(arg);
-}
-await runMain(async () => {
-	console.log(mdSend(await readMarkdown(), view ?? false));
-});
+var spec = {
+	name: "md-send",
+	description: "Send a Markdown reply to the Markdown-Viewer as a #share= URL",
+	argument: {
+		flags: "[file]",
+		description: "Markdown file, - for stdin; the last reply when omitted"
+	},
+	options: [{
+		flags: "--view",
+		description: "open the viewer read-only, without the edit pane"
+	}],
+	run: async (options, args) => {
+		const arg = args.at(0);
+		const markdown = arg === "-" ? await readStdin() : arg === void 0 ? lastReply() : readMarkdownFile(arg);
+		console.log(mdSend(markdown, options.view === true));
+	}
+};
+process.exitCode = await runCli(spec, process.argv.slice(2));
 //#endregion
 export {};
 

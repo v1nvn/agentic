@@ -6,7 +6,7 @@ import { createServer } from './server.js';
 
 if (process.argv[2] === 'extract') {
   void import('./cli.js')
-    .then(m => m.runCli(process.argv.slice(2)))
+    .then(m => m.runExtract(process.argv.slice(2)))
     .then(code => {
       // eslint-disable-next-line n/no-process-exit
       process.exit(code);

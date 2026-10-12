@@ -1,29 +1,21 @@
-import {
-  HelpRequested,
-  lastReply,
-  parseQuietly,
-  printHelpAndExit,
-  printUsageAndExit,
-  readMarkdownFile,
-  runMain,
-} from '@v1nvn/agentic-core';
-import { Command } from 'commander';
+import { lastReply, readMarkdownFile, runCli } from '@v1nvn/agentic-core';
 
 import { sendToRemarkable } from './send.js';
 
-const program = new Command()
-  .name('rm-send')
-  .description('Beam a Markdown reply to the reMarkable as EPUB')
-  .argument('[file]', 'Markdown file; the last reply when omitted');
+import type { CliSpec } from '@v1nvn/agentic-core';
 
-const asked = parseQuietly(program, process.argv.slice(2));
-if (asked instanceof HelpRequested) {
-  printHelpAndExit(asked.command);
-}
-const parsed = asked ?? printUsageAndExit(program);
-const file = parsed.args.at(0);
+const spec: CliSpec = {
+  name: 'rm-send',
+  description: 'Beam a Markdown reply to the reMarkable as EPUB',
+  argument: {
+    flags: '[file]',
+    description: 'Markdown file; the last reply when omitted',
+  },
+  run: (_options, args) => {
+    const file = args.at(0);
+    const markdown = file === undefined ? lastReply() : readMarkdownFile(file);
+    console.log(sendToRemarkable(markdown));
+  },
+};
 
-await runMain(() => {
-  const markdown = file === undefined ? lastReply() : readMarkdownFile(file);
-  console.log(sendToRemarkable(markdown));
-});
+process.exitCode = await runCli(spec, process.argv.slice(2));
