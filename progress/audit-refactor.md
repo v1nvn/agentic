@@ -12,7 +12,11 @@ Behavior changes only where a ruling names it; everything else is structure.
 
 ## Current state
 
-B1, B8, B9, B10 and B2 landed. Readability's layer arrow is enforced by a
+B1, B8, B9, B10, B2 and B3 landed; B4–B7 remain. B3: every configure
+decision rides the panel key (the style-only filter dead, pinned by seven
+tests) and an off-rung pick demotes in the engine exactly as in the panel —
+the guard deleted, goldens byte-identical with the trace recorded.
+Readability's layer arrow is enforced by a
 pin (`test/layering.test.ts`): math, tables, footnotes, resolver and
 cell-text live under pipeline/, policy imports only downward, and AGENTS.md's
 layer sentence is true unedited. zai's `--json` ships the raw payload with the
@@ -41,7 +45,7 @@ feasibility) shaped B1/B8 below. Every Plan-section anchor re-verified against
 
 ## Next step
 
-B3 — statusline ruled changes.
+B4 — the servers' kit and handler wrapper.
 
 ## Steps
 
@@ -53,7 +57,7 @@ B3 — statusline ruled changes.
 | B9  | statusline onto the kit                     |            |        |         | `SEGMENTS` returns documents; `toSgr` is the only escape emitter — no SGR literal outside the kit (grep); themes compute special colors through the kit's parametric ink constructors; both golden sets regenerated — landed `bfdfd5a`+`fcda8e4`+`67215dc` (clause split) + review round `af16d42`, goldens byte-identical                                                                                                                                                       |
 | B10 | zai raw door and the `/text` break          |            |        |         | zai's `--json` ships the raw payload, its island renders it — one exec-accept-render door with tokens; rm and zai carry no `@v1nvn/tokens` dependency; `@v1nvn/tokens`'s `/text` export removed (semver step is the owner's call, never silent) — landed `acf78a9` + fix `92b2c5b`, semver minor owner-ruled, live-probed via `--plugin-dir` against a loopback mock                                                                                                                                                                                                                                                           |
 | B2  | readability layers enforced                 |            |        |         | math, tables, footnotes and resolver's class list + derived language tokens move down together — policy imports downward, legal; a pin test asserts nothing under `pipeline/` imports `../policy`; suite green; the AGENTS.md layer rule is true without editing it — landed `7af19f2` + fix `ceee90b` (cell-text and grid-detector rode as pin entailments; context.ts keeps local structural types per the law's second clause)                                                                                                                                                                                                                                       |
-| B3  | statusline ruled changes                    |            |        |         | live `configure --theme rich` writes the theme's picks to the panel key and the agent row draws the theme's bar; live narrow-terminal probe: a gauge line falls to flat; the engine's demote guard is deleted outright — `indexOf` −1 reads as before-rung-0, matching the panel exactly; both golden sets regenerated                                                                                                                                                                                    |
+| B3  | statusline ruled changes                    |            |        |         | live `configure --theme rich` writes the theme's picks to the panel key and the agent row draws the theme's bar; live narrow-terminal probe: a gauge line falls to flat; the engine's demote guard is deleted outright — `indexOf` −1 reads as before-rung-0, matching the panel exactly; both golden sets regenerated — landed `1106304`, blind review clean; goldens byte-identical with the trace recorded (corpora never pass settings keys; the guard never fired in them), the new behavior pinned by two red-first tests; G2b read as decisions-ride-the-key (theme variants resolve at paint — the expansion reading would mirror resolvePaint); one LOW open finding rides B5                                                                                                                                                                                    |
 | B4  | the servers' kit and handler wrapper        |            |        |         | both suites green; one handler wrapper (try/catch + log + schema-parse + defaults) serves every tool — readability's 12× try/catch, 9× unpack, 6× defaults blocks and omlx's `.catch()` twins gone; `registerTool` call sites, output schemas and capability gating stay per-server; dev-harness, error kit, `loggerFromEnv`, a server vite variant live in core; no `LoopbackTransport` remains                                                                                                          |
 | B5  | statusline internal dedup                   | sonnet/low |        |         | panel shares the engine's layout parser: parse with the full known set (an unknown item warns once), then filter to task items; one pick-validation helper in `items.ts`; `isObject` → `isRecord`; `index.ts:23-30` `run()` → core's `runMain`                                                                                                                                                                                                                                                            |
 | B6  | todo rules sentence                         | sonnet/low |        |         | rules states `references/` is created on first promotion; init unchanged; rules/init/README agree                                                                                                                                                                                                                                                                                                                                                                                                         |
@@ -215,7 +219,9 @@ Anchors verified at `304cba6`. Scoped gates answer the row; the workspace gate
 - **B5** — `packages/statusline/src/render/panel.ts` + `layout.ts` (shares the
   engine's parser), `items.ts` (pick-validation helper), `install-record.ts`
   (:25 `isObject` → `jq.ts:5` `isRecord`), `index.ts` (:23-30 `run()` →
-  `runMain`, `core/src/cli.ts:53`). Gates:
+  `runMain`, `core/src/cli.ts:53`); lands B3's open review finding —
+  resolve.ts:148-149's comment reworded to the generic truth (the panel key
+  carries every item decision). Gates:
   `yarn workspace @v1nvn/statusline test`.
 - **B6** — `packages/todo/skills/rules/SKILL.md` (one sentence: `references/`
   is created on first promotion); agreement check against
@@ -288,7 +294,9 @@ saves the patch to scratch, and splits along its own clauses.
   `yarn build && yarn test && yarn typecheck && yarn lint && yarn test:mods`.
 - Scoped gates live in the tactical map; a golden regen is a ritual, recorded
   with its command and tail in `progress/.scratch/audit-refactor/` alongside
-  before/after captures.
+  before/after captures. The run's enforcement script lives at
+  `progress/.scratch/audit-refactor/enforce.mjs` — every boundary runs it;
+  extend its state table as units land (B2/B10 already flipped).
 - **Live-probe protocol:** the installed marketplace resolves from GitHub
   main, not the tree — live mod probes run `claude --plugin-dir <tree
   package>` against a loopback mock; CLI probes run on built dist (`yarn
