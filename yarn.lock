@@ -806,7 +806,6 @@ __metadata:
   resolution: "@v1nvn/rm@workspace:packages/rm"
   dependencies:
     "@v1nvn/agentic-core": "workspace:^"
-    "@v1nvn/tokens": "workspace:^"
     commander: "npm:^15.0.0"
     vite: "npm:^8.1.4"
     vitest: "npm:^4.1.10"
@@ -828,7 +827,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@v1nvn/tokens@workspace:^, @v1nvn/tokens@workspace:packages/tokens":
+"@v1nvn/tokens@workspace:packages/tokens":
   version: 0.0.0-use.local
   resolution: "@v1nvn/tokens@workspace:packages/tokens"
   dependencies:
@@ -846,7 +845,6 @@ __metadata:
   resolution: "@v1nvn/zai@workspace:packages/zai"
   dependencies:
     "@v1nvn/agentic-core": "workspace:^"
-    "@v1nvn/tokens": "workspace:^"
     commander: "npm:^15.0.0"
     vite: "npm:^8.1.4"
     vitest: "npm:^4.1.10"

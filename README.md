@@ -152,7 +152,8 @@ packages/                           one yarn workspace — every plugin's home
                                      .claude-plugin/ + hooks/register.tsx + tests/ + types/
                                      (state contract); src/ holds the CLI (index, cli, scan)
                                      and the island's aggregate/format/top/text.ts
-                                     (text.ts is the one fixed-width home, via @v1nvn/tokens/text),
+                                     (text.ts is tokens' internal home; the shared drawing
+                                     primitives live in core's kit),
                                      bin/report.mjs (standalone build the mod execs, committed)
   statusline/                        the configure CLI + renderer, pure TS (@v1nvn/statusline) — the plugin root itself:
                                      .claude-plugin/ + SKILL.md (see statusline above) + render.mjs (committed artifact)
