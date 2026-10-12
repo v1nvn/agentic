@@ -2,6 +2,10 @@
 
 import { atom, read, update } from 'claude-code';
 
+import type { RenderInput } from '../src/format.js';
+import type { Line } from './kit/draw.js';
+
+import { reportLines } from '../src/format.js';
 import {
   acceptJson,
   type CommandSpec,
@@ -22,54 +26,35 @@ const PANE: PaneSpec = {
 };
 const ACCENT = 'cyan';
 
-// Local structural mirror of the CLI's --json payload: src/format.js's import
-// graph is barred from the island.
-interface Segment {
-  ink?: 'bold' | 'dim';
-  text: string;
-}
-
-type Line = Segment[];
-
-interface Report {
-  lines: Line[];
-}
-
 const usage = atom(
   { plugin: 'zai', key: 'usage' } as const,
-  null as Line[] | null,
+  null as null | RenderInput,
 );
 
-function isLine(value: unknown): boolean {
-  return (
-    Array.isArray(value) &&
-    value.every(
-      s =>
-        typeof s === 'object' &&
-        s !== null &&
-        typeof (s as Segment).text === 'string',
-    )
-  );
-}
-
-function isReport(parsed: unknown): null | Report {
+function isInput(parsed: unknown): null | RenderInput {
   if (typeof parsed !== 'object' || parsed === null) {
     return null;
   }
-  const { lines } = parsed as { lines?: unknown };
-  return Array.isArray(lines) && lines.every(isLine)
-    ? { lines: lines as Line[] }
+  const { platform, model, tool, quota } = parsed as Record<string, unknown>;
+  return typeof platform === 'string' &&
+    typeof model === 'object' &&
+    model !== null &&
+    typeof tool === 'object' &&
+    tool !== null &&
+    typeof quota === 'object' &&
+    quota !== null
+    ? (parsed as RenderInput)
     : null;
 }
 
-async function scan($: EngineInterface): Promise<Door<Report>> {
+async function scan($: EngineInterface): Promise<Door<RenderInput>> {
   const call = await $.tool.call({
     tool: 'Bash',
     command: `node ${$.plugin.root}/bin/usage.mjs usage --json`,
   });
-  const got = acceptJson(call, 'query failed', isReport);
+  const got = acceptJson(call, 'query failed', isInput);
   if (got.ok) {
-    await update($, usage, () => got.value.lines);
+    await update($, usage, () => got.value);
   }
   return got;
 }
@@ -134,18 +119,18 @@ export function register(on: On): void {
     }
     await $.ui.open({
       id: PANE.id,
-      rows: paneRows(got.value.lines.length, PANE),
+      rows: paneRows(reportLines(got.value).length, PANE),
       title: PANE.title,
     });
     return {};
   });
 
   on('ui.render', { component: 'Pane', requestId: PANE.id }, async ($, e) => {
-    const lines = await read($, usage);
-    if (!lines) {
+    const input = await read($, usage);
+    if (!input) {
       const { Text } = $.ui.resolve(e);
       return <Text dimColor>{PANE.empty}</Text>;
     }
-    return draw($.ui.resolve(e), lines, PANE);
+    return draw($.ui.resolve(e), reportLines(input as RenderInput), PANE);
   });
 }

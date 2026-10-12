@@ -75,7 +75,7 @@ and re-vendor `types/claude-code.d.ts` (repo root) from the engine-laid
 | `src/scan.ts`        | the CLI's transcript walk (node-fs)                                          |
 | `hooks/register.tsx` | the mod: execs the CLI into the `/tokens-usage` pane; draws the `/tokens-top` pane from engine pushes |
 | `src/format.ts`      | the report both doors render                                                 |
-| `src/text.ts`        | line model + fixed-width primitives — the one home, shared as `@v1nvn/tokens/text` |
+| `src/text.ts`        | line model + fixed-width primitives — tokens' internal home |
 | `src/top.ts`         | the `/tokens-top` pane layout — ink-tagged segments from engine pushes       |
 | `bin/report.mjs`     | the standalone build the mod execs — committed, synced by `yarn build`       |
 

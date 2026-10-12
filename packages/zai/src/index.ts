@@ -5,7 +5,7 @@ import {
   runMain,
 } from '@v1nvn/agentic-core';
 
-import { render, reportLines } from './format.js';
+import { render } from './format.js';
 import { buildProgram, parseArgs, resolveConfig } from './resolve.js';
 import { fetchReport } from './usage.js';
 
@@ -21,7 +21,5 @@ if (parsed.command !== 'usage') {
 
 await runMain(async () => {
   const input = await fetchReport(resolveConfig(process.env, parsed));
-  console.log(
-    parsed.json ? JSON.stringify({ lines: reportLines(input) }) : render(input),
-  );
+  console.log(parsed.json ? JSON.stringify(input) : render(input));
 });

@@ -1,222 +1,31 @@
 import { expect, mock, test } from 'claude-code/testing';
 
+import type { RenderInput } from '../src/format.js';
+
+import { reportLines } from '../src/format.js';
 import { acceptJson, paneRows } from './kit/mod.js';
 import { stubEngine } from './kit/stub.js';
 
 import type { CommandRunResult } from 'claude-code';
 import type { Engine } from 'claude-code/testing';
 
-// The real reportLines output over a fixed two-hour fixture, pasted verbatim: the engine's loader bars a test import of src/format.ts's npm graph.
-type Line = { ink?: 'bold' | 'dim'; text: string }[];
-
-const LINES: Line[] = [
-  [
-    {
-      text: '────────────────────────────────────────────────────────────────────',
-    },
-  ],
-  [
-    {
-      text: ' GLM Coding Plan · Max',
-      ink: 'bold',
-    },
-    {
-      text: '              Oct 04 10:00 → Oct 04 11:00 · 2h',
-      ink: 'dim',
-    },
-  ],
-  [
-    {
-      text: '────────────────────────────────────────────────────────────────────',
-    },
-  ],
-  [],
-  [
-    {
-      text: ' 420.0K tokens across 6 model calls',
-    },
-    {
-      text: ' — ',
-    },
-  ],
-  [
-    {
-      text: '71%',
-      ink: 'bold',
-    },
-    {
-      text: ' of it in a single hour',
-    },
-  ],
-  [
-    {
-      text: ' (Oct 04 11:00, 300.0K tokens / 4 calls).',
-    },
-  ],
-  [],
-  [
-    {
-      text: ' Peak     Oct 04 11:00    300.0K tokens ·     4 calls',
-    },
-  ],
-  [
-    {
-      text: ' Active   2 / 2 hours    no idle gaps',
-    },
-  ],
-  [
-    {
-      text: ' Tools    8 calls        3 searches · 5 reads',
-    },
-  ],
-  [
-    {
-      text: ' Peak hrs Mon–Fri 14:00–18:00 · GLM-5.2 3× · 0h active · 0 (',
-    },
-    {
-      text: '0%',
-      ink: 'bold',
-    },
-    {
-      text: ')',
-    },
-  ],
-  [],
-  [
-    {
-      text: ' Hourly tokens · ↑ peak hour ───────────────────────────────────────',
-      ink: 'dim',
-    },
-  ],
-  [
-    {
-      text: ' 300.0K ┤                              ████████████████████████████',
-    },
-  ],
-  [
-    {
-      text: '        │                              ████████████████████████████',
-    },
-  ],
-  [
-    {
-      text: '        │                              ████████████████████████████',
-    },
-  ],
-  [
-    {
-      text: '        │ ▃▃▃▃▃▃▃▃▃▃▃▃▃▃▃▃▃▃▃▃▃▃▃▃▃▃▃▃ ████████████████████████████',
-    },
-  ],
-  [
-    {
-      text: '        │ ████████████████████████████ ████████████████████████████',
-    },
-  ],
-  [
-    {
-      text: '        │ ████████████████████████████ ████████████████████████████',
-    },
-  ],
-  [
-    {
-      text: '      0 └───────────────┬─────────────────────────────┬──────────────',
-    },
-  ],
-  [
-    {
-      text: '                        10                           11',
-    },
-  ],
-  [
-    {
-      text: '                        Oct 04',
-    },
-  ],
-  [
-    {
-      text: '                                                     ◂',
-    },
-  ],
-  [
-    {
-      text: '   ◂ peak  Oct 04 11:00  300.0K tokens · 4 calls',
-    },
-  ],
-  [],
-  [
-    {
-      text: ' Model mix ─────────────────────────────────────────────────────────',
-      ink: 'dim',
-    },
-  ],
-  [
-    {
-      text: '   GLM-5.2      420.0K  ',
-    },
-    {
-      text: '100.0%',
-      ink: 'bold',
-    },
-    {
-      text: '  ████████████████████',
-    },
-  ],
-  [],
-  [
-    {
-      text: ' Limits ────────────────────────────────────────────────────────────',
-      ink: 'dim',
-    },
-  ],
-  [
-    {
-      text: '   Peak            ',
-      ink: 'dim',
-    },
-    {
-      text: '14:00  ░░░░░░░░░░░░░░░░░░░░░░░  18:00',
-    },
-  ],
-  [
-    {
-      text: '   Tokens · 5h     ',
-      ink: 'dim',
-    },
-    {
-      text: '  42%',
-      ink: 'bold',
-    },
-    {
-      text: '  █████████░░░░░░░░░░░░░  12:30:00 pm',
-    },
-  ],
-  [],
-  [
-    {
-      text: '   MCP · this month',
-      ink: 'dim',
-    },
-    {
-      text: '  30%',
-      ink: 'bold',
-    },
-    {
-      text: '  ███████░░░░░░░░░░░░░░░  Invalid Date',
-    },
-  ],
-  [
-    {
-      text: '   308M / 1,000M · web search 223',
-    },
-  ],
-  [],
-  [
-    {
-      text: '────────────────────────────────────────────────────────────────────',
-    },
-  ],
-];
+// The raw --json payload over a fixed two-hour fixture.
+const RAW = {
+  platform: 'ZAI',
+  model: {
+    x_time: ['2026-10-04 10:00', '2026-10-04 11:00'],
+    tokensUsage: [120000, 300000],
+    modelCallCount: [2, 4],
+    totalUsage: { totalModelCallCount: 6, totalTokensUsage: 420000 },
+    modelSummaryList: [
+      { modelName: 'GLM-5.2', totalTokens: 420000, sortOrder: 1 },
+    ],
+  },
+  tool: {
+    totalUsage: { totalNetworkSearchCount: 3, totalWebReadMcpCount: 5 },
+  },
+  quota: { level: 'max', limits: [] },
+} satisfies RenderInput;
 
 const NO_KEY = 'no API key: set ZAI_AUTH_TOKEN (or --auth-token)';
 const REFRESH_MS = 5 * 60 * 1000;
@@ -298,7 +107,7 @@ test('pane chrome as fields: the frame sizes the rows a pane asks for', () => {
 test('session start declaratively registers zai-usage, execs and draws nothing', async ($, on) => {
   mock.clock(on);
   const world = stubEngine(on, {
-    stdout: `${JSON.stringify({ lines: LINES })}\n`,
+    stdout: `${JSON.stringify(RAW)}\n`,
   });
 
   await startSession($);
@@ -308,10 +117,10 @@ test('session start declaratively registers zai-usage, execs and draws nothing',
   expect(world.opens).toEqual([]);
 });
 
-test('a run execs the shipped CLI with --json, opens the pane sized to the report and draws its lines', async ($, on) => {
+test('a run execs the shipped CLI with --json, accepts the raw payload, opens the pane sized to the report and renders it', async ($, on) => {
   mock.clock(on);
   const world = stubEngine(on, {
-    stdout: `${JSON.stringify({ lines: LINES })}\n`,
+    stdout: `${JSON.stringify(RAW)}\n`,
   });
   await startSession($);
 
@@ -322,7 +131,9 @@ test('a run execs the shipped CLI with --json, opens the pane sized to the repor
     expect.stringMatching(/^node .*\/bin\/usage\.mjs usage --json$/),
   ]);
   expect(world.logs).toEqual([]);
-  expect(world.opens).toEqual([{ id: 'zai-usage', rows: LINES.length + 2 }]);
+  expect(world.opens).toEqual([
+    { id: 'zai-usage', rows: reportLines(RAW).length + 2 },
+  ]);
 
   const ui = await $.ui.mount({ ...PANE, surface: 'terminal' });
   expect(
@@ -337,7 +148,7 @@ test('a run execs the shipped CLI with --json, opens the pane sized to the repor
 test('the pane re-scans on its refresh tick while open, quietly keeping its last good report', async ($, on) => {
   const clock = mock.clock(on);
   const world = stubEngine(on, {
-    stdout: `${JSON.stringify({ lines: LINES })}\n`,
+    stdout: `${JSON.stringify(RAW)}\n`,
   });
 
   await startSession($);

@@ -6,18 +6,8 @@ import childProcess from "node:child_process";
 import process$1 from "node:process";
 import { stripVTControlCharacters } from "node:util";
 //#region ../core/dist/draw.js
-function line(...segments) {
-	return segments;
-}
-function meter(pct, width, filled = "green") {
-	const n = Math.max(0, Math.min(width, Math.round((typeof pct === "number" && Number.isFinite(pct) ? pct : 0) / 100 * width)));
-	return line({
-		text: "█".repeat(n),
-		ink: filled
-	}, {
-		text: "·".repeat(width - n),
-		ink: "dim"
-	});
+function pad2$1(n) {
+	return String(n).padStart(2, "0");
 }
 //#endregion
 //#region ../core/dist/index.js
@@ -70,7 +60,13 @@ async function runMain(main) {
 }
 Number.MAX_SAFE_INTEGER;
 //#endregion
-//#region ../tokens/dist/assets/text-CWCp7yDH.js
+//#region hooks/kit/draw.ts
+function line(...segments) {
+	return segments;
+}
+function doc(...rows) {
+	return rows;
+}
 function plain(text) {
 	return { text };
 }
@@ -86,6 +82,58 @@ function bold(text) {
 		ink: "bold"
 	};
 }
+function rowsOf(rows) {
+	return rows.every((r) => Array.isArray(r)) ? rows : [rows];
+}
+function textOf(rows) {
+	return rowsOf(rows).map((row) => row.map((seg) => seg.text).join("")).join("\n");
+}
+var EIGHTHS = [
+	"",
+	"▏",
+	"▎",
+	"▍",
+	"▌",
+	"▋",
+	"▊",
+	"▉"
+];
+function rule(width = 68) {
+	return "─".repeat(Math.max(0, width));
+}
+function pad(text, width, side) {
+	if (text.length >= width) return text;
+	const gap = " ".repeat(width - text.length);
+	return side === "left" ? gap + text : text + gap;
+}
+function meter(pct, width, filled = "green") {
+	const n = Math.max(0, Math.min(width, Math.round((typeof pct === "number" && Number.isFinite(pct) ? pct : 0) / 100 * width)));
+	return line({
+		text: "█".repeat(n),
+		ink: filled
+	}, {
+		text: "·".repeat(width - n),
+		ink: "dim"
+	});
+}
+/** Fixed-width bar field: full blocks, an eighth-fraction edge, spaces to width. */
+function bar(value, max, width) {
+	if (!(value > 0) || !(max > 0)) return " ".repeat(width);
+	const scaled = value / max * width;
+	let full = Math.floor(scaled);
+	let fi = Math.round((scaled - full) * 8);
+	if (fi === 8) {
+		full += 1;
+		fi = 0;
+	}
+	if (full === 0 && fi === 0) fi = 1;
+	let out = "█".repeat(Math.min(full, width));
+	if (full < width && fi > 0) out += EIGHTHS[fi] ?? "";
+	return pad(out, width, "right");
+}
+function pad2(n) {
+	return String(n).padStart(2, "0");
+}
 var MONTHS = [
 	"Jan",
 	"Feb",
@@ -100,22 +148,7 @@ var MONTHS = [
 	"Nov",
 	"Dec"
 ];
-var EIGHTHS = [
-	"",
-	"▏",
-	"▎",
-	"▍",
-	"▌",
-	"▋",
-	"▊",
-	"▉"
-];
-function rule() {
-	return "─".repeat(68);
-}
-function pad2(n) {
-	return String(n).padStart(2, "0");
-}
+/** Compact count: 1.2K / 3.4M / 5.6B; '—' for absent or NaN. */
 function fmtTokens(n) {
 	if (n == null || Number.isNaN(n)) return "—";
 	if (n >= 1e9) return (n / 1e9).toFixed(1) + "B";
@@ -123,55 +156,21 @@ function fmtTokens(n) {
 	if (n >= 1e3) return (n / 1e3).toFixed(1) + "K";
 	return String(n);
 }
+/** Grouped integer, en-US separators; 0 for absent. */
 function fmtNum(n) {
 	return (n || 0).toLocaleString("en-US");
 }
-function padR(s, n) {
-	return s.length >= n ? s : s + " ".repeat(n - s.length);
-}
-function padL(s, n) {
-	return s.length >= n ? s : " ".repeat(n - s.length) + s;
-}
-/** Fixed-width bar field (width cols): █ blocks + an eighth-fraction + trailing spaces. */
-function barField(v, max, width) {
-	if (!v || v <= 0 || max <= 0) return " ".repeat(width);
-	const scaled = v / max * width;
-	let full = Math.floor(scaled);
-	let fi = Math.round((scaled - full) * 8);
-	if (fi === 8) {
-		full += 1;
-		fi = 0;
-	}
-	if (full === 0 && fi === 0) fi = 1;
-	let s = "█".repeat(Math.min(full, width));
-	if (full < width && fi > 0) s += EIGHTHS[fi] ?? "";
-	if (s.length < width) s += " ".repeat(width - s.length);
-	return s.slice(0, width);
-}
-function renderLines(lines) {
-	return lines.map((line) => line.map((seg) => seg.text).join("")).join("\n");
-}
 //#endregion
 //#region src/format.ts
-/**
-* Usage-report line model: `reportLines` lays the report out once as ink-tagged
-* segments (the pane draws those), and `render` joins them into the CLI's
-* monospace terminal / hook-block `reason` bytes — no markdown; alignment comes
-* from fixed-width columns and unicode block glyphs. Input is the parsed `data`
-* of the three ZAI/ZHIPU monitor endpoints (model-usage, tool-usage,
-* quota/limit — the last already passed through processQuotaLimit).
-*/
-function meterSegs(pct, width) {
-	return meter(pct, width);
-}
 var VBLOCKS = "▁▂▃▄▅▆▇";
 function parseSlot(s) {
 	const m = /^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})/.exec(s ?? "");
 	if (!m) return null;
+	const [, mo, d, hh, mm] = m.slice(1);
 	return {
-		h: +m[4],
-		day: `${MONTHS[+m[2] - 1]} ${m[3]}`,
-		time: `${m[4]}:${m[5]}`
+		h: +hh,
+		day: `${MONTHS[+mo - 1]} ${d}`,
+		time: `${hh}:${mm}`
 	};
 }
 /**
@@ -182,7 +181,8 @@ function parseSlot(s) {
 function shiftSlot(s, fromOffsetMin, toOffsetMin) {
 	const m = /^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})/.exec(s);
 	if (!m) return null;
-	const utcMs = Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]) - fromOffsetMin * 6e4;
+	const [y, mo, d, hh, mm] = m.slice(1);
+	const utcMs = Date.UTC(+y, +mo - 1, +d, +hh, +mm) - fromOffsetMin * 6e4;
 	const dt = new Date(utcMs + toOffsetMin * 6e4);
 	return {
 		h: dt.getUTCHours(),
@@ -213,16 +213,17 @@ function idleRuns(tok) {
 	return runs;
 }
 function idleLabel(run, x, slotFn) {
-	const a = slotFn(x[run.i]);
-	const b = slotFn(x[run.j]);
+	const a = slotFn(x[run.i] ?? "");
+	const b = slotFn(x[run.j] ?? "");
 	if (!a || !b) return `idle (${run.len}h)`;
 	return `idle ${`${a.day} ${a.time}`} → ${a.day === b.day ? b.time : `${b.day} ${b.time}`} (${run.len}h)`;
 }
 function isPeakBucket(s) {
 	const m = /^(\d{4})-(\d{2})-(\d{2}) (\d{2}):/.exec(s ?? "");
 	if (!m) return false;
-	const wd = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3])).getUTCDay();
-	return wd >= 1 && wd <= 5 && +m[4] >= 14 && +m[4] <= 17;
+	const [y, mo, d, hh] = m.slice(1);
+	const wd = new Date(Date.UTC(+y, +mo - 1, +d)).getUTCDay();
+	return wd >= 1 && wd <= 5 && +hh >= 14 && +hh <= 17;
 }
 /** Local-time start/end of the 14:00–18:00 Beijing peak window (e.g. 11:30 / 15:30). */
 function localPeakWindow(apiOffsetMin, toOffsetMin) {
@@ -273,14 +274,14 @@ function hourlyVerticalChart({ x, tok, nh, maxTok, peakIdx, slotFn }) {
 			let e = Math.round(fill * 8);
 			if (e < 1) e = 1;
 			if (e > 7) e = 7;
-			return VBLOCKS[e - 1];
+			return VBLOCKS[e - 1] ?? " ";
 		}
 		return " ";
 	}
 	for (let r = 5; r >= 0; r--) {
 		const line = blank();
 		line[AXIS] = r === 5 ? "┤" : "│";
-		if (r === 5) for (let k = 0; k < L; k++) line[AXIS - 1 - L + k] = maxLab[k];
+		if (r === 5) for (let k = 0; k < L; k++) line[AXIS - 1 - L + k] = maxLab[k] ?? " ";
 		for (let i = 0; i < nh; i++) {
 			const g = glyph(i, r);
 			if (g !== " ") for (let c = 0; c < barW; c++) line[barLeft(i) + c] = g;
@@ -288,7 +289,7 @@ function hourlyVerticalChart({ x, tok, nh, maxTok, peakIdx, slotFn }) {
 		lines.push(line.join("").trimEnd());
 	}
 	function slotOf(i) {
-		return slotFn(x[i]);
+		return slotFn(x[i] ?? "");
 	}
 	function isTick(i) {
 		if (i === 0 || i === nh - 1) return true;
@@ -309,8 +310,8 @@ function hourlyVerticalChart({ x, tok, nh, maxTok, peakIdx, slotFn }) {
 		if (col - last < 3) continue;
 		const s = slotOf(i);
 		const txt = s ? pad2(s.h) : "  ";
-		hr[col] = txt[0];
-		hr[col + 1] = txt[1];
+		hr[col] = txt.charAt(0);
+		hr[col + 1] = txt.charAt(1);
 		last = col;
 	}
 	lines.push(hr.join("").trimEnd());
@@ -323,7 +324,7 @@ function hourlyVerticalChart({ x, tok, nh, maxTok, peakIdx, slotFn }) {
 		if (!s || s.day === lastDay) continue;
 		const col = barCenter(i);
 		if (col - last >= s.day.length && col + s.day.length <= 68) {
-			for (let k = 0; k < s.day.length; k++) day[col + k] = s.day[k];
+			for (let k = 0; k < s.day.length; k++) day[col + k] = s.day[k] ?? " ";
 			lastDay = s.day;
 			last = col + s.day.length;
 		}
@@ -350,28 +351,31 @@ function reportLines({ platform, model, tool, quota, apiOffsetMin = 480, localOf
 	const totalCalls = tu.totalModelCallCount != null ? tu.totalModelCallCount : calls.reduce((a, b) => a + (b || 0), 0);
 	let peakIdx = -1;
 	let peakTok = 0;
-	for (let i = 0; i < tok.length; i++) if (tok[i] > peakTok) {
-		peakTok = tok[i];
-		peakIdx = i;
+	for (let i = 0; i < tok.length; i++) {
+		const t = tok[i] || 0;
+		if (t > peakTok) {
+			peakTok = t;
+			peakIdx = i;
+		}
 	}
 	const peakCalls = peakIdx >= 0 ? calls[peakIdx] || 0 : 0;
 	const pctPeak = total > 0 ? peakTok / total * 100 : 0;
-	const peakSlot = peakIdx >= 0 ? convertSlot(x[peakIdx]) : null;
+	const peakSlot = peakIdx >= 0 ? convertSlot(x[peakIdx] ?? "") : null;
 	const level = quota.level ? quota.level.charAt(0).toUpperCase() + quota.level.slice(1) : "";
 	const left = ` GLM Coding Plan${level ? " · " + level : ""}`;
-	const firstSlot = convertSlot(x[0]);
-	const lastSlot = convertSlot(x[nh - 1]);
+	const firstSlot = convertSlot(x[0] ?? "");
+	const lastSlot = convertSlot(x[nh - 1] ?? "");
 	const win = firstSlot && lastSlot ? `${firstSlot.day} ${firstSlot.time} → ${lastSlot.day} ${lastSlot.time} · ${nh}h` : platform;
-	out.push([plain(rule())]);
-	out.push([bold(left), dim(padL(win, 68 - left.length))]);
-	out.push([plain(rule())]);
+	out.push(line(plain(rule())));
+	out.push(line(bold(left), dim(pad(win, 68 - left.length, "left"))));
+	out.push(line(plain(rule())));
 	const head = plain(` ${fmtTokens(total)} tokens across ${fmtNum(totalCalls)} model calls`);
-	out.push([]);
+	out.push(line());
 	if (peakIdx >= 0 && peakSlot) {
-		out.push([head, plain(" — ")]);
-		out.push([bold(`${Math.round(pctPeak)}%`), plain(" of it in a single hour")]);
-		out.push([plain(` (${peakSlot.day} ${peakSlot.time}, ${fmtTokens(peakTok)} tokens / ${fmtNum(peakCalls)} calls).`)]);
-	} else out.push([head, plain(".")]);
+		out.push(line(head, plain(" — ")));
+		out.push(line(bold(`${Math.round(pctPeak)}%`), plain(" of it in a single hour")));
+		out.push(line(plain(` (${peakSlot.day} ${peakSlot.time}, ${fmtTokens(peakTok)} tokens / ${fmtNum(peakCalls)} calls).`)));
+	} else out.push(line(head, plain(".")));
 	const activeHours = tok.filter((t) => t > 0).length;
 	const longest = idleRuns(tok).filter((r) => r.len >= 2).sort((a, b) => b.len - a.len).at(0);
 	const tt = tool.totalUsage ?? {};
@@ -381,23 +385,19 @@ function reportLines({ platform, model, tool, quota, apiOffsetMin = 480, localOf
 	const toolTotal = tt.totalSearchMcpCount != null ? tt.totalSearchMcpCount : searchN + readN + zreadN;
 	let peakWinActive = 0;
 	let peakWinTokens = 0;
-	for (let k = 0; k < nh; k++) if (isPeakBucket(x[k]) && tok[k] > 0) {
+	for (let k = 0; k < nh; k++) if (isPeakBucket(x[k]) && (tok[k] || 0) > 0) {
 		peakWinActive++;
-		peakWinTokens += tok[k];
+		peakWinTokens += tok[k] || 0;
 	}
 	const peakWinPct = total > 0 ? peakWinTokens / total * 100 : 0;
 	const peakWin = localPeakWindow(apiOffsetMin, toOffset);
-	out.push([]);
-	out.push([plain(` Peak     ${padR(peakSlot ? peakSlot.day + " " + peakSlot.time : "—", 15)}${padL(fmtTokens(peakTok), 7)} tokens · ${padL(fmtNum(peakCalls), 5)} calls`)]);
-	out.push([plain(` Active   ${padR(`${activeHours} / ${nh} hours`, 15)}${longest ? idleLabel(longest, x, convertSlot) : "no idle gaps"}`)]);
-	out.push([plain(` Tools    ${padR(`${toolTotal} calls`, 15)}${searchN} searches · ${readN} reads${zreadN ? ` · ${zreadN} zread` : ""}`)]);
-	if (peakWin) out.push([
-		plain(` Peak hrs Mon–Fri ${peakWin.start}–${peakWin.end} · GLM-5.2 3× · ${peakWinActive}h active · ${fmtTokens(peakWinTokens)} (`),
-		bold(`${Math.round(peakWinPct)}%`),
-		plain(")")
-	]);
-	out.push([]);
-	out.push([dim(" Hourly tokens · ↑ peak hour " + "─".repeat(Math.max(0, 39)))]);
+	out.push(line());
+	out.push(line(plain(` Peak     ${pad(peakSlot ? peakSlot.day + " " + peakSlot.time : "—", 15, "right")}${pad(fmtTokens(peakTok), 7, "left")} tokens · ${pad(fmtNum(peakCalls), 5, "left")} calls`)));
+	out.push(line(plain(` Active   ${pad(`${activeHours} / ${nh} hours`, 15, "right")}${longest ? idleLabel(longest, x, convertSlot) : "no idle gaps"}`)));
+	out.push(line(plain(` Tools    ${pad(`${toolTotal} calls`, 15, "right")}${searchN} searches · ${readN} reads${zreadN ? ` · ${zreadN} zread` : ""}`)));
+	if (peakWin) out.push(line(plain(` Peak hrs Mon–Fri ${peakWin.start}–${peakWin.end} · GLM-5.2 3× · ${peakWinActive}h active · ${fmtTokens(peakWinTokens)} (`), bold(`${Math.round(peakWinPct)}%`), plain(")")));
+	out.push(line());
+	out.push(line(dim(" Hourly tokens · ↑ peak hour " + "─".repeat(Math.max(0, 39)))));
 	const chartLines = hourlyVerticalChart({
 		x,
 		tok,
@@ -407,65 +407,44 @@ function reportLines({ platform, model, tool, quota, apiOffsetMin = 480, localOf
 		slotFn: convertSlot
 	});
 	if (chartLines) {
-		out.push(...chartLines.map((l) => [plain(l)]));
-		if (peakIdx >= 0 && peakSlot) out.push([plain(`   ◂ peak  ${peakSlot.day} ${peakSlot.time}  ${fmtTokens(peakTok)} tokens · ${fmtNum(peakCalls)} calls`)]);
-	} else out.push([plain("   (not enough hourly data to chart)")]);
-	out.push([]);
-	out.push([dim(" Model mix " + "─".repeat(Math.max(0, 57)))]);
+		out.push(...chartLines.map((l) => line(plain(l))));
+		if (peakIdx >= 0 && peakSlot) out.push(line(plain(`   ◂ peak  ${peakSlot.day} ${peakSlot.time}  ${fmtTokens(peakTok)} tokens · ${fmtNum(peakCalls)} calls`)));
+	} else out.push(line(plain("   (not enough hourly data to chart)")));
+	out.push(line());
+	out.push(line(dim(" Model mix " + "─".repeat(Math.max(0, 57)))));
 	const mixSrc = model.modelSummaryList ?? model.modelDataList ?? [];
 	const denom = mixSrc.reduce((a, m) => a + (m.totalTokens ?? 0), 0) || 1;
 	const mixSorted = [...mixSrc].sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
 	for (const m of mixSorted) {
 		const pct = (m.totalTokens ?? 0) / denom * 100;
-		out.push([
-			plain(`   ${padR(m.modelName || "?", 11)}${padL(fmtTokens(m.totalTokens), 8)}  `),
-			bold(padL(pct.toFixed(1) + "%", 6)),
-			plain(`  ${barField(pct, 100, 20)}`)
-		]);
+		out.push(line(plain(`   ${pad(m.modelName || "?", 11, "right")}${pad(fmtTokens(m.totalTokens), 8, "left")}  `), bold(pad(pct.toFixed(1) + "%", 6, "left")), plain(`  ${bar(pct, 100, 20)}`)));
 	}
-	out.push([]);
-	out.push([dim(" Limits " + "─".repeat(Math.max(0, 60)))]);
+	out.push(line());
+	out.push(line(dim(" Limits " + "─".repeat(Math.max(0, 60)))));
 	const bj = new Date(now.getTime() + apiOffsetMin * 6e4);
 	const bjDay = bj.getUTCDay();
 	const elapsedMin = bjDay >= 1 && bjDay <= 5 ? Math.max(0, Math.min(240, (bj.getUTCHours() - 14) * 60 + bj.getUTCMinutes())) : 0;
-	if (peakWin) out.push([
-		dim(`   ${padR("Peak", 16)}`),
-		plain(`${padL(peakWin.start, 5)}  `),
-		...meterSegs(Math.round(elapsedMin / 240 * 100), 22),
-		plain(`  ${peakWin.end}`)
-	]);
+	if (peakWin) out.push(line(dim(`   ${pad("Peak", 16, "right")}`), plain(`${pad(peakWin.start, 5, "left")}  `), ...meter(Math.round(elapsedMin / 240 * 100), 22), plain(`  ${peakWin.end}`)));
 	const limits = quota.limits ?? [];
 	const mcp = limits.find((l) => /mcp/i.test(l.type ?? ""));
 	const tok5 = limits.find((l) => /token/i.test(l.type ?? ""));
 	if (tok5) {
 		const reset = new Date(tok5.nextResetTime ?? "").toLocaleTimeString("en-IN");
-		out.push([
-			dim(`   ${padR("Tokens · 5h", 16)}`),
-			bold(padL(`${tok5.percentage || 0}%`, 5)),
-			plain("  "),
-			...meterSegs(tok5.percentage, 22),
-			plain(`  ${reset}`)
-		]);
+		out.push(line(dim(`   ${pad("Tokens · 5h", 16, "right")}`), bold(pad(`${tok5.percentage || 0}%`, 5, "left")), plain("  "), ...meter(tok5.percentage, 22), plain(`  ${reset}`)));
 	}
-	if (tok5 && mcp) out.push([]);
+	if (tok5 && mcp) out.push(line());
 	if (mcp) {
 		const reset = new Date(mcp.nextResetTime ?? "").toLocaleString("en-IN");
-		out.push([
-			dim(`   ${padR("MCP · this month", 16)}`),
-			bold(padL(`${mcp.percentage || 0}%`, 5)),
-			plain("  "),
-			...meterSegs(mcp.percentage, 22),
-			plain(`  ${reset}`)
-		]);
+		out.push(line(dim(`   ${pad("MCP · this month", 16, "right")}`), bold(pad(`${mcp.percentage || 0}%`, 5, "left")), plain("  "), ...meter(mcp.percentage, 22), plain(`  ${reset}`)));
 		const parts = (mcp.usageDetails ?? []).map((d) => `${friendlyTool(d.modelCode)} ${fmtNum(d.usage)}`).join("  ");
-		if (parts) out.push([plain(`   ${fmtNum(mcp.currentUsage)}M / ${fmtNum(mcp.totol)}M · ${parts}`)]);
+		if (parts) out.push(line(plain(`   ${fmtNum(mcp.currentUsage)}M / ${fmtNum(mcp.totol)}M · ${parts}`)));
 	}
-	out.push([]);
-	out.push([plain(rule())]);
+	out.push(line());
+	out.push(line(plain(rule())));
 	return out;
 }
 function render(input) {
-	return renderLines(reportLines(input));
+	return textOf(doc(...reportLines(input)));
 }
 //#endregion
 //#region ../../node_modules/commander/lib/error.js
@@ -3506,7 +3485,7 @@ function queryParams(now = /* @__PURE__ */ new Date()) {
 	const startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1, now.getHours(), 0, 0, 0);
 	const endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), 59, 59, 999);
 	function formatDateTime(date) {
-		return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())} ${pad2(date.getHours())}:${pad2(date.getMinutes())}:${pad2(date.getSeconds())}`;
+		return `${date.getFullYear()}-${pad2$1(date.getMonth() + 1)}-${pad2$1(date.getDate())} ${pad2$1(date.getHours())}:${pad2$1(date.getMinutes())}:${pad2$1(date.getSeconds())}`;
 	}
 	return `?startTime=${encodeURIComponent(formatDateTime(startDate))}&endTime=${encodeURIComponent(formatDateTime(endDate))}`;
 }
@@ -3574,7 +3553,7 @@ var parsed = asked ?? printUsageAndExit(buildProgram());
 if (parsed.command !== "usage") printUsageAndExit(buildProgram());
 await runMain(async () => {
 	const input = await fetchReport(resolveConfig(process.env, parsed));
-	console.log(parsed.json ? JSON.stringify({ lines: reportLines(input) }) : render(input));
+	console.log(parsed.json ? JSON.stringify(input) : render(input));
 });
 //#endregion
 export {};

@@ -3,7 +3,7 @@
  * assembled into the report input.
  */
 
-import { pad2 } from '@v1nvn/tokens/text';
+import { pad2 } from '@v1nvn/agentic-core/draw';
 
 import type {
   RenderInput,

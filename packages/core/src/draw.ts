@@ -297,6 +297,43 @@ export function pad2(n: number): string {
   return String(n).padStart(2, '0');
 }
 
+export const MONTHS = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+] as const;
+
+/** Compact count: 1.2K / 3.4M / 5.6B; '—' for absent or NaN. */
+export function fmtTokens(n: null | number | undefined): string {
+  if (n == null || Number.isNaN(n)) {
+    return '—';
+  }
+  if (n >= 1e9) {
+    return (n / 1e9).toFixed(1) + 'B';
+  }
+  if (n >= 1e6) {
+    return (n / 1e6).toFixed(1) + 'M';
+  }
+  if (n >= 1e3) {
+    return (n / 1e3).toFixed(1) + 'K';
+  }
+  return String(n);
+}
+
+/** Grouped integer, en-US separators; 0 for absent. */
+export function fmtNum(n: null | number | undefined): string {
+  return (n || 0).toLocaleString('en-US');
+}
+
 export type Clock = 'minute' | 'none' | 'second';
 
 /** Local date-time stamp: `YYYY-MM-DD`, plus `HH:mm` and optionally seconds. */
