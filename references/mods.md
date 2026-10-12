@@ -109,6 +109,8 @@ call; a test adds its home's own fixtures beside it.
 - An `on(...)` hook must be a function literal or the name of a same-file
   function; a matcher-less event registers once per module.
 - `import()` is refused; `import` declarations only, at the top of the file.
+- A plugin's `types/*.d.ts` is self-contained — imports are refused, so the
+  state shapes it names live inline, however much they mirror src shapes.
 - A command name that collides with a built-in (`usage`, …) is refused at
   `$.command.register` — at runtime, and the hook is skipped and named in the
   transcript. Pick names that don't collide.
