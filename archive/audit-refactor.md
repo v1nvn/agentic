@@ -12,7 +12,13 @@ Behavior changes only where a ruling names it; everything else is structure.
 
 ## Current state
 
-B1, B8, B9, B10, B2, B3, B4, B5 and B6 landed; B7 remains. B6: rules'
+All units landed — B0–B10; the thread closes with this fold. B7: `runCli`
+in core owns commander (spec-declared commands, options-as-data, a structural
+help-payload hook consumed at statusline's parseCli call); all six homes
+declare commands, commander lives in core's manifest alone; help exits 0 and
+routes to the subcommand, live-probed ×6 (rm/md via their single-command
+bins); version precedence and the old exports' deaths pinned at core's door;
+statusline's test-only parse doors survive on protected tests alone. B6: rules'
 `references/` bullet states creation on first promotion; init/README agreed
 untouched. B5: the panel
 shares the engine's parser (`parseLayout` home `render/layout.ts`; unknown
@@ -61,7 +67,7 @@ feasibility) shaped B1/B8 below. Every Plan-section anchor re-verified against
 
 ## Next step
 
-B7 — the CLI kit.
+Closed — all units landed; the thread archives with this fold.
 
 ## Steps
 
@@ -77,7 +83,7 @@ B7 — the CLI kit.
 | B4  | the servers' kit and handler wrapper        |            |        |         | both suites green; one handler wrapper (try/catch + log + schema-parse + defaults) serves every tool — readability's 12× try/catch, 9× unpack, 6× defaults blocks and omlx's `.catch()` twins gone; `registerTool` call sites, output schemas and capability gating stay per-server; dev-harness, error kit, `loggerFromEnv`, a server vite variant live in core; no `LoopbackTransport` remains — landed `906184b`+`5702db8` (clause split 291+204 over the 400 ceiling) + review round (one `withSchemaDefaults` helper for the six sentinel sites, omlx's level restored to fixed `'info'`, dead `ReloadableRunner` deleted, `loggerFromEnv` pinned in core's suite, dual-boot dev smoke clean)                                                                                                          |
 | B5  | statusline internal dedup                   | sonnet/low |        |         | panel shares the engine's layout parser: parse with the full known set (an unknown item warns once), then filter to task items; one pick-validation helper in `items.ts`; `isObject` → `isRecord`; `index.ts:23-30` `run()` → core's `runMain` — landed `2a84358` + pin round `c92e8a3` (the two warn deltas pinned at the panel door; goldens byte-stable throughout; per-entry render builds keep the standalone-entry contract under the new code sharing)                                                                                                                                                                                                                                                            |
 | B6  | todo rules sentence                         | sonnet/low |        |         | rules states `references/` is created on first promotion; init unchanged; rules/init/README agree — landed `6ded77d`, criterion review clean                                                                                                                                                                                                                                                                                                                                                                                                         |
-| B7  | the CLI kit                                 |            |        |         | all six CLIs declare commands and import no commander; `runCli` supports options-as-data and a help-payload hook (statusline's recover protocol, dynamic per-item options, TTY wizard dispatch all expressible); help exits 0 and routes to the subcommand on every CLI, live-probed ×6; A1's minimal fix deleted in this change                                                                                                                                                                          |
+| B7  | the CLI kit                                 |            |        |         | all six CLIs declare commands and import no commander; `runCli` supports options-as-data and a help-payload hook (statusline's recover protocol, dynamic per-item options, TTY wizard dispatch all expressible); help exits 0 and routes to the subcommand on every CLI, live-probed ×6; A1's minimal fix deleted in this change — landed `330e039`+`21b14e9`+`b7cd093` (clause split 410/261/362; option-2 ordering — new doors in (a), export deletions in (c) — kept every clause green) + review rounds `7401a31` (version precedence restored and pinned at core's door; tokens' parse door died) and `0b0ef7a` (commander dep gone from six homes' manifests; statusline's `isObject` twin → `isRecord`)                                                                                                                                                                          |
 
 ## Plan
 
@@ -250,19 +256,13 @@ Anchors verified at `304cba6`. Scoped gates answer the row; the workspace gate
   is created on first promotion); agreement check against
   `skills/init/SKILL.md` and the todo README. No scoped gate — docs-only; the
   workspace gate at the boundary answers it.
-- **B7** — `packages/core/src/cli.ts` (`runCli`; A1's minimal fix — the
-  fallback path from `96b94b1` — deleted); `packages/rm/src/index.ts` (:19-20),
-  `packages/md/src/index.ts` (:21-22), `packages/zai/src/resolve.ts`
-  (:2 commander, :66-80 the declared commands) with `packages/zai/src/index.ts`
-  (:12-13 parse site),
-  `packages/tokens/src/cli.ts` (:40-41), `packages/statusline/src/cli.ts`
-  (:142-149), `packages/readability/src/cli.ts` (:42-45); tests
-  `packages/core/test/cli.test.ts`, `packages/statusline/test/cli.test.ts`,
-  `packages/tokens/test/cli.spec.ts`, `packages/readability/test/cli.test.ts`.
-  Gates: `yarn build`, then `yarn workspace @v1nvn/agentic-core test` and each
-  touched home's `yarn workspace <name> test`; live probes ×6 after build:
-  `node packages/{statusline,tokens,readability,zai,rm,md}/dist/index.js`
-  `<subcommand> --help` exits 0 printing that subcommand's own options.
+- **B7** (landed) — `packages/core/src/{cli.ts,test/cli.test.ts,README.md}`;
+  the six homes' CLI surfaces (`rm/md/src/index.ts`, `zai/src/{resolve,index}.ts`,
+  `tokens/src/{cli,index}.ts`, `statusline/src/{cli,index}.ts` + `test/cli.test.ts`,
+  `readability/src/{cli,index}.ts` + `test/cli.test.ts`, `tokens/test/cli.spec.ts`);
+  the six homes' `package.json` (commander dep died); `statusline/src/{configure,payloads,restore}.ts`
+  (the `isObject` twin → `isRecord`). Gates: the workspace gate at every clause
+  boundary; live probes ×6 green (rm/md via their single-command bins).
 
 ## Enforcement inventory
 
