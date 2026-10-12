@@ -1,4 +1,4 @@
-import { resolveCellText } from './cell-text.js';
+import { resolveCellText } from '../pipeline/cell-text.js';
 import {
   CONTAINER_TAGS,
   describeSelector,

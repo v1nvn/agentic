@@ -6,7 +6,7 @@ import {
   renderTableGfm,
   renderTableJson,
   resolveHeaderKeys,
-} from '../../src/policy/tables.js';
+} from '../../src/pipeline/tables.js';
 
 function table(html: string): Element {
   const { document } = buildDocument(`<html><body>${html}</body></html>`);

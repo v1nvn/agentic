@@ -11,10 +11,10 @@ import {
   type SelectorScope,
 } from '../pipeline/normalize.js';
 import { isReaderable } from '../pipeline/readability.js';
+import { resolveReadabilityOptions } from '../pipeline/resolver.js';
 import { assembleDiagnostics } from './diagnostics.js';
 import { detectGating } from './gating.js';
 import { detectPagination } from './pagination.js';
-import { resolveReadabilityOptions } from './resolver.js';
 import { describeSelector } from './sibling-scan.js';
 
 // Readability stamps `{ contentScore }` on candidate DOM nodes under a

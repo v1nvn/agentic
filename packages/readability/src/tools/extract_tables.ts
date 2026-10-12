@@ -8,7 +8,7 @@ import {
   parseTableMatrix,
   renderTable,
   resolveHeaderKeys,
-} from '../policy/tables.js';
+} from '../pipeline/tables.js';
 import { readHtmlFile } from './html-source.js';
 import { extractTablesOutputShape } from './output-schema.js';
 import {

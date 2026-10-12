@@ -1,7 +1,7 @@
 // Resolve a table/grid cell element to the string that represents it in the
-// matrix. Shared by policy/tables.ts (the <table> serializer) and
-// policy/grid-detector.ts (the div-grid detector) so both paths project a cell
-// the same way: whitespace-normalized visible text, with two fallbacks.
+// matrix. Shared by tables.ts (the <table> serializer) and
+// policy/grid-detector.ts (the div-grid detector) so both paths project a
+// cell the same way: whitespace-normalized visible text, with two fallbacks.
 //
 // 1. Tooltip/badge/aria wrappers carry chrome, not data — they are stripped
 //    from a clone so a label cell reads "Market Capitalization" rather than

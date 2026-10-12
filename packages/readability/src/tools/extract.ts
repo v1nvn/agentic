@@ -12,6 +12,7 @@ import {
   resolveLazyImages,
 } from '../pipeline/normalize.js';
 import { isReaderable, parseArticle } from '../pipeline/readability.js';
+import { resolveReadabilityOptions } from '../pipeline/resolver.js';
 import { sanitizeHtml } from '../pipeline/sanitize.js';
 import { toMarkdown } from '../pipeline/turndown.js';
 import { chunkMarkdown } from '../policy/chunk.js';
@@ -22,7 +23,6 @@ import { collectImageInventory } from '../policy/images.js';
 import { resolveMetadata } from '../policy/metadata.js';
 import { detectPagination } from '../policy/pagination.js';
 import { resolvePreset } from '../policy/presets.js';
-import { resolveReadabilityOptions } from '../policy/resolver.js';
 import { computeTextMetrics } from '../policy/text.js';
 import { truncateMarkdown } from '../policy/truncate.js';
 import * as cache from '../resources.js';

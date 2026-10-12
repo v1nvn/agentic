@@ -4,8 +4,8 @@ import { describeError, toErrorResult } from '../errors.js';
 import { logger } from '../logger.js';
 import { buildDocument } from '../pipeline/dom.js';
 import { applySelectors } from '../pipeline/normalize.js';
+import { renderTable } from '../pipeline/tables.js';
 import { detectGrid } from '../policy/grid-detector.js';
-import { renderTable } from '../policy/tables.js';
 import { readHtmlFile } from './html-source.js';
 import { extractGridOutputShape } from './output-schema.js';
 import {

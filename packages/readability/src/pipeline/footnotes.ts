@@ -1,4 +1,4 @@
-import { buildDocument } from '../pipeline/dom.js';
+import { buildDocument } from './dom.js';
 
 export interface FootnoteResult {
   readonly footnoteDefs: readonly string[];

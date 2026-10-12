@@ -7,7 +7,7 @@ import { normalizeDocument } from '../../src/pipeline/normalize.js';
 import { isReaderable, parseArticle } from '../../src/pipeline/readability.js';
 import { sanitizeHtml } from '../../src/pipeline/sanitize.js';
 import { toMarkdown } from '../../src/pipeline/turndown.js';
-import { resolveReadabilityOptions } from '../../src/policy/resolver.js';
+import { resolveReadabilityOptions } from '../../src/pipeline/resolver.js';
 import { extractArticleFromHtml } from '../../src/tools/extract.js';
 import type { StructuredContent } from '../../src/tools/output-schema.js';
 
