@@ -15,8 +15,9 @@ import {
   L1_STEPS,
   L2_STEPS,
   RUNG_ORDERS,
+  validatePick,
 } from './items.js';
-import { parseClusters } from './layout.js';
+import { parseLayout } from './layout.js';
 import { parseRow } from './payload.js';
 import {
   renderSegment,
@@ -51,10 +52,6 @@ export function vlen(text: string): number {
   return n;
 }
 
-export function warn(message: string): void {
-  process.stderr.write(`${message}\n`);
-}
-
 // The `[...]` suffix a fit step strips from the model name — shared by both
 // engines so the two ports keep the same cut.
 export function stripModelSuffix(name: string): string {
@@ -68,46 +65,9 @@ function resolvePicks(
 ): Record<string, string> {
   const resolved: Record<string, string> = {};
   for (const spec of ITEMS) {
-    const pick = picks?.[spec.item] ?? spec.default;
-    if (spec.alternatives.includes(pick)) {
-      resolved[spec.item] = pick;
-    } else {
-      warn(
-        `statusline: ${spec.item}=${pick} is not available, using ${spec.item}=${spec.default}`,
-      );
-      resolved[spec.item] = spec.default;
-    }
+    resolved[spec.item] = validatePick(spec.item, picks?.[spec.item] ?? '');
   }
   return resolved;
-}
-
-// The writer's grammar parser, degraded for paint: malformed grammar renders
-// nothing (configure never writes one), unknown item names warn and skip.
-function parseLayout(
-  layout: string,
-  known: ReadonlySet<string>,
-): readonly (readonly string[])[] {
-  let parsed: readonly string[][];
-  try {
-    parsed = parseClusters(layout);
-  } catch (e) {
-    warn(`statusline: ${(e as Error).message}`);
-    return [];
-  }
-  const clusters: (readonly string[])[] = [];
-  for (const words of parsed) {
-    const kept = words.filter(word => {
-      if (known.has(word)) {
-        return true;
-      }
-      warn(`statusline: layout item '${word}' is not available, skipped`);
-      return false;
-    });
-    if (kept.length > 0) {
-      clusters.push(kept);
-    }
-  }
-  return clusters;
 }
 
 export function renderStatusline(input: RenderInput): string {

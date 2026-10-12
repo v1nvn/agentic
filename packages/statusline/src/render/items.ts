@@ -87,6 +87,22 @@ export const ITEM_IDS: readonly string[] = ITEMS.map(spec => spec.item);
 export const DEFAULT_PICKS: Readonly<Record<string, string>> =
   Object.fromEntries(ITEMS.map(({ default: alt, item }) => [item, alt]));
 
+export function warn(message: string): void {
+  process.stderr.write(`${message}\n`);
+}
+
+export function validatePick(item: string, wanted: string): string {
+  const fallback = DEFAULT_PICKS[item] ?? 'none';
+  const alt = wanted === '' ? fallback : wanted;
+  if (!specFor(item)?.alternatives.includes(alt)) {
+    warn(
+      `statusline: ${item}=${alt} is not available, using ${item}=${fallback}`,
+    );
+    return fallback;
+  }
+  return alt;
+}
+
 export const RUNG_ORDERS: Readonly<Partial<Record<string, readonly string[]>>> =
   {
     bar: ['flat', 'flat6', 'flat4', 'percent', 'none'],

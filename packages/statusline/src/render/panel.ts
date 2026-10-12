@@ -9,17 +9,18 @@ import {
 
 import type { TaskFacts } from './facts.js';
 import type { GitFacts } from './git.js';
-import type { FitStep } from './items.js';
 import type { Row } from './payload.js';
 
-import { stripModelSuffix, warn } from './engine.js';
+import { stripModelSuffix } from './engine.js';
 import {
   DEFAULT_LAYOUT,
-  DEFAULT_PICKS,
+  type FitStep,
+  ITEM_IDS,
   RUNG_ORDERS,
-  specFor,
+  validatePick,
 } from './items.js';
 import { isRecord, jqText, orElse, tsvEscape } from './jq.js';
+import { parseLayout } from './layout.js';
 import { renderSegment, type Separators, styleSeparators } from './segments.js';
 
 // The agent panel, ported from the bash subagent renderer it replaced — a
@@ -152,28 +153,6 @@ function durationMs(startText: string, now: number): number {
   return elapsed < 0 ? 0 : elapsed * 1000;
 }
 
-// The stylePick rule for every honored item: an unnamed item takes its
-// default; a named alt off the item's list warns and falls to the default.
-function altFor(
-  item: string,
-  picks: Readonly<Record<string, string>> | undefined,
-): string {
-  const spec = specFor(item);
-  const fallback = DEFAULT_PICKS[item] ?? 'none';
-  if (spec === undefined) {
-    return fallback;
-  }
-  const wanted = picks?.[item] ?? '';
-  const alt = wanted === '' ? fallback : wanted;
-  if (!spec.alternatives.includes(alt)) {
-    warn(
-      `statusline: ${item}=${alt} is not available, using ${item}=${fallback}`,
-    );
-    return fallback;
-  }
-  return alt;
-}
-
 // The task carries none of the main row's git, cache or cost facts; the task
 // items read none of those fields, so the row holds only their values.
 function makeInput(fields: TaskFields, now: number, model: string) {
@@ -201,16 +180,13 @@ function makeInput(fields: TaskFields, now: number, model: string) {
   };
 }
 
-// A group's items the task speaks, in the layout's own order.
-function layoutGroups(layout: string): string[][] {
-  return (
-    layout.match(/\{[^}]*\}|\S+/g)?.map(group =>
-      group
-        .replace(/[{}]/g, '')
-        .split(/\s+/)
-        .filter(item => (TASK_ITEMS as readonly string[]).includes(item)),
-    ) ?? []
-  );
+// The shared grammar parser over the full known set, filtered to the items
+// a task speaks — an unknown item warns once, a main-row item just drops.
+function taskGroups(layout: string): readonly (readonly string[])[] {
+  const task = new Set<string>(TASK_ITEMS);
+  return parseLayout(layout, new Set(ITEM_IDS))
+    .map(cluster => cluster.filter(item => task.has(item)))
+    .filter(cluster => cluster.length > 0);
 }
 
 function trimLine(row: Line): Line {
@@ -229,7 +205,7 @@ function renderRow(
   fields: TaskFields,
   state: FitState,
   now: number,
-  layout: string,
+  groups: readonly (readonly string[])[],
   separators: Separators,
 ): Line {
   const name = fields.label === '' ? fields.name : fields.label;
@@ -239,7 +215,7 @@ function renderRow(
   const segs: Segment[] = [plain(head)];
   const input = makeInput(fields, now, state.model);
   const ctx = intValue(fields.ctx) ?? 0;
-  for (const items of layoutGroups(layout)) {
+  for (const items of groups) {
     const group: Segment[] = [];
     let first = true;
     for (const item of items) {
@@ -295,18 +271,18 @@ function fitRow(
   fields: TaskFields,
   working: Record<string, string>,
   now: number,
-  layout: string,
+  groups: readonly (readonly string[])[],
   separators: Separators,
   avail: number,
 ): Line {
   const state: FitState = { desc: false, model: fields.model, working };
-  let out = renderRow(fields, state, now, layout, separators);
+  let out = renderRow(fields, state, now, groups, separators);
   if (vlen(out) <= avail) {
     return out;
   }
   for (const step of PANEL_STEPS) {
     applyStep(state, step);
-    out = renderRow(fields, state, now, layout, separators);
+    out = renderRow(fields, state, now, groups, separators);
     if (vlen(out) <= avail) {
       return out;
     }
@@ -321,11 +297,13 @@ function emitLine(id: string, content: string): string {
 export function renderPanel(input: PanelInput): string {
   const tick: unknown = JSON.parse(input.payload);
   const avail = availColumns(tick);
-  const layout = input.layout ?? DEFAULT_LAYOUT;
-  const separators = styleSeparators(altFor('style', input.picks));
+  const groups = taskGroups(input.layout ?? DEFAULT_LAYOUT);
+  const separators = styleSeparators(
+    validatePick('style', input.picks?.style ?? ''),
+  );
   const working: Record<string, string> = {};
   for (const item of TASK_ITEMS) {
-    working[item] = altFor(item, input.picks);
+    working[item] = validatePick(item, input.picks?.[item] ?? '');
   }
   const tasks = isRecord(tick) && Array.isArray(tick.tasks) ? tick.tasks : [];
   let out = '';
@@ -337,7 +315,7 @@ export function renderPanel(input: PanelInput): string {
     if (fields.id === '') {
       continue;
     }
-    const row = fitRow(fields, working, input.now, layout, separators, avail);
+    const row = fitRow(fields, working, input.now, groups, separators, avail);
     const content = input.noColor === true ? textOf(row) : toSgr(row);
     out += `${emitLine(fields.id, content)}\n`;
   }

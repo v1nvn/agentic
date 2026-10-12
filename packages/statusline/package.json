@@ -5,7 +5,7 @@
   "type": "module",
   "bin": "dist/index.js",
   "scripts": {
-    "build": "vite build && vite build --mode render",
+    "build": "vite build && vite build --mode render && vite build --mode resolver",
     "test": "vitest run",
     "test:watch": "vitest"
   },

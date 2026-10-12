@@ -1,10 +1,11 @@
 import { configDefaults, defineConfig } from 'vitest/config';
 
-// One config, two build modes, both run by `yarn build`. The render pass
-// emits two standalone entries the data dir and the plugin dir carry — the
-// resolver the keys spawn and the renderer it imports — run bare, so it
-// inlines every dependency; neither shares a chunk with the CLI, which
-// builds the default way and inlines the engine it renders through.
+// One config, three build modes, all run by `yarn build`. The render and
+// resolver passes each emit one standalone entry the data dir and the plugin
+// dir carry — run bare, so each inlines every dependency; a shared module
+// would leave the entry with a sibling import no data dir can resolve.
+// Neither shares a chunk with the CLI, which builds the default way and
+// inlines the engine it renders through.
 export default defineConfig(({ mode }) => {
   const common = {
     outDir: 'dist',
@@ -20,7 +21,11 @@ export default defineConfig(({ mode }) => {
     banner: (chunk: { isEntry: boolean }) =>
       chunk.isEntry ? '#!/usr/bin/env node' : '',
   };
-  if (mode === 'render') {
+  if (mode === 'render' || mode === 'resolver') {
+    const entry =
+      mode === 'render'
+        ? (['render', 'src/render/entry.ts'] as const)
+        : (['resolver', 'src/render/resolver.ts'] as const);
     return {
       ssr: { noExternal: true },
       build: {
@@ -30,11 +35,12 @@ export default defineConfig(({ mode }) => {
         ssr: common.ssr,
         emptyOutDir: false,
         rollupOptions: {
-          input: {
-            render: 'src/render/entry.ts',
-            resolver: 'src/render/resolver.ts',
+          input: { [entry[0]]: entry[1] },
+          output: {
+            banner: common.banner,
+            entryFileNames: '[name].mjs',
+            codeSplitting: false,
           },
-          output: { banner: common.banner, entryFileNames: '[name].mjs' },
         },
       },
     };

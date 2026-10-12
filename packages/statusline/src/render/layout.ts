@@ -1,6 +1,8 @@
-// The layout grammar — brace clusters of item ids — parsed once for every
-// door: the writer validates through layoutItems, the status row collects
-// through layoutItemsOf, and the engine renders the clusters it returns.
+// The layout grammar — brace clusters of item ids — parsed once per door:
+// the writer validates through layoutItems, the status row collects through
+// layoutItemsOf, the renderers paint through parseLayout.
+
+import { warn } from './items.js';
 
 export function parseClusters(layout: string): string[][] {
   const clusters: string[][] = [];
@@ -83,4 +85,32 @@ export function layoutItems(
     }
   }
   return items;
+}
+
+// Degraded for paint: malformed grammar renders nothing, unknown items skip.
+export function parseLayout(
+  layout: string,
+  known: ReadonlySet<string>,
+): readonly (readonly string[])[] {
+  let parsed: readonly string[][];
+  try {
+    parsed = parseClusters(layout);
+  } catch (e) {
+    warn(`statusline: ${(e as Error).message}`);
+    return [];
+  }
+  const clusters: (readonly string[])[] = [];
+  for (const words of parsed) {
+    const kept = words.filter(word => {
+      if (known.has(word)) {
+        return true;
+      }
+      warn(`statusline: layout item '${word}' is not available, skipped`);
+      return false;
+    });
+    if (kept.length > 0) {
+      clusters.push(kept);
+    }
+  }
+  return clusters;
 }

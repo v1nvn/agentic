@@ -151,8 +151,20 @@ var BY_ITEM = new Map(ITEMS.map((spec) => [spec.item, spec]));
 function specFor(item) {
 	return BY_ITEM.get(item);
 }
-ITEMS.map((spec) => spec.item);
+var ITEM_IDS = ITEMS.map((spec) => spec.item);
 var DEFAULT_PICKS = Object.fromEntries(ITEMS.map(({ default: alt, item }) => [item, alt]));
+function warn$1(message) {
+	process.stderr.write(`${message}\n`);
+}
+function validatePick(item, wanted) {
+	const fallback = DEFAULT_PICKS[item] ?? "none";
+	const alt = wanted === "" ? fallback : wanted;
+	if (!specFor(item)?.alternatives.includes(alt)) {
+		warn$1(`statusline: ${item}=${alt} is not available, using ${item}=${fallback}`);
+		return fallback;
+	}
+	return alt;
+}
 var RUNG_ORDERS = {
 	bar: [
 		"flat",
@@ -246,7 +258,7 @@ var L2_STEPS = [
 ];
 //#endregion
 //#region src/render/argv.ts
-function warn$1(warnings, message) {
+function warn(warnings, message) {
 	warnings.push(message);
 }
 function parseArgv(argv) {
@@ -266,15 +278,15 @@ function parseArgv(argv) {
 	let theme;
 	let layout;
 	let now;
-	for (const positional of parsed.positionals) warn$1(warnings, `statusline: unexpected argument '${positional}', ignored`);
+	for (const positional of parsed.positionals) warn(warnings, `statusline: unexpected argument '${positional}', ignored`);
 	for (const [name, value] of Object.entries(parsed.values)) {
 		if (name === "subagent") {
 			if (value === true) mode = "subagent";
-			else warn$1(warnings, "statusline: --subagent takes no value, ignored");
+			else warn(warnings, "statusline: --subagent takes no value, ignored");
 			continue;
 		}
 		if (typeof value !== "string") {
-			warn$1(warnings, `statusline: --${name} needs a value, ignored`);
+			warn(warnings, `statusline: --${name} needs a value, ignored`);
 			continue;
 		}
 		if (name === "theme") {
@@ -288,16 +300,16 @@ function parseArgv(argv) {
 		if (name === "now") {
 			const epoch = Number(value);
 			if (Number.isFinite(epoch) && value.trim() !== "") now = epoch;
-			else warn$1(warnings, `statusline: --now=${value} is not a number, ignored`);
+			else warn(warnings, `statusline: --now=${value} is not a number, ignored`);
 			continue;
 		}
 		const spec = specFor(name);
 		if (spec === void 0) {
-			warn$1(warnings, `statusline: --${name} is not a known flag, ignored`);
+			warn(warnings, `statusline: --${name} is not a known flag, ignored`);
 			continue;
 		}
 		if (spec.alternatives.includes(value)) picks[name] = value;
-		else warn$1(warnings, `statusline: ${name}=${value} is not available, using ${name}=${spec.default}`);
+		else warn(warnings, `statusline: ${name}=${value} is not available, using ${name}=${spec.default}`);
 	}
 	return {
 		mode,
@@ -533,6 +545,25 @@ function parseClusters(layout) {
 	if (open) throw new Error(`layout '${layout}': unterminated cluster`);
 	if (word !== "") throw new Error(`layout '${layout}': '${word}' sits outside a cluster`);
 	if (clusters.length === 0) throw new Error(`layout '${layout}': no clusters`);
+	return clusters;
+}
+function parseLayout(layout, known) {
+	let parsed;
+	try {
+		parsed = parseClusters(layout);
+	} catch (e) {
+		warn$1(`statusline: ${e.message}`);
+		return [];
+	}
+	const clusters = [];
+	for (const words of parsed) {
+		const kept = words.filter((word) => {
+			if (known.has(word)) return true;
+			warn$1(`statusline: layout item '${word}' is not available, skipped`);
+			return false;
+		});
+		if (kept.length > 0) clusters.push(kept);
+	}
 	return clusters;
 }
 //#endregion
@@ -1313,9 +1344,6 @@ function vlen$1(text) {
 	for (const ch of text) if (ch === "⚡") n += 1;
 	return n;
 }
-function warn(message) {
-	process.stderr.write(`${message}\n`);
-}
 function stripModelSuffix(name) {
 	const at = name.lastIndexOf("[");
 	const cut = at === -1 ? name : name.slice(0, at);
@@ -1323,34 +1351,8 @@ function stripModelSuffix(name) {
 }
 function resolvePicks(picks) {
 	const resolved = {};
-	for (const spec of ITEMS) {
-		const pick = picks?.[spec.item] ?? spec.default;
-		if (spec.alternatives.includes(pick)) resolved[spec.item] = pick;
-		else {
-			warn(`statusline: ${spec.item}=${pick} is not available, using ${spec.item}=${spec.default}`);
-			resolved[spec.item] = spec.default;
-		}
-	}
+	for (const spec of ITEMS) resolved[spec.item] = validatePick(spec.item, picks?.[spec.item] ?? "");
 	return resolved;
-}
-function parseLayout(layout, known) {
-	let parsed;
-	try {
-		parsed = parseClusters(layout);
-	} catch (e) {
-		warn(`statusline: ${e.message}`);
-		return [];
-	}
-	const clusters = [];
-	for (const words of parsed) {
-		const kept = words.filter((word) => {
-			if (known.has(word)) return true;
-			warn(`statusline: layout item '${word}' is not available, skipped`);
-			return false;
-		});
-		if (kept.length > 0) clusters.push(kept);
-	}
-	return clusters;
 }
 function renderStatusline(input) {
 	const row = parseRow(input.payload);
@@ -1565,18 +1567,6 @@ function durationMs(startText, now) {
 	const elapsed = Math.trunc(now) - seconds;
 	return elapsed < 0 ? 0 : elapsed * 1e3;
 }
-function altFor(item, picks) {
-	const spec = specFor(item);
-	const fallback = DEFAULT_PICKS[item] ?? "none";
-	if (spec === void 0) return fallback;
-	const wanted = picks?.[item] ?? "";
-	const alt = wanted === "" ? fallback : wanted;
-	if (!spec.alternatives.includes(alt)) {
-		warn(`statusline: ${item}=${alt} is not available, using ${item}=${fallback}`);
-		return fallback;
-	}
-	return alt;
-}
 function makeInput(fields, now, model) {
 	const ctx = intValue(fields.ctx) ?? 0;
 	const tokens = intValue(fields.tokens) ?? 0;
@@ -1600,8 +1590,9 @@ function makeInput(fields, now, model) {
 		}
 	};
 }
-function layoutGroups(layout) {
-	return layout.match(/\{[^}]*\}|\S+/g)?.map((group) => group.replace(/[{}]/g, "").split(/\s+/).filter((item) => TASK_ITEMS.includes(item))) ?? [];
+function taskGroups(layout) {
+	const task = new Set(TASK_ITEMS);
+	return parseLayout(layout, new Set(ITEM_IDS)).map((cluster) => cluster.filter((item) => task.has(item))).filter((cluster) => cluster.length > 0);
 }
 function trimLine(row) {
 	const segs = row.map((seg) => ({ ...seg }));
@@ -1612,14 +1603,14 @@ function trimLine(row) {
 	tail.text = tail.text.trimEnd();
 	return line(...segs);
 }
-function renderRow(fields, state, now, layout, separators) {
+function renderRow(fields, state, now, groups, separators) {
 	const name = fields.label === "" ? fields.name : fields.label;
 	const head = fields.desc !== "" && fields.desc !== name && !state.desc ? `${name} ${fields.desc}` : name;
 	const { join, sep } = separators;
 	const segs = [plain(head)];
 	const input = makeInput(fields, now, state.model);
 	const ctx = intValue(fields.ctx) ?? 0;
-	for (const items of layoutGroups(layout)) {
+	for (const items of groups) {
 		const group = [];
 		let first = true;
 		for (const item of items) {
@@ -1649,17 +1640,17 @@ function applyStep(state, step) {
 	else if (step[0] === "model" && step[1] === "strip") state.model = stripModelSuffix(state.model);
 	else demote(state, step[0], step[1]);
 }
-function fitRow(fields, working, now, layout, separators, avail) {
+function fitRow(fields, working, now, groups, separators, avail) {
 	const state = {
 		desc: false,
 		model: fields.model,
 		working
 	};
-	let out = renderRow(fields, state, now, layout, separators);
+	let out = renderRow(fields, state, now, groups, separators);
 	if (vlen(out) <= avail) return out;
 	for (const step of PANEL_STEPS) {
 		applyStep(state, step);
-		out = renderRow(fields, state, now, layout, separators);
+		out = renderRow(fields, state, now, groups, separators);
 		if (vlen(out) <= avail) return out;
 	}
 	return out;
@@ -1670,17 +1661,17 @@ function emitLine(id, content) {
 function renderPanel(input) {
 	const tick = JSON.parse(input.payload);
 	const avail = availColumns(tick);
-	const layout = input.layout ?? "{model effort state} {cwd branch status ahead pr} {bar tokens} {cache-hit cache-expiry} {cost} {duration} {lines} {rate}";
-	const separators = styleSeparators(altFor("style", input.picks));
+	const groups = taskGroups(input.layout ?? "{model effort state} {cwd branch status ahead pr} {bar tokens} {cache-hit cache-expiry} {cost} {duration} {lines} {rate}");
+	const separators = styleSeparators(validatePick("style", input.picks?.style ?? ""));
 	const working = {};
-	for (const item of TASK_ITEMS) working[item] = altFor(item, input.picks);
+	for (const item of TASK_ITEMS) working[item] = validatePick(item, input.picks?.[item] ?? "");
 	const tasks = isRecord(tick) && Array.isArray(tick.tasks) ? tick.tasks : [];
 	let out = "";
 	for (const task of tasks) {
 		if (!isRecord(task)) continue;
 		const fields = extractFields(task, input.facts);
 		if (fields.id === "") continue;
-		const row = fitRow(fields, working, input.now, layout, separators, avail);
+		const row = fitRow(fields, working, input.now, groups, separators, avail);
 		const content = input.noColor === true ? textOf(row) : toSgr(row);
 		out += `${emitLine(fields.id, content)}\n`;
 	}
@@ -1778,7 +1769,7 @@ var THEMES = {
 function resolvePaint(input) {
 	const name = input.theme;
 	const theme = name === void 0 ? void 0 : THEMES[name];
-	if (name !== void 0 && theme === void 0) warn(`statusline: theme=${name} is not a known theme, ignored`);
+	if (name !== void 0 && theme === void 0) warn$1(`statusline: theme=${name} is not a known theme, ignored`);
 	return {
 		layout: input.layout ?? theme?.layout ?? "{model effort state} {cwd branch status ahead pr} {bar tokens} {cache-hit cache-expiry} {cost} {duration} {lines} {rate}",
 		picks: {
