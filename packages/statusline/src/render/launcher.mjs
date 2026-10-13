@@ -34,11 +34,23 @@ try {
   if (usable.length === 0) {
     fail(`no statusline@agentic install with ${RENDERER}`);
   }
-  const stamp = e => {
-    const ms = Date.parse(e.lastUpdated ?? '');
+  // The same newest-install rule as the plugin's install-record.ts, so the
+  // launcher and `status` never bless different installs.
+  const stamp = value => {
+    const ms = typeof value === 'string' ? Date.parse(value) : Number.NaN;
     return Number.isNaN(ms) ? 0 : ms;
   };
-  const best = usable.reduce((a, b) => (stamp(b) > stamp(a) ? b : a));
+  const isNewer = (candidate, incumbent) => {
+    const updated = stamp(candidate.lastUpdated) - stamp(incumbent.lastUpdated);
+    return (
+      updated > 0 ||
+      (updated === 0 &&
+        stamp(candidate.installedAt) > stamp(incumbent.installedAt))
+    );
+  };
+  const best = usable.reduce((incumbent, candidate) =>
+    isNewer(candidate, incumbent) ? candidate : incumbent,
+  );
   await import(pathToFileURL(join(best.installPath, RENDERER)).href);
 } catch (e) {
   fail(e?.message ?? 'launcher failed');
