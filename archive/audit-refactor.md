@@ -2,30 +2,36 @@
 
 ## Goal
 
-The ruled restructure lands: core is the one home of shared source; islands carry
-build-stamped copies, never hand-synced mirrors; the drawing model — glyphs, ink
-kinds, documents, the one skin that emits escape bytes — is shared; a mod's hooks
-module is thin over stamped helpers and the engine's own `on()` contract;
-readability's imports all point down; the panel key carries the theme whole; an
-off-rung pick demotes in both renderers; the servers and CLIs share core's kit.
-Behavior changes only where a ruling names it; everything else is structure.
+The ruled restructure lands: core is the one home of shared source, reached by
+every process — CLIs, servers, the statusline renderer — through the
+registry; the drawing model — glyphs, ink kinds, documents, the one skin that
+emits escape bytes — is shared there; a mod's hooks module is thin over its
+home's own island glue (the engine's loader imports plugin-relative files
+alone, at every graph depth) and the engine's own `on()` contract; CLIs emit
+finished ink-tagged lines and islands accept and render them; readability's
+imports all point down; the panel key carries the theme whole; an off-rung
+pick demotes in both renderers; the servers and CLIs share core's kit.
+Nothing is stamped, built or synced — node ≥23.6 runs the `.ts` sources, and
+Claude Code installs each exec'd home's registry-pinned core dependency into
+the plugin folder when it caches the plugin. Behavior changes only where a
+ruling names it; everything else is structure.
 
 ## Current state
 
-All units landed — B0–B10; the thread closes with this fold. B7: `runCli`
+All units landed — B0–B11; the thread closes with the mirror-kill fold. B7: `runCli`
 in core owns commander (spec-declared commands, options-as-data, a structural
 help-payload hook consumed at statusline's parseCli call); all six homes
 declare commands, commander lives in core's manifest alone; help exits 0 and
-routes to the subcommand, live-probed ×6 (rm/md via their single-command
-bins); version precedence and the old exports' deaths pinned at core's door;
+routes to the subcommand, live-probed ×6; a bad option on a subcommand
+prints that subcommand's own usage (pinned at core's door); version
+precedence and the old exports' deaths pinned at core's door;
 statusline's test-only parse doors survive on protected tests alone. B6: rules'
 `references/` bullet states creation on first promotion; init/README agreed
 untouched. B5: the panel
 shares the engine's parser (`parseLayout` home `render/layout.ts`; unknown
 item warns once, malformed renders the bare head — both pinned), one
-`validatePick` in `items.ts`, `isRecord` adopted, `runMain` at `index.ts`;
-the render build is per-entry (`codeSplitting: false`) so both entries stay
-standalone — the committed `render.mjs` re-synced machine-proven. B4: one handler
+`validatePick` in `items.ts`, `isRecord` adopted, `runMain` at `index.ts`.
+B4: one handler
 wrapper (`toolHandler`) and the error kit, `loggerFromEnv`, `serverVite` +
 `runDevServer` live in core and serve both servers — every tool routes
 through `tool()` bound once per server, `registerTool` sites/output
@@ -41,29 +47,50 @@ the guard deleted, goldens byte-identical with the trace recorded.
 Readability's layer arrow is enforced by a
 pin (`test/layering.test.ts`): math, tables, footnotes, resolver and
 cell-text live under pipeline/, policy imports only downward, and AGENTS.md's
-layer sentence is true unedited. zai's `--json` ships the raw payload with the
-island rendering it (one exec-accept-render door with tokens); rm and zai
+layer sentence is true unedited. rm and zai
 carry no `@v1nvn/tokens` dependency (lockfile regenerated, immutable install
 green); tokens' `./text` export is gone — semver minor, owner-ruled. The
-drawing kit (`core/src/draw.ts` — glyphs, documents,
-the `toSgr` skin and its inverse `stripSgr`) and the mod kit (`core/src/mod.ts`
-+ `core/src/stub.ts`) stamp byte-exact copies from `stamp.manifest.json` into
-every home's `hooks/kit/` and `tests/kit/` (20 entries; the frozen guard
-`core/test/stamp.spec.ts` proves hand-edit, orphan and foreign-import red).
-The skin is the only SGR emitter (the wizard pair's input/cursor sequences
+skin is the only SGR emitter (the wizard pair's input/cursor sequences
 are literal and allowlisted); statusline renders documents through its two
-final doors, goldens byte-identical; kit imports split by consumer class —
-engine-loaded modules ride their home's stamp, npm-side modules the
-`@v1nvn/agentic-core/draw` subpath. B8 landed whole by ceiling ruling (3004
-of 3757 insertions are guard-proven stamps). Rulings recorded: the sharing
-principle (AGENTS.md — core is the one home; stamped copies, never hand-synced
-mirrors); the drawing home and ink-as-data; the interface patterns, each on
-the test that it owns a bug class this repo hit; the mod shape after blind
-review — a stamped helper kit, not a runtime, with `on()` kept as the engine's
-contract for event-fed state; G5 parked in TODO.md. The design passed one
-adversarial blind review: its two blockers (tokens-top's event feed; validator
-feasibility) shaped B1/B8 below. Every Plan-section anchor re-verified against
-`304cba6` at B0 close; re-read before relying on them after further landings.
+final doors, goldens byte-identical; the npm side imports
+`@v1nvn/agentic-core/draw`, the island never imports npm. B8 landed whole
+by ceiling ruling; B11 later replaced its stamps outright (below).
+Rulings recorded: the sharing
+principle (AGENTS.md — core is the one home, reached through the registry;
+nothing stamped, built or synced); the drawing home and ink-as-data; the
+interface patterns, each on the test that it owns a bug class this repo hit;
+the mod shape after blind review — thin over the home's own island glue,
+with `on()` kept as the engine's contract for event-fed state; G5 parked in
+TODO.md. The design passed one adversarial blind review: its two blockers
+(tokens-top's event feed; validator feasibility) shaped B1/B8 below. Every
+Plan-section anchor re-verified against `304cba6` at B0 close.
+
+B11 — the mirror-kill fold, landed `a94dd58` (+ `chore: refresh yarn.lock`,
+`fix(cli): subcommand usage errors…`): the owner rejected the stamp shape
+(+6k net), and three probes settled the replacement — the island loader
+imports plugin-relative files alone at every graph depth (bare imports
+refused in hooks, in island-loaded src, and in tests); node 26 runs erasable
+`.ts` natively; Claude Code installs a plugin's registry-pinned
+`package-lock.json` deps into the plugin folder at cache time (the
+chrome-devtools-mcp precedent, confirmed in the docs). So: every process
+surface imports core; each exec'd home's `package.json` +
+`package-lock.json` pin `@v1nvn/agentic-core` exact; mod commands exec
+`node ${$.plugin.root}/src/index.ts`; the CLIs' `--json` doors emit finished
+ink-tagged lines and the islands accept and render them (zai's green meters
+restored, the double format in its open path gone, tokens' island keeps its
+own narrow helper slice — the one echo the engine's rule forces);
+statusline's data-dir `render.mjs` becomes a zero-dependency launcher that
+follows installs via `installed_plugins.json`, settings keys byte-identical.
+Dead and deleted: the 20 stamps + `stamp.manifest.json` + `scripts/stamp.mjs`
++ `core/test/stamp.spec.ts` + `core/src/mod.ts`/`stub.ts` (slices re-homed),
+all five committed build artifacts, `yarn build`, the vite build passes,
+`modVite`, the CI drift gates and the bench build step. Publishing ships
+source (`files: src`, `.ts` bins with shebangs, engines ≥23.6, omlx and
+readability included); `set-version.mjs` carries the manifests, the core
+dependency pins, lockfile regeneration and the npx pins. Branch totals vs
+main: +5.7k/−18.7k. Gates: both tsconfigs, eslint, every vitest suite
+(722 core, 379 statusline, 722 readability incl. the cli fix), engine tests
+×4, `claude plugin validate` ×9, `set-version --check`, live CLIs ×5.
 
 ## Next step
 
@@ -78,6 +105,7 @@ Closed — all units landed; the thread archives with this fold.
 | B8  | the mod kit across the four homes           |            |        |         | `lineOf`, the exec/accept/parse door, pane chrome (frame, empty, refresh as fields), refresh-while-open and tick cleanup are stamped helpers in all four homes; command registration is declarative for the exec shape; event-fed state stays `on()` with reducers feeding pane renders; every hooks module is thin over the kit — no hand-rolled copy of what the kit owns; `plugin validate` + `plugin test` ×4 green; references/mods.md rewritten to the stamp; engine tests ride the stamped helpers — landed `0040f55` + fix `6c59b1a`, whole by ceiling ruling (3004 of 3757 insertions are guard-proven stamps; no per-home partition meets 400 as written) |
 | B9  | statusline onto the kit                     |            |        |         | `SEGMENTS` returns documents; `toSgr` is the only escape emitter — no SGR literal outside the kit (grep); themes compute special colors through the kit's parametric ink constructors; both golden sets regenerated — landed `bfdfd5a`+`fcda8e4`+`67215dc` (clause split) + review round `af16d42`, goldens byte-identical                                                                                                                                                       |
 | B10 | zai raw door and the `/text` break          |            |        |         | zai's `--json` ships the raw payload, its island renders it — one exec-accept-render door with tokens; rm and zai carry no `@v1nvn/tokens` dependency; `@v1nvn/tokens`'s `/text` export removed (semver step is the owner's call, never silent) — landed `acf78a9` + fix `92b2c5b`, semver minor owner-ruled, live-probed via `--plugin-dir` against a loopback mock                                                                                                                                                                                                                                                           |
+| B11 | the mirror-kill — source-exec and cache-installed core |            |        |         | stamps, committed builds and the whole build pipeline die (−18.7k net vs main); every process surface imports `@v1nvn/agentic-core`, each exec'd home's lockfile pin installed into the plugin folder by Claude Code; islands own their glue (`hooks/support.ts`, `tests/stub.ts` — the loader forbids npm at every graph depth, probed ×3); CLIs emit finished lines over `--json`, islands accept and render (zai's green meters restored, its double format gone); statusline's data-dir file becomes the zero-dep `launcher.mjs`, settings keys byte-identical; publishing ships source (engines ≥23.6); `set-version` carries dep pins + lockfile regen; npx stays once-a-session only (AGENTS.md) — landed `a94dd58` + `chore: refresh yarn.lock…` + `fix(cli): subcommand usage errors…`, owner-directed after the stamp shape was rejected |
 | B2  | readability layers enforced                 |            |        |         | math, tables, footnotes and resolver's class list + derived language tokens move down together — policy imports downward, legal; a pin test asserts nothing under `pipeline/` imports `../policy`; suite green; the AGENTS.md layer rule is true without editing it — landed `7af19f2` + fix `ceee90b` (cell-text and grid-detector rode as pin entailments; context.ts keeps local structural types per the law's second clause)                                                                                                                                                                                                                                       |
 | B3  | statusline ruled changes                    |            |        |         | live `configure --theme rich` writes the theme's picks to the panel key and the agent row draws the theme's bar; live narrow-terminal probe: a gauge line falls to flat; the engine's demote guard is deleted outright — `indexOf` −1 reads as before-rung-0, matching the panel exactly; both golden sets regenerated, goldens byte-identical with the trace recorded (corpora never pass settings keys; the guard never fired in them), the new behavior pinned by two red-first tests; G2b read as decisions-ride-the-key (theme variants resolve at paint — the expansion reading would mirror resolvePaint); one LOW open finding rides B5 — landed `1106304`, blind review clean                                                                                                                                                                                    |
 | B4  | the servers' kit and handler wrapper        |            |        |         | both suites green; one handler wrapper (try/catch + log + schema-parse + defaults) serves every tool — readability's 12× try/catch, 9× unpack, 6× defaults blocks and omlx's `.catch()` twins gone; `registerTool` call sites, output schemas and capability gating stay per-server; dev-harness, error kit, `loggerFromEnv`, a server vite variant live in core; no `LoopbackTransport` remains — landed `906184b`+`5702db8` (clause split 291+204 over the 400 ceiling) + review round (one `withSchemaDefaults` helper for the six sentinel sites, omlx's level restored to fixed `'info'`, dead `ReloadableRunner` deleted, `loggerFromEnv` pinned in core's suite, dual-boot dev smoke clean)                                                                                                          |
