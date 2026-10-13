@@ -1,6 +1,6 @@
 {
   "name": "todo",
-  "version": "0.44.0",
+  "version": "0.45.0",
   "description": "Work tracking — the rules plus seven verbs (init, new, run, status, audit, handoff, postmortem) over TODO.md, progress/, references/, archive/, and the builder, reviewer and clerk agents a run dispatches.",
   "author": { "name": "v1nvn", "email": "v1n@outlook.com" }
 }
