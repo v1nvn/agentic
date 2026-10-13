@@ -140,6 +140,7 @@ export function renderStatusline(input: RenderInput): string {
       return;
     }
     const at = order.indexOf(picks[item]);
+    // An off-rung alt (gauge) sits before the first rung, so it demotes too.
     if (order.slice(at + 1).includes(target)) {
       picks[item] = target;
     }
