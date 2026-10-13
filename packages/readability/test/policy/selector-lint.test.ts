@@ -1,5 +1,5 @@
-import { buildDocument } from '../../src/pipeline/dom.js';
-import { lintProposal, lintSelectorText } from '../../src/policy/selector-lint.js';
+import { buildDocument } from '../../src/pipeline/dom.ts';
+import { lintProposal, lintSelectorText } from '../../src/policy/selector-lint.ts';
 
 const PAGE_HTML =
   '<body><nav id="site-nav">nav</nav>' +

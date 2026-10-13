@@ -1,8 +1,15 @@
 import { readFileSync } from 'node:fs';
 
-import { describe, expect, it } from 'vitest';
+import { runCli } from '@v1nvn/agentic-core';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { buildProgram, helpFor, parseArgs, VERSION } from '../src/cli.js';
+import {
+  buildProgram,
+  helpFor,
+  parseArgs,
+  statuslineSpec,
+  VERSION,
+} from '../src/cli.ts';
 
 // Read the manifest off disk so the test sees the published file, not the
 // bundler-resolved import src/cli.ts uses.
@@ -76,6 +83,56 @@ describe('parseArgs', () => {
     });
     expect(parseArgs(['restore', 'stray'])).toBeUndefined();
     expect(parseArgs(['restore', '--bogus'])).toBeUndefined();
+  });
+});
+
+describe('the runCli door', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  function spyStdio(): { out: () => string; err: () => string } {
+    const out = vi
+      .spyOn(process.stdout, 'write')
+      .mockImplementation(() => true);
+    const err = vi
+      .spyOn(process.stderr, 'write')
+      .mockImplementation(() => true);
+    return {
+      out: () => out.mock.calls.map(c => String(c[0])).join(''),
+      err: () => err.mock.calls.map(c => String(c[0])).join(''),
+    };
+  }
+
+  it('answers subcommand --help on stdout with 0, printing only its flags', async () => {
+    const io = spyStdio();
+    expect(await runCli(statuslineSpec(), ['catalog', '--help'])).toBe(0);
+    expect(io.out()).toContain('Usage: statusline catalog');
+    expect(io.out()).toContain('--themes');
+    expect(io.out()).not.toContain('--dry-run');
+    expect(io.err()).toBe('');
+  });
+
+  it('answers bare --help with the program listing every subcommand', async () => {
+    const io = spyStdio();
+    expect(await runCli(statuslineSpec(), ['--help'])).toBe(0);
+    expect(io.out()).toContain('Usage: statusline');
+    for (const verb of ['catalog', 'configure', 'preview', 'restore', 'status']) {
+      expect(io.out()).toContain(verb);
+    }
+  });
+
+  it('prints the version and exits 0 on --version', async () => {
+    const io = spyStdio();
+    expect(await runCli(statuslineSpec(), ['--version'])).toBe(0);
+    expect(io.out()).toBe(`${VERSION}\n`);
+  });
+
+  it('a bare invocation is a usage error on stderr, exit 1', async () => {
+    const io = spyStdio();
+    expect(await runCli(statuslineSpec(), [])).toBe(1);
+    expect(io.err()).toContain('Usage: statusline');
+    expect(io.out()).toBe('');
   });
 });
 

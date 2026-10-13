@@ -3,12 +3,12 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { isObject } from './configure.js';
-import { materializeDemoRepo } from './demo-repo.js';
-import { renderStatusline } from './render/index.js';
-import { renderPanel } from './render/panel.js';
-import { resolvePaint } from './render/theme.js';
-import { capturePath } from './resolve.js';
+import { materializeDemoRepo } from './demo-repo.ts';
+import { renderStatusline } from './render/index.ts';
+import { isRecord } from './render/jq.ts';
+import { renderPanel } from './render/panel.ts';
+import { resolvePaint } from './render/theme.ts';
+import { capturePath } from './resolve.ts';
 
 const PAYLOADS_DIR = fileURLToPath(
   new URL('../assets/payloads', import.meta.url),
@@ -36,7 +36,7 @@ function anchoredP1(repoDir: string, now: number): string {
     readFileSync(join(PAYLOADS_DIR, 'p1.json'), 'utf8'),
   ) as Loose;
   const cache = payload.prompt_cache;
-  if (isObject(cache)) {
+  if (isRecord(cache)) {
     if (cache.warm === true) {
       cache.expires_at = now + P1_WARM_IN;
       cache.last_miss_at = now + P1_WARM_IN - 3900;
@@ -46,10 +46,10 @@ function anchoredP1(repoDir: string, now: number): string {
     }
   }
   const limits = payload.rate_limits;
-  if (isObject(limits)) {
+  if (isRecord(limits)) {
     for (const [limitKey, offset] of Object.entries(P1_RESETS_IN)) {
       const limit = limits[limitKey];
-      if (isObject(limit)) {
+      if (isRecord(limit)) {
         limit.resets_at = now + offset;
       }
     }

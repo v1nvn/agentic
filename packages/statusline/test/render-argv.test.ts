@@ -21,7 +21,7 @@ import { describe, expect, it } from 'vitest';
 // --subagent, a non-numeric --now, and an unknown positional warn and are
 // ignored. Warning texts are unpinned; these tests assert the count and that
 // a warning names its flag.
-import { parseArgv } from '../src/render/argv.js';
+import { parseArgv } from '../src/render/argv.ts';
 
 describe('parseArgv known grammar', () => {
   it('empty argv is line mode with no decisions', () => {

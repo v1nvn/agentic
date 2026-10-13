@@ -1,6 +1,8 @@
 import { expect, test } from 'claude-code/testing';
 
-import type { CommandRunResult, On } from 'claude-code';
+import { stubEngine } from './stub.ts';
+
+import type { CommandRunResult } from 'claude-code';
 import type { Engine } from 'claude-code/testing';
 
 const SENT = 'Sent: A_heading.epub → remarkable:/home/root/books';
@@ -8,61 +10,6 @@ const SENT = 'Sent: A_heading.epub → remarkable:/home/root/books';
 /** The unreachable-device shape: pandoc made the EPUB, ssh could not resolve the host. */
 const SSH_FAILED =
   'ssh failed: ssh: Could not resolve hostname remarkable: nodename nor servname provided, or not known';
-
-type World = {
-  commands: string[];
-  logs: string[];
-  opens: string[];
-  registered: string[];
-};
-
-function stubWorld(
-  on: On,
-  answer: 'device-down' | 'refuse' | 'sent' = 'sent',
-): World {
-  const world: World = {
-    commands: [],
-    logs: [],
-    opens: [],
-    registered: [],
-  };
-  on('command.register', ($, e) => {
-    world.registered.push(e.name);
-    return { value: { command: e.name } };
-  });
-  on('session.start', () => ({ cwd: '/work' }));
-  on('ui.log', ($, e) => {
-    world.logs.push(e.text);
-    return { value: undefined };
-  });
-  on('ui.open', ($, e) => {
-    world.opens.push(e.id);
-    return { value: { isPlaced: true } };
-  });
-  on('tool.call', { tool: 'Bash' }, ($, e) => {
-    world.commands.push(String(e.command));
-    if (answer === 'refuse') {
-      return { deny: 'permission denied by the user' };
-    }
-    if (answer === 'device-down') {
-      return {
-        result: {
-          stdout: '',
-          stderr: SSH_FAILED,
-          interrupted: false,
-        },
-      };
-    }
-    return {
-      result: {
-        stdout: `${SENT}\n`,
-        stderr: '',
-        interrupted: false,
-      },
-    };
-  });
-  return world;
-}
 
 async function startSession($: Engine): Promise<void> {
   await $.session.start({
@@ -81,8 +28,8 @@ async function runSend($: Engine): Promise<CommandRunResult> {
   });
 }
 
-test('session start registers rm-send, execs and draws nothing', async ($, on) => {
-  const world = stubWorld(on);
+test('session start declaratively registers rm-send, execs and draws nothing', async ($, on) => {
+  const world = stubEngine(on, { stdout: `${SENT}\n` });
 
   await startSession($);
   expect(world.registered).toEqual(['rm-send']);
@@ -92,32 +39,32 @@ test('session start registers rm-send, execs and draws nothing', async ($, on) =
 });
 
 test('a run execs the shipped CLI, reports its stdout as one dim line, answers nothing', async ($, on) => {
-  const world = stubWorld(on);
+  const world = stubEngine(on, { stdout: `${SENT}\n` });
   await startSession($);
 
   const answer = await runSend($);
   expect(answer.text).toBeUndefined();
   expect(answer.context).toBeUndefined();
   expect(world.commands).toEqual([
-    expect.stringMatching(/^node .*\/bin\/send\.mjs$/),
+    expect.stringMatching(/^node .*\/src\/index\.ts$/),
   ]);
   expect(world.logs).toEqual([SENT]);
 });
 
 test('a refused exec reports the refusal, answers nothing, no crash', async ($, on) => {
-  const world = stubWorld(on, 'refuse');
+  const world = stubEngine(on, { deny: 'permission denied by the user' });
   await startSession($);
 
   const answer = await runSend($);
   expect(answer.text).toBeUndefined();
   expect(world.commands).toEqual([
-    expect.stringMatching(/^node .*\/bin\/send\.mjs$/),
+    expect.stringMatching(/^node .*\/src\/index\.ts$/),
   ]);
   expect(world.logs).toEqual(['permission denied by the user']);
 });
 
 test('a failed beam reports its failing stage, not the bare fallback', async ($, on) => {
-  const world = stubWorld(on, 'device-down');
+  const world = stubEngine(on, { stderr: SSH_FAILED, stdout: '' });
   await startSession($);
 
   const answer = await runSend($);

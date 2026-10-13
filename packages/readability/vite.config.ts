@@ -1,29 +1,6 @@
-import { configDefaults, defineConfig } from 'vitest/config';
+import { serverVite } from '@v1nvn/agentic-core/vite';
+import { defineConfig } from 'vitest/config';
 
-// Single config driving both `vite build` and `vitest`.
-export default defineConfig({
-  build: {
-    outDir: 'dist',
-    emptyOutDir: true,
-    sourcemap: true,
-    minify: false,
-    // SSR/Node build: Vite externalizes node built-ins AND package.json
-    // `dependencies`, so only our source is bundled. ESM out matches "type":"module".
-    ssr: 'src/index.ts',
-    rollupOptions: {
-      // `bin` (dist/index.js) is exec'd by the kernel; without a shebang the OS runs
-      // it under /bin/sh and `npx readability` dies parsing `import`.
-      output: {
-        banner: chunk => (chunk.isEntry ? '#!/usr/bin/env node' : ''),
-      },
-    },
-  },
-  test: {
-    globals: true,
-    environment: 'node',
-    // Extraction over full-page fixtures runs multi-second even locally; CI
-    // runners are several times slower and the 5s default times out there.
-    testTimeout: 30_000,
-    exclude: [...configDefaults.exclude, 'dist/**'],
-  },
-});
+// Extraction over full-page fixtures runs multi-second even locally; CI
+// runners are several times slower and the 5s default times out there.
+export default defineConfig(serverVite({ testTimeout: 30_000 }));

@@ -1,9 +1,13 @@
 import { expect, mock, test } from 'claude-code/testing';
 
+import { ageAgents, cellAt } from '../hooks/support.ts';
+import { stubEngine } from './stub.ts';
+
 import type { On, SessionUsage } from 'claude-code';
 import type { Engine } from 'claude-code/testing';
 
 const TICK_MS = 500;
+const RING_MAX = 5;
 
 const MEASURE = {
   context: {
@@ -85,53 +89,31 @@ const PANE = {
   },
 } as const;
 
-type World = {
-  opens: string[];
-  rosters: number;
-};
+test('tick cleanup: one cell per agent, ids leave with the roster', () => {
+  const cells = new Map();
+  const a1 = cellAt(cells, 'a1');
+  a1.acc = 120;
+  a1.spawnAt = 1000;
+  cellAt(cells, 'gone').spawnAt = 900;
 
-function stubWorld(on: On): World {
-  const world: World = { opens: [], rosters: 0 };
-  const openIds = new Set<string>();
-  on('command.register', () => ({ value: { command: 'tokens-top' } }));
-  on('session.start', () => ({ cwd: '/work' }));
-  on('session.model', () => ({ value: 'glm-5.3[1m]' }));
-  on('session.version', () => ({ value: { version: '2.1.287' } }));
-  on('session.cwd', () => ({ value: '/Users/vineet/git/agentic' }));
-  on('session.turns', () => ({ value: 47 }));
-  on('session.surfaces', () => ({ value: ['terminal'] }));
-  on('session.usage', () => ({ value: MEASURE }));
-  on('session.measure', (_$, e) => ({ changed: e.changed }));
-  on('agent.list', () => {
-    world.rosters += 1;
-    return {
-      value: [
-        {
-          id: 'a1',
-          description: 'audit the render',
-          type: 'Explore',
-          status: 'running',
-          name: 'Explore',
-        },
-      ],
-    };
-  });
-  on('ui.open', ($, e) => {
-    world.opens.push(e.id);
-    openIds.add(e.id);
-    return { value: { isPlaced: true } };
-  });
-  on('ui.panes', () => ({
-    value: [...openIds].map(id => ({
-      id,
-      title: 'Session',
-      isShown: true,
-      isFocused: true,
-      isPlaced: true,
-    })),
-  }));
-  return world;
-}
+  const rows = ageAgents(cells, [{ id: 'a1' }, { id: 'a2' }], 2, RING_MAX);
+  expect([...cells.keys()]).toEqual(['a1', 'a2']);
+  expect(rows).toEqual([
+    { id: 'a1', rate: 60, ring: [120], spawnAt: 1000 },
+    { id: 'a2', rate: 0, ring: [0], spawnAt: null },
+  ]);
+  expect(cells.get('a1')?.acc).toBe(0);
+
+  a1.acc = 60;
+  ageAgents(cells, [{ id: 'a1' }], 2, RING_MAX);
+  expect([...cells.keys()]).toEqual(['a1']);
+
+  for (let i = 0; i < RING_MAX + 3; i += 1) {
+    cells.get('a1')!.acc = i;
+    ageAgents(cells, [{ id: 'a1' }], 1, RING_MAX);
+  }
+  expect(cells.get('a1')?.ring).toHaveLength(RING_MAX);
+});
 
 async function startSession($: Engine): Promise<void> {
   await $.session.start({
@@ -141,9 +123,34 @@ async function startSession($: Engine): Promise<void> {
   });
 }
 
+function stubSession(on: On): { roster: { id: string }[]; rosters: number } {
+  const fixtures = { rosters: 0, roster: [{ id: 'a1' }] };
+  on('session.model', () => ({ value: 'glm-5.3[1m]' }));
+  on('session.version', () => ({ value: { version: '2.1.287' } }));
+  on('session.cwd', () => ({ value: '/Users/v1n/git/agentic' }));
+  on('session.turns', () => ({ value: 47 }));
+  on('session.surfaces', () => ({ value: ['terminal'] }));
+  on('session.usage', () => ({ value: MEASURE }));
+  on('session.measure', (_$, e) => ({ changed: e.changed }));
+  on('agent.list', () => {
+    fixtures.rosters += 1;
+    return {
+      value: fixtures.roster.map(a => ({
+        description: 'audit the render',
+        id: a.id,
+        name: 'Explore',
+        status: 'running',
+        type: 'Explore',
+      })),
+    };
+  });
+  return fixtures;
+}
+
 test('/tokens-top opens the pane; startup draws nothing; the measure fills it', async ($, on) => {
   mock.clock(on);
-  const world = stubWorld(on);
+  const world = stubEngine(on);
+  stubSession(on);
 
   await startSession($);
   expect(world.opens).toEqual([]);
@@ -155,7 +162,7 @@ test('/tokens-top opens the pane; startup draws nothing; the measure fills it', 
     presentation: { isFullscreen: false, columns: 100 },
   });
   expect(answer.text).toBeUndefined();
-  expect(world.opens).toEqual(['tokens-top']);
+  expect(world.opens.map(o => o.id)).toEqual(['tokens-top']);
 
   await $.session.measure({
     context: MEASURE.context,
@@ -195,7 +202,8 @@ test('/tokens-top opens the pane; startup draws nothing; the measure fills it', 
 
 test('the ring samples only while the pane is open', async ($, on) => {
   const clock = mock.clock(on);
-  const world = stubWorld(on);
+  const world = stubEngine(on);
+  const session = stubSession(on);
 
   await startSession($);
   await $.session.measure({
@@ -206,7 +214,7 @@ test('the ring samples only while the pane is open', async ($, on) => {
   });
 
   await clock.advance(TICK_MS * 4);
-  expect(world.rosters).toEqual(0);
+  expect(session.rosters).toEqual(0);
 
   await $.command.run({
     command: 'tokens-top',
@@ -215,12 +223,14 @@ test('the ring samples only while the pane is open', async ($, on) => {
     presentation: { isFullscreen: false, columns: 100 },
   });
   await clock.advance(TICK_MS * 2);
-  expect(world.rosters).toBeGreaterThan(0);
+  expect(session.rosters).toBeGreaterThan(0);
+  expect(world.opens.map(o => o.id)).toEqual(['tokens-top']);
 });
 
 test('completed tool calls leave no running rows behind', async ($, on) => {
   mock.clock(on);
-  const world = stubWorld(on);
+  stubEngine(on);
+  stubSession(on);
   const results: string[] = [];
   on('tool.call', { tool: 'Read' }, () => ({
     result: { file: 'a.ts', filePath: 'a.ts', content: 'x' },
@@ -243,7 +253,6 @@ test('completed tool calls leave no running rows behind', async ($, on) => {
     results.push(answer.deny ?? 'ran');
   }
   expect(results).toEqual(['ran', 'ran', 'ran']);
-  void world;
 
   const ui = await $.ui.mount({ ...PANE, surface: 'terminal' });
   expect(await ui.find({ type: 'Text', text: /running ─/ })).toBeUndefined();

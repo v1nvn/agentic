@@ -3,9 +3,9 @@ import { fileURLToPath } from 'node:url';
 
 import { describe, expect, it } from 'vitest';
 
-import { extractTables } from '../../src/tools/extract_tables.js';
-import { extractArticle, extractHandler } from '../../src/tools/extract.js';
-import { outputSchema } from '../../src/tools/output-schema.js';
+import { extractTables } from '../../src/tools/extract_tables.ts';
+import { extractArticle, extractHandler } from '../../src/tools/extract.ts';
+import { outputSchema } from '../../src/tools/output-schema.ts';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const docsFixture = join(here, '../fixtures/documentation/saved.html');

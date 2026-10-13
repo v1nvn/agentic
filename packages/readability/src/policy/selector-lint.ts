@@ -1,5 +1,5 @@
-import { isGeneratedIdentifier } from './identifiers.js';
-import { selectorMisses } from './presets.js';
+import { isGeneratedIdentifier } from './identifiers.ts';
+import { selectorMisses } from './presets.ts';
 
 export type SelectorViolationKind =
   | 'contains-pseudo'

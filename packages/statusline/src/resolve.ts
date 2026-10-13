@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { join, sep } from 'node:path';
 
-import { DATA_DIR } from './render/capture.js';
+import { DATA_DIR } from './render/capture.ts';
 
 export function capturePath(home: string, surface: 'main' | 'tick'): string {
   return join(home, DATA_DIR, 'captures', `${surface}.json`);
@@ -145,8 +145,8 @@ export function readKeyConfig(home: string): ScriptConfig {
   return flags === null ? NO_DECISIONS : parseKeyFlags(flags);
 }
 
-// The subagent key's decisions — the theme it carries, a style pick when one
-// rides. An absent or foreign member reads as no decisions.
+// The panel key's decisions — the theme and every item pick it carries. An
+// absent or foreign member reads as no decisions.
 export function parseSubagentCommand(command: null | string): ScriptConfig {
   const flags =
     command === null ? null : commandMiddle(RENDER_PROGRAM, command);

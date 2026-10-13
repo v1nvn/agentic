@@ -2,14 +2,14 @@ import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { buildDocument } from '../../src/pipeline/dom.js';
-import { normalizeDocument } from '../../src/pipeline/normalize.js';
-import { isReaderable, parseArticle } from '../../src/pipeline/readability.js';
-import { sanitizeHtml } from '../../src/pipeline/sanitize.js';
-import { toMarkdown } from '../../src/pipeline/turndown.js';
-import { resolveReadabilityOptions } from '../../src/policy/resolver.js';
-import { extractArticleFromHtml } from '../../src/tools/extract.js';
-import type { StructuredContent } from '../../src/tools/output-schema.js';
+import { buildDocument } from '../../src/pipeline/dom.ts';
+import { normalizeDocument } from '../../src/pipeline/normalize.ts';
+import { isReaderable, parseArticle } from '../../src/pipeline/readability.ts';
+import { sanitizeHtml } from '../../src/pipeline/sanitize.ts';
+import { toMarkdown } from '../../src/pipeline/turndown.ts';
+import { resolveReadabilityOptions } from '../../src/pipeline/resolver.ts';
+import { extractArticleFromHtml } from '../../src/tools/extract.ts';
+import type { StructuredContent } from '../../src/tools/output-schema.ts';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const fixturePath = join(here, '../fixtures/react-spa/saved.html');

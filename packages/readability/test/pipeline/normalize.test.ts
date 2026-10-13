@@ -1,11 +1,11 @@
-import { buildDocument } from '../../src/pipeline/dom.js';
+import { buildDocument } from '../../src/pipeline/dom.ts';
 import {
   canonicalizeCodeBlocks,
   normalizeDocument,
   resolveLazyImages,
   stripBoilerplate,
   stripChrome,
-} from '../../src/pipeline/normalize.js';
+} from '../../src/pipeline/normalize.ts';
 
 const DATA_GIF =
   'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';

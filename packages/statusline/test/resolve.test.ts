@@ -6,8 +6,8 @@ import {
   mainKeyValue,
   subagentKeyValue,
   readKeyConfig,
-} from '../src/resolve.js';
-import { createHomes, writeSettings } from './fixtures.js';
+} from '../src/resolve.ts';
+import { createHomes, writeSettings } from './fixtures.ts';
 
 const homes = createHomes();
 

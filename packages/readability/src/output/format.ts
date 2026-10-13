@@ -1,8 +1,8 @@
 import { stringify as stringifyYaml } from 'yaml';
 
-import type { Diagnostics, Metadata } from '../pipeline/context.js';
+import type { Diagnostics, Metadata } from '../pipeline/context.ts';
 
-import { headingText, parseBlocks } from '../policy/markdown.js';
+import { headingText, parseBlocks } from '../policy/markdown.ts';
 
 export type Format = 'html' | 'json' | 'markdown' | 'text';
 export type MetadataMode = 'json' | 'none' | 'yaml';

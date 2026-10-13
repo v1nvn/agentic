@@ -1,18 +1,17 @@
-import type { Metadata } from '../pipeline/context.js';
-import type { ToolHandle } from '../server.js';
+import type { Metadata } from '../pipeline/context.ts';
+import type { ToolHandle } from '../server.ts';
 
-import { describeError, toErrorResult } from '../errors.js';
-import { logger } from '../logger.js';
-import { buildDocument } from '../pipeline/dom.js';
-import { normalizeDocument } from '../pipeline/normalize.js';
-import { resolveMetadata } from '../policy/metadata.js';
-import { readHtmlFile } from './html-source.js';
-import { extractMetadataOutputShape } from './output-schema.js';
+import { tool } from '../handler.ts';
+import { buildDocument } from '../pipeline/dom.ts';
+import { normalizeDocument } from '../pipeline/normalize.ts';
+import { resolveMetadata } from '../policy/metadata.ts';
+import { fromLocalPath } from './html-source.ts';
+import { extractMetadataOutputShape } from './output-schema.ts';
 import {
   type ExtractMetadataFromHtmlInput,
   extractMetadataInputSchema,
   extractMetadataInputShape,
-} from './schemas.js';
+} from './schemas.ts';
 
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
@@ -54,14 +53,6 @@ function renderMetadataLines(
   return lines.length > 0 ? lines.join('\n') : '(no metadata found)';
 }
 
-export function extractMetadataDocument(rawArgs: unknown): CallToolResult {
-  const { localPath, ...rest } = extractMetadataInputSchema.parse(rawArgs);
-  return extractMetadataDocumentFromHtml({
-    html: readHtmlFile(localPath),
-    ...rest,
-  });
-}
-
 export function extractMetadataDocumentFromHtml(
   input: Readonly<ExtractMetadataFromHtmlInput>,
 ): CallToolResult {
@@ -91,14 +82,11 @@ export function extractMetadataDocumentFromHtml(
 
 export const EXTRACT_METADATA_TOOL_DESCRIPTION = `Return only the bibliographic metadata (title, byline, siteName, lang, publishedTime, excerpt, canonical, baseUrl) of already-rendered (post-JavaScript) HTML without running Readability/Turndown — a fast pre-check for crawlers and citation. Resolves the same metadata cascade as \`extract\` (JSON-LD → OpenGraph → Twitter → <meta> → <time> → <title>), plus <link rel="canonical"> → og:url. The server fetches nothing: \`localPath\` is the only source, and \`baseUrl\` is origin context only (never fetched).`;
 
-export function extractMetadataHandler(args: unknown): CallToolResult {
-  try {
-    return extractMetadataDocument(args);
-  } catch (err) {
-    logger.error(`extract_metadata failed: ${describeError(err)}`);
-    return toErrorResult(err);
-  }
-}
+export const extractMetadataHandler = tool(
+  'extract_metadata',
+  input => extractMetadataDocumentFromHtml(fromLocalPath(input)),
+  extractMetadataInputSchema,
+);
 
 export function registerExtractMetadataTool(server: McpServer): ToolHandle {
   return server.registerTool(

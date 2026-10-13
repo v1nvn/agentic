@@ -1,5 +1,3 @@
-import { Logger } from '@v1nvn/agentic-core';
+import { loggerFromEnv } from '@v1nvn/agentic-core';
 
-import { loadConfig } from './config.js';
-
-export const logger = new Logger(loadConfig().logLevel);
+export const logger = loggerFromEnv(process.env, 'READABILITY_LOG_LEVEL');

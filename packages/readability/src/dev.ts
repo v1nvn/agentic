@@ -1,113 +1,76 @@
 // Dev-only hot reload: tool implementations reload on file change without
-// restarting the process. The transport and McpServer are single-use under the
-// SDK (`StdioServerTransport.start()` throws on a second call), so they live for
-// the whole process and only the tool registrations are swapped. Never bundled
-// into dist (build entry is src/index.ts). Diagnostics go to stderr.
+// restarting the process; the harness in core owns the vite/runner/watch loop.
+// Never bundled into dist (build entry is src/index.ts). Diagnostics to stderr.
 
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { shutdownOnSignals, watchWithReload } from '@v1nvn/agentic-core';
+import { describeError } from '@v1nvn/agentic-core';
+import { runDevServer } from '@v1nvn/agentic-core/vite';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import {
-  createServerModuleRunner,
-  createServer as createViteServer,
-} from 'vite';
 
-import type { PresetCacheReport } from './preset-cache.js';
+import type { PresetCacheReport } from './preset-cache.ts';
 
-import { describeError } from './errors.js';
-import { logger } from './logger.js';
+import { logger } from './logger.ts';
 
-// Loaded through Vite (not imported statically) so the runner controls its cache
-// and can re-evaluate it on change.
+import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+
+interface Handle {
+  remove(): void;
+}
+
+// Loaded through Vite (not imported statically) so the runner controls its
+// cache and can re-evaluate it on change.
 interface RuntimeModule {
   createMcpServer(): McpServer;
   loadPresets(env?: NodeJS.ProcessEnv): PresetCacheReport | undefined;
-  registerCapabilityGatedTools(server: McpServer): { remove(): void }[];
-  registerResources(server: McpServer): { remove(): void }[];
-  registerTools(server: McpServer): { remove(): void }[];
+  registerCapabilityGatedTools(server: McpServer): Handle[];
+  registerResources(server: McpServer): Handle[];
+  registerTools(server: McpServer): Handle[];
 }
 
 const here = dirname(fileURLToPath(import.meta.url));
-const root = resolve(here, '..');
-const serverEntry = resolve(here, 'server.ts');
 
-async function main(): Promise<void> {
-  const vite = await createViteServer({
-    appType: 'custom',
-    configFile: false,
-    // Vite logs `info` (e.g. "(ssr) page reload") via console.log to stdout,
-    // which corrupts the MCP stream; `warn` keeps errors on stderr.
-    logLevel: 'warn',
-    root,
-    server: { middlewareMode: true },
-  });
-
-  // HMR off — reloads are driven from the watcher below.
-  const runner = createServerModuleRunner(vite.environments.ssr, {
-    hmr: false,
-  });
-
-  const first = await runner.import<RuntimeModule>(serverEntry);
-
-  // The `tools` capability registers on the first registration and must precede
-  // connect (registerCapabilities throws post-connect); reloads are idempotent.
-  const server = first.createMcpServer();
-  first.loadPresets();
-  let handles = first.registerTools(server);
-  let resourceHandles = first.registerResources(server);
-  // Capability-gated tools (sampling) defer to the `initialized` notification:
-  // `connect()` returns before the client advertises capabilities, so a direct
-  // call here would observe `getClientCapabilities() === undefined`. The hook
-  // fires once per connection, after the initialize handshake but before any
-  // `tools/list`. Reloads (runOneReload) re-check capabilities directly.
-  let capabilityGatedHandles: { remove(): void }[] = [];
-  server.server.oninitialized = () => {
-    capabilityGatedHandles = first.registerCapabilityGatedTools(server);
-  };
-
-  const transport = new StdioServerTransport();
-  await server.connect(transport);
-
-  async function runOneReload(): Promise<void> {
-    try {
-      runner.evaluatedModules.clear();
-      const next = await runner.import<RuntimeModule>(serverEntry);
-      // Import before removing live registrations so a failed reload leaves the
-      // currently-serving tools intact.
-      for (const handle of handles) {
-        handle.remove();
-      }
-      for (const handle of resourceHandles) {
-        handle.remove();
-      }
-      for (const handle of capabilityGatedHandles) {
-        handle.remove();
-      }
-      handles = next.registerTools(server);
-      resourceHandles = next.registerResources(server);
-      // The re-imported module graph starts with an empty preset store; refill
-      // it alongside the re-registrations.
-      next.loadPresets();
-      // The client is already past `initialized` by the time a file change
-      // fires, so capabilities are populated and the gate can re-evaluate
-      // directly (no second `oninitialized` to hook).
-      capabilityGatedHandles = next.registerCapabilityGatedTools(server);
-      logger.info('[reload] success');
-    } catch (err) {
-      logger.error(`[reload] failed: ${describeError(err)}`);
-    }
-  }
-
-  watchWithReload(vite, runOneReload);
-
-  logger.info('[reload] ready');
-
-  shutdownOnSignals([server, vite]);
-}
-
-main().catch((error: unknown) => {
+runDevServer<RuntimeModule>({
+  entry: resolve(here, 'server.ts'),
+  log: logger,
+  start: async mod => {
+    const server = mod.createMcpServer();
+    mod.loadPresets();
+    let handles = [
+      ...mod.registerTools(server),
+      ...mod.registerResources(server),
+    ];
+    // Capability-gated tools (sampling) defer to the `initialized`
+    // notification: `connect()` returns before the client advertises
+    // capabilities, so a direct call here would observe
+    // `getClientCapabilities() === undefined`. The hook fires once per
+    // connection, after the initialize handshake but before any `tools/list`.
+    let gatedHandles: Handle[] = [];
+    server.server.oninitialized = () => {
+      gatedHandles = mod.registerCapabilityGatedTools(server);
+    };
+    const transport = new StdioServerTransport();
+    await server.connect(transport);
+    return {
+      closers: [server],
+      reload: next => {
+        for (const handle of [...handles, ...gatedHandles]) {
+          handle.remove();
+        }
+        handles = [
+          ...next.registerTools(server),
+          ...next.registerResources(server),
+        ];
+        // The re-imported module graph starts with an empty preset store;
+        // refill it alongside the re-registrations. The client is already
+        // past `initialized` by the time a file change fires, so the gate
+        // can re-evaluate directly.
+        next.loadPresets();
+        gatedHandles = next.registerCapabilityGatedTools(server);
+      },
+    };
+  },
+}).catch((error: unknown) => {
   logger.error(`dev failed: ${describeError(error)}`);
   // eslint-disable-next-line n/no-process-exit
   process.exit(1);

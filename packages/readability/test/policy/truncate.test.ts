@@ -1,6 +1,6 @@
-import { truncateMarkdown } from '../../src/policy/truncate.js';
+import { truncateMarkdown } from '../../src/policy/truncate.ts';
 
-import { extractArticleFromHtml } from '../../src/tools/extract.js';
+import { extractArticleFromHtml } from '../../src/tools/extract.ts';
 
 function fenceCount(text: string): number {
   return (text.match(/^ {0,3}`{3,}/gm) ?? []).length;

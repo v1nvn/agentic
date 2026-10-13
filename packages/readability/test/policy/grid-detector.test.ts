@@ -1,5 +1,5 @@
-import { buildDocument } from '../../src/pipeline/dom.js';
-import { detectGrid } from '../../src/policy/grid-detector.js';
+import { buildDocument } from '../../src/pipeline/dom.ts';
+import { detectGrid } from '../../src/policy/grid-detector.ts';
 
 function doc(html: string): Document {
   return buildDocument(`<html><body>${html}</body></html>`).document;

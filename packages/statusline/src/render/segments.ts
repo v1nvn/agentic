@@ -1,7 +1,26 @@
-import type { GitFacts } from './git.js';
-import type { Row } from './payload.js';
+import {
+  bg,
+  BLOCK,
+  bold,
+  dim,
+  green,
+  indexed,
+  type Ink,
+  line,
+  type Line,
+  magenta,
+  plain,
+  red,
+  rgb,
+  type Segment,
+  TRACK,
+  yellow,
+} from '@v1nvn/agentic-core/draw';
 
-import { fmtDuration, fmtFixed, fmtK, fmtM, pad2 } from './awk.js';
+import type { GitFacts } from './git.ts';
+import type { Row } from './payload.ts';
+
+import { fmtDuration, fmtFixed, fmtK, fmtM, pad2 } from './awk.ts';
 
 export interface SegmentInput {
   readonly git: GitFacts;
@@ -11,108 +30,116 @@ export interface SegmentInput {
   readonly row: Row;
 }
 
-type Segment = (input: SegmentInput) => string;
-
-const BLUE = '\x1b[34m';
-const CYAN = '\x1b[36m';
-const DIM = '\x1b[2m';
-const GREEN = '\x1b[32m';
-const PURPLE = '\x1b[35m';
-const RED = '\x1b[31m';
-const RESET = '\x1b[0m';
-const YELLOW = '\x1b[33m';
-const BOLD = '\x1b[1m';
-const GRAY = '\x1b[38;2;68;71;90m';
-const MARK = '\x1b[1;97m';
+type SegmentRenderer = (input: SegmentInput) => Line;
 
 const SHORT_AT = 15;
 const PART = ['▏', '▎', '▍', '▌', '▋', '▊', '▉', '█'];
-const HEAT = [
-  '\x1b[38;2;48;242;36m',
-  '\x1b[38;2;63;242;36m',
-  '\x1b[38;2;79;242;36m',
-  '\x1b[38;2;95;242;36m',
-  '\x1b[38;2;111;242;36m',
-  '\x1b[38;2;126;242;36m',
-  '\x1b[38;2;142;242;36m',
-  '\x1b[38;2;158;242;36m',
-  '\x1b[38;2;173;242;36m',
-  '\x1b[38;2;189;242;36m',
-  '\x1b[38;2;205;242;36m',
-  '\x1b[38;2;220;242;36m',
-  '\x1b[38;2;236;242;36m',
-  '\x1b[38;2;242;232;36m',
-  '\x1b[38;2;242;216;36m',
-  '\x1b[38;2;242;200;36m',
-  '\x1b[38;2;242;185;36m',
-  '\x1b[38;2;242;169;36m',
-  '\x1b[38;2;242;153;36m',
-  '\x1b[38;2;242;138;36m',
-  '\x1b[38;2;242;122;36m',
-  '\x1b[38;2;242;106;36m',
-  '\x1b[38;2;242;91;36m',
-  '\x1b[38;2;242;75;36m',
-  '\x1b[38;2;242;59;36m',
-  '\x1b[38;2;242;44;36m',
-];
+const GRAY: Ink = rgb(68, 71, 90);
+const HEAT: readonly Ink[] = [
+  [48, 242, 36],
+  [63, 242, 36],
+  [79, 242, 36],
+  [95, 242, 36],
+  [111, 242, 36],
+  [126, 242, 36],
+  [142, 242, 36],
+  [158, 242, 36],
+  [173, 242, 36],
+  [189, 242, 36],
+  [205, 242, 36],
+  [220, 242, 36],
+  [236, 242, 36],
+  [242, 232, 36],
+  [242, 216, 36],
+  [242, 200, 36],
+  [242, 185, 36],
+  [242, 169, 36],
+  [242, 153, 36],
+  [242, 138, 36],
+  [242, 122, 36],
+  [242, 106, 36],
+  [242, 91, 36],
+  [242, 75, 36],
+  [242, 59, 36],
+  [242, 44, 36],
+].map(([r, g, b]) => rgb(r, g, b));
 
 function trunc(n: number): number {
   return Math.trunc(n);
 }
 
-function modelPlain({ model }: SegmentInput): string {
-  return model === '' ? '' : `${CYAN}${model}${RESET}`;
+function modelPlain({ model }: SegmentInput): Line {
+  return model === '' ? line() : line({ text: model, ink: 'cyan' });
 }
 
-function modelBlock({ model }: SegmentInput): string {
-  return model === '' ? '' : `\x1b[48;5;61m\x1b[38;5;231m ${model} \x1b[0m`;
-}
-
-function modelPill({ model }: SegmentInput): string {
+function modelBlock({ model }: SegmentInput): Line {
   return model === ''
-    ? ''
-    : `\x1b[48;5;61m\x1b[38;5;231m\u{e0b6} ${model} \u{e0b4}\x1b[0m`;
+    ? line()
+    : line(
+        { text: '', ink: bg(indexed(61)), carry: true },
+        { text: ` ${model} `, ink: indexed(231) },
+      );
 }
 
-function modelZen({ model }: SegmentInput): string {
+function modelPill({ model }: SegmentInput): Line {
   return model === ''
-    ? ''
-    : `${DIM}${model.replace(/[A-Z]/g, c => c.toLowerCase())}${RESET}`;
+    ? line()
+    : line(
+        { text: '', ink: bg(indexed(61)), carry: true },
+        {
+          text: `\u{e0b6} ${model} \u{e0b4}`,
+          ink: indexed(231),
+        },
+      );
 }
 
-function effortPlain({ row }: SegmentInput): string {
-  return row.effort === '' ? '' : `${CYAN}${row.effort}${RESET}`;
+function modelZen({ model }: SegmentInput): Line {
+  return model === ''
+    ? line()
+    : line(dim(model.replace(/[A-Z]/g, c => c.toLowerCase())));
 }
 
-function effortDim({ row }: SegmentInput): string {
-  return row.effort === '' ? '' : `${DIM}${row.effort}${RESET}`;
+function effortPlain({ row }: SegmentInput): Line {
+  return row.effort === '' ? line() : line({ text: row.effort, ink: 'cyan' });
 }
 
-function statePill(label: string, bg: number, fg: number): string {
-  return `\x1b[48;5;${bg}m\x1b[38;5;${fg}m\u{e0b6} ${label} \u{e0b4}\x1b[0m`;
+function effortDim({ row }: SegmentInput): Line {
+  return row.effort === '' ? line() : line(dim(row.effort));
 }
 
-function statePills({ row }: SegmentInput): string {
-  let out = '';
+function statePill(label: string, bgN: number, fgN: number): Line {
+  return line(
+    { text: '', ink: bg(indexed(bgN)), carry: true },
+    { text: `\u{e0b6} ${label} \u{e0b4}`, ink: indexed(fgN) },
+  );
+}
+
+function statePills({ row }: SegmentInput): Line {
+  const pills: Line[] = [];
   if (row.vim !== '') {
-    out =
+    pills.push(
       row.vim === 'INSERT'
         ? statePill(row.vim, 97, 16)
-        : statePill(row.vim, 240, 231);
+        : statePill(row.vim, 240, 231),
+    );
   }
   if (row.think) {
-    out += ` ${statePill('THINK', 66, 16)}`;
+    pills.push(statePill('THINK', 66, 16));
   }
   if (row.agent !== '') {
-    out += ` ${statePill(row.agent, 60, 231)}`;
+    pills.push(statePill(row.agent, 60, 231));
   }
   if (row.wt !== '') {
-    out += ` ${statePill(`wt:${row.wt}`, 131, 231)}`;
+    pills.push(statePill(`wt:${row.wt}`, 131, 231));
   }
   if (row.styleName !== '' && row.styleName !== 'default') {
-    out += ` ${statePill(row.styleName, 95, 16)}`;
+    pills.push(statePill(row.styleName, 95, 16));
   }
-  return out;
+  return line(
+    ...pills.flatMap((pill, at) =>
+      at === 0 && row.vim !== '' ? pill : [plain(' '), ...pill],
+    ),
+  );
 }
 
 interface SplitPath {
@@ -162,140 +189,145 @@ function pathTail(raw: string, home: string, lim: number): string {
   return out;
 }
 
-function cwdInit({ home, row }: SegmentInput): string {
+function cwdInit({ home, row }: SegmentInput): Line {
   const { text } = splitPath(row.dir, home);
-  return Buffer.byteLength(text, 'utf8') > SHORT_AT
-    ? pathInit(row.dir, home)
-    : text;
+  return line(
+    plain(
+      Buffer.byteLength(text, 'utf8') > SHORT_AT
+        ? pathInit(row.dir, home)
+        : text,
+    ),
+  );
 }
 
-function cwdFull({ home, row }: SegmentInput): string {
-  return splitPath(row.dir, home).text;
+function cwdFull({ home, row }: SegmentInput): Line {
+  return line(plain(splitPath(row.dir, home).text));
 }
 
-function cwdTail({ home, row }: SegmentInput): string {
-  return pathTail(row.dir, home, 1);
+function cwdTail({ home, row }: SegmentInput): Line {
+  return line(plain(pathTail(row.dir, home, 1)));
 }
 
 function baseName(dir: string): string {
   return dir.slice(dir.lastIndexOf('/') + 1);
 }
 
-function cwdBase({ row }: SegmentInput): string {
-  return baseName(row.dir);
+function cwdBase({ row }: SegmentInput): Line {
+  return line(plain(baseName(row.dir)));
 }
 
-function cwdIcon({ row }: SegmentInput): string {
-  return `\u{f07b} ${baseName(row.dir)}`;
+function cwdIcon({ row }: SegmentInput): Line {
+  return line(plain(`\u{f07b} ${baseName(row.dir)}`));
 }
 
-function branchInitials({ git }: SegmentInput): string {
+function branchInitials({ git }: SegmentInput): Line {
   const branch = git.branch;
   if (branch === '') {
-    return '';
+    return line();
   }
   if (Buffer.byteLength(branch, 'utf8') <= SHORT_AT) {
-    return branch;
+    return line(plain(branch));
   }
   const parts = branch.split('/').filter(part => part !== '');
   if (parts.length <= 1) {
-    return branch;
+    return line(plain(branch));
   }
   let out = '';
   for (let i = 0; i < parts.length - 1; i++) {
     out += `${parts[i].slice(0, 1)}/`;
   }
-  return `${out}${parts[parts.length - 1]}`;
+  return line(plain(`${out}${parts[parts.length - 1]}`));
 }
 
-function branchFull({ git }: SegmentInput): string {
-  return git.branch;
+function branchFull({ git }: SegmentInput): Line {
+  return line(plain(git.branch));
 }
 
-function branchLast({ git }: SegmentInput): string {
-  return git.branch.slice(git.branch.lastIndexOf('/') + 1);
+function branchLast({ git }: SegmentInput): Line {
+  return line(plain(git.branch.slice(git.branch.lastIndexOf('/') + 1)));
 }
 
-function branchIcon({ git }: SegmentInput): string {
-  return git.branch === '' ? '' : `\u{e0a0} ${git.branch}`;
+function branchIcon({ git }: SegmentInput): Line {
+  return git.branch === '' ? line() : line(plain(`\u{e0a0} ${git.branch}`));
 }
 
-function statusCounts({ git }: SegmentInput): string {
+function statusCounts({ git }: SegmentInput): Line {
   if (git.branch === '') {
-    return '';
+    return line();
   }
-  let c = '';
+  const segs: Segment[] = [];
   if (git.staged > 0) {
-    c = `${GREEN}+${git.staged}${RESET}`;
+    segs.push(green(`+${git.staged}`));
   }
   if (git.modified > 0) {
-    c = `${c} ${YELLOW}~${git.modified}${RESET}`;
+    segs.push(plain(' '), yellow(`~${git.modified}`));
   }
-  return c;
+  return line(...segs);
 }
 
-function statusIcons({ git }: SegmentInput): string {
+function statusIcons({ git }: SegmentInput): Line {
   if (git.branch === '') {
-    return '';
+    return line();
   }
-  let out = '';
-  let sep = '';
+  const segs: Segment[] = [];
   if (git.staged > 0) {
-    out += `${GREEN}●${git.staged}${RESET}`;
-    sep = ' ';
+    segs.push(green(`●${git.staged}`));
   }
   if (git.modified > 0) {
-    out += `${sep}${YELLOW}✎${git.modified}${RESET}`;
-    sep = ' ';
+    segs.push(yellow(`✎${git.modified}`));
   }
   if (git.untracked > 0) {
-    out += `${sep}${CYAN}+${git.untracked}${RESET}`;
-    sep = ' ';
+    segs.push({ text: `+${git.untracked}`, ink: 'cyan' });
   }
   if (git.stashes > 0) {
-    out += `${sep}${PURPLE}⚑${git.stashes}${RESET}`;
+    segs.push(magenta(`⚑${git.stashes}`));
   }
-  return out;
+  return line(
+    ...segs.flatMap((seg, at) => (at === 0 ? [seg] : [plain(' '), seg])),
+  );
 }
 
-function aheadArrows({ git }: SegmentInput): string {
-  let out = '';
+function aheadArrows({ git }: SegmentInput): Line {
+  const segs: Segment[] = [];
   if (git.ahead > 0) {
-    out = `${GREEN}↑${git.ahead}${RESET}`;
+    segs.push(green(`↑${git.ahead}`));
   }
   if (git.behind > 0) {
-    out += ` ${RED}↓${git.behind}${RESET}`;
+    segs.push(plain(' '), red(`↓${git.behind}`));
   }
-  return out;
+  return line(...segs);
 }
 
-function prBadge({ row }: SegmentInput): string {
+function prBadge({ row }: SegmentInput): Line {
   if (row.prn === '') {
-    return '';
+    return line();
   }
-  let col: string;
+  let ink: Ink;
   let mark: string;
   switch (row.prs) {
     case 'approved':
-      col = GREEN;
+      ink = 'green';
       mark = '✓';
       break;
     case 'changes_requested':
-      col = RED;
+      ink = 'red';
       mark = '✗';
       break;
     case 'pending':
-      col = YELLOW;
+      ink = 'yellow';
       mark = '⏳';
       break;
     default:
-      col = '\x1b[90m';
+      ink = 'brightBlack';
       mark = '◌';
   }
-  return `${BLUE}#${row.prn}${RESET} ${col}${mark} ${row.prs}${RESET}`;
+  return line({ text: `#${row.prn}`, ink: 'blue' }, plain(' '), {
+    text: `${mark} ${row.prs}`,
+    ink,
+  });
 }
 
-function barFlatAt(input: SegmentInput, w: number): string {
+function barFlatAt(input: SegmentInput, w: number): Line {
   const pct = input.row.pct;
   let f = trunc((pct * w) / 100);
   if (f > w) {
@@ -304,44 +336,48 @@ function barFlatAt(input: SegmentInput, w: number): string {
   if (pct > 0 && f === 0) {
     f = 1;
   }
-  const col = pct >= 90 ? RED : pct >= 70 ? YELLOW : GREEN;
-  return `${col}${'█'.repeat(f)}${'·'.repeat(w - f)}${RESET}`;
+  const ink: Ink = pct >= 90 ? 'red' : pct >= 70 ? 'yellow' : 'green';
+  return line({ text: BLOCK.repeat(f) + TRACK.repeat(w - f), ink });
 }
 
-function barFlat(input: SegmentInput): string {
+function barFlat(input: SegmentInput): Line {
   return barFlatAt(input, 10);
 }
 
-function barGauge({ row }: SegmentInput): string {
+function barGauge({ row }: SegmentInput): Line {
   const pct = row.pct;
   const p = Math.max(0, Math.min(100, pct));
   const full = trunc((p * 26) / 100);
   const idx = trunc((((p * 26) % 100) * 8) / 100);
-  const lead =
+  const lead: Ink =
     p >= 50
-      ? `\x1b[38;2;242;${trunc((4845 * (15000 + 1683 * (100 - p))) / 2000000)};36m`
-      : `\x1b[38;2;${trunc((4845 * (185000 - 1683 * (100 - p))) / 2000000)};242;36m`;
+      ? rgb(242, trunc((4845 * (15000 + 1683 * (100 - p))) / 2000000), 36)
+      : rgb(trunc((4845 * (185000 - 1683 * (100 - p))) / 2000000), 242, 36);
   const moon = ['○', '◔', '◑', '◕', '●'][Math.min(trunc(p / 20), 4)];
-  let bar = '';
+  const segs: Segment[] = [
+    plain(`${moon} `),
+    { text: '', ink: lead, carry: true },
+  ];
   for (let i = 0; i < 26; i++) {
-    let col: string;
+    let ink: Ink;
     let cell: string;
     if (i === 20) {
-      col = MARK;
+      ink = 'mark';
       cell = i <= full ? '┃' : '│';
     } else if (i <= full) {
-      col = HEAT[i];
-      cell = i === full ? PART[idx] : '█';
+      ink = HEAT[i];
+      cell = i === full ? PART[idx] : BLOCK;
     } else {
-      col = GRAY;
-      cell = '·';
+      ink = GRAY;
+      cell = TRACK;
     }
-    bar += `${col}${cell}`;
+    segs.push({ carry: i < 25, ink, text: cell });
   }
-  return `${moon} ${lead}${bar}${RESET} ${MARK}${pct}%${RESET}`;
+  segs.push(plain(' '), { text: `${pct}%`, ink: 'mark' });
+  return line(...segs);
 }
 
-function tokensFull({ row }: SegmentInput): string {
+function tokensFull({ row }: SegmentInput): Line {
   const t = row.tokens >= 1000 ? fmtK(row.tokens, 1) : String(row.tokens);
   let c = String(row.ctxSize);
   if (row.ctxSize >= 1000000) {
@@ -349,52 +385,54 @@ function tokensFull({ row }: SegmentInput): string {
   } else if (row.ctxSize >= 1000) {
     c = fmtK(row.ctxSize, 0);
   }
-  return `${t}/${c}`;
+  return line(plain(`${t}/${c}`));
 }
 
-function tokensCompact({ row }: SegmentInput): string {
-  return row.tokens >= 1000 ? fmtK(row.tokens, 0) : String(row.tokens);
+function tokensCompact({ row }: SegmentInput): Line {
+  return line(
+    plain(row.tokens >= 1000 ? fmtK(row.tokens, 0) : String(row.tokens)),
+  );
 }
 
-function tokensFree({ row }: SegmentInput): string {
+function tokensFree({ row }: SegmentInput): Line {
   const free = row.ctxSize - row.tokens;
-  return `${DIM}${free >= 1000 ? fmtK(free, 0) : String(free)} free${RESET}`;
+  return line(dim(`${free >= 1000 ? fmtK(free, 0) : String(free)} free`));
 }
 
 function cacheHitPct(row: Row): null | number {
   return row.hit === null ? null : trunc(row.hit * 100);
 }
 
-function cacheHCol(hp: number): string {
-  return hp >= 90 ? GREEN : hp >= 50 ? YELLOW : RED;
+function cacheHInk(hp: number): Ink {
+  return hp >= 90 ? 'green' : hp >= 50 ? 'yellow' : 'red';
 }
 
-function cacheHit({ row }: SegmentInput): string {
+function cacheHit({ row }: SegmentInput): Line {
   const hp = cacheHitPct(row);
-  return hp === null ? '' : `${cacheHCol(hp)}⚡${hp}%${RESET}`;
+  return hp === null ? line() : line({ text: `⚡${hp}%`, ink: cacheHInk(hp) });
 }
 
-function cacheColdin({ now, row }: SegmentInput): string {
+function cacheColdin({ now, row }: SegmentInput): Line {
   if (row.ttl === '' || row.expires === 0) {
-    return '';
+    return line();
   }
   if (row.warm && row.expires > now) {
-    return `${DIM}cold in ${trunc((row.expires - now) / 60)}m${RESET}`;
+    return line(dim(`cold in ${trunc((row.expires - now) / 60)}m`));
   }
-  return `${DIM}❄ cold${RESET}`;
+  return line(dim('❄ cold'));
 }
 
-function cacheUntil({ row }: SegmentInput): string {
+function cacheUntil({ row }: SegmentInput): Line {
   if (row.ttl === '' || row.expires === 0) {
-    return '';
+    return line();
   }
   const at = new Date(row.expires * 1000);
-  return `${DIM}${pad2(at.getHours())}:${pad2(at.getMinutes())}${RESET}`;
+  return line(dim(`${pad2(at.getHours())}:${pad2(at.getMinutes())}`));
 }
 
-function cacheFuse({ now, row }: SegmentInput): string {
+function cacheFuse({ now, row }: SegmentInput): Line {
   if (row.ttl === '' || row.expires === 0) {
-    return '';
+    return line();
   }
   const span = row.ttl === '1h' ? 3600 : 300;
   let left = row.expires - now;
@@ -402,62 +440,67 @@ function cacheFuse({ now, row }: SegmentInput): string {
     left = 0;
   }
   if (left <= 0) {
-    return `${RED}❄ cold${RESET}`;
+    return line({ text: '❄ cold', ink: 'red' });
   }
-  const full = trunc((left * 10) / span);
+  const full = Math.min(10, trunc((left * 10) / span));
   const rem = (left * 10) % span;
-  const col = left * 4 > span ? GREEN : left * 25 > span * 2 ? YELLOW : RED;
-  let bar = col;
-  for (let i = 0; i < 10; i++) {
-    if (i < full) {
-      bar += '▰';
-    } else if (i === full && rem * 20 > span) {
-      bar += PART[trunc((rem * 8) / span)];
-    } else {
-      bar += `${DIM}▱`;
-    }
+  const ink: Ink =
+    left * 4 > span ? 'green' : left * 25 > span * 2 ? 'yellow' : 'red';
+  let head = '▰'.repeat(full);
+  if (full < 10 && rem * 20 > span) {
+    head += PART[trunc((rem * 8) / span)];
   }
-  return `${bar}${RESET} ${DIM}${pad2(trunc(left / 60))}:${pad2(left % 60)}${RESET}`;
+  const segs: Segment[] = [{ carry: head.length < 10, ink, text: head }];
+  for (let i = head.length; i < 10; i++) {
+    segs.push({ carry: i < 9, ink: 'dim', text: '▱' });
+  }
+  segs.push(plain(' '), dim(`${pad2(trunc(left / 60))}:${pad2(left % 60)}`));
+  return line(...segs);
 }
 
-function costPlain({ row }: SegmentInput): string {
-  return row.cost >= 0.005 ? `${YELLOW}$${fmtFixed(row.cost, 2)}${RESET}` : '';
+function costPlain({ row }: SegmentInput): Line {
+  return row.cost >= 0.005 ? line(yellow(`$${fmtFixed(row.cost, 2)}`)) : line();
 }
 
-function costBurn(input: SegmentInput): string {
+function costBurn(input: SegmentInput): Line {
   const hr = input.row.durationMs / 3600000;
   // awk's else branch prints "0", never "0.00", so a sub-threshold burn rate
   // still appends "$0/hr" — ported as-is.
   const burn = hr > 0.02 ? fmtFixed(input.row.cost / hr, 2) : '0';
-  let out = costPlain(input);
-  if (burn !== '0.00') {
-    out += ` ${DIM}· $${burn}/hr${RESET}`;
+  const segs: Segment[] = [];
+  if (input.row.cost >= 0.005) {
+    segs.push(yellow(`$${fmtFixed(input.row.cost, 2)}`));
   }
-  return out;
+  if (burn !== '0.00') {
+    segs.push(plain(' '), dim(`· $${burn}/hr`));
+  }
+  return line(...segs);
 }
 
-function durationClock({ row }: SegmentInput): string {
-  return fmtDuration(trunc(row.durationMs / 60000));
+function durationClock({ row }: SegmentInput): Line {
+  return line(plain(fmtDuration(trunc(row.durationMs / 60000))));
 }
 
-function durationHours({ row }: SegmentInput): string {
+function durationHours({ row }: SegmentInput): Line {
   const m = trunc(row.durationMs / 60000);
   if (m < 1440) {
-    return `${trunc(m / 60)}h${pad2(m % 60)}m`;
+    return line(plain(`${trunc(m / 60)}h${pad2(m % 60)}m`));
   }
-  return `${trunc(m / 1440)}d${pad2(trunc(m / 60) % 24)}h${pad2(m % 60)}m`;
+  return line(
+    plain(`${trunc(m / 1440)}d${pad2(trunc(m / 60) % 24)}h${pad2(m % 60)}m`),
+  );
 }
 
-function linesDiffstat({ row }: SegmentInput): string {
+function linesDiffstat({ row }: SegmentInput): Line {
   if (row.la <= 0 && row.lr <= 0) {
-    return '';
+    return line();
   }
-  return `${GREEN}+${row.la}${RESET}${DIM}/${RESET}${RED}−${row.lr}${RESET}`;
+  return line(green(`+${row.la}`), dim('/'), red(`−${row.lr}`));
 }
 
-function rateStrip({ now, row }: SegmentInput): string {
-  const segs: string[] = [];
-  for (const limit of row.rateRows) {
+function rateStrip({ now, row }: SegmentInput): Line {
+  const segs: Segment[] = [];
+  for (const [at, limit] of row.rateRows.entries()) {
     const [intpText, fracp = ''] = limit.pctText.split('.');
     let f = 0;
     let scale = 1;
@@ -467,19 +510,14 @@ function rateStrip({ now, row }: SegmentInput): string {
     }
     const intp = Number(intpText);
     const value = intp * scale + f;
-    const col = value < 70 * scale ? GREEN : value < 90 * scale ? YELLOW : RED;
-    const full = trunc((value * 14) / (100 * scale));
+    const ink: Ink =
+      value < 70 * scale ? 'green' : value < 90 * scale ? 'yellow' : 'red';
+    const full = Math.min(14, trunc((value * 14) / (100 * scale)));
     const rem = (value * 14) % (100 * scale);
     const idx = trunc((rem * 8) / (100 * scale));
-    let bar = col;
-    for (let i = 0; i < 14; i++) {
-      if (i < full) {
-        bar += '█';
-      } else if (i === full) {
-        bar += PART[idx];
-      } else {
-        bar += `${DIM}·`;
-      }
+    let head = BLOCK.repeat(full);
+    if (full < 14) {
+      head += PART[idx];
     }
     const lbl =
       fracp === '' || f * 2 < scale
@@ -495,31 +533,40 @@ function rateStrip({ now, row }: SegmentInput): string {
       const sec = ((s % 60) + 60) % 60;
       dur = `${trunc((s - sec) / 60)}m${pad2(sec)}s`;
     }
-    segs.push(
-      `${DIM}${limit.label}${RESET} ${bar}${RESET} ${BOLD}${lbl}%${RESET} ${DIM}· resets ${dur}${RESET}`,
-    );
+    if (at > 0) {
+      segs.push(plain('  '), dim('│'), plain('  '));
+    }
+    segs.push(dim(limit.label), plain(' '), {
+      carry: head.length < 14,
+      ink,
+      text: head,
+    });
+    for (let i = head.length; i < 14; i++) {
+      segs.push({ carry: i < 13, ink: 'dim', text: TRACK });
+    }
+    segs.push(plain(' '), bold(`${lbl}%`), plain(' '), dim(`· resets ${dur}`));
   }
-  return segs.join(`  ${DIM}│${RESET}  `);
+  return line(...segs);
 }
 
-function emptySegment(): string {
-  return '';
+function emptySegment(): Line {
+  return line();
 }
 
-function barFlat6(input: SegmentInput): string {
+function barFlat6(input: SegmentInput): Line {
   return barFlatAt(input, 6);
 }
 
-function barFlat4(input: SegmentInput): string {
+function barFlat4(input: SegmentInput): Line {
   return barFlatAt(input, 4);
 }
 
-function barPercent({ row }: SegmentInput): string {
-  return `${row.pct}%`;
+function barPercent({ row }: SegmentInput): Line {
+  return line(plain(`${row.pct}%`));
 }
 
 export const SEGMENTS: Readonly<
-  Partial<Record<string, Readonly<Record<string, Segment>>>>
+  Partial<Record<string, Readonly<Record<string, SegmentRenderer>>>>
 > = {
   ahead: { arrows: aheadArrows, none: emptySegment },
   bar: {
@@ -577,25 +624,25 @@ export function renderSegment(
   item: string,
   alt: string,
   input: SegmentInput,
-): string {
+): Line {
   const segment = SEGMENTS[item]?.[alt];
-  return segment === undefined ? '' : segment(input);
+  return segment === undefined ? line() : segment(input);
 }
 
 export interface Separators {
-  readonly join: string;
-  readonly sep: string;
+  readonly join: readonly Segment[];
+  readonly sep: readonly Segment[];
 }
 
 export function styleSeparators(alt: string): Separators {
   switch (alt) {
     case 'bare':
-      return { join: '  ', sep: '   ' };
+      return { join: [plain('  ')], sep: [plain('   ')] };
     case 'dim':
-      return { join: ' ', sep: `${DIM} │ ${RESET}` };
+      return { join: [plain(' ')], sep: [dim(' │ ')] };
     case 'dots':
-      return { join: ' · ', sep: ' · ' };
+      return { join: [plain(' · ')], sep: [plain(' · ')] };
     default:
-      return { join: ' ', sep: ' │ ' };
+      return { join: [plain(' ')], sep: [plain(' │ ')] };
   }
 }

@@ -1,16 +1,27 @@
-import type { GitFacts } from './git.js';
-import type { FitStep } from './items.js';
-import type { Row } from './payload.js';
+import {
+  line,
+  type Line,
+  plain,
+  type Segment,
+  textOf,
+  toSgr,
+} from '@v1nvn/agentic-core/draw';
 
-import { stripModelSuffix, stripSgr, warn } from './engine.js';
+import type { TaskFacts } from './facts.ts';
+import type { GitFacts } from './git.ts';
+import type { Row } from './payload.ts';
+
+import { stripModelSuffix } from './engine.ts';
 import {
   DEFAULT_LAYOUT,
-  DEFAULT_PICKS,
+  type FitStep,
+  ITEM_IDS,
   RUNG_ORDERS,
-  specFor,
-} from './items.js';
-import { isRecord, jqText, orElse, tsvEscape } from './jq.js';
-import { renderSegment, styleSeparators } from './segments.js';
+  validatePick,
+} from './items.ts';
+import { isRecord, jqText, orElse, tsvEscape } from './jq.ts';
+import { parseLayout } from './layout.ts';
+import { renderSegment, type Separators, styleSeparators } from './segments.ts';
 
 // The agent panel, ported from the bash subagent renderer it replaced — a
 // second renderer by ruling: its vlen counts codepoints (jq `length`), not
@@ -46,12 +57,12 @@ const PANEL_STEPS: readonly FitStep[] = [
 ];
 
 export interface PanelInput {
+  readonly facts?: Readonly<Record<string, TaskFacts>>;
   readonly layout?: string;
   readonly noColor?: boolean;
   readonly now: number;
   readonly payload: string;
   readonly picks?: Readonly<Record<string, string>>;
-  readonly usage?: Readonly<Record<string, number>>;
 }
 
 interface TaskFields {
@@ -105,22 +116,28 @@ function availColumns(tick: unknown): number {
   return Math.max(columns, 20) - 1;
 }
 
+// The transcript facts are the run's truth — an empty effort on a facts
+// entry is a model that runs no effort, not a fall-through to the launch's
+// ask; the ask paints only until the first reply lands.
 function extractFields(
   task: Record<string, unknown>,
-  usage: Readonly<Record<string, number>> | undefined,
+  facts: Readonly<Record<string, TaskFacts>> | undefined,
 ): TaskFields {
   const id = cell(field(task, 'id', ''));
+  const read = facts?.[id];
   return {
     ctx: cell(field(task, 'contextWindowSize', 0)),
     desc: cell(truncateDesc(jqText(field(task, 'description', '')))),
-    effort: cell(field(task, 'effort', '')),
+    effort: cell(
+      read === undefined ? jqText(field(task, 'effort', '')) : read.effort,
+    ),
     id,
     label: cell(field(task, 'label', '')),
     model: cell(field(task, 'model', '')),
     name: cell(field(task, 'name', '')),
     start: cell(field(task, 'startTime', 0)),
     status: cell(field(task, 'status', '')),
-    tokens: cell(orElse(usage?.[id], field(task, 'tokenCount', 0))),
+    tokens: cell(orElse(read?.tokens, field(task, 'tokenCount', 0))),
   };
 }
 
@@ -134,28 +151,6 @@ function durationMs(startText: string, now: number): number {
   const seconds = start > MS_THRESHOLD ? Math.trunc(start / 1000) : start;
   const elapsed = Math.trunc(now) - seconds;
   return elapsed < 0 ? 0 : elapsed * 1000;
-}
-
-// The stylePick rule for every honored item: an unnamed item takes its
-// default; a named alt off the item's list warns and falls to the default.
-function altFor(
-  item: string,
-  picks: Readonly<Record<string, string>> | undefined,
-): string {
-  const spec = specFor(item);
-  const fallback = DEFAULT_PICKS[item] ?? 'none';
-  if (spec === undefined) {
-    return fallback;
-  }
-  const wanted = picks?.[item] ?? '';
-  const alt = wanted === '' ? fallback : wanted;
-  if (!spec.alternatives.includes(alt)) {
-    warn(
-      `statusline: ${item}=${alt} is not available, using ${item}=${fallback}`,
-    );
-    return fallback;
-  }
-  return alt;
 }
 
 // The task carries none of the main row's git, cache or cost facts; the task
@@ -185,50 +180,69 @@ function makeInput(fields: TaskFields, now: number, model: string) {
   };
 }
 
-// A group's items the task speaks, in the layout's own order.
-function layoutGroups(layout: string): string[][] {
-  return (
-    layout.match(/\{[^}]*\}|\S+/g)?.map(group =>
-      group
-        .replace(/[{}]/g, '')
-        .split(/\s+/)
-        .filter(item => (TASK_ITEMS as readonly string[]).includes(item)),
-    ) ?? []
-  );
+// The shared grammar parser over the full known set, filtered to the items
+// a task speaks — an unknown item warns once, a main-row item just drops.
+function taskGroups(layout: string): readonly (readonly string[])[] {
+  const task = new Set<string>(TASK_ITEMS);
+  return parseLayout(layout, new Set(ITEM_IDS))
+    .map(cluster => cluster.filter(item => task.has(item)))
+    .filter(cluster => cluster.length > 0);
+}
+
+function trimLine(row: Line): Line {
+  const segs = row.map(seg => ({ ...seg }));
+  if (segs.length === 0) {
+    return line();
+  }
+  const lead = segs[0];
+  const tail = segs[segs.length - 1];
+  lead.text = lead.text.trimStart();
+  tail.text = tail.text.trimEnd();
+  return line(...segs);
 }
 
 function renderRow(
   fields: TaskFields,
   state: FitState,
   now: number,
-  layout: string,
-  join: string,
-  sep: string,
-): string {
+  groups: readonly (readonly string[])[],
+  separators: Separators,
+): Line {
   const name = fields.label === '' ? fields.name : fields.label;
   const withDesc = fields.desc !== '' && fields.desc !== name && !state.desc;
   const head = withDesc ? `${name} ${fields.desc}` : name;
-  const groups = [head];
+  const { join, sep } = separators;
+  const segs: Segment[] = [plain(head)];
   const input = makeInput(fields, now, state.model);
   const ctx = intValue(fields.ctx) ?? 0;
-  for (const items of layoutGroups(layout)) {
-    const segs = items
-      .map(item =>
-        ctx <= 0 && (item === 'bar' || item === 'tokens')
-          ? ''
-          : renderSegment(item, state.working[item], input).trim(),
-      )
-      .filter(seg => seg !== '');
-    if (segs.length > 0) {
-      groups.push(segs.join(join));
+  for (const items of groups) {
+    const group: Segment[] = [];
+    let first = true;
+    for (const item of items) {
+      if (ctx <= 0 && (item === 'bar' || item === 'tokens')) {
+        continue;
+      }
+      const out = trimLine(renderSegment(item, state.working[item], input));
+      if (textOf(out) === '') {
+        continue;
+      }
+      if (first) {
+        group.push(...out);
+        first = false;
+      } else {
+        group.push(...join, ...out);
+      }
+    }
+    if (group.length > 0) {
+      segs.push(...sep, ...group);
     }
   }
-  return groups.join(sep);
+  return line(...segs);
 }
 
-// The panel's own vlen: codepoints of the SGR-stripped row.
-function vlen(text: string): number {
-  return Array.from(stripSgr(text)).length;
+// The panel's own vlen: codepoints of the row's plain text.
+function vlen(row: Line): number {
+  return Array.from(textOf(row)).length;
 }
 
 function demote(state: FitState, item: string, target: string): void {
@@ -257,19 +271,18 @@ function fitRow(
   fields: TaskFields,
   working: Record<string, string>,
   now: number,
-  layout: string,
-  join: string,
-  sep: string,
+  groups: readonly (readonly string[])[],
+  separators: Separators,
   avail: number,
-): string {
+): Line {
   const state: FitState = { desc: false, model: fields.model, working };
-  let out = renderRow(fields, state, now, layout, join, sep);
+  let out = renderRow(fields, state, now, groups, separators);
   if (vlen(out) <= avail) {
     return out;
   }
   for (const step of PANEL_STEPS) {
     applyStep(state, step);
-    out = renderRow(fields, state, now, layout, join, sep);
+    out = renderRow(fields, state, now, groups, separators);
     if (vlen(out) <= avail) {
       return out;
     }
@@ -284,11 +297,13 @@ function emitLine(id: string, content: string): string {
 export function renderPanel(input: PanelInput): string {
   const tick: unknown = JSON.parse(input.payload);
   const avail = availColumns(tick);
-  const layout = input.layout ?? DEFAULT_LAYOUT;
-  const { join, sep } = styleSeparators(altFor('style', input.picks));
+  const groups = taskGroups(input.layout ?? DEFAULT_LAYOUT);
+  const separators = styleSeparators(
+    validatePick('style', input.picks?.style ?? ''),
+  );
   const working: Record<string, string> = {};
   for (const item of TASK_ITEMS) {
-    working[item] = altFor(item, input.picks);
+    working[item] = validatePick(item, input.picks?.[item] ?? '');
   }
   const tasks = isRecord(tick) && Array.isArray(tick.tasks) ? tick.tasks : [];
   let out = '';
@@ -296,12 +311,12 @@ export function renderPanel(input: PanelInput): string {
     if (!isRecord(task)) {
       continue;
     }
-    const fields = extractFields(task, input.usage);
+    const fields = extractFields(task, input.facts);
     if (fields.id === '') {
       continue;
     }
-    const row = fitRow(fields, working, input.now, layout, join, sep, avail);
-    const content = input.noColor === true ? stripSgr(row) : row;
+    const row = fitRow(fields, working, input.now, groups, separators, avail);
+    const content = input.noColor === true ? textOf(row) : toSgr(row);
     out += `${emitLine(fields.id, content)}\n`;
   }
   return out;

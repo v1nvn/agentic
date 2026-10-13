@@ -2,9 +2,9 @@ import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { extractArticleFromHtml } from '../../../src/tools/extract.js';
-import type { ExtractFromHtmlInput } from '../../../src/tools/schemas.js';
-import type { StructuredContent } from '../../../src/tools/output-schema.js';
+import { extractArticleFromHtml } from '../../../src/tools/extract.ts';
+import type { ExtractFromHtmlInput } from '../../../src/tools/schemas.ts';
+import type { StructuredContent } from '../../../src/tools/output-schema.ts';
 
 type ExtractSelectors = NonNullable<ExtractFromHtmlInput['selectors']>;
 

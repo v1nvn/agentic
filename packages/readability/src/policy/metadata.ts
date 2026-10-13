@@ -1,7 +1,7 @@
-import type { Metadata, StructuredData } from '../pipeline/context.js';
-import type { ReadabilityParseResult } from '../pipeline/readability.js';
+import type { Metadata, StructuredData } from '../pipeline/context.ts';
+import type { ReadabilityParseResult } from '../pipeline/readability.ts';
 
-import { estimateTokens, nonEmpty } from './text.js';
+import { estimateTokens, nonEmpty } from './text.ts';
 
 const ARTICLE_TYPES = new Set([
   'Article',

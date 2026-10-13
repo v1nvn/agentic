@@ -5,10 +5,10 @@
  * aggregate.ts; the line model and fixed-width primitives live in text.ts.
  */
 
-import type { ScanResult } from './aggregate.js';
-import type { Line } from './text.js';
+import type { ScanResult } from './aggregate.ts';
+import type { Line } from './text.ts';
 
-import { hitRate, last7, sumRows, totalTokens } from './aggregate.js';
+import { hitRate, last7, sumRows, totalTokens } from './aggregate.ts';
 import {
   barField,
   bold,
@@ -24,7 +24,7 @@ import {
   rule,
   RULE_WIDTH,
   ymd,
-} from './text.js';
+} from './text.ts';
 
 export function reportLines(
   scanResult: ScanResult,

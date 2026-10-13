@@ -3,10 +3,10 @@ import type {
   Diagnostics,
   SanitizationDiagnostics,
   TraceStage,
-} from '../pipeline/context.js';
-import type { GatingSignal } from './gating.js';
-import type { PaginationSignal } from './pagination.js';
-import type { PresetSignal } from './presets.js';
+} from '../pipeline/context.ts';
+import type { GatingSignal } from './gating.ts';
+import type { PaginationSignal } from './pagination.ts';
+import type { PresetSignal } from './presets.ts';
 
 export interface DiagnosticsInput {
   readonly articleHtml?: string;

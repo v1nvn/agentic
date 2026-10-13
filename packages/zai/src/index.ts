@@ -1,27 +1,25 @@
-import {
-  HelpRequested,
-  printHelpAndExit,
-  printUsageAndExit,
-  runMain,
-} from '@v1nvn/agentic-core';
+#!/usr/bin/env node
+import { runCli } from '@v1nvn/agentic-core';
 
-import { render, reportLines } from './format.js';
-import { buildProgram, parseArgs, resolveConfig } from './resolve.js';
-import { fetchReport } from './usage.js';
+import { render, reportLines } from './format.ts';
+import { cliSpec, resolveConfig } from './resolve.ts';
+import { fetchReport } from './usage.ts';
 
-const asked = parseArgs(process.argv.slice(2));
-if (asked instanceof HelpRequested) {
-  printHelpAndExit(asked.command);
-}
-const parsed = asked ?? printUsageAndExit(buildProgram());
-
-if (parsed.command !== 'usage') {
-  printUsageAndExit(buildProgram());
-}
-
-await runMain(async () => {
-  const input = await fetchReport(resolveConfig(process.env, parsed));
-  console.log(
-    parsed.json ? JSON.stringify({ lines: reportLines(input) }) : render(input),
-  );
-});
+process.exitCode = await runCli(
+  cliSpec(async options => {
+    const input = await fetchReport(
+      resolveConfig(process.env, {
+        authToken: (options.authToken as string) || undefined,
+        baseUrl: (options.baseUrl as string) || undefined,
+        command: 'usage',
+        json: options.json === true,
+      }),
+    );
+    console.log(
+      options.json === true
+        ? JSON.stringify({ lines: reportLines(input) })
+        : render(input),
+    );
+  }),
+  process.argv.slice(2),
+);

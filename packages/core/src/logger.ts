@@ -15,16 +15,36 @@ const LEVEL_LABEL: Record<Exclude<LogLevel, 'silent'>, string> = {
   warn: 'WARN',
 };
 
+const VALID_LEVELS: readonly LogLevel[] = [
+  'debug',
+  'info',
+  'warn',
+  'error',
+  'silent',
+];
+
+export function loggerFromEnv(
+  env: NodeJS.ProcessEnv,
+  variable: string,
+  fallback: LogLevel = 'info',
+): Logger {
+  const raw = env[variable];
+  return new Logger(VALID_LEVELS.find(level => level === raw) ?? fallback);
+}
+
 type Writer = (message: string) => void;
 
 // stdout carries the MCP transport; everything here goes to stderr.
 export class Logger {
+  readonly activeLevel: LogLevel;
+
   private readonly stderr: Writer;
 
   constructor(
-    readonly activeLevel: LogLevel,
+    activeLevel: LogLevel,
     stderr: Writer = line => process.stderr.write(`${line}\n`),
   ) {
+    this.activeLevel = activeLevel;
     this.stderr = stderr;
   }
 

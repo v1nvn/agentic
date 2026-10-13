@@ -1,42 +1,31 @@
-import type { SanitizationDiagnostics } from '../pipeline/context.js';
-import type { ToolHandle } from '../server.js';
+import type { SanitizationDiagnostics } from '../pipeline/context.ts';
+import type { ToolHandle } from '../server.ts';
 
-import { describeError, toErrorResult } from '../errors.js';
-import { logger } from '../logger.js';
-import { formatPayload } from '../output/format.js';
-import { buildDocument } from '../pipeline/dom.js';
+import { tool } from '../handler.ts';
+import { formatPayload } from '../output/format.ts';
+import { buildDocument } from '../pipeline/dom.ts';
 import {
   applySelectors,
   normalizeDocument,
   resolveLazyImages,
-} from '../pipeline/normalize.js';
-import { sanitizeHtml } from '../pipeline/sanitize.js';
-import { toMarkdown } from '../pipeline/turndown.js';
-import { assembleDiagnostics, TraceCollector } from '../policy/diagnostics.js';
-import { computeTextMetrics, nonEmpty } from '../policy/text.js';
-import { truncateMarkdown } from '../policy/truncate.js';
-import { readHtmlFile } from './html-source.js';
-import { outputSchemaShape } from './output-schema.js';
+} from '../pipeline/normalize.ts';
+import { sanitizeHtml } from '../pipeline/sanitize.ts';
+import { toMarkdown } from '../pipeline/turndown.ts';
+import { assembleDiagnostics, TraceCollector } from '../policy/diagnostics.ts';
+import { computeTextMetrics, nonEmpty } from '../policy/text.ts';
+import { truncateMarkdown } from '../policy/truncate.ts';
+import { fromLocalPath, withSchemaDefaults } from './html-source.ts';
+import { outputSchemaShape } from './output-schema.ts';
 import {
   type HtmlToMarkdownFromHtmlInput,
-  type HtmlToMarkdownInput,
   htmlToMarkdownInputSchema,
   htmlToMarkdownInputShape,
-} from './schemas.js';
+} from './schemas.ts';
 
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
 const EXTRACTED_NODE = 'fragment';
-
-export function htmlToMarkdown(rawArgs: unknown): CallToolResult {
-  const { localPath, ...rest } = htmlToMarkdownInputSchema.parse(rawArgs);
-  return htmlToMarkdownFromHtml({ html: readHtmlFile(localPath), ...rest });
-}
-
-// Schema defaults for callers that pass only a subset of the knobs.
-const DEFAULTS: Omit<HtmlToMarkdownInput, 'localPath'> =
-  htmlToMarkdownInputSchema.parse({ localPath: '' });
 
 export function htmlToMarkdownFromHtml(
   input: Readonly<HtmlToMarkdownFromHtmlInput>,
@@ -57,7 +46,7 @@ export function htmlToMarkdownFromHtml(
     cleanChrome,
     tables,
     debug,
-  } = { ...DEFAULTS, ...input };
+  } = withSchemaDefaults(htmlToMarkdownInputSchema, input);
 
   const trace = new TraceCollector(debug);
 
@@ -171,14 +160,11 @@ export function htmlToMarkdownFromHtml(
 
 export const HTML_TO_MARKDOWN_TOOL_DESCRIPTION = `Convert an arbitrary HTML fragment to Markdown WITHOUT Readability article extraction (e.g. a snippet already isolated via chrome-devtools). Same Turndown + DOMPurify path as \`extract\`. The server fetches nothing: \`localPath\` is the only source, and \`baseUrl\` (optional) absolutizes relative links.`;
 
-export function htmlToMarkdownHandler(args: unknown): CallToolResult {
-  try {
-    return htmlToMarkdown(args);
-  } catch (err) {
-    logger.error(`html_to_markdown failed: ${describeError(err)}`);
-    return toErrorResult(err);
-  }
-}
+export const htmlToMarkdownHandler = tool(
+  'html_to_markdown',
+  input => htmlToMarkdownFromHtml(fromLocalPath(input)),
+  htmlToMarkdownInputSchema,
+);
 
 export function registerHtmlToMarkdownTool(server: McpServer): ToolHandle {
   return server.registerTool(

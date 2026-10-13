@@ -1,10 +1,10 @@
+import { describeError } from '@v1nvn/agentic-core';
 import { readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 
 import pkg from '../package.json' with { type: 'json' };
-import { describeError } from './errors.js';
-import { logger } from './logger.js';
+import { logger } from './logger.ts';
 
 export interface OmlxConfig {
   readonly apiKey: string | undefined;

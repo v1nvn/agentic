@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { render } from '../src/format.js';
-import { fetchReport } from '../src/usage.js';
+import { render } from '../src/format.ts';
+import { fetchReport } from '../src/usage.ts';
 
 const config = { token: 'bad-key', url: 'https://api.z.ai' };
 

@@ -13,7 +13,7 @@ User-facing docs: [root README](../../README.md).
 | ------------------- | ----------------------------------------------------------------------- |
 | `src/last-reply.ts` | finds the previous assistant reply across local Claude Code transcripts |
 | `src/input.ts`      | stdin and markdown-file input with the CLI error contracts              |
-| `src/cli.ts`        | quiet commander parsing, usage/exit, and the runMain failure tail       |
+| `src/cli.ts`        | the runCli/parseCli doors over declarative command specs                |
 | `src/logger.ts`     | level-filtered stderr logger for the MCP servers                        |
 | `src/shutdown.ts`   | close-then-exit signal handling for the server entrypoints              |
 | `src/dev.ts`        | the hot-reload watcher wiring the servers' `yarn dev` harnesses share   |

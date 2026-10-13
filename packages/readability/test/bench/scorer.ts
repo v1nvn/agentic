@@ -1,11 +1,11 @@
-import type { TraceStage } from '../../src/pipeline/context.js';
-import { buildDocument } from '../../src/pipeline/dom.js';
-import { normalizeDocument, resolveLazyImages } from '../../src/pipeline/normalize.js';
-import { addPreset, resetPresets, type SitePreset } from '../../src/policy/presets.js';
-import { lintSelectorText } from '../../src/policy/selector-lint.js';
-import { buildChainOutline, OUTLINE_MAX_CHARS } from '../../src/policy/outline-chains.js';
-import { extractArticleFromHtml } from '../../src/tools/extract.js';
-import type { StructuredContent } from '../../src/tools/output-schema.js';
+import type { TraceStage } from '../../src/pipeline/context.ts';
+import { buildDocument } from '../../src/pipeline/dom.ts';
+import { normalizeDocument, resolveLazyImages } from '../../src/pipeline/normalize.ts';
+import { addPreset, resetPresets, type SitePreset } from '../../src/policy/presets.ts';
+import { lintSelectorText } from '../../src/policy/selector-lint.ts';
+import { buildChainOutline, OUTLINE_MAX_CHARS } from '../../src/policy/outline-chains.ts';
+import { extractArticleFromHtml } from '../../src/tools/extract.ts';
+import type { StructuredContent } from '../../src/tools/output-schema.ts';
 
 export interface PrecisionRecall {
   readonly precision: number;

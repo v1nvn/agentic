@@ -4,15 +4,13 @@
 
 import { z } from 'zod';
 
-import type { ToolHandle } from './server.js';
+import type { ToolHandle } from './server.ts';
 
-import { describeError, toErrorResult } from './errors.js';
-import { sampleText } from './host-sampling.js';
-import { logger } from './logger.js';
-import { registerSuggestPresetTool } from './tools/suggest-preset.js';
+import { tool } from './handler.ts';
+import { sampleText } from './host-sampling.ts';
+import { registerSuggestPresetTool } from './tools/suggest-preset.ts';
 
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
 const SUMMARIZE_SYSTEM_PROMPT =
   'Summarize the user-supplied text concisely while preserving its key points, entities, and any decisive conclusions. Output only the summary prose — no preamble, no headings unless the source had them.';
@@ -56,18 +54,16 @@ export function registerSummarizeTool(server: McpServer): ToolHandle {
       description: SUMMARIZE_TOOL_DESCRIPTION,
       inputSchema: summarizeInputShape,
     },
-    async (rawArgs: unknown): Promise<CallToolResult> => {
-      const args = summarizeInputSchema.parse(rawArgs);
-      try {
+    tool(
+      'summarize',
+      async args => {
         const summary = await summarizeWithHost(server, args);
         return {
           content: [{ type: 'text', text: summary }],
         };
-      } catch (err) {
-        logger.error(`summarize failed: ${describeError(err)}`);
-        return toErrorResult(err);
-      }
-    },
+      },
+      summarizeInputSchema,
+    ),
   );
 }
 

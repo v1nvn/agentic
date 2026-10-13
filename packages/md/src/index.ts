@@ -1,41 +1,38 @@
+#!/usr/bin/env node
 import {
-  HelpRequested,
   lastReply,
-  parseQuietly,
-  printHelpAndExit,
-  printUsageAndExit,
   readMarkdownFile,
   readStdin,
-  runMain,
+  runCli,
 } from '@v1nvn/agentic-core';
-import { Command } from 'commander';
 
-import { mdSend } from './share.js';
+import { mdSend } from './share.ts';
 
-const program = new Command()
-  .name('md-send')
-  .description('Send a Markdown reply to the Markdown-Viewer as a #share= URL')
-  .argument('[file]', 'Markdown file, - for stdin; the last reply when omitted')
-  .option('--view', 'open the viewer read-only, without the edit pane');
+import type { CliSpec } from '@v1nvn/agentic-core';
 
-const asked = parseQuietly(program, process.argv.slice(2));
-if (asked instanceof HelpRequested) {
-  printHelpAndExit(asked.command);
-}
-const parsed = asked ?? printUsageAndExit(program);
-const arg = parsed.args.at(0);
-const { view } = parsed.opts<{ view: boolean | undefined }>();
+const spec: CliSpec = {
+  name: 'md-send',
+  description: 'Send a Markdown reply to the Markdown-Viewer as a #share= URL',
+  argument: {
+    flags: '[file]',
+    description: 'Markdown file, - for stdin; the last reply when omitted',
+  },
+  options: [
+    {
+      flags: '--view',
+      description: 'open the viewer read-only, without the edit pane',
+    },
+  ],
+  run: async (options, args) => {
+    const arg = args.at(0);
+    const markdown =
+      arg === '-'
+        ? await readStdin()
+        : arg === undefined
+          ? lastReply()
+          : readMarkdownFile(arg);
+    console.log(mdSend(markdown, options.view === true));
+  },
+};
 
-function readMarkdown(): Promise<string> | string {
-  if (arg === '-') {
-    return readStdin();
-  }
-  if (arg === undefined) {
-    return lastReply();
-  }
-  return readMarkdownFile(arg);
-}
-
-await runMain(async () => {
-  console.log(mdSend(await readMarkdown(), view ?? false));
-});
+process.exitCode = await runCli(spec, process.argv.slice(2));

@@ -40,7 +40,6 @@ jobs:
       - run: yarn install --immutable
       - name: Bump the train version
         run: node .github/scripts/set-version.mjs --bump "${{ inputs.bump }}"
-      - run: yarn build
       - name: Install Claude Code CLI
         run: npm install -g @anthropic-ai/claude-code
       - name: Validate plugin + marketplace manifests
@@ -108,7 +107,6 @@ jobs:
         run: |
           version="$(jq -r .version .claude-plugin/marketplace.json)"
           yarn install --immutable
-          yarn build
           for pkg in packages/*; do
             # enhansome and todo are plugin-only homes — nothing to publish
             [ -f "$pkg/package.json" ] || continue

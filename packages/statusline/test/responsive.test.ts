@@ -1,8 +1,9 @@
 import { rmSync } from 'node:fs';
 
+import { stripSgr } from '@v1nvn/agentic-core/draw';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import { stripSgr, vlen } from '../src/render/engine.js';
+import { vlen } from '../src/render/engine.ts';
 import {
   createDemoHome,
   DEFAULT_NOW,
@@ -10,7 +11,7 @@ import {
   loadPayload,
   renderAt,
   type DemoHome,
-} from './runtime.js';
+} from './runtime.ts';
 
 // The rung ladder and 2-line wrap are pinned by the golden corpus at their
 // pinned widths; this suite covers what the corpus cannot — the fit invariant
@@ -125,6 +126,23 @@ describe('rate=strip negative reset deltas', () => {
     expect(line).toContain('resets -1m55s');
     expect(line).toContain('resets -61m59s');
     expect(line).toContain('resets -1m00s');
+  });
+});
+
+describe('off-rung demote', () => {
+  it('a gauge bar falls down the rungs when the row overflows', () => {
+    if (!demo) {
+      throw new Error('demo home not materialized');
+    }
+    const lines = linesOf(
+      renderAt(demo, loadPayload('p1'), {
+        columns: 24,
+        layout: '{bar}',
+        picks: { bar: 'gauge' },
+      }),
+    );
+    expectFits(lines, 24);
+    expect(stripSgr(lines[0]), 'gauge moon still drawn').not.toContain('◑');
   });
 });
 

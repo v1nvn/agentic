@@ -1,4 +1,4 @@
-import { isRecord, orElse } from './jq.js';
+import { isRecord, orElse } from './jq.ts';
 
 export interface RateRow {
   readonly label: string;
@@ -45,7 +45,7 @@ function field(source: unknown, path: string): unknown {
 
 // The line's bash side never saw a container in a scalar field; one reads
 // as empty text, not as JSON.
-function textOf(value: unknown): string {
+function fieldText(value: unknown): string {
   if (typeof value === 'string') {
     return value;
   }
@@ -56,7 +56,7 @@ function textOf(value: unknown): string {
 }
 
 function scalar(source: unknown, path: string, fallback: string): string {
-  return textOf(orElse(field(source, path), fallback));
+  return fieldText(orElse(field(source, path), fallback));
 }
 
 function numberField(source: unknown, path: string): number {

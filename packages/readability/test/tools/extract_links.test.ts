@@ -1,8 +1,8 @@
 import {
   extractLinksFromHtml,
   extractLinksHandler,
-} from '../../src/tools/extract_links.js';
-import { extractLinksOutput } from '../../src/tools/output-schema.js';
+} from '../../src/tools/extract_links.ts';
+import { extractLinksOutput } from '../../src/tools/output-schema.ts';
 
 const ORIGIN = 'https://x.example/';
 

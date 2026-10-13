@@ -12,6 +12,7 @@
     "forceConsistentCasingInFileNames": true,
     "moduleResolution": "nodenext",
     "resolveJsonModule": true,
+    "allowImportingTsExtensions": true,
     "noEmit": true,
     "types": ["node", "vitest/globals"]
   },

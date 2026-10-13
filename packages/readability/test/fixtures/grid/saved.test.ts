@@ -2,8 +2,8 @@ import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { extractGridFromHtml } from '../../../src/tools/extract_grid.js';
-import { extractGridOutput } from '../../../src/tools/output-schema.js';
+import { extractGridFromHtml } from '../../../src/tools/extract_grid.ts';
+import { extractGridOutput } from '../../../src/tools/output-schema.ts';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const fixturePath = join(here, 'saved.html');

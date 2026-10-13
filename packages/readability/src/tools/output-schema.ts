@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { tableFormatSchema } from './schemas.js';
+import { tableFormatSchema } from './schemas.ts';
 
 // Shared between `extract` and `extract_metadata` outputs so the metadata
 // cascade has one shape across tools. wordCount/readingTimeMin/tokenEstimate

@@ -1,11 +1,10 @@
 import { z } from 'zod';
 
-import type { ToolHandle } from '../server.js';
+import type { ToolHandle } from '../server.ts';
 
-import { loadConfig } from '../config.js';
-import { describeError, toErrorResult } from '../errors.js';
-import { logger } from '../logger.js';
-import { omlxGet } from '../omlx.js';
+import { loadConfig } from '../config.ts';
+import { tool } from '../handler.ts';
+import { omlxGet } from '../omlx.ts';
 
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
@@ -120,7 +119,7 @@ function renderModels(models: readonly ModelSummary[]): string {
     .join('\n');
 }
 
-export async function runModels(): Promise<CallToolResult> {
+async function runModels(): Promise<CallToolResult> {
   const config = loadConfig();
   const [list, status] = await Promise.all([
     omlxGet<ModelsListResponse>(config, '/v1/models'),
@@ -158,12 +157,7 @@ export async function runModels(): Promise<CallToolResult> {
   };
 }
 
-export function modelsHandler(): Promise<CallToolResult> {
-  return runModels().catch((err: unknown) => {
-    logger.error(`models failed: ${describeError(err)}`);
-    return toErrorResult(err);
-  });
-}
+export const modelsHandler = tool('models', runModels);
 
 export function registerModelsTool(server: McpServer): ToolHandle {
   return server.registerTool(

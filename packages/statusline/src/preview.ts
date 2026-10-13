@@ -1,5 +1,5 @@
-import { validateSelection } from './configure.js';
-import { previewSources, renderPreview } from './payloads.js';
+import { validateSelection } from './configure.ts';
+import { previewSources, renderPreview } from './payloads.ts';
 
 export interface PreviewOptions {
   readonly home: string;

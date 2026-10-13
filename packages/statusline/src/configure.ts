@@ -14,8 +14,9 @@ import {
   ITEM_IDS,
   ITEMS,
   specFor,
-} from './render/index.js';
-import { layoutItems } from './render/layout.js';
+} from './render/index.ts';
+import { isRecord } from './render/jq.ts';
+import { layoutItems } from './render/layout.ts';
 import {
   backupPath,
   isOurMainCommand,
@@ -23,8 +24,8 @@ import {
   mainKeyValue,
   renderMjsPath,
   subagentKeyValue,
-} from './resolve.js';
-import { type Theme, THEME_NAMES, type ThemeName, THEMES } from './themes.js';
+} from './resolve.ts';
+import { type Theme, THEME_NAMES, type ThemeName, THEMES } from './themes.ts';
 
 export interface ConfigureOptions {
   readonly force?: boolean;
@@ -34,34 +35,30 @@ export interface ConfigureOptions {
   readonly variants?: Readonly<Record<string, string>>;
 }
 
-// The renderer and the resolver vite emits beside the CLI bundle; ../dist
-// resolves from both src/ (tests) and the bundled dist/index.js.
-export const BUNDLED_RENDERER = fileURLToPath(
-  new URL('../dist/render.mjs', import.meta.url),
+// The zero-dependency launcher configure syncs into the data dir as the
+// stable render.mjs the settings keys spawn; it hands off to the current
+// install's src/render/entry.ts.
+export const LAUNCHER = fileURLToPath(
+  new URL('./render/launcher.mjs', import.meta.url),
 );
-export const BUNDLED_RESOLVER = fileURLToPath(
-  new URL('../dist/resolver.mjs', import.meta.url),
+export const RENDER_ENTRY = fileURLToPath(
+  new URL('./render/entry.ts', import.meta.url),
 );
 
-export function syncResolver(home: string): void {
-  const source = readFileSync(BUNDLED_RESOLVER);
+export function syncLauncher(home: string): void {
   const dest = renderMjsPath(home);
-  if (existsSync(dest) && readFileSync(dest).equals(source)) {
+  if (existsSync(dest) && readFileSync(dest).equals(readFileSync(LAUNCHER))) {
     return;
   }
   mkdirSync(dirname(dest), { recursive: true });
   const tmp = `${dest}.tmp`;
-  writeFileSync(tmp, source);
+  writeFileSync(tmp, readFileSync(LAUNCHER));
   renameSync(tmp, dest);
 }
 
 export type SettingsKey = 'statusLine' | 'subagentStatusLine';
 
 export const SETTINGS_KEYS = ['statusLine', 'subagentStatusLine'] as const;
-
-export function isObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
 
 export function readOrNull(file: string): null | string {
   try {
@@ -84,14 +81,14 @@ export function parseSettings(
   } catch (e) {
     throw new Error(`${file} is not valid JSON`, { cause: e });
   }
-  if (!isObject(parsed)) {
+  if (!isRecord(parsed)) {
     throw new Error(`${file} does not hold a settings object`);
   }
   return parsed;
 }
 
 export function memberCommand(value: unknown): null | string {
-  if (!isObject(value) || value.type !== 'command') {
+  if (!isRecord(value) || value.type !== 'command') {
     return null;
   }
   return typeof value.command === 'string' ? value.command : null;
@@ -478,11 +475,7 @@ export function configure(options: ConfigureOptions): void {
     options.home,
     {
       statusLine: mainKeyValue(options.theme ?? null, layout, flags),
-      // The panel consumes one decision — style.
-      subagentStatusLine: subagentKeyValue(
-        options.theme ?? null,
-        flags.filter(flag => flag.startsWith('--style=')),
-      ),
+      subagentStatusLine: subagentKeyValue(options.theme ?? null, flags),
     },
     options.force ?? false,
   );
@@ -490,5 +483,5 @@ export function configure(options: ConfigureOptions): void {
     writeBackupIfAbsent(options.home, plan);
   }
   commitSettings(plan);
-  syncResolver(options.home);
+  syncLauncher(options.home);
 }

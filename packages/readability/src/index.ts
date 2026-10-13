@@ -1,13 +1,13 @@
+#!/usr/bin/env node
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { shutdownOnSignals } from '@v1nvn/agentic-core';
+import { describeError, shutdownOnSignals } from '@v1nvn/agentic-core';
 
-import { describeError } from './errors.js';
-import { createServer } from './server.js';
+import { createServer } from './server.ts';
 
 if (process.argv[2] === 'extract') {
-  void import('./cli.js')
-    .then(m => m.runCli(process.argv.slice(2)))
+  void import('./cli.ts')
+    .then(m => m.runExtract(process.argv.slice(2)))
     .then(code => {
       // eslint-disable-next-line n/no-process-exit
       process.exit(code);

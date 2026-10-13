@@ -3,7 +3,7 @@ import { createRequire } from 'node:module';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { extractArticleFromHtml } from '../../src/tools/extract.js';
+import { extractArticleFromHtml } from '../../src/tools/extract.ts';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const fixturesRoot = resolve(here, '../fixtures');

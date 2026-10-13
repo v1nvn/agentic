@@ -3,19 +3,21 @@ import { join } from 'node:path';
 
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { configure } from '../src/configure.js';
-import { usedContextMap } from '../src/render/usage.js';
+import { configure } from '../src/configure.ts';
+import { transcriptFacts } from '../src/render/facts.ts';
 import {
   createHomes,
   keyArgv,
   plantRendererRecord,
   settingsCommand,
-} from './fixtures.js';
-import { loadTick, runRenderer } from './runtime.js';
+} from './fixtures.ts';
+import { loadTick, runRenderer } from './runtime.ts';
 
-// The panel's tokens door against a planted subagent transcript: the tick's
-// tokenCount is painted only when the task's transcript has no usage to read.
-// The reader itself is covered through the same map at the bottom.
+// The panel's transcript door against planted subagent transcripts: the
+// tick's tokenCount and task.effort paint only when a task's transcript has
+// no usage line to read — task.effort is the launch's explicit ask, absent
+// when effort is inherited. The reader itself is covered through the same
+// map at the bottom.
 const homes = createHomes();
 
 afterEach(() => {
@@ -24,8 +26,14 @@ afterEach(() => {
 
 const SID = 'd53f00d3-0000-4000-8000-000000000000';
 
-function usageLine(input: number, cacheRead: number, cacheNew: number): string {
+function usageLine(
+  input: number,
+  cacheRead: number,
+  cacheNew: number,
+  effort = '',
+): string {
   return JSON.stringify({
+    ...(effort === '' ? {} : { effort }),
     message: {
       usage: {
         cache_creation_input_tokens: cacheNew,
@@ -85,29 +93,43 @@ function runPanel(home: string, stdin: string): string {
 }
 
 describe('the panel row', () => {
-  it('paints the transcript usage in place of tokenCount', () => {
+  it('paints the transcript usage and effort in place of the tick figures', () => {
     const home = homes.newHome();
     const transcriptPath = plantSession(home, {
-      'row-explore': `${usageLine(8246, 0, 0)}\n${usageLine(3607, 8192, 0)}\n${usageLine(3607, 8192, 0)}\n`,
+      'row-explore': `${usageLine(8246, 0, 0)}\n${usageLine(3607, 8192, 0, 'max')}\n${usageLine(3607, 8192, 0, 'max')}\n`,
     });
 
     const stdout = runPanel(home, tickWith(transcriptPath));
 
     expect(panelRow(stdout, 'row-explore')).toContain('11.8k/200k');
+    expect(panelRow(stdout, 'row-explore')).toContain('max');
+    expect(panelRow(stdout, 'row-explore')).not.toContain('high');
     expect(panelRow(stdout, 'row-tests')).toContain('9.0k/180k');
+    expect(panelRow(stdout, 'row-tests')).toContain('medium');
+  });
+
+  it('paints inherited effort the tick does not carry', () => {
+    const home = homes.newHome();
+    const transcriptPath = plantSession(home, {
+      'row-fork': `${usageLine(3000, 1000, 0, 'max')}\n`,
+    });
+
+    const stdout = runPanel(home, tickWith(transcriptPath));
+
+    expect(panelRow(stdout, 'row-fork')).toContain('max');
   });
 });
 
-describe('usedContextMap', () => {
-  it('sums the last usage line in context: input, cache read, cache write', () => {
+describe('transcriptFacts', () => {
+  it('reads the last usage line: tokens summed, effort as sent', () => {
     const home = homes.newHome();
     const transcriptPath = plantSession(home, {
-      'row-explore': `${usageLine(8246, 0, 0)}\n${usageLine(3607, 8192, 0)}\n`,
+      'row-explore': `${usageLine(8246, 0, 0)}\n${usageLine(3607, 8192, 0, 'max')}\n`,
     });
 
-    const map = usedContextMap(tickWith(transcriptPath));
+    const map = transcriptFacts(tickWith(transcriptPath));
 
-    expect(map).toEqual({ 'row-explore': 11799 });
+    expect(map).toEqual({ 'row-explore': { effort: 'max', tokens: 11799 } });
   });
 
   it('skips a half-written trailing line', () => {
@@ -116,9 +138,9 @@ describe('usedContextMap', () => {
       'row-explore': `${usageLine(8246, 0, 0)}\n{"type":"assistan`,
     });
 
-    const map = usedContextMap(tickWith(transcriptPath));
+    const map = transcriptFacts(tickWith(transcriptPath));
 
-    expect(map).toEqual({ 'row-explore': 8246 });
+    expect(map).toEqual({ 'row-explore': { effort: '', tokens: 8246 } });
   });
 
   it('leaves out tasks with no readable usage', () => {
@@ -127,7 +149,7 @@ describe('usedContextMap', () => {
       'row-review': '{"type":"user"}\n',
     });
 
-    const map = usedContextMap(tickWith(transcriptPath));
+    const map = transcriptFacts(tickWith(transcriptPath));
 
     expect(map).toEqual({});
   });

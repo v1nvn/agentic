@@ -1,4 +1,4 @@
-import type { ReadabilityOptions } from '../pipeline/readability.js';
+import type { ReadabilityOptions } from './readability.ts';
 
 export type ExtractionMode = 'aggressive' | 'balanced' | 'conservative';
 
@@ -17,7 +17,7 @@ const DEFAULT_N_TOP_CANDIDATES = 5;
 // Readability keeps a class only by strict `classesToPreserve.includes(cls)`
 // equality (not regex), stripping code-block language tokens by default; list
 // the common highlight.js/prism `language-*` tokens so fences keep their tag.
-// `rdrm-math` is the math marker emitted by `policy/math.ts` — Readability
+// `rdrm-math` is the math marker emitted by `pipeline/math.ts` — Readability
 // would otherwise strip it before turndown's math rule runs. Applies only when
 // `keepClasses` is false.
 const CLASSES_TO_PRESERVE: readonly string[] = [

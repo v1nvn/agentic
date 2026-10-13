@@ -2,11 +2,11 @@ import { rmSync } from 'node:fs';
 
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
-import { BUNDLED_RENDERER } from '../src/configure.js';
-import { DEFAULT_LAYOUT, ITEMS } from '../src/render/index.js';
-import { renderPanel } from '../src/render/panel.js';
-import { resolvePaint } from '../src/render/theme.js';
-import * as themes from '../src/themes.js';
+import { RENDER_ENTRY } from '../src/configure.ts';
+import { DEFAULT_LAYOUT, ITEMS } from '../src/render/index.ts';
+import { renderPanel } from '../src/render/panel.ts';
+import { resolvePaint } from '../src/render/theme.ts';
+import * as themes from '../src/themes.ts';
 import {
   createDemoHome,
   DEFAULT_NOW,
@@ -15,7 +15,7 @@ import {
   runRenderer,
   tickStdin,
   type DemoHome,
-} from './runtime.js';
+} from './runtime.ts';
 
 // One theme's content pinned verbatim as the independent oracle; the rest
 // are pinned by rule — what each theme IS derives from the registry, so the
@@ -253,7 +253,7 @@ describe('resolvePaint: precedence', () => {
 
 describe('the entry resolves --theme at paint', () => {
   const runPaint = (args: readonly string[], stdin: string) =>
-    runRenderer([BUNDLED_RENDERER, ...args], demo?.home ?? '', stdin);
+    runRenderer([RENDER_ENTRY, ...args], demo?.home ?? '', stdin);
 
   it('a hand-written key spelling --theme=lean paints the lean line', () => {
     const painted = runPaint(

@@ -5,8 +5,8 @@
  * one rolling buffer is the rate ring, as wide as its sparkline and no more.
  */
 
-import type { Line } from './text.js';
-import type { Segment } from './text.js';
+import type { Line } from './text.ts';
+import type { Segment } from './text.ts';
 
 import {
   barField,
@@ -17,7 +17,7 @@ import {
   pad2,
   plain,
   sparkField,
-} from './text.js';
+} from './text.ts';
 
 function magenta(text: string): Segment {
   return { text: ' ' + text, ink: 'magenta' };

@@ -1,8 +1,8 @@
-import type { SanitizationDiagnostics } from '../pipeline/context.js';
-import type { ImageMode, TableFormat } from '../pipeline/turndown.js';
+import type { SanitizationDiagnostics } from '../pipeline/context.ts';
+import type { ImageMode, TableFormat } from '../pipeline/turndown.ts';
 
-import { sanitizeHtml } from '../pipeline/sanitize.js';
-import { toMarkdown } from '../pipeline/turndown.js';
+import { sanitizeHtml } from '../pipeline/sanitize.ts';
+import { toMarkdown } from '../pipeline/turndown.ts';
 
 export interface FallbackOptions {
   readonly baseUrl?: string;

@@ -1,6 +1,6 @@
 import { parseArgs } from 'node:util';
 
-import { specFor } from './items.js';
+import { specFor } from './items.ts';
 
 // The render.mjs argv grammar — node:util parseArgs, never commander and
 // never @v1nvn/agentic-core; the CLI and the renderer share only the registry

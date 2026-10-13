@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 
-import { type OmlxConfig } from '../config.js';
-import { OmlxError } from '../errors.js';
+import { type OmlxConfig } from '../config.ts';
+import { OmlxError } from '../errors.ts';
 
 export interface ChatCompletionInput {
   images?: readonly string[];

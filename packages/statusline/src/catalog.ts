@@ -1,7 +1,7 @@
-import { ITEM_IDS, specFor } from './render/index.js';
-import { resolvePaint } from './render/theme.js';
-import { readKeyConfig } from './resolve.js';
-import { THEMES } from './themes.js';
+import { ITEM_IDS, specFor } from './render/index.ts';
+import { resolvePaint } from './render/theme.ts';
+import { readKeyConfig } from './resolve.ts';
+import { THEMES } from './themes.ts';
 
 export interface CatalogOptions {
   readonly home: string;

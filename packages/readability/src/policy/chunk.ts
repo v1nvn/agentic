@@ -5,8 +5,8 @@
 // MCP tool-result progress isn't universally host-supported, and this option
 // already keeps a multi-MB page from returning as one payload.
 
-import { hardSplitLines, headingText, parseBlocks } from './markdown.js';
-import { estimateTokens } from './text.js';
+import { hardSplitLines, headingText, parseBlocks } from './markdown.ts';
+import { estimateTokens } from './text.ts';
 
 export interface Chunk {
   readonly headingContext: string;

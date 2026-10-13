@@ -119,24 +119,16 @@ export function barField(v: number, max: number, width: number): string {
   return s.slice(0, width);
 }
 
-/** Filled/empty meter: █ for used, · for remaining (shade glyphs draw as nothing here). */
-export function dotMeter(pct: number | undefined, width: number): string {
-  let filled = Math.round(((pct || 0) / 100) * width);
-  filled = Math.max(0, Math.min(width, filled));
-  return '█'.repeat(filled) + '·'.repeat(width - filled);
-}
-
-/** Filled/empty meter as two segments, so each half carries its own ink. */
+/** Ink-tagged meter field: green filled blocks over a dim track, `width` cols. */
 export function meterSegs(
-  pct: number | undefined,
+  pct: null | number | undefined,
   width: number,
-  filledInk: Segment['ink'] = 'green',
-): [Segment, Segment] {
-  let filled = Math.round(((pct || 0) / 100) * width);
-  filled = Math.max(0, Math.min(width, filled));
+): Segment[] {
+  const safe = typeof pct === 'number' && Number.isFinite(pct) ? pct : 0;
+  const n = Math.max(0, Math.min(width, Math.round((safe / 100) * width)));
   return [
-    { text: '█'.repeat(filled), ink: filledInk },
-    { text: '·'.repeat(width - filled), ink: 'dim' },
+    { text: '█'.repeat(n), ink: 'green' },
+    { text: '·'.repeat(width - n), ink: 'dim' },
   ];
 }
 

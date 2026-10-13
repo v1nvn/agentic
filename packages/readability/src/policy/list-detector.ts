@@ -1,10 +1,10 @@
-import { absolutize } from '../pipeline/urls.js';
+import { absolutize } from '../pipeline/urls.ts';
 import {
   CONTAINER_TAGS,
   describeSelector,
   groupChildrenByShape,
   stripLandmarkChrome,
-} from './sibling-scan.js';
+} from './sibling-scan.ts';
 
 export interface ListItem {
   readonly score: number;

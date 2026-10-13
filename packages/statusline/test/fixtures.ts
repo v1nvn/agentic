@@ -10,11 +10,11 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-import { BUNDLED_RENDERER } from '../src/configure.js';
-import { DATA_DIR } from '../src/render/capture.js';
+import { DATA_DIR } from '../src/render/capture.ts';
 
-export { THEMES } from '../src/themes.js';
+export { THEMES } from '../src/themes.ts';
 
 export function settingsPath(home: string): string {
   return join(home, '.claude', 'settings.json');
@@ -72,7 +72,7 @@ export function plantRendererRecord(
   const file = join(home, '.claude', 'plugins', 'installed_plugins.json');
   const entries = plantedEntries(file);
   entries.push({
-    installPath: seed.installPath ?? dirname(BUNDLED_RENDERER),
+    installPath: seed.installPath ?? join(dirname(fileURLToPath(import.meta.url)), '..'),
     installedAt: seed.lastUpdated,
     lastUpdated: seed.lastUpdated,
     version: seed.version,

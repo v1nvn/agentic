@@ -1,88 +1,95 @@
-/** The zai mod: /zai-usage opens the GLM report as a pane — one bin/usage.mjs usage --json exec, drawn as engine elements. */
+/** The zai mod: /zai-usage opens the GLM report as a pane, re-scanned on its refresh tick while it stays open. The CLI emits the finished ink-tagged lines; the island accepts and renders them. */
 
 import { atom, read, update } from 'claude-code';
 
-import type { Elements, On, ToolCallResult } from 'claude-code';
+import {
+  acceptJson,
+  type CommandSpec,
+  type Door,
+  type Line,
+  paneRows,
+  type PaneSpec,
+  showsPane,
+} from './support.ts';
 
-const PANE = 'zai-usage';
+import type { Elements, EngineInterface, On } from 'claude-code';
+
+const PANE: PaneSpec = {
+  empty: '(no usage report)',
+  frame: true,
+  id: 'zai-usage',
+  refreshMs: 5 * 60 * 1000,
+  title: 'GLM usage',
+};
 const ACCENT = 'cyan';
-
-// Local structural mirror of the CLI's --json payload: src/format.js's import
-// graph is barred from the island.
-interface Segment {
-  ink?: 'bold' | 'dim';
-  text: string;
-}
-
-type Line = Segment[];
 
 const usage = atom(
   { plugin: 'zai', key: 'usage' } as const,
-  null as Line[] | null,
+  null as null | { lines: Line[] },
 );
 
-function lineOf(call: ToolCallResult): string {
-  if (call.deny !== undefined) {
-    return call.deny;
-  }
-  if (call.isError === true) {
-    return call.text ?? 'query failed';
-  }
-  const result = call.result as null | { stderr?: unknown; stdout?: unknown };
-  const stdout = typeof result?.stdout === 'string' ? result.stdout.trim() : '';
-  if (stdout !== '') {
-    return stdout;
-  }
-  const stderr = typeof result?.stderr === 'string' ? result.stderr.trim() : '';
-  return stderr !== '' ? stderr : 'query failed';
-}
-
-function isLine(value: unknown): boolean {
-  return (
-    Array.isArray(value) &&
-    value.every(
-      s =>
-        typeof s === 'object' &&
-        s !== null &&
-        typeof (s as Segment).text === 'string',
-    )
-  );
-}
-
-function parsedLines(call: ToolCallResult): Line[] | null {
-  if (call.deny !== undefined || call.isError === true) {
+function isLines(parsed: unknown): null | { lines: Line[] } {
+  if (typeof parsed !== 'object' || parsed === null) {
     return null;
   }
-  const result = call.result as null | { stdout?: unknown };
-  try {
-    const parsed = JSON.parse(
-      typeof result?.stdout === 'string' ? result.stdout : '',
-    ) as { lines?: unknown };
-    return Array.isArray(parsed.lines) && parsed.lines.every(isLine)
-      ? (parsed.lines as Line[])
-      : null;
-  } catch {
+  const { lines } = parsed as { lines?: unknown };
+  if (!Array.isArray(lines)) {
     return null;
+  }
+  return lines.every(
+    l =>
+      Array.isArray(l) &&
+      l.every(
+        s =>
+          typeof s === 'object' &&
+          s !== null &&
+          typeof (s as { text?: unknown }).text === 'string',
+      ),
+  )
+    ? { lines: lines as Line[] }
+    : null;
+}
+
+async function scan($: EngineInterface): Promise<Door<{ lines: Line[] }>> {
+  const call = await $.tool.call({
+    tool: 'Bash',
+    command: `node ${$.plugin.root}/src/index.ts usage --json`,
+  });
+  const got = acceptJson(call, 'query failed', isLines);
+  if (got.ok) {
+    await update($, usage, () => got.value);
+  }
+  return got;
+}
+
+async function rescanWhileOpen($: EngineInterface): Promise<void> {
+  if (showsPane(await $.ui.panes(), PANE)) {
+    await scan($);
   }
 }
 
 function draw(
   t: Pick<Elements['terminal'], 'Box' | 'Text'>,
   lines: readonly Line[],
+  pane: PaneSpec,
 ): ReturnType<Elements['terminal']['Box']> {
   const { Box, Text } = t;
+  function isColor(ink: Line[number]['ink']): boolean {
+    return ink === 'green' || ink === 'magenta';
+  }
   return (
     <Box
-      borderColor={ACCENT}
-      borderStyle="round"
+      borderColor={pane.frame ? ACCENT : undefined}
+      borderStyle={pane.frame ? 'round' : undefined}
       flexDirection="column"
-      paddingX={1}
+      paddingX={pane.frame ? 1 : 0}
     >
       {lines.map((line, i) => (
         <Text key={`l${i}`} wrap="truncate-end">
           {line.map((seg, j) => (
             <Text
               bold={seg.ink === 'bold'}
+              color={isColor(seg.ink) ? seg.ink : undefined}
               dimColor={seg.ink === 'dim'}
               key={`s${j}`}
             >
@@ -95,36 +102,42 @@ function draw(
   );
 }
 
+const COMMANDS = [
+  { description: 'Query GLM Coding Plan quota and usage', name: PANE.id },
+] as const satisfies readonly CommandSpec[];
+
 export function register(on: On): void {
   on('session.start', async ($, e, next) => {
-    await $.command.register({
-      name: 'zai-usage',
-      description: 'Query GLM Coding Plan quota and usage',
-    });
+    for (const command of COMMANDS) {
+      await $.command.register(command);
+    }
+    const ms = PANE.refreshMs;
+    if (ms !== undefined) {
+      $.clock.every(ms, () => void rescanWhileOpen($));
+    }
     return next(e);
   });
 
-  on('command.run', { command: 'zai-usage' }, async $ => {
-    const call = await $.tool.call({
-      tool: 'Bash',
-      command: `node ${$.plugin.root}/bin/usage.mjs usage --json`,
-    });
-    const lines = parsedLines(call);
-    if (lines === null) {
-      $.ui.log(lineOf(call));
+  on('command.run', { command: PANE.id }, async ($: EngineInterface) => {
+    const got = await scan($);
+    if (!got.ok) {
+      $.ui.log(got.line);
       return {};
     }
-    await update($, usage, () => lines);
-    await $.ui.open({ id: PANE, title: 'GLM usage', rows: lines.length + 2 });
+    await $.ui.open({
+      id: PANE.id,
+      rows: paneRows(got.value.lines.length, PANE),
+      title: PANE.title,
+    });
     return {};
   });
 
-  on('ui.render', { component: 'Pane', requestId: PANE }, async ($, e) => {
-    const lines = await read($, usage);
-    if (!lines) {
+  on('ui.render', { component: 'Pane', requestId: PANE.id }, async ($, e) => {
+    const saved = await read($, usage);
+    if (!saved) {
       const { Text } = $.ui.resolve(e);
-      return <Text dimColor>(no usage report)</Text>;
+      return <Text dimColor>{PANE.empty}</Text>;
     }
-    return draw($.ui.resolve(e), lines);
+    return draw($.ui.resolve(e), saved.lines, PANE);
   });
 }

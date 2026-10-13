@@ -1,9 +1,13 @@
 #!/usr/bin/env node
 // The repo version lives in .claude-plugin/marketplace.json; every package
-// manifest, plugin manifest, and npx pin mirrors it (release.yml publishes
-// every package on the one train). CI runs --check so a missed mirror, stale
-// pin, name fragment, or unpinned registry invocation fails the build.
-import { globSync, readFileSync, writeFileSync } from 'node:fs';
+// manifest, plugin manifest, core dependency pin, lockfile, and npx pin
+// mirrors it (release.yml publishes every package on the one train). CI runs
+// --check so a missed mirror, stale pin, name fragment, or unpinned registry
+// invocation fails the build.
+import { spawnSync } from 'node:child_process';
+import { cpSync, globSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 
 const SOURCE = '.claude-plugin/marketplace.json';
 
@@ -135,16 +139,109 @@ function rewritePins(path, version) {
   writeFileSync(path, updated);
 }
 
+// A home's manifest pins core's exact registry version in `dependencies` —
+// the pin Claude Code's frozen install resolves. The `"version"` key rewrite
+// above must not touch it, so this carries it on the same train.
+function rewriteDependencyPins(path, version) {
+  const contents = readFileSync(path, 'utf8');
+  const updated = contents.replace(
+    /("@v1nvn\/[a-z0-9-]+")(\s*:\s*")\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(")/g,
+    `$1$2${version}$3`,
+  );
+  if (updated !== contents) {
+    JSON.parse(updated); // the edit must leave valid JSON
+    writeFileSync(path, updated);
+  }
+}
+
 function apply(version) {
   for (const path of [SOURCE, ...MIRRORS]) {
     writeVersion(path, version);
   }
+  for (const path of MIRRORS) {
+    rewriteDependencyPins(path, version);
+  }
   for (const path of [...PINNED_CONFIGS, ...MD_SURFACES]) {
     rewritePins(path, version);
   }
+  regenLocks();
   console.log(
-    `${[SOURCE, ...MIRRORS].length} manifests, ${PINNED_CONFIGS.length} config pins, ${MD_SURFACES.length} md npx surfaces now at ${version}`,
+    `${[SOURCE, ...MIRRORS].length} manifests, ${PINNED_CONFIGS.length} config pins, ${MD_SURFACES.length} md npx surfaces, ${LOCKS.length} lockfiles now at ${version}`,
   );
+}
+
+// Each exec'd home's package-lock.json is what Claude Code's plugin install
+// reads — registry packages only, pinned exact. Only a registry round-trip
+// knows the new version's integrity hash, so the locks regenerate rather
+// than rewrite.
+const LOCKS = discover(['packages/*/package-lock.json']);
+
+function regenLocks() {
+  for (const lock of LOCKS) {
+    const home = lock.replace('/package-lock.json', '');
+    const manifest = JSON.parse(readFileSync(join(home, 'package.json'), 'utf8'));
+    const scratch = mkdtempSync(join(tmpdir(), 'agentic-lock-'));
+    try {
+      writeFileSync(
+        join(scratch, 'package.json'),
+        JSON.stringify({
+          name: manifest.name,
+          version: manifest.version,
+          private: true,
+          dependencies: manifest.dependencies,
+        }),
+      );
+      const run = spawnSync(
+        'npm',
+        [
+          'install',
+          '--package-lock-only',
+          '--omit=dev',
+          '--ignore-scripts',
+          '--no-audit',
+          '--no-fund',
+        ],
+        { cwd: scratch, encoding: 'utf8' },
+      );
+      if (run.status !== 0) {
+        fail([`${lock}: npm lock generation failed:\n${run.stderr}`]);
+      }
+      cpSync(join(scratch, 'package-lock.json'), lock);
+    } finally {
+      rmSync(scratch, { recursive: true, force: true });
+    }
+  }
+}
+
+function lockDrift(path, version) {
+  const parsed = JSON.parse(readFileSync(path, 'utf8'));
+  const core = parsed.packages?.['node_modules/@v1nvn/agentic-core'];
+  if (core?.version !== version) {
+    return `${path}: core pinned at ${core?.version ?? 'nothing'} != repo version ${version}`;
+  }
+  return null;
+}
+
+// Claude Code installs a cached plugin's deps with a frozen npm ci and skips
+// the install outright when the manifest and lock disagree — so a lock home's
+// manifest ships runtime dependencies only (workspace toolchain lives at the
+// root) and its lock must describe exactly that manifest.
+function lockManifestDrift(lock) {
+  const home = lock.replace('/package-lock.json', '');
+  const manifest = JSON.parse(readFileSync(join(home, 'package.json'), 'utf8'));
+  if (manifest.devDependencies !== undefined) {
+    return `${home}/package.json: devDependencies on a lock home make the plugin-cache install skip — declare toolchain at the workspace root`;
+  }
+  const root = JSON.parse(readFileSync(lock, 'utf8')).packages?.[''];
+  const declared = manifest.dependencies ?? {};
+  const locked = root?.dependencies ?? {};
+  const same =
+    Object.keys(declared).length === Object.keys(locked).length &&
+    Object.entries(declared).every(([name, range]) => locked[name] === range);
+  if (!same) {
+    return `${lock}: root dependencies ${JSON.stringify(locked)} != ${home}/package.json ${JSON.stringify(declared)}`;
+  }
+  return null;
 }
 
 // Pins invoke npm packages, so the valid names are the scoped ones — plugin
@@ -167,6 +264,21 @@ if (command === '--check') {
   }
   for (const path of MD_SURFACES) {
     messages.push(pinDrift(path, repo, KNOWN, false));
+  }
+  for (const path of MIRRORS) {
+    const contents = readFileSync(path, 'utf8');
+    for (const pin of contents.matchAll(
+      /"@v1nvn\/[a-z0-9-]+"\s*:\s*"(\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?)"/g,
+    )) {
+      if (pin[1] !== repo) {
+        messages.push(
+          `${path}: core dependency pin ${pin[1]} != repo version ${repo}`,
+        );
+      }
+    }
+  }
+  for (const path of LOCKS) {
+    messages.push(lockDrift(path, repo), lockManifestDrift(path));
   }
   const errors = messages.filter(Boolean);
   if (errors.length > 0) {

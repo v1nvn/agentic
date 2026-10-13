@@ -23,33 +23,62 @@ copying the folder — so the folder must be self-contained.
 
 ## The island rule
 
-A hooks module imports **only files inside its own plugin directory, by
-relative path**; the one bare import allowed is `claude-code` (types plus the
+A hooks module — and every file in its import graph, tests included — imports
+**only files inside its own plugin directory, by relative path**; the one bare
+import allowed is `claude-code` (types plus the
 `atom`/`read`/`update`/`derive` state helpers). No npm package, no `node:`
-module — the module environment has no Node. Shared pure code that both the
-mod and the packages need lives in the island (`src/`), and the
-packages import it from there — the reverse direction is impossible. Imports
-use explicit `.js` extensions so the same file type-checks under `nodenext`
-(packages) and `bundler` (`tsconfig.mods.json`).
+module — the module environment has no Node. Imports use explicit `.ts`
+extensions: node ≥23.6 loads them by type stripping, so the same specifier
+runs in the engine and under plain node.
+
+The consequence: shared code splits by context. Everything that runs in a
+process — the CLIs, the servers, the statusline renderer — imports
+`@v1nvn/agentic-core` directly; each home's `package.json` +
+`package-lock.json` pin it as an exact registry dependency, which Claude Code
+installs into the plugin folder when it caches the plugin. The island owns
+its glue outright: `hooks/support.ts` (the exec door, pane chrome, the line an
+exec shows) and the tests' `stub.ts` live in the home and import nothing.
+Where the two contexts meet, the process does the formatting: the CLI's
+`--json` door emits finished ink-tagged lines, and the island only accepts
+and renders them — formatting never lives where the island cannot import
+core from.
 
 The corollary — islands draw, processes compute: `$.fs.read` rejects over
 4 MiB with no range form, so an island never bulk-reads. Real data comes from
-one `$.tool.call({ tool: 'Bash', command: ... })` exec of the plugin's shipped
-CLI — a standalone `bin/*.mjs` build (every dependency inlined,
-`ssr.noExternal: true`), committed in the plugin folder and synced by
-`yarn build`, the way `statusline` ships `render.mjs`. The exec rides the
-permission path: the plugin's README carries the one `Bash(...)` allow rule a
-fresh install needs.
+one `$.tool.call({ tool: 'Bash', command: ... })` exec of the plugin's CLI
+source (`node ${$.plugin.root}/src/index.ts`) — node runs the `.ts` entry
+directly, core resolving from the plugin's installed `node_modules`. The exec
+rides the permission path: the plugin's README carries the one `Bash(...)`
+allow rule a fresh install needs.
+
+## The island glue
+
+Every hooks module is thin over its home's `hooks/support.ts`; the helpers are
+JSX-free `.ts` — panes stay the home's `.tsx`, event-fed state stays the
+engine's own `on()` with the home's reducers feeding pane renders.
+
+| Helper | Owns |
+| ------ | ---- |
+| `lineOf` | the one line an exec shows: refusal, stdout, stderr, fallback |
+| `acceptJson` | the exec/accept/parse door: stdout parsed and accepted, or the failure line — a refused door keeps the pane's last good value |
+| `PaneSpec` | pane chrome as fields: `frame` (sizing via `paneRows`), `empty`, `refreshMs` (the re-scan cadence, gated by `showsPane`) |
+| `CommandSpec` | the exec command's descriptor; the home's one `session.start` loops over its declared list |
+| `ageAgents`/`cellAt` | per-agent tick bookkeeping in one lifetime: ids leave with the roster (tokens only) |
+
+`$` never crosses a file: the validator refuses `$` (or a noun of it) passed,
+bound or read as a value, and a hook must be a function literal or a same-file
+function name — so the engine alone passes `$` to hooks, clocks and refresh
+re-scans are wired in the home's own `session.start`, and the glue takes
+values, hooks and `on` only. Engine tests ride the home's `tests/stub.ts`:
+`stubEngine(on, answer)` answers and records the nouns a mod's hooks call.
 
 ## This repo's shape
 
 - The mod's home is the package root — `packages/<name>/` itself — sources
-  committed as `.ts`; the one synced artifact per home is its exec'd CLI —
-  `bin/send.mjs` for rm and md, `bin/usage.mjs` for zai, `bin/report.mjs` for
-  tokens. The marketplace `source`
-  points there. The engine's test runner collects every `*.test.ts` under that
-  root, so inside a mod home the name belongs to engine tests — the package's
-  vitest suite names its files `*.spec.ts`.
+  committed as `.ts`, nothing built, nothing synced. The marketplace
+  `source` points there. The engine's test runner collects every
+  `*.test.ts` under that root, so inside a mod home the name belongs to
+  engine tests — the package's vitest suite names its files `*.spec.ts`.
 - `tsconfig.mods.json` type-checks every mod package (`hooks/`, `tests/`,
   `types/`) against the vendored
   `types/claude-code.d.ts` (`moduleResolution: bundler`, `jsx: react` with
@@ -76,8 +105,12 @@ fresh install needs.
 - Every `on('<event>', ...)` name is a string literal; every call is spelled
   `$.noun.method(...)` in full. `$` may be passed only to functions declared
   at the top level of the same file (the state helpers are the allowed
-  import exception).
+  import exception); a noun of `$` is never bound, passed or read as a value.
+- An `on(...)` hook must be a function literal or the name of a same-file
+  function; a matcher-less event registers once per module.
 - `import()` is refused; `import` declarations only, at the top of the file.
+- A plugin's `types/*.d.ts` is self-contained — imports are refused, so the
+  state shapes it names live inline, however much they mirror src shapes.
 - A command name that collides with a built-in (`usage`, …) is refused at
   `$.command.register` — at runtime, and the hook is skipped and named in the
   transcript. Pick names that don't collide.

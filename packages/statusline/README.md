@@ -1,10 +1,10 @@
 # @v1nvn/statusline
 
 The statusline package: the CLI that writes the two settings keys painting
-Claude Code's status line and agent panel, plus the resolver those keys spawn
-and the renderer it imports — `dist/resolver.mjs` deployed into the plugin
-data dir, `dist/render.mjs` resolved from the installed plugin. Pure
-TypeScript, zero bash.
+Claude Code's status line and agent panel, plus the launcher those keys spawn
+and the renderer it imports — `src/render/launcher.mjs` deployed into the
+plugin data dir, `src/render/entry.ts` resolved from the installed plugin.
+Pure TypeScript, zero bash.
 
 User-facing docs: [root README § statusline](../../README.md#statusline).
 
@@ -56,16 +56,14 @@ npx -y @v1nvn/statusline@0.44.0 restore
 ## Develop
 
 ```sh
-yarn workspace @v1nvn/statusline build    # vite → dist/ (index.js + render.mjs + resolver.mjs)
 yarn workspace @v1nvn/statusline test     # vitest
 yarn lint && yarn typecheck               # from the repo root
-yarn build                                # root — every package, then syncs the plugin artifact
 ```
 
-`packages/statusline/render.mjs` is a committed build artifact: the root
-`yarn build` copies `dist/render.mjs` there, and CI drift-gates the copy.
-
-Node ≥ 22. One workspace dep: `@v1nvn/agentic-core` (usage/exit helpers).
+Nothing builds: node ≥ 23.6 runs the `.ts` sources directly. The data-dir
+launcher is `src/render/launcher.mjs` — zero dependencies, deployed verbatim
+by `configure`. One registry dep: `@v1nvn/agentic-core` (usage/exit helpers),
+installed into the plugin folder by Claude Code from `package-lock.json`.
 
 ## Modules
 
@@ -82,8 +80,8 @@ Node ≥ 22. One workspace dep: `@v1nvn/agentic-core` (usage/exit helpers).
 | `src/preview.ts`                       | the preview command — a candidate rendered, nothing written                                                  |
 | `src/wizard.ts` · `src/wizard-tui.ts`  | the terminal wizard — theme pass, then refinement of the pick's overrides                                    |
 | `src/payloads.ts` · `src/demo-repo.ts` | preview plumbing — fixtures anchored to the moment, in-process renders; demo git repo                        |
-| `src/render/entry.ts`                  | the `render.mjs` entry the keys spawn — argv to line or panel, both capture tees                             |
-| `src/render/resolver.ts`               | the deployed entry the keys spawn — resolves the install record, imports its render.mjs                      |
+| `src/render/entry.ts`                  | the renderer the launcher imports — argv to line or panel, both capture tees                                 |
+| `src/render/launcher.mjs`              | the data-dir deploy — zero deps, resolves the install record, imports its renderer source                    |
 | `src/render/install-record.ts`         | `resolveInstall` — the install record, newest usable entry wins                                              |
 | `src/render/argv.ts`                   | the renderer's argv grammar — `node:util` parseArgs, never commander                                         |
 | `src/render/layout.ts`                 | the layout grammar — brace clusters of item ids, parsed once for every door                                  |
@@ -95,7 +93,7 @@ Node ≥ 22. One workspace dep: `@v1nvn/agentic-core` (usage/exit helpers).
 | `src/render/payload.ts`                | the stdin payload types + parse                                                                              |
 | `src/render/git.ts`                    | the git reads                                                                                                |
 | `src/render/panel.ts`                  | the agent-panel renderer — the theme's layout over the six task items, its own `vlen` and fit ladder        |
-| `src/render/usage.ts`                 | the subagent used-context read — the last usage line of each task's own transcript, `tokenCount` the fallback until the engine's figure matches its docs |
+| `src/render/facts.ts`                  | the subagent transcript read — used context and the effort actually run at, off each task's last usage line; `tokenCount` and the ask the fallbacks     |
 | `src/render/awk.ts`                    | printf-style decimal formatting on exact IEEE bits                                                           |
 | `src/render/capture.ts`                | the capture tee + `DATA_DIR`                                                                                 |
 | `src/render/index.ts`                  | the in-process barrel the CLI renders through                                                                |
@@ -109,9 +107,9 @@ Node ≥ 22. One workspace dep: `@v1nvn/agentic-core` (usage/exit helpers).
   `captures/` is the renderer's paint-time tee, not a CLI write.
 - The key value is one direct data-dir command:
   `node "$HOME/.claude/plugins/data/statusline-agentic/render.mjs" --theme=lean --bar=gauge || true`
-  — the data-dir file is a resolver: it reads Claude Code's install record
+  — the data-dir file is the launcher: it reads Claude Code's install record
   (`installed_plugins.json`) and imports the newest installed plugin's
-  `render.mjs` with argv and stdin intact; the subagent key adds
+  `src/render/entry.ts` with argv and stdin intact; the subagent key adds
   `--subagent`, the one valueless flag. Key spellings are pinned byte-exact
   by tests.
 - Decisions ride argv: `--theme` first, then one `--<item>=<alt>` per pick

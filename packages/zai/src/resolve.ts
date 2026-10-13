@@ -1,5 +1,10 @@
-import { HelpRequested, parseQuietly } from '@v1nvn/agentic-core';
-import { Command, Option } from 'commander';
+import {
+  buildCli,
+  type CliRun,
+  type CliSpec,
+  HelpRequested,
+  parseCli,
+} from '@v1nvn/agentic-core';
 
 const DEFAULT_BASE_URL = 'https://api.z.ai';
 
@@ -60,55 +65,66 @@ function resolveBaseUrl(
   return { glm: false, origin: DEFAULT_BASE_URL };
 }
 
-export function buildProgram(
-  onUsage?: (options: Record<string, unknown>) => void,
-): Command {
-  const usage = new Command('usage')
-    .description('GLM Coding Plan quota and usage report')
-    .addOption(
-      new Option('--auth-token <token>', 'API key').env('ZAI_AUTH_TOKEN'),
-    )
-    .addOption(new Option('--base-url <url>', 'base URL').env('ZAI_BASE_URL'))
-    .addOption(
-      new Option('--json', 'print the report lines as JSON for the zai mod'),
-    )
-    .action((options: Record<string, unknown>) => onUsage?.(options));
-  return new Command()
-    .name('zai-usage')
-    .description('GLM Coding Plan usage — one command, usage')
-    .action(() => undefined)
-    .addCommand(usage);
+export function cliSpec(run?: CliRun): CliSpec {
+  return {
+    name: 'zai-usage',
+    description: 'GLM Coding Plan usage — one command, usage',
+    commands: [
+      {
+        name: 'usage',
+        description: 'GLM Coding Plan quota and usage report',
+        options: [
+          {
+            flags: '--auth-token <token>',
+            description: 'API key',
+            env: 'ZAI_AUTH_TOKEN',
+          },
+          {
+            flags: '--base-url <url>',
+            description: 'base URL',
+            env: 'ZAI_BASE_URL',
+          },
+          {
+            flags: '--json',
+            description: 'print the report lines as JSON for the zai mod',
+          },
+        ],
+        run,
+      },
+    ],
+  };
+}
+
+export function buildProgram() {
+  return buildCli(cliSpec());
 }
 
 export function parseArgs(
   args: readonly string[],
 ): HelpRequested | ParsedArgs | undefined {
-  let parsed: ParsedArgs | undefined;
-  const program = buildProgram(options => {
-    const { authToken, baseUrl, json } = options as {
-      authToken?: string;
-      baseUrl?: string;
-      json?: boolean;
-    };
-    parsed = {
-      authToken: authToken || undefined,
-      baseUrl: baseUrl || undefined,
-      command: 'usage',
-      json: json === true,
-    };
-  });
-  const quiet = parseQuietly(program, args);
-  if (quiet === undefined || quiet instanceof HelpRequested) {
-    return quiet;
+  const parsed = parseCli(cliSpec(), args);
+  if (parsed === undefined || parsed instanceof HelpRequested) {
+    return parsed;
   }
-  return (
-    parsed ?? {
+  if (parsed.command !== 'usage') {
+    return {
       authToken: undefined,
       baseUrl: undefined,
       command: undefined,
       json: false,
-    }
-  );
+    };
+  }
+  const { authToken, baseUrl, json } = parsed.options as {
+    authToken?: string;
+    baseUrl?: string;
+    json?: boolean;
+  };
+  return {
+    authToken: authToken || undefined,
+    baseUrl: baseUrl || undefined,
+    command: 'usage',
+    json: json === true,
+  };
 }
 
 export function resolveConfig(

@@ -2,10 +2,10 @@ import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { buildDocument } from '../../../src/pipeline/dom.js';
-import { stripChrome } from '../../../src/pipeline/normalize.js';
-import { extractArticleFromHtml } from '../../../src/tools/extract.js';
-import type { StructuredContent } from '../../../src/tools/output-schema.js';
+import { buildDocument } from '../../../src/pipeline/dom.ts';
+import { stripChrome } from '../../../src/pipeline/normalize.ts';
+import { extractArticleFromHtml } from '../../../src/tools/extract.ts';
+import type { StructuredContent } from '../../../src/tools/output-schema.ts';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const fixturePath = join(here, 'saved.html');

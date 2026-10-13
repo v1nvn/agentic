@@ -1,4 +1,4 @@
-import { buildDocument } from '../../src/pipeline/dom.js';
+import { buildDocument } from '../../src/pipeline/dom.ts';
 import {
   addPreset,
   normalizeSiteKey,
@@ -7,7 +7,7 @@ import {
   removePreset,
   resetPresets,
   resolvePreset,
-} from '../../src/policy/presets.js';
+} from '../../src/policy/presets.ts';
 
 function doc(html: string): Document {
   return buildDocument(html, 'https://example.com/article').document;

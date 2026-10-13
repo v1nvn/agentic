@@ -1,11 +1,11 @@
-import type { PreviewRender, PreviewSurfaces } from './payloads.js';
+import type { PreviewRender, PreviewSurfaces } from './payloads.ts';
 
-import { VERSION } from './cli.js';
-import { configure, type ConfigureOptions } from './configure.js';
-import { previewSources } from './payloads.js';
-import { DEFAULT_PICKS, ITEM_IDS, specFor } from './render/items.js';
-import { layoutItems } from './render/layout.js';
-import { type ThemeName, THEMES } from './themes.js';
+import { VERSION } from './cli.ts';
+import { configure, type ConfigureOptions } from './configure.ts';
+import { previewSources } from './payloads.ts';
+import { DEFAULT_PICKS, ITEM_IDS, specFor } from './render/items.ts';
+import { layoutItems } from './render/layout.ts';
+import { type ThemeName, THEMES } from './themes.ts';
 
 export interface WizardDeps {
   preview(bag: PreviewRender): PreviewSurfaces;

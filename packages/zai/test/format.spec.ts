@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { render } from '../src/format.js';
-import type { ZaiModelUsage, ZaiQuota, ZaiToolUsage } from '../src/format.js';
+import { render } from '../src/format.ts';
+import type { ZaiModelUsage, ZaiQuota, ZaiToolUsage } from '../src/format.ts';
 
 // Sample data pasted from a real monitor-API response.
 const x_time = [

@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { parseArgs, readHtml, runCli } from '../src/cli.js';
+import { parseArgs, readHtml, runExtract } from '../src/cli.ts';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const fixturePath = join(here, 'fixtures/documentation/saved.html');
@@ -74,7 +74,7 @@ describe('cli readHtml', () => {
   });
 });
 
-describe('cli runCli', () => {
+describe('cli runExtract', () => {
   let stdoutSpy: ReturnType<typeof vi.spyOn>;
   let stderrSpy: ReturnType<typeof vi.spyOn>;
 
@@ -101,7 +101,7 @@ describe('cli runCli', () => {
   }
 
   it('extracts markdown from a file and matches the golden substring', async () => {
-    const code = await runCli(['extract', fixturePath, '--format', 'md']);
+    const code = await runExtract(['extract', fixturePath, '--format', 'md']);
     expect(code).toBe(0);
 
     const out = stdout();
@@ -113,7 +113,7 @@ describe('cli runCli', () => {
   });
 
   it('emits structured JSON with --format json', async () => {
-    const code = await runCli(['extract', fixturePath, '--format', 'json']);
+    const code = await runExtract(['extract', fixturePath, '--format', 'json']);
     expect(code).toBe(0);
 
     const parsed = JSON.parse(stdout()) as {
@@ -127,26 +127,26 @@ describe('cli runCli', () => {
   });
 
   it('emits HTML with --format html', async () => {
-    const code = await runCli(['extract', fixturePath, '--format', 'html']);
+    const code = await runExtract(['extract', fixturePath, '--format', 'html']);
     expect(code).toBe(0);
     expect(stdout()).toMatch(/<\w+/);
   });
 
   it('exits 1 on a missing file with a stderr message', async () => {
-    const code = await runCli(['extract', '/nonexistent/path.html']);
+    const code = await runExtract(['extract', '/nonexistent/path.html']);
     expect(code).toBe(1);
     expect(stderr()).not.toBe('');
     expect(stdout()).toBe('');
   });
 
   it('returns 2 for a non-extract invocation', async () => {
-    const code = await runCli(['bogus']);
+    const code = await runExtract(['bogus']);
     expect(code).toBe(2);
     expect(stderr()).toContain('Usage:');
   });
 
   it('answers extract --help on stdout with 0', async () => {
-    const code = await runCli(['extract', '--help']);
+    const code = await runExtract(['extract', '--help']);
     expect(code).toBe(0);
     expect(stdout()).toContain('Usage: readability extract');
     expect(stdout()).toContain('--max-chars');

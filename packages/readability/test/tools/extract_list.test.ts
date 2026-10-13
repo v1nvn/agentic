@@ -1,5 +1,5 @@
-import { extractListFromHtml } from '../../src/tools/extract_list.js';
-import { extractListOutput } from '../../src/tools/output-schema.js';
+import { extractListFromHtml } from '../../src/tools/extract_list.ts';
+import { extractListOutput } from '../../src/tools/output-schema.ts';
 
 const ORIGIN = 'https://example.com/';
 

@@ -1,16 +1,14 @@
-import { printUsageAndExit } from '@v1nvn/agentic-core';
+#!/usr/bin/env node
+import { runCli } from '@v1nvn/agentic-core';
 
-import { catalog } from './catalog.js';
-import { buildProgram, helpFor, parseArgs, VERSION } from './cli.js';
-import { configure } from './configure.js';
-import { preview } from './preview.js';
-import { restore } from './restore.js';
-import { status } from './status.js';
-import { terminalDeps } from './wizard-tui.js';
-import { createWizard, opensWizard } from './wizard.js';
-
-const parsed =
-  parseArgs(process.argv.slice(2)) ?? printUsageAndExit(buildProgram());
+import { catalog } from './catalog.ts';
+import { statuslineSpec } from './cli.ts';
+import { configure } from './configure.ts';
+import { preview } from './preview.ts';
+import { restore } from './restore.ts';
+import { status } from './status.ts';
+import { terminalDeps } from './wizard-tui.ts';
+import { createWizard, opensWizard } from './wizard.ts';
 
 function homeOf(flag: string | undefined): string {
   const home = flag ?? process.env.HOME;
@@ -20,81 +18,64 @@ function homeOf(flag: string | undefined): string {
   return home;
 }
 
-function run(job: () => void): void {
-  try {
-    job();
-  } catch (e) {
-    console.error((e as Error).message);
-    process.exitCode = 1;
-  }
-}
-
-if (parsed.help !== undefined) {
-  console.log(helpFor(parsed.help));
-} else if (parsed.version) {
-  console.log(VERSION);
-} else if (parsed.command === 'catalog') {
-  run(() => {
-    console.log(
-      catalog({
-        home: homeOf(parsed.home),
-        items: parsed.items,
-        themes: parsed.themes,
-      }),
-    );
-  });
-} else if (parsed.command === 'configure') {
-  const home = homeOf(parsed.home);
-  if (opensWizard(parsed, process.stdin.isTTY)) {
-    const outcome = await createWizard(
-      {
-        force: parsed.force,
-        home,
-        now: String(Math.floor(Date.now() / 1000)),
-      },
-      terminalDeps(),
-    );
-    if (outcome === 'save-failed') {
-      process.exitCode = 1;
-    }
-  } else {
-    run(() => {
+process.exitCode = await runCli(
+  statuslineSpec({
+    catalog: args => {
+      console.log(
+        catalog({
+          home: homeOf(args.home),
+          items: args.items,
+          themes: args.themes,
+        }),
+      );
+    },
+    configure: async args => {
+      const home = homeOf(args.home);
+      if (opensWizard(args, process.stdin.isTTY)) {
+        const outcome = await createWizard(
+          {
+            force: args.force,
+            home,
+            now: String(Math.floor(Date.now() / 1000)),
+          },
+          terminalDeps(),
+        );
+        return outcome === 'save-failed' ? 1 : 0;
+      }
       configure({
-        force: parsed.force,
+        force: args.force,
         home,
-        layout: parsed.layout,
-        theme: parsed.theme,
-        variants: parsed.variants,
+        layout: args.layout,
+        theme: args.theme,
+        variants: args.variants,
       });
       console.log('configured — live on the next paint');
-    });
-  }
-} else if (parsed.command === 'preview') {
-  run(() => {
-    console.log(
-      preview({
-        home: homeOf(parsed.home),
-        layout: parsed.layout,
-        now: String(Math.floor(Date.now() / 1000)),
-        plain: parsed.plain,
-        theme: parsed.theme,
-        variants: parsed.variants,
-      }),
-    );
-  });
-} else if (parsed.command === 'restore') {
-  run(() => {
-    const result = restore({
-      dryRun: parsed.dryRun,
-      force: parsed.force,
-      home: homeOf(parsed.home),
-    });
-    console.log(result.text);
-  });
-} else if (parsed.command === 'status') {
-  run(() => {
-    const result = status({ home: homeOf(parsed.home) });
-    console.log(result.rows.join('\n'));
-    process.exitCode = result.healthy ? 0 : 1;
-  });
-}
+    },
+    preview: args => {
+      console.log(
+        preview({
+          home: homeOf(args.home),
+          layout: args.layout,
+          now: String(Math.floor(Date.now() / 1000)),
+          plain: args.plain,
+          theme: args.theme,
+          variants: args.variants,
+        }),
+      );
+    },
+    restore: args => {
+      const result = restore({
+        dryRun: args.dryRun,
+        force: args.force,
+        home: homeOf(args.home),
+      });
+      console.log(result.text);
+    },
+    status: args => {
+      const result = status({ home: homeOf(args.home) });
+      console.log(result.rows.join('\n'));
+      return result.healthy ? 0 : 1;
+    },
+  }),
+  process.argv.slice(2),
+);

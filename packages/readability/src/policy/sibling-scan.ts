@@ -1,4 +1,4 @@
-import { isElement } from '../pipeline/dom.js';
+import { isElement } from '../pipeline/dom.ts';
 
 // Shared pre-pass for the sibling-cluster detectors (list-detector,
 // grid-detector). Both walk the document for a container whose direct children

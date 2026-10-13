@@ -1,5 +1,5 @@
-import { extractMath } from '../policy/math.js';
-import { KNOWN_LANGUAGE_TOKENS } from '../policy/resolver.js';
+import { extractMath } from './math.ts';
+import { KNOWN_LANGUAGE_TOKENS } from './resolver.ts';
 
 const NONCE_ATTR = 'nonce';
 

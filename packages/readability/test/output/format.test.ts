@@ -1,4 +1,4 @@
-import { htmlToMarkdownFromHtml } from '../../src/tools/html_to_markdown.js';
+import { htmlToMarkdownFromHtml } from '../../src/tools/html_to_markdown.ts';
 
 describe('frontmatter token estimate', () => {
   it('yaml frontmatter includes tokenEstimate and estimator lines', () => {

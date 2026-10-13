@@ -7,9 +7,9 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 
-import { PRESETS_DIR_ENV } from '../../src/preset-cache.js';
-import { presetForSite, resetPresets } from '../../src/policy/presets.js';
-import { runSuggestLoop } from '../../src/tools/suggest-preset.js';
+import { PRESETS_DIR_ENV } from '../../src/preset-cache.ts';
+import { presetForSite, resetPresets } from '../../src/policy/presets.ts';
+import { runSuggestLoop } from '../../src/tools/suggest-preset.ts';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const fixturesDir = join(here, '..', 'fixtures');

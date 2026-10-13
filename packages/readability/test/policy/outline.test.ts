@@ -1,5 +1,5 @@
-import { buildDocument } from '../../src/pipeline/dom.js';
-import { resolveOutline } from '../../src/policy/outline.js';
+import { buildDocument } from '../../src/pipeline/dom.ts';
+import { resolveOutline } from '../../src/policy/outline.ts';
 
 function doc(html: string): Document {
   return buildDocument(html, 'https://example.com/page').document;

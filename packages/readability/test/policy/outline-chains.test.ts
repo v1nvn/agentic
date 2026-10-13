@@ -6,7 +6,7 @@ import {
   buildChainOutline,
   BLOCK_OWN_TEXT_MIN,
   OUTLINE_MAX_CHARS,
-} from '../../src/policy/outline-chains.js';
+} from '../../src/policy/outline-chains.ts';
 
 const here = dirname(fileURLToPath(import.meta.url));
 

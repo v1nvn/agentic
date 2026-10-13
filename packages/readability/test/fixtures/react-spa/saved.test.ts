@@ -2,8 +2,8 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { extractArticleFromHtml } from '../../../src/tools/extract.js';
-import type { StructuredContent } from '../../../src/tools/output-schema.js';
+import { extractArticleFromHtml } from '../../../src/tools/extract.ts';
+import type { StructuredContent } from '../../../src/tools/output-schema.ts';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const fixturePath = join(here, 'saved.html');

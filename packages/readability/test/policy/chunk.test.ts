@@ -1,4 +1,4 @@
-import { chunkMarkdown } from '../../src/policy/chunk.js';
+import { chunkMarkdown } from '../../src/policy/chunk.ts';
 
 describe('policy.chunk chunkMarkdown', () => {
   it('returns [] for empty input', () => {

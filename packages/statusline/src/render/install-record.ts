@@ -1,6 +1,8 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { basename, join } from 'node:path';
 
+import { isRecord } from './jq.ts';
+
 export type InstallRecord =
   | {
       readonly installPath: string;
@@ -18,13 +20,7 @@ interface Entry {
 
 const RECORD_FILE = join('.claude', 'plugins', 'installed_plugins.json');
 const UNREADABLE = 'installed_plugins.json unreadable';
-const NONE_USABLE = 'no statusline@agentic install with a render.mjs';
-
-// Stays node-built-ins-only: the render pass bundles this module into the
-// standalone resolver while the CLI imports it in-process.
-function isObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
+const NONE_USABLE = 'no statusline@agentic install with a src/render/entry.ts';
 
 // Claude Code's own install record (v2 shape): the plugin-update path
 // rewrites it, so the entries name the renderers updates have landed.
@@ -41,8 +37,8 @@ function ourEntries(home: string): null | readonly unknown[] {
   } catch {
     return null;
   }
-  const plugins = isObject(parsed) ? parsed.plugins : undefined;
-  const ours = isObject(plugins) ? plugins['statusline@agentic'] : null;
+  const plugins = isRecord(parsed) ? parsed.plugins : undefined;
+  const ours = isRecord(plugins) ? plugins['statusline@agentic'] : null;
   return Array.isArray(ours) ? ours : ours === undefined ? [] : null;
 }
 
@@ -62,9 +58,9 @@ function isNewer(candidate: Entry, incumbent: Entry): boolean {
 
 function usable(value: unknown): value is Entry {
   return (
-    isObject(value) &&
+    isRecord(value) &&
     typeof value.installPath === 'string' &&
-    existsSync(join(value.installPath, 'render.mjs'))
+    existsSync(join(value.installPath, 'src', 'render', 'entry.ts'))
   );
 }
 

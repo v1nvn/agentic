@@ -3,23 +3,23 @@ import { join } from 'node:path';
 
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { configure } from '../src/configure.js';
-import { DATA_DIR } from '../src/render/capture.js';
-import { restore } from '../src/restore.js';
+import { configure } from '../src/configure.ts';
+import { DATA_DIR } from '../src/render/capture.ts';
+import { restore } from '../src/restore.ts';
 import {
   backupPath,
   capturePath,
   mainKeyValue,
   subagentKeyValue,
   renderMjsPath,
-} from '../src/resolve.js';
+} from '../src/resolve.ts';
 import {
   createHomes,
   settingsCommand,
   settingsPath,
   tmpFilesUnder,
   writeSettings,
-} from './fixtures.js';
+} from './fixtures.ts';
 
 const TAKEOVER_SEED = `{
   "model": "opus-4",

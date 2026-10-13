@@ -2,12 +2,12 @@ import { readFileSync } from 'node:fs';
 
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { configure } from '../src/configure.js';
-import { mainKeyValue, subagentKeyValue } from '../src/resolve.js';
-import { createHomes, settingsPath, writeSettings } from './fixtures.js';
+import { configure } from '../src/configure.ts';
+import { mainKeyValue, subagentKeyValue } from '../src/resolve.ts';
+import { createHomes, settingsPath, writeSettings } from './fixtures.ts';
 
 const MAIN_COMMAND = mainKeyValue(null, '{model}', ['--model=block']);
-const SUB_COMMAND = subagentKeyValue(null, []);
+const SUB_COMMAND = subagentKeyValue(null, ['--model=block']);
 
 // Valid JSON, deliberately ugly — mixed indent widths, a space before a
 // colon, blank lines. A whole-file rewrite (plain jq output) normalizes every

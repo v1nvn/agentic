@@ -1,7 +1,21 @@
-import type { GatingSignal } from '../policy/gating.js';
-import type { PaginationSignal } from '../policy/pagination.js';
-import type { PresetSignal } from '../policy/presets.js';
-import type { ReadabilityParseResult } from './readability.js';
+import type { ReadabilityParseResult } from './readability.ts';
+
+interface GatingSignal {
+  readonly likely: boolean;
+  readonly reason: string;
+}
+
+interface PaginationSignal {
+  readonly nextUrl?: string;
+  readonly selector?: string;
+  readonly type: 'infinite' | 'paginated';
+}
+
+interface PresetSignal {
+  readonly applied: boolean;
+  readonly reason?: 'detectors-missed' | 'overridden';
+  readonly site: string;
+}
 
 export interface StructuredData {
   readonly '@type'?: string;

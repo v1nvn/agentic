@@ -5,9 +5,9 @@ import { fileURLToPath } from 'node:url';
 import {
   extractGridFromHtml,
   extractGridHandler,
-} from '../../src/tools/extract_grid.js';
-import { extractGridOutput } from '../../src/tools/output-schema.js';
-import { extractGridInputSchema } from '../../src/tools/schemas.js';
+} from '../../src/tools/extract_grid.ts';
+import { extractGridOutput } from '../../src/tools/output-schema.ts';
+import { extractGridInputSchema } from '../../src/tools/schemas.ts';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const fixturePath = join(here, '../fixtures/grid/saved.html');

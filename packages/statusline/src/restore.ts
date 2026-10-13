@@ -8,7 +8,6 @@ import {
 import { join } from 'node:path';
 
 import {
-  isObject,
   isOurMember,
   readOrNull,
   removeMembers,
@@ -17,9 +16,10 @@ import {
   SETTINGS_KEYS,
   type SettingsBackup,
   type SettingsKey,
-} from './configure.js';
-import { DATA_DIR } from './render/capture.js';
-import { backupPath, renderMjsPath } from './resolve.js';
+} from './configure.ts';
+import { DATA_DIR } from './render/capture.ts';
+import { isRecord } from './render/jq.ts';
+import { backupPath, renderMjsPath } from './resolve.ts';
 
 export interface RestoreOptions {
   readonly dryRun?: boolean;
@@ -53,9 +53,9 @@ export function readBackup(home: string): null | SettingsBackup {
     throw new Error(`${file} is not valid JSON`, { cause: e });
   }
   if (
-    !isObject(parsed) ||
+    !isRecord(parsed) ||
     typeof parsed.createdFile !== 'boolean' ||
-    !isObject(parsed.keys)
+    !isRecord(parsed.keys)
   ) {
     throw new Error(`${file} is not a lab backup`);
   }

@@ -1,4 +1,4 @@
-import { toMarkdown } from '../../src/pipeline/turndown.js';
+import { toMarkdown } from '../../src/pipeline/turndown.ts';
 
 const pageUrl = 'https://example.com/page';
 

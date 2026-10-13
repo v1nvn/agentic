@@ -1,32 +1,11 @@
 import pkg from '../package.json' with { type: 'json' };
 
-import type { LogLevel } from '@v1nvn/agentic-core';
-
 export interface ServerConfig {
   readonly description: string;
   readonly instructions: string;
-  readonly logLevel: LogLevel;
   readonly name: 'readability';
   readonly title: string;
   readonly version: string;
-}
-
-const VALID_LEVELS: readonly LogLevel[] = [
-  'debug',
-  'info',
-  'warn',
-  'error',
-  'silent',
-];
-
-const DEFAULT_LOG_LEVEL: LogLevel = 'info';
-
-function resolveLogLevel(env: NodeJS.ProcessEnv): LogLevel {
-  const raw = env.READABILITY_LOG_LEVEL;
-  if (raw && (VALID_LEVELS as readonly string[]).includes(raw)) {
-    return raw as LogLevel;
-  }
-  return DEFAULT_LOG_LEVEL;
 }
 
 const SERVER_TITLE = 'Readability MCP';
@@ -52,13 +31,12 @@ When the client advertises MCP \`sampling\`, two more tools appear: \`summarize\
 
 Failures come back as \`isError: true\` results, never thrown.`;
 
-export function loadConfig(env: NodeJS.ProcessEnv = process.env): ServerConfig {
+export function loadConfig(): ServerConfig {
   return {
     name: 'readability',
     version: pkg.version,
     title: SERVER_TITLE,
     description: SERVER_DESCRIPTION,
     instructions: SERVER_INSTRUCTIONS,
-    logLevel: resolveLogLevel(env),
   };
 }

@@ -1,17 +1,16 @@
 import { z } from 'zod';
 
-import type { ExplainReport } from '../policy/explain.js';
-import type { ToolHandle } from '../server.js';
+import type { ExplainReport } from '../policy/explain.ts';
+import type { ToolHandle } from '../server.ts';
 
-import { describeError, toErrorResult } from '../errors.js';
-import { logger } from '../logger.js';
-import { buildExplainReport } from '../policy/explain.js';
-import { readHtmlFile } from './html-source.js';
+import { tool } from '../handler.ts';
+import { buildExplainReport } from '../policy/explain.ts';
+import { fromLocalPath, withSchemaDefaults } from './html-source.ts';
 import {
   type FromHtmlInput,
   localPathField,
   selectorsSchema,
-} from './schemas.js';
+} from './schemas.ts';
 
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
@@ -44,11 +43,6 @@ const explainInputSchema = z.object(explainInputShape);
 
 type ExplainInput = z.infer<typeof explainInputSchema>;
 type ExplainFromHtmlInput = FromHtmlInput<ExplainInput>;
-
-// Schema defaults for callers that pass only a subset of the knobs (topN).
-const DEFAULTS: Omit<ExplainInput, 'localPath'> = explainInputSchema.parse({
-  localPath: '',
-});
 
 const candidateSchema = z
   .object({
@@ -251,15 +245,13 @@ function renderText(report: ExplainReport): string {
   return lines.join('\n');
 }
 
-export function explain(rawArgs: unknown): CallToolResult {
-  const { localPath, ...rest } = explainInputSchema.parse(rawArgs);
-  return explainFromHtml({ html: readHtmlFile(localPath), ...rest });
-}
-
 export function explainFromHtml(
   input: Readonly<ExplainFromHtmlInput>,
 ): CallToolResult {
-  const { html, baseUrl, selectors, topN } = { ...DEFAULTS, ...input };
+  const { html, baseUrl, selectors, topN } = withSchemaDefaults(
+    explainInputSchema,
+    input,
+  );
   const report = buildExplainReport({
     html,
     selectors,
@@ -287,14 +279,11 @@ export function explainFromHtml(
 
 export const EXPLAIN_TOOL_DESCRIPTION = `Post-mortem diagnostics for extraction: shows WHY Readability picked what it picked. Returns the chosen root, the ranked candidate nodes with their REAL Readability contentScore values (read off the DOM expando Readability stamps during scoring), a categorized removed-nodes breakdown, gating/pagination signals, and a snapshot of the normalized HTML fed to Readability. Runs the same normalize + Readability pipeline as \`extract\` (no fallback cascade, no Turndown). The server fetches nothing: \`localPath\` is the only source, and \`baseUrl\` (optional) is origin context only.`;
 
-export function explainHandler(args: unknown): CallToolResult {
-  try {
-    return explain(args);
-  } catch (err) {
-    logger.error(`explain failed: ${describeError(err)}`);
-    return toErrorResult(err);
-  }
-}
+export const explainHandler = tool(
+  'explain',
+  input => explainFromHtml(fromLocalPath(input)),
+  explainInputSchema,
+);
 
 export function registerExplainTool(server: McpServer): ToolHandle {
   return server.registerTool(

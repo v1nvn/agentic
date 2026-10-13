@@ -1,5 +1,5 @@
-import { isPlaceholderSrc } from '../pipeline/normalize.js';
-import { absolutize } from '../pipeline/urls.js';
+import { isPlaceholderSrc } from '../pipeline/normalize.ts';
+import { absolutize } from '../pipeline/urls.ts';
 
 export interface ImageEntry {
   readonly alt: string;

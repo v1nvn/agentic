@@ -1,4 +1,4 @@
-import { gibberishScore, isGeneratedIdentifier } from '../../src/policy/identifiers.js';
+import { gibberishScore, isGeneratedIdentifier } from '../../src/policy/identifiers.ts';
 
 // The labeled corpus transplanted from the readweb comparison project
 // (tmp/readweb/test/identifiers.test.ts): the score table was measured against

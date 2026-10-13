@@ -15,8 +15,8 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 // The return is the emitted stdout: lines joined by '\n' with a trailing
 // '\n'. The panel goldens (multi-*) are the panel engine's corpus, not this
 // door.
-import { DEFAULT_LAYOUT, ITEMS } from '../src/render/index.js';
-import { SEGMENTS } from '../src/render/segments.js';
+import { DEFAULT_LAYOUT, ITEMS } from '../src/render/index.ts';
+import { SEGMENTS } from '../src/render/segments.ts';
 import {
   createDemoHome,
   DEFAULT_NOW,
@@ -27,7 +27,7 @@ import {
   NOW_BEFORE_CACHE_EXPIRY,
   renderAt,
   type DemoHome,
-} from './runtime.js';
+} from './runtime.ts';
 
 type Loose = Record<string, unknown>;
 

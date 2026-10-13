@@ -1,9 +1,13 @@
-import { HelpRequested, parseQuietly } from '@v1nvn/agentic-core';
-import { Command, InvalidArgumentError, Option } from 'commander';
+import {
+  type CliSpec,
+  describeError,
+  HelpRequested,
+  parseCli,
+  runCli,
+} from '@v1nvn/agentic-core';
 
-import { describeError } from './errors.js';
-import { extractArticleFromHtml } from './tools/extract.js';
-import { readHtmlFile } from './tools/html-source.js';
+import { extractArticleFromHtml } from './tools/extract.ts';
+import { readHtmlFile } from './tools/html-source.ts';
 
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import type { Readable } from 'node:stream';
@@ -21,40 +25,87 @@ const FORMATS: readonly CliFormat[] = ['html', 'json', 'md'];
 function parseMaxChars(value: string): number {
   const n = Number(value);
   if (!Number.isInteger(n)) {
-    throw new InvalidArgumentError('must be an integer');
+    throw new Error('must be an integer');
   }
   return n;
 }
 
-export function buildProgram(): Command {
-  return new Command('readability extract')
-    .argument('[file]', 'HTML file; stdin when omitted')
-    .addOption(
-      new Option('--format <fmt>', 'output format')
-        .choices(FORMATS)
-        .default('md'),
-    )
-    .option('--max-chars <n>', 'truncate the output', parseMaxChars);
-}
+const spec: CliSpec = {
+  name: 'readability',
+  usageExit: 2,
+  commands: [
+    {
+      name: 'extract',
+      description: 'extract the readable article from an HTML file',
+      argument: {
+        flags: '[file]',
+        description: 'HTML file; stdin when omitted',
+      },
+      options: [
+        {
+          flags: '--format <fmt>',
+          description: 'output format',
+          choices: FORMATS,
+          default: 'md',
+        },
+        {
+          flags: '--max-chars <n>',
+          description: 'truncate the output',
+          parse: parseMaxChars,
+        },
+      ],
+      run: async (options, args) => {
+        try {
+          const html = await readHtml(args.at(0), process.stdin);
+          // json reuses the markdown pipeline; the structured object is serialized below.
+          const pipelineFormat =
+            options.format === 'html' ? 'html' : 'markdown';
+          const result = extractArticleFromHtml({
+            html,
+            format: pipelineFormat,
+            ...(typeof options.maxChars === 'number'
+              ? { maxChars: options.maxChars }
+              : {}),
+          });
+
+          if (result.isError) {
+            process.stderr.write(`${payloadText(result)}\n`);
+            return 1;
+          }
+
+          if (options.format === 'json') {
+            process.stdout.write(
+              `${JSON.stringify(result.structuredContent, null, 2)}\n`,
+            );
+          } else {
+            process.stdout.write(`${payloadText(result)}\n`);
+          }
+          return 0;
+        } catch (err) {
+          process.stderr.write(`${describeError(err)}\n`);
+          return 1;
+        }
+      },
+    },
+  ],
+};
 
 export function parseArgs(
   argv: readonly string[],
 ): HelpRequested | ParsedArgs | undefined {
-  const program = buildProgram();
-  const parsed = parseQuietly(program, argv.slice(1));
+  const parsed = parseCli(spec, argv);
   if (parsed === undefined || parsed instanceof HelpRequested) {
     return parsed;
   }
-  const { format, maxChars } = parsed.opts<{
+  const { format, maxChars } = parsed.options as {
     format: CliFormat;
     maxChars: number | undefined;
-  }>();
+  };
   return { file: parsed.args.at(0), format, maxChars };
 }
 
 // The stream is injected rather than reading process.stdin directly so the
-// path is testable. Chunks may be Buffer (process.stdin) or string
-// (Readable.from), so both are handled.
+// path is testable; chunks may be Buffer or string.
 export async function readHtml(
   file: string | undefined,
   stream: Readable,
@@ -78,47 +129,6 @@ function payloadText(result: CallToolResult): string {
   return first !== undefined && 'text' in first ? first.text : '';
 }
 
-export async function runCli(argv: readonly string[]): Promise<number> {
-  if (argv[0] !== 'extract') {
-    process.stderr.write(buildProgram().helpInformation());
-    return 2;
-  }
-
-  const parsed = parseArgs(argv);
-  if (parsed instanceof HelpRequested) {
-    process.stdout.write(`${parsed.command.helpInformation()}\n`);
-    return 0;
-  }
-  if (parsed === undefined) {
-    process.stderr.write(buildProgram().helpInformation());
-    return 2;
-  }
-
-  try {
-    const html = await readHtml(parsed.file, process.stdin);
-    // json reuses the markdown pipeline; the structured object is serialized below.
-    const pipelineFormat = parsed.format === 'html' ? 'html' : 'markdown';
-    const result = extractArticleFromHtml({
-      html,
-      format: pipelineFormat,
-      ...(parsed.maxChars !== undefined ? { maxChars: parsed.maxChars } : {}),
-    });
-
-    if (result.isError) {
-      process.stderr.write(`${payloadText(result)}\n`);
-      return 1;
-    }
-
-    if (parsed.format === 'json') {
-      process.stdout.write(
-        `${JSON.stringify(result.structuredContent, null, 2)}\n`,
-      );
-    } else {
-      process.stdout.write(`${payloadText(result)}\n`);
-    }
-    return 0;
-  } catch (err) {
-    process.stderr.write(`${describeError(err)}\n`);
-    return 1;
-  }
+export function runExtract(argv: readonly string[]): Promise<number> {
+  return runCli(spec, argv);
 }

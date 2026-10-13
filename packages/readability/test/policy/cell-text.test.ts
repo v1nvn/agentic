@@ -1,5 +1,5 @@
-import { buildDocument } from '../../src/pipeline/dom.js';
-import { resolveCellText } from '../../src/policy/cell-text.js';
+import { buildDocument } from '../../src/pipeline/dom.ts';
+import { resolveCellText } from '../../src/pipeline/cell-text.ts';
 
 function cell(html: string): Element {
   // Bare <td>/<th> in <body> have their tags dropped by the HTML parser, and a

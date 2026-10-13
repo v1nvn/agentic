@@ -2,23 +2,23 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { unifiedDiff } from './diff.js';
+import { unifiedDiff } from './diff.ts';
 import {
   BENCH_FIXTURES,
   PRESET_SCENARIOS,
   resolveFixturePath,
   type BenchFixture,
-} from './fixtures.js';
-import { SUGGEST_SCENARIOS } from './suggest-scenarios.js';
-import { MAIN_CONTENT_SELECTORS } from './labels.js';
-import { sampleExtraction, type FixtureMetrics } from './metrics.js';
+} from './fixtures.ts';
+import { SUGGEST_SCENARIOS } from './suggest-scenarios.ts';
+import { MAIN_CONTENT_SELECTORS } from './labels.ts';
+import { sampleExtraction, type FixtureMetrics } from './metrics.ts';
 import {
   scoreFixture,
   scoreFixtureWithPreset,
   scoreFixtureWithSuggest,
   type FixtureScore,
   type PrecisionRecall,
-} from './scorer.js';
+} from './scorer.ts';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const baselineDir = join(here, 'baseline');

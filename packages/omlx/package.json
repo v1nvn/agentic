@@ -3,12 +3,11 @@
   "version": "0.44.0",
   "description": "MCP server exposing a local omlx inference server (chat, structured output, model status) so coding agents can delegate bulk work to a local model.",
   "type": "module",
-  "main": "dist/index.js",
-  "bin": "dist/index.js",
+  "main": "./src/index.ts",
+  "bin": "./src/index.ts",
   "scripts": {
-    "build": "vite build",
     "dev": "vite-node src/dev.ts",
-    "start": "node dist/index.js",
+    "start": "node src/index.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:live": "RUN_LIVE=1 vitest run test/live.test.ts"
@@ -31,13 +30,13 @@
     "directory": "packages/omlx"
   },
   "files": [
-    "dist"
+    "src"
   ],
   "publishConfig": {
     "access": "public"
   },
   "engines": {
-    "node": ">=22"
+    "node": ">=23.6"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",

@@ -69,17 +69,17 @@ npx -y @v1nvn/statusline@0.44.0 status                             # rows + verd
 ```
 
 `configure` is the sole writer: one run touches exactly the `statusLine` and
-`subagentStatusLine` keys of `~/.claude/settings.json` and deploys a resolver
+`subagentStatusLine` keys of `~/.claude/settings.json` and deploys a launcher
 (`render.mjs`) into the plugin data dir — the whole write footprint.
-Each value is one inline shell command: `node` on that data-dir resolver, the
+Each value is one inline shell command: `node` on that data-dir launcher, the
 decisions as flags — `--theme` first, then one `--<item>=<alt>` per pick that
 differs from the theme's own, `--layout` only when passed; the subagent key
 adds `--subagent`, the one valueless flag. Both keys paint the same theme: the
 subagent row renders the theme's layout filtered to the six per-task items
 (state, model, effort, bar, tokens, duration), the task's label and
-description leading. The resolver reads Claude Code's install record
+description leading. The launcher reads Claude Code's install record
 (`installed_plugins.json`) and imports the newest installed plugin's
-`render.mjs`, so a plugin update repaints with no rerun. Raw:
+`src/render/entry.ts`, so a plugin update repaints with no rerun. Raw:
 
 ```sh
 node "$HOME/.claude/plugins/data/statusline-agentic/render.mjs" --theme=lean --bar=gauge || true
@@ -107,16 +107,16 @@ Repo and machine:
 ```
 repo
   packages/statusline/                the CLI and the renderer — pure TS, zero bash
-    src/  test/  dist/                dist/ holds index.js and render.mjs
+    src/  test/                          src/ holds the CLI and src/render/ the renderer entries
     assets/payloads/  p1–p4.json          preview fixtures, main surface
     assets/ticks/     multi.json          preview fixtures, agent panel
     SKILL.md                          the /statusline:lab skill — model-taught entry point
-    render.mjs                        the renderer — committed build artifact, synced by `yarn build`
 
 machine, after `claude plugin install statusline@agentic`
-  ~/.claude/plugins/cache/agentic/statusline/<version>/   the installed plugin — its render.mjs paints
+  ~/.claude/plugins/cache/agentic/statusline/<version>/   the installed plugin — node_modules/ installed
+                                         from its package-lock.json; src/render/entry.ts paints
   ~/.claude/plugins/data/statusline-agentic/
-    render.mjs                            the resolver — deployed by configure, spawned by both keys
+    render.mjs                            the launcher — deployed by configure, spawned by both keys
     backup.json                           pre-lab key values — first takeover wins
     captures/main.json  captures/tick.json  every paint's stdin, teed by the renderer; feeds previews
   ~/.claude/settings.json                 statusLine + subagentStatusLine → the inline commands
@@ -143,19 +143,21 @@ npm code.
 packages/                           one yarn workspace — every plugin's home
   readability/  omlx/               the two MCP servers (@v1nvn/readability, @v1nvn/omlx) — the plugin root itself:
                                      .claude-plugin/ + .mcp.json (pinned npx) + dev.mcp.json (dev wiring) (+ skills/)
-  core/                             @v1nvn/agentic-core — last-reply + CLI plumbing, shared by the tools
+  core/                             @v1nvn/agentic-core — last-reply + CLI plumbing + the drawing kit,
+                                     imported by every process-side surface; the island never imports it
   rm/  md/  zai/                    the tool CLIs (rm-send, md-send, zai-usage) + their mods — the plugin root itself:
-                                     .claude-plugin/ + hooks/register.ts(x) + tests/ + bin/*.mjs
-                                     (standalone build the mod execs, committed)
+                                     .claude-plugin/ + hooks/register.ts(x) + hooks/support.ts (the island glue)
+                                     + tests/ + package-lock.json (core pin Claude Code installs)
                                      zai also types/ (state contract)
   tokens/                            tokens-report CLI + the tokens mod — the plugin root itself:
-                                     .claude-plugin/ + hooks/register.tsx + tests/ + types/
+                                     .claude-plugin/ + hooks/register.tsx + hooks/support.ts + tests/ + types/
                                      (state contract); src/ holds the CLI (index, cli, scan)
                                      and the island's aggregate/format/top/text.ts
-                                     (text.ts is the one fixed-width home, via @v1nvn/tokens/text),
-                                     bin/report.mjs (standalone build the mod execs, committed)
+                                     (the island's own formatting slice — the engine's loader
+                                     keeps the island off npm, so it cannot import core's kit)
   statusline/                        the configure CLI + renderer, pure TS (@v1nvn/statusline) — the plugin root itself:
-                                     .claude-plugin/ + SKILL.md (see statusline above) + render.mjs (committed artifact)
+                                     .claude-plugin/ + SKILL.md (see statusline above)
+                                     + src/render/launcher.mjs (the data-dir deploy, zero deps)
   enhansome/  todo/                 package-less homes — the plugin root itself:
                                     .claude-plugin/ + .mcp.json, todo: .claude-plugin/ + skills/ + README.md
 types/claude-code.d.ts              vendored mod API declarations, engine-written per version
@@ -163,4 +165,6 @@ tsconfig.mods.json                  type-checks every mod package against the ve
 ```
 
 Versions ride one lockstep train: `.claude-plugin/marketplace.json` is the source, and
-`set-version.mjs` mirrors it into every package, plugin manifest, and npx pin.
+`set-version.mjs` mirrors it into every package, plugin manifest, core dependency pin,
+lockfile, and npx pin. Nothing is built: node ≥23.6 runs the `.ts` sources, and every
+published package ships `src`.

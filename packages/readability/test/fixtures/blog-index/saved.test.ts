@@ -4,8 +4,8 @@ import { fileURLToPath } from 'node:url';
 
 import { describe, expect, it } from 'vitest';
 
-import { detectList } from '../../../src/policy/list-detector.js';
-import { buildDocument } from '../../../src/pipeline/dom.js';
+import { detectList } from '../../../src/policy/list-detector.ts';
+import { buildDocument } from '../../../src/pipeline/dom.ts';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const fixturePath = join(here, 'saved.html');

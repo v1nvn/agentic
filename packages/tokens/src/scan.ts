@@ -10,9 +10,9 @@ import { claudeProjectsDir } from '@v1nvn/agentic-core';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
-import type { ScanResult } from './aggregate.js';
+import type { ScanResult } from './aggregate.ts';
 
-import { createAggregator } from './aggregate.js';
+import { createAggregator } from './aggregate.ts';
 
 export function scan({
   projectsDir,

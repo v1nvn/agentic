@@ -1,20 +1,17 @@
 {
   "name": "@v1nvn/md",
   "version": "0.44.0",
-  "description": "Send a Markdown reply to a self-hosted Markdown-Viewer as a #share= URL — the md-send CLI behind the md plugin.",
+  "description": "Send a Markdown reply to the Markdown-Viewer as a #share= URL — the md-send CLI behind the md plugin.",
   "type": "module",
   "bin": {
-    "md-send": "dist/index.js"
+    "md-send": "./src/index.ts"
   },
   "scripts": {
-    "build": "vite build && vite build --mode send",
-    "test": "vitest run",
-    "test:watch": "vitest"
+    "test": "yarn run -T vitest run",
+    "test:watch": "yarn run -T vitest"
   },
   "keywords": [
-    "markdown",
-    "markdown-viewer",
-    "share",
+    "Markdown-Viewer",
     "claude-code"
   ],
   "author": {
@@ -28,20 +25,15 @@
     "directory": "packages/md"
   },
   "files": [
-    "dist"
+    "src"
   ],
   "publishConfig": {
     "access": "public"
   },
   "engines": {
-    "node": ">=22"
+    "node": ">=23.6"
   },
   "dependencies": {
-    "@v1nvn/agentic-core": "workspace:^",
-    "commander": "^15.0.0"
-  },
-  "devDependencies": {
-    "vite": "^8.1.4",
-    "vitest": "^4.1.10"
+    "@v1nvn/agentic-core": "0.44.0"
   }
 }

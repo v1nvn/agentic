@@ -1,4 +1,4 @@
-import type { SitePreset } from '../../src/policy/presets.js';
+import type { SitePreset } from '../../src/policy/presets.ts';
 
 // The proposals the suggest loop accepted on each fixture, checked in as data:
 // the bench replays them through the loop's material→validate→apply path, so

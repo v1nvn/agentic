@@ -1,4 +1,4 @@
-import { buildDocument } from '../../src/pipeline/dom.js';
+import { buildDocument } from '../../src/pipeline/dom.ts';
 import {
   parseTableMatrix,
   renderTable,
@@ -6,7 +6,7 @@ import {
   renderTableGfm,
   renderTableJson,
   resolveHeaderKeys,
-} from '../../src/policy/tables.js';
+} from '../../src/pipeline/tables.ts';
 
 function table(html: string): Element {
   const { document } = buildDocument(`<html><body>${html}</body></html>`);

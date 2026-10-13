@@ -77,13 +77,13 @@ and re-vendor `types/claude-code.d.ts` (repo root) from the engine-laid
 | `src/resolve.ts` | auth-token resolution chain |
 | `src/format.ts` | the report's lines — printed by the CLI, drawn by the pane |
 | `hooks/register.tsx` | the mod: registers `/zai-usage`, execs the CLI, opens its report as a pane |
-| `bin/usage.mjs` | the standalone build the mod execs — committed, synced by `yarn build` |
+| `src/index.ts` | the CLI source the mod execs — node runs it directly, nothing built |
 
 ## Contracts
 
 - One job: print the report, exit 0. Nothing is written anywhere.
-- `/zai-usage` is one `node <plugin root>/bin/usage.mjs usage --json` exec through
+- `/zai-usage` is one `node <plugin root>/src/index.ts usage --json` exec through
   the session's Bash tool — the same query `npx zai-usage` runs, awaited
   as-is. The one allow rule it needs is
-  `Bash(node <plugin root>/bin/usage.mjs usage --json)`; the first run asks for it
+  `Bash(node <plugin root>/src/index.ts usage --json)`; the first run asks for it
   once, then it is remembered. Its report is a pane the model never reads.

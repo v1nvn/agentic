@@ -1,6 +1,6 @@
-import { buildDocument } from '../../src/pipeline/dom.js';
-import { scopeToHeading } from '../../src/policy/section.js';
-import { extractArticleFromHtml } from '../../src/tools/extract.js';
+import { buildDocument } from '../../src/pipeline/dom.ts';
+import { scopeToHeading } from '../../src/policy/section.ts';
+import { extractArticleFromHtml } from '../../src/tools/extract.ts';
 
 const ORIGIN = 'https://example.com/docs';
 

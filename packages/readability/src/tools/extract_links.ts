@@ -1,18 +1,16 @@
-import type { ToolHandle } from '../server.js';
+import type { ToolHandle } from '../server.ts';
 
-import { describeError, toErrorResult } from '../errors.js';
-import { logger } from '../logger.js';
-import { buildDocument } from '../pipeline/dom.js';
-import { applySelectors } from '../pipeline/normalize.js';
-import { absolutize } from '../pipeline/urls.js';
-import { readHtmlFile } from './html-source.js';
-import { extractLinksOutputShape } from './output-schema.js';
+import { tool } from '../handler.ts';
+import { buildDocument } from '../pipeline/dom.ts';
+import { applySelectors } from '../pipeline/normalize.ts';
+import { absolutize } from '../pipeline/urls.ts';
+import { fromLocalPath, withSchemaDefaults } from './html-source.ts';
+import { extractLinksOutputShape } from './output-schema.ts';
 import {
   type ExtractLinksFromHtmlInput,
-  type ExtractLinksInput,
   extractLinksInputSchema,
   extractLinksInputShape,
-} from './schemas.js';
+} from './schemas.ts';
 
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
@@ -65,22 +63,13 @@ function pruneUnsafeRoots(document: Document): void {
   }
 }
 
-export function extractLinks(rawArgs: unknown): CallToolResult {
-  const { localPath, ...rest } = extractLinksInputSchema.parse(rawArgs);
-  return extractLinksFromHtml({ html: readHtmlFile(localPath), ...rest });
-}
-
-// Schema defaults for callers that pass only a subset of the knobs (sameOriginOnly).
-const DEFAULTS: Omit<ExtractLinksInput, 'localPath'> =
-  extractLinksInputSchema.parse({ localPath: '' });
-
 export function extractLinksFromHtml(
   input: Readonly<ExtractLinksFromHtmlInput>,
 ): CallToolResult {
-  const { html, baseUrl, sameOriginOnly, selectors } = {
-    ...DEFAULTS,
-    ...input,
-  };
+  const { html, baseUrl, sameOriginOnly, selectors } = withSchemaDefaults(
+    extractLinksInputSchema,
+    input,
+  );
 
   const { document } = buildDocument(html, baseUrl);
   applySelectors(document, selectors);
@@ -129,14 +118,11 @@ function renderLinksIndex(links: readonly ExtractedLink[]): string {
 
 export const EXTRACT_LINKS_TOOL_DESCRIPTION = `Return a structured list of anchor links from already-rendered (post-JavaScript) HTML — \`[{text, href, rel, isExternal}]\` in document order, hrefs absolutized against \`baseUrl\`. No Readability scoring, Turndown, or sanitization — links are gathered from the raw parsed DOM so nav/footer/main links survive. Pairs with chrome-devtools for crawl/navigation decisions. The server fetches nothing: \`localPath\` is the only source, and \`baseUrl\` is origin context only (never fetched).`;
 
-export function extractLinksHandler(args: unknown): CallToolResult {
-  try {
-    return extractLinks(args);
-  } catch (err) {
-    logger.error(`extract_links failed: ${describeError(err)}`);
-    return toErrorResult(err);
-  }
-}
+export const extractLinksHandler = tool(
+  'extract_links',
+  input => extractLinksFromHtml(fromLocalPath(input)),
+  extractLinksInputSchema,
+);
 
 export function registerExtractLinksTool(server: McpServer): ToolHandle {
   return server.registerTool(

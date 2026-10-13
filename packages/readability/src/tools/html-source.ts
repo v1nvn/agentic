@@ -1,5 +1,7 @@
 import { readFileSync } from 'node:fs';
 
+import type { FromHtmlInput } from './schemas.ts';
+
 export function readHtmlFile(localPath: string): string {
   const raw = readFileSync(localPath, 'utf8');
   const trimmed = raw.trim();
@@ -14,4 +16,25 @@ export function readHtmlFile(localPath: string): string {
   } catch {
     return raw;
   }
+}
+
+export function fromLocalPath<T extends { localPath: string }>(
+  input: T,
+): FromHtmlInput<T> {
+  const { localPath, ...rest } = input;
+  return { ...rest, html: readHtmlFile(localPath) };
+}
+
+const schemaDefaults = new WeakMap<object, unknown>();
+
+export function withSchemaDefaults<
+  T extends { localPath: string },
+  I extends FromHtmlInput<T>,
+>(schema: { parse(raw: unknown): T }, input: I): I & T {
+  let defaults = schemaDefaults.get(schema);
+  if (defaults === undefined) {
+    defaults = schema.parse({ localPath: '' });
+    schemaDefaults.set(schema, defaults);
+  }
+  return { ...(defaults as T), ...input };
 }

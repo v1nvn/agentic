@@ -9,19 +9,19 @@ import { join } from 'node:path';
 
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { catalog } from '../src/catalog.js';
-import { parseArgs } from '../src/cli.js';
-import { configure, BUNDLED_RESOLVER } from '../src/configure.js';
-import { DATA_DIR } from '../src/render/capture.js';
-import { ITEMS } from '../src/render/index.js';
-import { mainKeyValue, subagentKeyValue, renderMjsPath } from '../src/resolve.js';
+import { catalog } from '../src/catalog.ts';
+import { parseArgs } from '../src/cli.ts';
+import { configure, LAUNCHER } from '../src/configure.ts';
+import { DATA_DIR } from '../src/render/capture.ts';
+import { ITEMS } from '../src/render/index.ts';
+import { mainKeyValue, subagentKeyValue, renderMjsPath } from '../src/resolve.ts';
 import {
   THEMES,
   createHomes,
   settingsCommand,
   settingsPath,
   writeSettings,
-} from './fixtures.js';
+} from './fixtures.ts';
 
 function assertNothingWritten(home: string): void {
   expect(existsSync(settingsPath(home)), 'settings.json').toBe(false);
@@ -129,7 +129,15 @@ describe('configure: writes (contract 3)', () => {
       ]),
     );
     expect(settingsCommand(home, 'subagentStatusLine')).toBe(
-      subagentKeyValue(null, []),
+      subagentKeyValue(null, [
+        '--model=block',
+        '--effort=dim',
+        '--cwd=full',
+        '--branch=last',
+        '--bar=gauge',
+        '--tokens=compact',
+        '--cache-expiry=fuse',
+      ]),
     );
     expect(readdirSync(join(home, DATA_DIR)).sort(), 'data dir').toEqual([
       'backup.json',
@@ -285,6 +293,19 @@ describe('configure: --theme', () => {
     );
   });
 
+  it('an item decision rides the panel key too — the panel honors model, effort, bar, tokens and duration', () => {
+    const home = homes.newHome();
+
+    configure({ home, theme: 'lean', variants: { bar: 'gauge' } });
+
+    expect(settingsCommand(home, 'statusLine')).toBe(
+      mainKeyValue('lean', null, ['--bar=gauge']),
+    );
+    expect(settingsCommand(home, 'subagentStatusLine')).toBe(
+      subagentKeyValue('lean', ['--bar=gauge']),
+    );
+  });
+
   it('a theme write replaces a seeded ours key with the theme decision alone', () => {
     const home = homes.newHome();
     writeSettings(
@@ -406,7 +427,7 @@ describe('configure: settings refusal (E4 port)', () => {
       mainKeyValue(null, '{model}', ['--model=block']),
     );
     expect(settingsCommand(home, 'subagentStatusLine')).toBe(
-      subagentKeyValue(null, []),
+      subagentKeyValue(null, ['--model=block']),
     );
     const settings = JSON.parse(readFileSync(settingsPath(home), 'utf8'));
     expect(settings.model).toBe('opus-4');
@@ -424,7 +445,7 @@ describe('configure: resolver sync', () => {
     configure({ home, theme: 'lean' });
 
     expect(readFileSync(renderMjsPath(home), 'utf8')).toBe(
-      readFileSync(BUNDLED_RESOLVER, 'utf8'),
+      readFileSync(LAUNCHER, 'utf8'),
     );
   });
 
@@ -438,7 +459,7 @@ describe('configure: resolver sync', () => {
 
     expect(statSync(synced).mtimeMs).toBe(before);
     expect(readFileSync(synced, 'utf8')).toBe(
-      readFileSync(BUNDLED_RESOLVER, 'utf8'),
+      readFileSync(LAUNCHER, 'utf8'),
     );
   });
 
@@ -451,7 +472,7 @@ describe('configure: resolver sync', () => {
     configure({ home, theme: 'lean' });
 
     expect(readFileSync(synced, 'utf8')).toBe(
-      readFileSync(BUNDLED_RESOLVER, 'utf8'),
+      readFileSync(LAUNCHER, 'utf8'),
     );
   });
 });

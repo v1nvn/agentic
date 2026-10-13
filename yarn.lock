@@ -736,7 +736,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@v1nvn/agentic-core@workspace:^, @v1nvn/agentic-core@workspace:packages/core":
+"@v1nvn/agentic-core@npm:0.44.0, @v1nvn/agentic-core@workspace:^, @v1nvn/agentic-core@workspace:packages/core":
   version: 0.0.0-use.local
   resolution: "@v1nvn/agentic-core@workspace:packages/core"
   dependencies:
@@ -750,12 +750,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@v1nvn/md@workspace:packages/md"
   dependencies:
-    "@v1nvn/agentic-core": "workspace:^"
-    commander: "npm:^15.0.0"
-    vite: "npm:^8.1.4"
-    vitest: "npm:^4.1.10"
+    "@v1nvn/agentic-core": "npm:0.44.0"
   bin:
-    md-send: dist/index.js
+    md-send: ./src/index.ts
   languageName: unknown
   linkType: soft
 
@@ -770,7 +767,7 @@ __metadata:
     vitest: "npm:^4.1.10"
     zod: "npm:^4.4.3"
   bin:
-    omlx: dist/index.js
+    omlx: ./src/index.ts
   languageName: unknown
   linkType: soft
 
@@ -783,7 +780,6 @@ __metadata:
     "@types/turndown": "npm:^5.0.6"
     "@v1nvn/agentic-core": "workspace:^"
     "@vitest/coverage-v8": "npm:^4.1.10"
-    commander: "npm:^15.0.0"
     dompurify: "npm:^3.4.12"
     jsdom: "npm:^30.0.1"
     remark-gfm: "npm:^4.0.1"
@@ -797,7 +793,7 @@ __metadata:
     yaml: "npm:^2.9.0"
     zod: "npm:^4.4.3"
   bin:
-    readability: dist/index.js
+    readability: ./src/index.ts
   languageName: unknown
   linkType: soft
 
@@ -805,13 +801,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@v1nvn/rm@workspace:packages/rm"
   dependencies:
-    "@v1nvn/agentic-core": "workspace:^"
-    "@v1nvn/tokens": "workspace:^"
-    commander: "npm:^15.0.0"
-    vite: "npm:^8.1.4"
-    vitest: "npm:^4.1.10"
+    "@v1nvn/agentic-core": "npm:0.44.0"
   bin:
-    rm-send: dist/index.js
+    rm-send: ./src/index.ts
   languageName: unknown
   linkType: soft
 
@@ -819,25 +811,19 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@v1nvn/statusline@workspace:packages/statusline"
   dependencies:
-    "@v1nvn/agentic-core": "workspace:^"
-    commander: "npm:^15.0.0"
-    vite: "npm:^8.1.4"
-    vitest: "npm:^4.1.10"
+    "@v1nvn/agentic-core": "npm:0.44.0"
   bin:
-    statusline: dist/index.js
+    statusline: ./src/index.ts
   languageName: unknown
   linkType: soft
 
-"@v1nvn/tokens@workspace:^, @v1nvn/tokens@workspace:packages/tokens":
+"@v1nvn/tokens@workspace:packages/tokens":
   version: 0.0.0-use.local
   resolution: "@v1nvn/tokens@workspace:packages/tokens"
   dependencies:
-    "@v1nvn/agentic-core": "workspace:^"
-    commander: "npm:^15.0.0"
-    vite: "npm:^8.1.4"
-    vitest: "npm:^4.1.10"
+    "@v1nvn/agentic-core": "npm:0.44.0"
   bin:
-    tokens-report: dist/index.js
+    tokens-report: ./src/index.ts
   languageName: unknown
   linkType: soft
 
@@ -845,13 +831,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@v1nvn/zai@workspace:packages/zai"
   dependencies:
-    "@v1nvn/agentic-core": "workspace:^"
-    "@v1nvn/tokens": "workspace:^"
-    commander: "npm:^15.0.0"
-    vite: "npm:^8.1.4"
-    vitest: "npm:^4.1.10"
+    "@v1nvn/agentic-core": "npm:0.44.0"
   bin:
-    zai-usage: dist/index.js
+    zai-usage: ./src/index.ts
   languageName: unknown
   linkType: soft
 

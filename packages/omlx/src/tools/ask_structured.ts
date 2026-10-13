@@ -1,15 +1,15 @@
 import { z } from 'zod';
 
-import type { ToolHandle } from '../server.js';
+import type { ToolHandle } from '../server.ts';
 
-import { loadConfig } from '../config.js';
-import { describeError, OmlxError, toErrorResult } from '../errors.js';
-import { logger } from '../logger.js';
-import { askInputShape, chatCompletion } from './ask.js';
+import { loadConfig } from '../config.ts';
+import { OmlxError } from '../errors.ts';
+import { tool } from '../handler.ts';
+import { askInputShape, chatCompletion } from './ask.ts';
 import {
   buildChatCompletionRequest,
   type ChatCompletionRequest,
-} from './chat.js';
+} from './chat.ts';
 
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
@@ -41,11 +41,10 @@ export const askStructuredOutputSchema = {
 
 export const ASK_STRUCTURED_TOOL_DESCRIPTION = `Ask the local Qwen3.8-27B on this Mac with schema-constrained output — the response must match the \`schema\` JSON Schema, returned as parsed JSON, not prose. Free, private, unlimited, ~28 tok/s, 256K context. Prefer this over asking \`ask\` for JSON whenever the shape is known: entities from logs, frontmatter, tables from prose, bbox JSON from a screenshot (give file paths in \`images\`), classification tags. Keep schemas shallow — deep nesting and long enums tax a 27B model. Do NOT route hard reasoning or multi-file analysis here — quality is a step down from cloud models.`;
 
-export async function runAskStructured(
-  rawArgs: unknown,
+async function runAskStructured(
+  input: z.infer<typeof askStructuredInputSchema>,
 ): Promise<CallToolResult> {
   const config = loadConfig();
-  const input = askStructuredInputSchema.parse(rawArgs);
   const request: ChatCompletionRequest = buildChatCompletionRequest(
     config,
     input,
@@ -75,12 +74,11 @@ export async function runAskStructured(
   };
 }
 
-export function askStructuredHandler(args: unknown): Promise<CallToolResult> {
-  return runAskStructured(args).catch((err: unknown) => {
-    logger.error(`ask_structured failed: ${describeError(err)}`);
-    return toErrorResult(err);
-  });
-}
+export const askStructuredHandler = tool(
+  'ask_structured',
+  runAskStructured,
+  askStructuredInputSchema,
+);
 
 export function registerAskStructuredTool(server: McpServer): ToolHandle {
   return server.registerTool(

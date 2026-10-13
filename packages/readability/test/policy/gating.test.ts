@@ -1,5 +1,5 @@
-import { buildDocument } from '../../src/pipeline/dom.js';
-import { detectGating } from '../../src/policy/gating.js';
+import { buildDocument } from '../../src/pipeline/dom.ts';
+import { detectGating } from '../../src/policy/gating.ts';
 
 function doc(html: string): Document {
   return buildDocument(html, 'https://example.com/article').document;

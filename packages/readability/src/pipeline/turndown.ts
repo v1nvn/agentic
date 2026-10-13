@@ -1,11 +1,11 @@
 import TurndownService from 'turndown';
 import { gfm } from 'turndown-plugin-gfm';
 
-import type { TableFormat } from '../policy/tables.js';
+import type { TableFormat } from './tables.ts';
 
-import { processFootnotes } from '../policy/footnotes.js';
-import { parseTableMatrix, renderTable } from '../policy/tables.js';
-import { absolutize } from './urls.js';
+import { processFootnotes } from './footnotes.ts';
+import { parseTableMatrix, renderTable } from './tables.ts';
+import { absolutize } from './urls.ts';
 
 export type CodeBlockStyle = 'fenced' | 'indented';
 export type HeadingStyle = 'atx' | 'setext';
@@ -87,7 +87,7 @@ export function toMarkdown(
       return `[${content}](${href}${titlePart})`;
     },
   });
-  // Math markers are emitted by `policy/math.ts` and survive Readability via the
+  // Math markers are emitted by `pipeline/math.ts` and survive Readability via the
   // `rdrm-math` preserve entry. A rule's replacement is inserted verbatim, so
   // the raw LaTeX backslashes survive turndown untouched.
   service.addRule('mathMarker', {

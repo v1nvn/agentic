@@ -4,16 +4,16 @@ import { fileURLToPath } from 'node:url';
 
 import { describe, expect, it } from 'vitest';
 
-import { buildDocument } from '../../src/pipeline/dom.js';
-import { MAIN_CONTENT_NOTES, MAIN_CONTENT_SELECTORS } from './labels.js';
-import { unifiedDiff } from './diff.js';
+import { buildDocument } from '../../src/pipeline/dom.ts';
+import { MAIN_CONTENT_NOTES, MAIN_CONTENT_SELECTORS } from './labels.ts';
+import { unifiedDiff } from './diff.ts';
 import {
   BENCH_FIXTURES,
   PRESET_SCENARIOS,
   resolveFixturePath,
-} from './fixtures.js';
-import { SUGGEST_SCENARIOS } from './suggest-scenarios.js';
-import { computeMetrics, sampleExtraction, type FixtureMetrics } from './metrics.js';
+} from './fixtures.ts';
+import { SUGGEST_SCENARIOS } from './suggest-scenarios.ts';
+import { computeMetrics, sampleExtraction, type FixtureMetrics } from './metrics.ts';
 import {
   scoreFixture,
   scoreFixtureWithPreset,
@@ -21,7 +21,7 @@ import {
   scorePrecisionRecall,
   tokenize,
   type PrecisionRecall,
-} from './scorer.js';
+} from './scorer.ts';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const baselineDir = join(here, 'baseline');
