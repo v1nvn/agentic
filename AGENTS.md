@@ -59,7 +59,9 @@ name or shape wins.
   (`enhansome`, `todo`) holds only its plugin surfaces. Every `npx -y
   @v1nvn/*` line and every core dependency pin, config, manifest or `.md`
   surface, is version-pinned to the train by `set-version.mjs`, which also
-  regenerates the per-home lockfiles (an unpinned npx resolves "latest"
+  regenerates the lockfiles — the per-home package-locks and the root
+  `yarn.lock`, whose core descriptors the exact pins change every bump (an
+  unpinned npx resolves "latest"
   through the npx cache and runs a stale CLI). Each exec'd home's
   `package.json` + `package-lock.json` declare `@v1nvn/agentic-core` as an
   exact registry pin — Claude Code installs those dependencies into the

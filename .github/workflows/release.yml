@@ -61,17 +61,25 @@ jobs:
           else
             (cd packages/core && yarn npm publish --provenance)
           fi
-      - name: Regenerate lockfiles against the published core
+      # The packument URL a pre-publish guard fetched stays stale in npm's
+      # cache for the registry's max-age=300; the per-version URL is a cache
+      # key nothing touched before the publish, so it answers current state.
+      # When it answers, the regen's --prefer-online refetch sees the same
+      # edge's packument.
+      - name: Wait for the published core to resolve on the registry
         run: |
           version="$(jq -r .version .claude-plugin/marketplace.json)"
-          for attempt in 1 2 3 4 5; do
-            if node .github/scripts/set-version.mjs "$version"; then
-              exit 0
-            fi
-            echo "registry has not resolved @v1nvn/agentic-core@$version yet (attempt $attempt); retrying in 30s"
-            sleep 30
+          escaped="$(printf '%s' '@v1nvn/agentic-core' | jq -sRr @uri)"
+          for attempt in $(seq 1 60); do
+            curl -fsS "https://registry.npmjs.org/${escaped}/${version}" >/dev/null && exit 0
+            echo "@v1nvn/agentic-core@$version not on the registry yet (attempt ${attempt}/60); retrying in 10s"
+            sleep 10
           done
+          echo "::error::@v1nvn/agentic-core@$version never resolved on the registry"
           exit 1
+
+      - name: Regenerate lockfiles against the published core
+        run: node .github/scripts/set-version.mjs "$(jq -r .version .claude-plugin/marketplace.json)"
       - name: Check package versions ride the repo version
         run: node .github/scripts/set-version.mjs --check
       - name: Commit and push the bump

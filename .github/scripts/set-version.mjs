@@ -169,16 +169,19 @@ function apply(version, { locks = true } = {}) {
   // release train bumps with --no-locks, publishes core, then re-applies.
   if (locks) {
     regenLocks();
+    regenYarnLock();
   }
   console.log(
-    `${[SOURCE, ...MIRRORS].length} manifests, ${PINNED_CONFIGS.length} config pins, ${MD_SURFACES.length} md npx surfaces, ${LOCKS.length} lockfiles now at ${version}`,
+    `${[SOURCE, ...MIRRORS].length} manifests, ${PINNED_CONFIGS.length} config pins, ${MD_SURFACES.length} md npx surfaces, ${LOCKS.length} package locks and yarn.lock now at ${version}`,
   );
 }
 
 // Each exec'd home's package-lock.json is what Claude Code's plugin install
 // reads — registry packages only, pinned exact. Only a registry round-trip
 // knows the new version's integrity hash, so the locks regenerate rather
-// than rewrite.
+// than rewrite — with --prefer-online, because the registry serves packuments
+// with cache-control max-age=300 and a fetch from before the publish would
+// otherwise keep answering "no such version".
 const LOCKS = discover(['packages/*/package-lock.json']);
 
 function regenLocks() {
@@ -201,6 +204,7 @@ function regenLocks() {
         [
           'install',
           '--package-lock-only',
+          '--prefer-online',
           '--omit=dev',
           '--ignore-scripts',
           '--no-audit',
@@ -216,6 +220,32 @@ function regenLocks() {
       rmSync(scratch, { recursive: true, force: true });
     }
   }
+}
+
+// The homes pin core by exact registry version, so every bump changes the
+// descriptors yarn.lock binds — an unrefreshed lock fails the next
+// `yarn install --immutable` (YN0028). Update mode rewrites the lock without
+// linking, and the descriptors resolve to the workspace, never the registry,
+// so no publish has to come first.
+function regenYarnLock() {
+  const run = spawnSync('yarn', ['install', '--mode=update-lockfile'], {
+    encoding: 'utf8',
+  });
+  if (run.status !== 0) {
+    fail([`yarn.lock: refresh failed:\n${run.stderr}`]);
+  }
+}
+
+function yarnLockDrift(version) {
+  const contents = readFileSync('yarn.lock', 'utf8');
+  for (const pin of contents.matchAll(
+    /@v1nvn\/[a-z0-9-]+@npm:(\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?)/g,
+  )) {
+    if (pin[1] !== version) {
+      return `yarn.lock: @v1nvn/* descriptor at npm:${pin[1]} != repo version ${version}`;
+    }
+  }
+  return null;
 }
 
 function lockDrift(path, version) {
@@ -287,6 +317,7 @@ if (command === '--check') {
   for (const path of LOCKS) {
     messages.push(lockDrift(path, repo), lockManifestDrift(path));
   }
+  messages.push(yarnLockDrift(repo));
   const errors = messages.filter(Boolean);
   if (errors.length > 0) {
     fail(errors);
