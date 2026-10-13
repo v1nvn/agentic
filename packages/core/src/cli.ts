@@ -1,4 +1,6 @@
-import { Command, Option } from 'commander';
+import { Command, InvalidArgumentError, Option } from 'commander';
+
+import { describeError } from './mcp.ts';
 
 export interface CliOption {
   readonly choices?: readonly string[];
@@ -67,8 +69,20 @@ function addOption(cmd: Command, option: CliOption): void {
   if (option.default !== undefined) {
     built.default(option.default);
   }
-  if (option.parse !== undefined) {
-    built.argParser(option.parse);
+  const { parse } = option;
+  if (parse !== undefined) {
+    // A plain Error from a parse fn skips commander's exitOverride, which is
+    // what records the subcommand for the usage print — wrap it so it rides.
+    built.argParser((value: string) => {
+      try {
+        return parse(value);
+      } catch (err) {
+        if ((err as { code?: string }).code === 'commander.invalidArgument') {
+          throw err;
+        }
+        throw new InvalidArgumentError(describeError(err));
+      }
+    });
   }
   cmd.addOption(built);
 }
@@ -147,7 +161,7 @@ export function parseCli<T = HelpRequested>(
   spec: CliSpec,
   argv: readonly string[],
   onHelp?: CliHelpHook<T>,
-  onUsageError?: (command: Command) => void,
+  onUsageError?: (command: Command, err: Error) => void,
 ): CliInvocation | HelpRequested | T | undefined {
   let invocation: CliInvocation | undefined;
   const program = materialize(spec, found => {
@@ -162,7 +176,8 @@ export function parseCli<T = HelpRequested>(
   } catch (err) {
     if (!(err instanceof HelpRequested)) {
       if (errored !== undefined) {
-        onUsageError?.(errored);
+        const cause = err instanceof Error ? err : new Error(String(err));
+        onUsageError?.(errored, cause);
       }
       return undefined;
     }
@@ -185,7 +200,11 @@ export function helpTextFor(spec: CliSpec, topic: string): string {
   return command.helpInformation();
 }
 
-function usageError(spec: CliSpec, topic?: string): number {
+function usageError(spec: CliSpec, topic?: string, message?: string): number {
+  if (message !== undefined) {
+    // Commander 15 builds its messages with the 'error: ' prefix already in.
+    process.stderr.write(`${message}\n`);
+  }
   process.stderr.write(
     `${helpTextFor(spec, topic === undefined ? spec.name : topic)}\n`,
   );
@@ -212,6 +231,7 @@ export async function runCli(
 ): Promise<number> {
   let asked: undefined | { readonly text: string; readonly topic: string };
   let usageTopic: string | undefined;
+  let usageMessage: string | undefined;
   const parsed = parseCli(
     spec,
     argv,
@@ -219,12 +239,13 @@ export async function runCli(
       asked = { topic, text };
       return 0;
     },
-    command => {
+    (command, err) => {
       usageTopic = command.name();
+      usageMessage = err.message;
     },
   );
   if (parsed === undefined) {
-    return usageError(spec, usageTopic);
+    return usageError(spec, usageTopic, usageMessage);
   }
   if (asked !== undefined) {
     if (onHelp !== undefined) {

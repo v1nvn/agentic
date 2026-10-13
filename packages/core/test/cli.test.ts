@@ -76,6 +76,37 @@ describe('runCli', () => {
     expect(io.err()).not.toContain('Usage: tool [options]');
   });
 
+  it('a parse error on a subcommand option prints the reason and that subcommand usage', async () => {
+    const io = spyStdio();
+    const numeric = (value: string): number => {
+      const n = Number(value);
+      if (!Number.isInteger(n)) {
+        throw new Error('must be an integer');
+      }
+      return n;
+    };
+    const inner = spec().commands![0]!;
+    const withParse: CliSpec = {
+      ...spec(),
+      usageExit: 2,
+      commands: [
+        {
+          ...inner,
+          options: [
+            ...(inner.options ?? []),
+            { flags: '--n <n>', description: 'a number', parse: numeric },
+          ],
+        },
+      ],
+    };
+    expect(await runCli(withParse, ['inner', '--n', 'abc'])).toBe(2);
+    expect(io.err()).toContain(
+      "error: option '--n <n>' argument 'abc' is invalid. must be an integer",
+    );
+    expect(io.err()).toContain('Usage: tool inner');
+    expect(io.err()).not.toContain('Usage: tool [options]');
+  });
+
   it('a bare invocation of a command-bearing spec is a usage error', async () => {
     const io = spyStdio();
     expect(await runCli(spec(), [])).toBe(1);
@@ -84,9 +115,7 @@ describe('runCli', () => {
 
   it('honors the spec usageExit code', async () => {
     spyStdio();
-    expect(
-      await runCli({ ...spec(), usageExit: 2 }, ['--bogus']),
-    ).toBe(2);
+    expect(await runCli({ ...spec(), usageExit: 2 }, ['--bogus'])).toBe(2);
   });
 
   it('prints the spec version on the version flag, exit 0', async () => {
@@ -99,10 +128,10 @@ describe('runCli', () => {
     const io = spyStdio();
     const run = vi.fn();
     expect(
-      await runCli({ ...spec(), commands: [{ ...spec().commands![0]!, run }] }, [
-        '--version',
-        'inner',
-      ]),
+      await runCli(
+        { ...spec(), commands: [{ ...spec().commands![0]!, run }] },
+        ['--version', 'inner'],
+      ),
     ).toBe(0);
     expect(io.out()).toBe('1.2.3\n');
     expect(run).not.toHaveBeenCalled();
@@ -112,7 +141,10 @@ describe('runCli', () => {
     const io = spyStdio();
     const hook = vi.fn(() => 7);
     expect(await runCli(spec(), ['inner', '-h'], hook)).toBe(7);
-    expect(hook).toHaveBeenCalledWith('inner', expect.stringContaining('--key'));
+    expect(hook).toHaveBeenCalledWith(
+      'inner',
+      expect.stringContaining('--key'),
+    );
     expect(io.out()).toBe('');
   });
 
@@ -120,16 +152,12 @@ describe('runCli', () => {
     spyStdio();
     const run = vi.fn(() => 3);
     expect(
-      await runCli({ ...spec(), commands: [{ ...spec().commands![0]!, run }] }, [
-        'inner',
-        'a.md',
-        '--key=v',
-      ]),
+      await runCli(
+        { ...spec(), commands: [{ ...spec().commands![0]!, run }] },
+        ['inner', 'a.md', '--key=v'],
+      ),
     ).toBe(3);
-    expect(run).toHaveBeenCalledWith(
-      { key: 'v', kind: 'a' },
-      ['a.md'],
-    );
+    expect(run).toHaveBeenCalledWith({ key: 'v', kind: 'a' }, ['a.md']);
   });
 
   it('dispatches a root-only spec with its options and positionals', async () => {
@@ -151,7 +179,12 @@ describe('runCli', () => {
     const run = () => {
       throw new Error('boom');
     };
-    expect(await runCli({ ...spec(), commands: [{ ...spec().commands![0]!, run }] }, ['inner'])).toBe(1);
+    expect(
+      await runCli(
+        { ...spec(), commands: [{ ...spec().commands![0]!, run }] },
+        ['inner'],
+      ),
+    ).toBe(1);
     expect(err).toHaveBeenCalledWith('boom');
   });
 
@@ -207,10 +240,15 @@ describe('parseCli', () => {
   it('folds an env-backed option in, flag beating env', () => {
     vi.stubEnv('TOOL_KEY', 'env-key');
     expect(
-      (parseCli(spec(), ['inner', '--key=flag-key']) as { options: Record<string, unknown> }).options.key,
+      (
+        parseCli(spec(), ['inner', '--key=flag-key']) as {
+          options: Record<string, unknown>;
+        }
+      ).options.key,
     ).toBe('flag-key');
     expect(
-      (parseCli(spec(), ['inner']) as { options: Record<string, unknown> }).options.key,
+      (parseCli(spec(), ['inner']) as { options: Record<string, unknown> })
+        .options.key,
     ).toBe('env-key');
     vi.unstubAllEnvs();
   });
@@ -218,7 +256,8 @@ describe('parseCli', () => {
   it('rejects a value outside the choices and keeps the default', () => {
     expect(parseCli(spec(), ['inner', '--kind', 'z'])).toBeUndefined();
     expect(
-      (parseCli(spec(), ['inner']) as { options: Record<string, unknown> }).options.kind,
+      (parseCli(spec(), ['inner']) as { options: Record<string, unknown> })
+        .options.kind,
     ).toBe('a');
   });
 });
