@@ -25,9 +25,16 @@ export function fromLocalPath<T extends { localPath: string }>(
   return { ...rest, html: readHtmlFile(localPath) };
 }
 
+const schemaDefaults = new WeakMap<object, unknown>();
+
 export function withSchemaDefaults<
   T extends { localPath: string },
   I extends FromHtmlInput<T>,
 >(schema: { parse(raw: unknown): T }, input: I): I & T {
-  return { ...schema.parse({ localPath: '' }), ...input };
+  let defaults = schemaDefaults.get(schema);
+  if (defaults === undefined) {
+    defaults = schema.parse({ localPath: '' });
+    schemaDefaults.set(schema, defaults);
+  }
+  return { ...(defaults as T), ...input };
 }
