@@ -6,7 +6,7 @@ import { describeError, shutdownOnSignals } from '@v1nvn/agentic-core';
 import { createServer } from './server.ts';
 
 if (process.argv[2] === 'extract') {
-  void import('./cli.js')
+  void import('./cli.ts')
     .then(m => m.runExtract(process.argv.slice(2)))
     .then(code => {
       // eslint-disable-next-line n/no-process-exit

@@ -69,6 +69,13 @@ describe('runCli', () => {
     expect(io.out()).toBe('');
   });
 
+  it('a bad option on a subcommand prints that subcommand usage, not the root listing', async () => {
+    const io = spyStdio();
+    expect(await runCli(spec(), ['inner', '--bogus'])).toBe(1);
+    expect(io.err()).toContain('Usage: tool inner');
+    expect(io.err()).not.toContain('Usage: tool [options]');
+  });
+
   it('a bare invocation of a command-bearing spec is a usage error', async () => {
     const io = spyStdio();
     expect(await runCli(spec(), [])).toBe(1);

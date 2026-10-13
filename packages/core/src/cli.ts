@@ -122,7 +122,10 @@ export function buildCli(spec: CliSpec): Command {
   return materialize(spec);
 }
 
-function quiet(command: Command): void {
+function quiet(
+  command: Command,
+  onUsageError: (command: Command) => void,
+): void {
   command.configureOutput({
     writeOut: () => undefined,
     writeErr: () => undefined,
@@ -132,25 +135,35 @@ function quiet(command: Command): void {
     if (code === 'commander.help' || code === 'commander.helpDisplayed') {
       throw new HelpRequested(command);
     }
+    onUsageError(command);
     throw err;
   });
-  command.commands.forEach(quiet);
+  command.commands.forEach(c => {
+    quiet(c, onUsageError);
+  });
 }
 
 export function parseCli<T = HelpRequested>(
   spec: CliSpec,
   argv: readonly string[],
   onHelp?: CliHelpHook<T>,
+  onUsageError?: (command: Command) => void,
 ): CliInvocation | HelpRequested | T | undefined {
   let invocation: CliInvocation | undefined;
   const program = materialize(spec, found => {
     invocation = found;
   });
-  quiet(program);
+  let errored: Command | undefined;
+  quiet(program, command => {
+    errored = command;
+  });
   try {
     program.parse([...argv], { from: 'user' });
   } catch (err) {
     if (!(err instanceof HelpRequested)) {
+      if (errored !== undefined) {
+        onUsageError?.(errored);
+      }
       return undefined;
     }
     return onHelp !== undefined
@@ -172,8 +185,10 @@ export function helpTextFor(spec: CliSpec, topic: string): string {
   return command.helpInformation();
 }
 
-function usageError(spec: CliSpec): number {
-  process.stderr.write(`${helpTextFor(spec, spec.name)}\n`);
+function usageError(spec: CliSpec, topic?: string): number {
+  process.stderr.write(
+    `${helpTextFor(spec, topic === undefined ? spec.name : topic)}\n`,
+  );
   return spec.usageExit ?? 1;
 }
 
@@ -196,12 +211,20 @@ export async function runCli(
   onHelp?: CliHelpHook<CliResult>,
 ): Promise<number> {
   let asked: undefined | { readonly text: string; readonly topic: string };
-  const parsed = parseCli(spec, argv, (topic, text) => {
-    asked = { topic, text };
-    return 0;
-  });
+  let usageTopic: string | undefined;
+  const parsed = parseCli(
+    spec,
+    argv,
+    (topic, text) => {
+      asked = { topic, text };
+      return 0;
+    },
+    command => {
+      usageTopic = command.name();
+    },
+  );
   if (parsed === undefined) {
-    return usageError(spec);
+    return usageError(spec, usageTopic);
   }
   if (asked !== undefined) {
     if (onHelp !== undefined) {
