@@ -1,4 +1,4 @@
-import { resolveCellText } from './cell-text.js';
+import { resolveCellText } from './cell-text.ts';
 
 export type TableFormat = 'csv' | 'gfm' | 'json';
 

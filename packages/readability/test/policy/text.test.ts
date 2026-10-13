@@ -3,7 +3,7 @@ import {
   countWords,
   estimateTokens,
   nonEmpty,
-} from '../../src/policy/text.js';
+} from '../../src/policy/text.ts';
 
 describe('estimateTokens', () => {
   it('returns chars/4 for prose and names the estimator', () => {

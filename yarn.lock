@@ -736,7 +736,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@v1nvn/agentic-core@workspace:^, @v1nvn/agentic-core@workspace:packages/core":
+"@v1nvn/agentic-core@npm:0.44.0, @v1nvn/agentic-core@workspace:^, @v1nvn/agentic-core@workspace:packages/core":
   version: 0.0.0-use.local
   resolution: "@v1nvn/agentic-core@workspace:packages/core"
   dependencies:
@@ -750,11 +750,10 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@v1nvn/md@workspace:packages/md"
   dependencies:
-    "@v1nvn/agentic-core": "workspace:^"
-    vite: "npm:^8.1.4"
+    "@v1nvn/agentic-core": "npm:0.44.0"
     vitest: "npm:^4.1.10"
   bin:
-    md-send: dist/index.js
+    md-send: ./src/index.ts
   languageName: unknown
   linkType: soft
 
@@ -803,11 +802,10 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@v1nvn/rm@workspace:packages/rm"
   dependencies:
-    "@v1nvn/agentic-core": "workspace:^"
-    vite: "npm:^8.1.4"
+    "@v1nvn/agentic-core": "npm:0.44.0"
     vitest: "npm:^4.1.10"
   bin:
-    rm-send: dist/index.js
+    rm-send: ./src/index.ts
   languageName: unknown
   linkType: soft
 
@@ -827,11 +825,10 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@v1nvn/tokens@workspace:packages/tokens"
   dependencies:
-    "@v1nvn/agentic-core": "workspace:^"
-    vite: "npm:^8.1.4"
+    "@v1nvn/agentic-core": "npm:0.44.0"
     vitest: "npm:^4.1.10"
   bin:
-    tokens-report: dist/index.js
+    tokens-report: ./src/index.ts
   languageName: unknown
   linkType: soft
 
@@ -839,11 +836,10 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@v1nvn/zai@workspace:packages/zai"
   dependencies:
-    "@v1nvn/agentic-core": "workspace:^"
-    vite: "npm:^8.1.4"
+    "@v1nvn/agentic-core": "npm:0.44.0"
     vitest: "npm:^4.1.10"
   bin:
-    zai-usage: dist/index.js
+    zai-usage: ./src/index.ts
   languageName: unknown
   linkType: soft
 

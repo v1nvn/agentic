@@ -52,30 +52,33 @@ name or shape wins.
   (`agents/<name>.md`) when a body is a dispatched role's whole law — and a
   hooks/mcp config. Four homes are mods (`rm`, `md`, `zai`, `tokens`): a hooks
   module registers the home's commands, each `command.run` exec'ing the home's
-  shipped CLI and answering `{}`. One yarn workspace at the root
-  (`"workspaces": ["packages/*"]`); each package with npm code builds with
-  vite and publishes to `@v1nvn/*`. A home without a `package.json`
-  (`enhansome`, `todo`) holds only its plugin surfaces. Every
-  `npx -y @v1nvn/*` line in the repo, config or `.md` surface, is
-  version-pinned to the train by `set-version.mjs` (an unpinned npx resolves
-  "latest" through the npx cache and runs a stale CLI). Synced artifacts —
-  `packages/statusline/render.mjs` and every mod home's `bin/`
-  (`packages/rm/bin/send.mjs`, `packages/md/bin/send.mjs`,
-  `packages/zai/bin/usage.mjs`, `packages/tokens/bin/report.mjs`) — are
-  committed builds the root `yarn build` syncs from the package dist, for code
-  a surface execs or imports from the installed plugin folder.
+  CLI source (`node ${$.plugin.root}/src/index.ts`) and answering `{}`. One
+  yarn workspace at the root (`"workspaces": ["packages/*"]`); every package
+  publishes to `@v1nvn/*` as source — node ≥23.6 runs the `.ts` entries, no
+  build step, no dist, nothing synced. A home without a `package.json`
+  (`enhansome`, `todo`) holds only its plugin surfaces. Every `npx -y
+  @v1nvn/*` line and every core dependency pin, config, manifest or `.md`
+  surface, is version-pinned to the train by `set-version.mjs`, which also
+  regenerates the per-home lockfiles (an unpinned npx resolves "latest"
+  through the npx cache and runs a stale CLI). Each exec'd home's
+  `package.json` + `package-lock.json` declare `@v1nvn/agentic-core` as an
+  exact registry pin — Claude Code installs those dependencies into the
+  plugin folder when it caches the plugin, which is what resolves core there.
 - **A mod's sources are its package home — `.ts`/`.tsx` the engine loads directly,
   no bundler, no artifact** (module at `hooks/`, island in `src/` or the hooks
-  module, engine tests at `tests/`). A hooks module imports only plugin-relative
-  files and the bare `claude-code` (types + state helpers) — never an npm
-  package — so the engine island is self-contained. Shared pure code has one
-  home, core: the npm side imports it, and the build stamps it into each island
-  and engine-test tree as committed copies — the bins' discipline, one edit
-  home, never a hand-synced mirror. Types come from the vendored
-  `types/claude-code.d.ts` (engine-written, version-stamped on its first line) via
-  `tsconfig.mods.json`; regenerate it from `.claude-plugin/types/` after an engine
-  update. `claude plugin validate <plugin root>` and `claude plugin test <plugin
-  root>` are the mod's gates; read `references/mods.md` before writing one.
+  module, engine tests at `tests/`). A hooks module — and every file in its
+  import graph, tests included — imports only plugin-relative files and the
+  bare `claude-code` (types + state helpers), never an npm package: the
+  engine's island loader enforces this at every graph depth. So each home owns
+  its island glue (`hooks/support.ts`: the exec door, pane chrome, the line an
+  exec shows) and its tests' stub; the CLIs emit finished ink-tagged lines
+  over their `--json` door and the island only accepts and renders them —
+  formatting never lives where the island cannot import core from. Types come
+  from the vendored `types/claude-code.d.ts` (engine-written, version-stamped
+  on its first line) via `tsconfig.mods.json`; regenerate it from
+  `.claude-plugin/types/` after an engine update. `claude plugin validate
+  <plugin root>` and `claude plugin test <plugin root>` are the mod's gates;
+  read `references/mods.md` before writing one.
 - **A mod command's name is `<plugin>-<action>`, hyphenated** — the registered
   name is the whole invocation (`/tokens-usage`, `/rm-send`), so the name carries
   its own scope and never collides with a bare-word built-in.
@@ -97,7 +100,8 @@ name or shape wins.
 ## Invariants
 
 - **Islands draw, processes compute.** Every real-compute surface is a real process —
-  an MCP server, the statusline resolver, or a mod exec'ing its plugin's shipped CLI through the session's Bash tool. A mod island never bulk-reads through `$.fs`
+  an MCP server, the statusline renderer, or a mod exec'ing its plugin's CLI
+  source through the session's Bash tool. A mod island never bulk-reads through `$.fs`
   (`$.fs.read` rejects over 4 MiB, no range form).
 - **Shade glyphs draw as nothing on the owner's terminal** — `░` `▒` `▓` and kin
   never render, so a terminal surface never depends on them for anything that must
@@ -107,6 +111,9 @@ name or shape wins.
 - **MCP server `instructions` stay ≤ 2048 chars** — Claude Code truncates the rest silently,
   and a test pins the cap per server. Instructions carry routing (which tool when); each
   tool's description and schema carry its contract.
+- **npx pays a resolver spawn on every run** — fine for once-a-session surfaces
+  (MCP server startup), never on a hot path (a mod's command exec, the statusline
+  render).
 
 ## MCP servers (omlx, readability)
 

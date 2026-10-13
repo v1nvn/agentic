@@ -1,8 +1,8 @@
 /**
- * The engine-test kit: the stub session every mod home's tests ride, stamped
- * beside them under `tests/kit/`. It answers the nouns a mod's hooks call —
- * command registration, logs, panes, the Bash exec — from memory the way the
- * testing mock answers clock, store and env, and records what crossed.
+ * The md island's own support: the one line an exec shows and the command
+ * descriptor its registration walks. The engine's island loader imports its
+ * own files by relative path alone, so what a home's hooks run lives in the
+ * home; process-side surfaces import @v1nvn/agentic-core instead.
  */
 
 export type ExecAnswer =

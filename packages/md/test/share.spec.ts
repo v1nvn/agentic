@@ -1,6 +1,6 @@
 import { inflateSync } from 'node:zlib';
 import { describe, expect, it } from 'vitest';
-import { encodeShare, shareUrl, statusLine } from '../src/share.js';
+import { encodeShare, shareUrl, statusLine } from '../src/share.ts';
 
 describe('encodeShare', () => {
   // Verified against the live viewer: encodeMarkdownForShare("Hi").

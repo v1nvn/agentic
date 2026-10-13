@@ -1,4 +1,4 @@
-import { absolutize } from '../pipeline/urls.js';
+import { absolutize } from '../pipeline/urls.ts';
 
 export interface PaginationSignal {
   readonly nextUrl?: string;

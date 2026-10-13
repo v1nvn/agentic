@@ -1,9 +1,9 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 
-import { loadConfig } from './config.js';
-import { registerAskStructuredTool } from './tools/ask_structured.js';
-import { registerAskTool } from './tools/ask.js';
-import { registerModelsTool } from './tools/models.js';
+import { loadConfig } from './config.ts';
+import { registerAskStructuredTool } from './tools/ask_structured.ts';
+import { registerAskTool } from './tools/ask.ts';
+import { registerModelsTool } from './tools/models.ts';
 
 export interface ToolHandle {
   remove(): void;

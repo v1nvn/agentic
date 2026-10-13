@@ -1,24 +1,24 @@
 import {
   extractMetadataDocumentFromHtml,
   extractMetadataHandler,
-} from '../../src/tools/extract_metadata.js';
+} from '../../src/tools/extract_metadata.ts';
 import {
   extractArticleFromHtml,
   extractHandler,
-} from '../../src/tools/extract.js';
+} from '../../src/tools/extract.ts';
 import {
   htmlToMarkdownFromHtml,
   htmlToMarkdownHandler,
-} from '../../src/tools/html_to_markdown.js';
+} from '../../src/tools/html_to_markdown.ts';
 import {
   extractMetadataOutput,
   outputSchema,
   outlineOutput,
-} from '../../src/tools/output-schema.js';
+} from '../../src/tools/output-schema.ts';
 import {
   outlineDocumentFromHtml,
   outlineHandler,
-} from '../../src/tools/outline.js';
+} from '../../src/tools/outline.ts';
 
 const SPA_HTML =
   '<html><head><title>Post</title></head><body><article><h1>Title</h1>' +

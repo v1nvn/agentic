@@ -3,22 +3,22 @@ import { dirname, join } from 'node:path';
 
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { helpFor, parseArgs } from '../src/cli.js';
-import { configure, type ConfigureOptions } from '../src/configure.js';
+import { helpFor, parseArgs } from '../src/cli.ts';
+import { configure, type ConfigureOptions } from '../src/configure.ts';
 import {
   backupPath,
   mainKeyValue,
   subagentKeyValue,
   renderMjsPath,
-} from '../src/resolve.js';
-import { nodeOnPath, status } from '../src/status.js';
-import { THEME_NAMES, type ThemeName } from '../src/themes.js';
+} from '../src/resolve.ts';
+import { nodeOnPath, status } from '../src/status.ts';
+import { THEME_NAMES, type ThemeName } from '../src/themes.ts';
 import {
   createHomes,
   plantRendererRecord,
   writeCapture,
   writeSettings,
-} from './fixtures.js';
+} from './fixtures.ts';
 
 const BOTH_FOREIGN_SEED = `{
   "model": "opus-4",
@@ -320,7 +320,7 @@ describe('status: the renderer resolves the install record (r2)', () => {
     const result = status({ home });
 
     expect(result.rows).toContain(
-      'renderer: unresolved — no statusline@agentic install with a render.mjs — fix: claude plugin install statusline@agentic',
+      'renderer: unresolved — no statusline@agentic install with a src/render/entry.ts — fix: claude plugin install statusline@agentic',
     );
     expect(result.healthy).toBe(false);
   });

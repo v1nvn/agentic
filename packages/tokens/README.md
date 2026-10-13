@@ -77,13 +77,13 @@ and re-vendor `types/claude-code.d.ts` (repo root) from the engine-laid
 | `src/format.ts`      | the report both doors render                                                 |
 | `src/text.ts`        | line model + fixed-width primitives — tokens' internal home |
 | `src/top.ts`         | the `/tokens-top` pane layout — ink-tagged segments from engine pushes       |
-| `bin/report.mjs`     | the standalone build the mod execs — committed, synced by `yarn build`       |
+| `src/index.ts` | the CLI source the mod execs — node runs it directly, nothing built |
 
 ## Contracts
 
 - Reads transcripts only; writes nothing.
 - The island never reads transcripts (`$.fs.read` caps at 4 MiB); every number
-  is one `node <plugin root>/bin/report.mjs usage --json` exec through the
+  is one `node <plugin root>/src/index.ts usage --json` exec through the
   session's Bash tool — the same scan `npx tokens-report` runs. First `/tokens-usage`
   may ask to allow that command once; allow and it is remembered.
 - The mod's surface (the pane) is drawn by the engine and never enters the

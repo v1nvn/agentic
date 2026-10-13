@@ -8,10 +8,10 @@
 import { ResourceTemplate } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { createHash } from 'node:crypto';
 
-import type { ToolHandle } from './server.js';
-import type { ExtractFromHtmlInput } from './tools/schemas.js';
+import type { ToolHandle } from './server.ts';
+import type { ExtractFromHtmlInput } from './tools/schemas.ts';
 
-import { presetGeneration } from './policy/presets.js';
+import { presetGeneration } from './policy/presets.ts';
 
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type {

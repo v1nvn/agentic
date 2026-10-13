@@ -2,7 +2,7 @@
 // the writer validates through layoutItems, the status row collects through
 // layoutItemsOf, the renderers paint through parseLayout.
 
-import { warn } from './items.js';
+import { warn } from './items.ts';
 
 export function parseClusters(layout: string): string[][] {
   const clusters: string[][] = [];

@@ -1,13 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { askStructuredHandler } from '../src/tools/ask_structured.js';
+import { askStructuredHandler } from '../src/tools/ask_structured.ts';
 import {
   type FetchStub,
   jsonResponse,
   MISSING_SETTINGS,
   stubFetch,
   textOf,
-} from './helpers.js';
+} from './helpers.ts';
 
 let stub: FetchStub;
 

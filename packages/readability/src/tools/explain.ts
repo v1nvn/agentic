@@ -1,16 +1,16 @@
 import { z } from 'zod';
 
-import type { ExplainReport } from '../policy/explain.js';
-import type { ToolHandle } from '../server.js';
+import type { ExplainReport } from '../policy/explain.ts';
+import type { ToolHandle } from '../server.ts';
 
-import { tool } from '../handler.js';
-import { buildExplainReport } from '../policy/explain.js';
-import { fromLocalPath, withSchemaDefaults } from './html-source.js';
+import { tool } from '../handler.ts';
+import { buildExplainReport } from '../policy/explain.ts';
+import { fromLocalPath, withSchemaDefaults } from './html-source.ts';
 import {
   type FromHtmlInput,
   localPathField,
   selectorsSchema,
-} from './schemas.js';
+} from './schemas.ts';
 
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';

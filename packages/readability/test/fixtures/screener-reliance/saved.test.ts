@@ -2,11 +2,11 @@ import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { buildDocument } from '../../../src/pipeline/dom.js';
-import { detectList } from '../../../src/policy/list-detector.js';
-import { extractArticleFromHtml } from '../../../src/tools/extract.js';
-import { extractTablesFromHtml } from '../../../src/tools/extract_tables.js';
-import type { StructuredContent } from '../../../src/tools/output-schema.js';
+import { buildDocument } from '../../../src/pipeline/dom.ts';
+import { detectList } from '../../../src/policy/list-detector.ts';
+import { extractArticleFromHtml } from '../../../src/tools/extract.ts';
+import { extractTablesFromHtml } from '../../../src/tools/extract_tables.ts';
+import type { StructuredContent } from '../../../src/tools/output-schema.ts';
 
 // Slimmed rendered capture of a screener.in company page (fundamentals tables):
 // https://www.screener.in/company/RELIANCE/consolidated/

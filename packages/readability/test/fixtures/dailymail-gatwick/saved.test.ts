@@ -2,10 +2,10 @@ import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { buildDocument } from '../../../src/pipeline/dom.js';
-import { detectList } from '../../../src/policy/list-detector.js';
-import { extractArticleFromHtml } from '../../../src/tools/extract.js';
-import type { StructuredContent } from '../../../src/tools/output-schema.js';
+import { buildDocument } from '../../../src/pipeline/dom.ts';
+import { detectList } from '../../../src/policy/list-detector.ts';
+import { extractArticleFromHtml } from '../../../src/tools/extract.ts';
+import type { StructuredContent } from '../../../src/tools/output-schema.ts';
 
 // Slimmed rendered capture of a free (unwalled) Daily Mail article:
 // https://www.dailymail.com/news/article-16105629/All-flights-grounded-Gatwick-airport-runway-closed-plane-suffers-technical-issue.html

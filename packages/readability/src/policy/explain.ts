@@ -1,21 +1,21 @@
 import { Readability } from '@mozilla/readability';
 
-import type { GatingSignal } from './gating.js';
-import type { PaginationSignal } from './pagination.js';
+import type { GatingSignal } from './gating.ts';
+import type { PaginationSignal } from './pagination.ts';
 
-import { buildDocument } from '../pipeline/dom.js';
+import { buildDocument } from '../pipeline/dom.ts';
 import {
   applySelectors,
   normalizeDocument,
   resolveLazyImages,
   type SelectorScope,
-} from '../pipeline/normalize.js';
-import { isReaderable } from '../pipeline/readability.js';
-import { resolveReadabilityOptions } from '../pipeline/resolver.js';
-import { assembleDiagnostics } from './diagnostics.js';
-import { detectGating } from './gating.js';
-import { detectPagination } from './pagination.js';
-import { describeSelector } from './sibling-scan.js';
+} from '../pipeline/normalize.ts';
+import { isReaderable } from '../pipeline/readability.ts';
+import { resolveReadabilityOptions } from '../pipeline/resolver.ts';
+import { assembleDiagnostics } from './diagnostics.ts';
+import { detectGating } from './gating.ts';
+import { detectPagination } from './pagination.ts';
+import { describeSelector } from './sibling-scan.ts';
 
 // Readability stamps `{ contentScore }` on candidate DOM nodes under a
 // `readability` expando (Readability.js:894/1272/1288). The property is

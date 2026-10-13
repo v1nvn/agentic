@@ -1,10 +1,10 @@
 import { expect, mock, test } from 'claude-code/testing';
 
-import type { ScanResult } from '../src/aggregate.js';
+import type { ScanResult } from '../src/aggregate.ts';
 
-import { reportLines } from '../src/format.js';
-import { ymd } from '../src/text.js';
-import { stubEngine } from './kit/stub.js';
+import { reportLines } from '../src/format.ts';
+import { ymd } from '../src/text.ts';
+import { stubEngine } from './stub.ts';
 
 import type { CommandRunResult } from 'claude-code';
 import type { Engine } from 'claude-code/testing';
@@ -63,7 +63,7 @@ async function runUsage($: Engine): Promise<CommandRunResult> {
 
 test('/tokens-usage execs the shipped CLI into the pane; startup draws and execs nothing', async ($, on) => {
   mock.clock(on);
-  const world = stubEngine(on, { stdout: JSON.stringify(report) });
+  const world = stubEngine(on, { stdout: JSON.stringify({ lines: LINES }) });
 
   await startSession($);
   expect(world.commands).toEqual([]);
@@ -71,7 +71,7 @@ test('/tokens-usage execs the shipped CLI into the pane; startup draws and execs
   const answer = await runUsage($);
   expect(answer.text).toBeUndefined();
   expect(world.commands).toEqual([
-    expect.stringMatching(/^node .*\/bin\/report\.mjs usage --json$/),
+    expect.stringMatching(/^node .*\/src\/index\.ts usage --json$/),
   ]);
   expect(world.opens).toEqual([{ id: 'tokens-usage', rows: LINES.length + 2 }]);
 
@@ -89,7 +89,7 @@ test('/tokens-usage execs the shipped CLI into the pane; startup draws and execs
 
 test('the pane re-scans on its refresh tick only while open; a failed rescan keeps the last good state', async ($, on) => {
   const clock = mock.clock(on);
-  const world = stubEngine(on, { stdout: JSON.stringify(report) });
+  const world = stubEngine(on, { stdout: JSON.stringify({ lines: LINES }) });
 
   await startSession($);
   await clock.advance(REFRESH_MS);

@@ -15,7 +15,7 @@ import {
   rgb,
   textOf,
   toSgr,
-} from '../src/draw.js';
+} from '../src/draw.ts';
 
 const root = fileURLToPath(new URL('../../..', import.meta.url));
 const drawPath = join(root, 'packages/core/src/draw.ts');

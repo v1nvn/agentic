@@ -19,10 +19,10 @@ import {
   PRESETS_DIR_ENV,
   resolvePresetsDir,
   savePreset,
-} from '../src/preset-cache.js';
-import { presetForSite, resetPresets } from '../src/policy/presets.js';
-import { extractArticleFromHtml } from '../src/tools/extract.js';
-import type { StructuredContent } from '../src/tools/output-schema.js';
+} from '../src/preset-cache.ts';
+import { presetForSite, resetPresets } from '../src/policy/presets.ts';
+import { extractArticleFromHtml } from '../src/tools/extract.ts';
+import type { StructuredContent } from '../src/tools/output-schema.ts';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const fixturesDir = join(here, 'fixtures');

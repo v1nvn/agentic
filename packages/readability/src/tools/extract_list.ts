@@ -1,20 +1,20 @@
-import type { ToolHandle } from '../server.js';
+import type { ToolHandle } from '../server.ts';
 
-import { tool } from '../handler.js';
-import { buildDocument } from '../pipeline/dom.js';
-import { applySelectors } from '../pipeline/normalize.js';
+import { tool } from '../handler.ts';
+import { buildDocument } from '../pipeline/dom.ts';
+import { applySelectors } from '../pipeline/normalize.ts';
 import {
   detectList,
   type ListDetectionResult,
   type ListItem,
-} from '../policy/list-detector.js';
-import { fromLocalPath } from './html-source.js';
-import { extractListOutputShape } from './output-schema.js';
+} from '../policy/list-detector.ts';
+import { fromLocalPath } from './html-source.ts';
+import { extractListOutputShape } from './output-schema.ts';
 import {
   type ExtractListFromHtmlInput,
   extractListInputSchema,
   extractListInputShape,
-} from './schemas.js';
+} from './schemas.ts';
 
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';

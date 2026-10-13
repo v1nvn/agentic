@@ -45,11 +45,11 @@ export async function sampleText(
 // negotiated in prose: the prompt demands strict JSON, and the reply is
 // tolerated past code fences before the caller's schema takes over.
 export class SuggestParseError extends Error {
-  constructor(
-    message: string,
-    readonly rawText: string,
-  ) {
+  readonly rawText: string;
+
+  constructor(message: string, rawText: string) {
     super(message);
+    this.rawText = rawText;
   }
 }
 

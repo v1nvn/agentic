@@ -2,8 +2,8 @@ import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { extractMetadataDocumentFromHtml } from '../../../src/tools/extract_metadata.js';
-import type { ExtractMetadataStructuredContent } from '../../../src/tools/output-schema.js';
+import { extractMetadataDocumentFromHtml } from '../../../src/tools/extract_metadata.ts';
+import type { ExtractMetadataStructuredContent } from '../../../src/tools/output-schema.ts';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const fixturePath = join(here, 'saved.html');

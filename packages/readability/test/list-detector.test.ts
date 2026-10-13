@@ -4,10 +4,10 @@ import { fileURLToPath } from 'node:url';
 
 import { describe, expect, it } from 'vitest';
 
-import { detectList } from '../src/policy/list-detector.js';
-import { buildDocument } from '../src/pipeline/dom.js';
-import { extractListFromHtml } from '../src/tools/extract_list.js';
-import type { ExtractListStructuredContent } from '../src/tools/output-schema.js';
+import { detectList } from '../src/policy/list-detector.ts';
+import { buildDocument } from '../src/pipeline/dom.ts';
+import { extractListFromHtml } from '../src/tools/extract_list.ts';
+import type { ExtractListStructuredContent } from '../src/tools/output-schema.ts';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const fixturesDir = join(here, 'fixtures');

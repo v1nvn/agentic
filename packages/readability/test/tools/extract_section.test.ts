@@ -1,8 +1,8 @@
 import {
   extractSectionFromHtml,
   extractSectionHandler,
-} from '../../src/tools/extract_section.js';
-import { outputSchema } from '../../src/tools/output-schema.js';
+} from '../../src/tools/extract_section.ts';
+import { outputSchema } from '../../src/tools/output-schema.ts';
 
 const ORIGIN = 'https://example.com/docs';
 

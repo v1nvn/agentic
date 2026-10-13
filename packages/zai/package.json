@@ -1,21 +1,19 @@
 {
   "name": "@v1nvn/zai",
   "version": "0.44.0",
-  "description": "GLM Coding Plan usage and quota report — the zai-usage CLI behind the zai plugin.",
+  "description": "Query GLM Coding Plan quota and usage — the zai-usage CLI behind the zai plugin.",
   "type": "module",
   "bin": {
-    "zai-usage": "dist/index.js"
+    "zai-usage": "./src/index.ts"
   },
   "scripts": {
-    "build": "vite build && vite build --mode usage",
     "test": "vitest run",
     "test:watch": "vitest"
   },
   "keywords": [
     "glm",
-    "zai",
-    "claude-code",
-    "usage"
+    "zhipu",
+    "claude-code"
   ],
   "author": {
     "name": "v1nvn",
@@ -25,22 +23,21 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/v1nvn/agentic.git",
-    "directory": "packages/zai"
+    "directory": "packages/rm"
   },
   "files": [
-    "dist"
+    "src"
   ],
   "publishConfig": {
     "access": "public"
   },
   "engines": {
-    "node": ">=22"
+    "node": ">=23.6"
   },
   "dependencies": {
-    "@v1nvn/agentic-core": "workspace:^"
+    "@v1nvn/agentic-core": "0.44.0"
   },
   "devDependencies": {
-    "vite": "^8.1.4",
     "vitest": "^4.1.10"
   }
 }

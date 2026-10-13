@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import type { TopMeasure, TopState } from './top.js';
+import type { TopMeasure, TopState } from './top.ts';
 
-import { renderLines } from './text.js';
-import { emptyTop, fmtDur, topLines } from './top.js';
+import { renderLines } from './text.ts';
+import { emptyTop, fmtDur, topLines } from './top.ts';
 
 const NOW = 1_000 * 3600;
 

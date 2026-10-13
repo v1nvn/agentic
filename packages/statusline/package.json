@@ -3,9 +3,8 @@
   "version": "0.44.0",
   "description": "Browse statusline variants and configure the live status line and agent panel — the statusline CLI behind the statusline plugin.",
   "type": "module",
-  "bin": "dist/index.js",
+  "bin": "./src/index.ts",
   "scripts": {
-    "build": "vite build && vite build --mode render && vite build --mode resolver",
     "test": "vitest run",
     "test:watch": "vitest"
   },
@@ -25,20 +24,19 @@
     "directory": "packages/statusline"
   },
   "files": [
-    "dist",
+    "src",
     "assets"
   ],
   "publishConfig": {
     "access": "public"
   },
   "engines": {
-    "node": ">=22"
+    "node": ">=23.6"
   },
   "dependencies": {
-    "@v1nvn/agentic-core": "workspace:^"
+    "@v1nvn/agentic-core": "0.44.0"
   },
   "devDependencies": {
-    "vite": "^8.1.4",
     "vitest": "^4.1.10"
   }
 }

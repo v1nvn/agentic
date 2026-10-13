@@ -1,5 +1,5 @@
-import { buildDocument } from '../../src/pipeline/dom.js';
-import { extractMath } from '../../src/pipeline/math.js';
+import { buildDocument } from '../../src/pipeline/dom.ts';
+import { extractMath } from '../../src/pipeline/math.ts';
 
 function markers(document: Document): HTMLElement[] {
   return Array.from(document.querySelectorAll('span.rdrm-math'));

@@ -4,33 +4,33 @@ import { dirname, join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import multiTick from '../assets/ticks/multi.json' with { type: 'json' };
-import { configure } from '../src/configure.js';
-import { layoutItems } from '../src/render/layout.js';
+import { configure } from '../src/configure.ts';
+import { layoutItems } from '../src/render/layout.ts';
 import {
   previewSources,
   renderPreview,
   type PreviewRender,
   type PreviewSurfaces,
-} from '../src/payloads.js';
-import { DATA_DIR } from '../src/render/capture.js';
-import { ITEMS } from '../src/render/index.js';
-import { mainKeyValue, subagentKeyValue } from '../src/resolve.js';
-import { type ThemeName } from '../src/themes.js';
+} from '../src/payloads.ts';
+import { DATA_DIR } from '../src/render/capture.ts';
+import { ITEMS } from '../src/render/index.ts';
+import { mainKeyValue, subagentKeyValue } from '../src/resolve.ts';
+import { type ThemeName } from '../src/themes.ts';
 import {
   createWizard,
   opensWizard,
   type WizardDeps,
   type WizardOutcome,
   type WizardOptions,
-} from '../src/wizard.js';
+} from '../src/wizard.ts';
 import {
   THEMES,
   createHomes,
   settingsCommand,
   settingsPath,
   writeSettings,
-} from './fixtures.js';
-import { DEFAULT_NOW } from './runtime.js';
+} from './fixtures.ts';
+import { DEFAULT_NOW } from './runtime.ts';
 
 const THEME_NAMES = Object.keys(THEMES) as ThemeName[];
 const MULTI_TICK = multiTick as unknown as {

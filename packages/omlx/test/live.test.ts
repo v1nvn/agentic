@@ -10,7 +10,7 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import { describe, expect, it } from 'vitest';
 
-import { createServer } from '../src/server.js';
+import { createServer } from '../src/server.ts';
 
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 

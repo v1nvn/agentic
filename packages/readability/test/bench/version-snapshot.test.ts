@@ -4,7 +4,7 @@ import { join } from 'node:path';
 
 import { expect, it } from 'vitest';
 
-import { snapshotFixtures } from './version-snapshot.js';
+import { snapshotFixtures } from './version-snapshot.ts';
 
 const documentationGolden = readFileSync(
   join(import.meta.dirname, '../fixtures/documentation/saved.golden.md'),

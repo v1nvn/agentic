@@ -13,7 +13,7 @@ export function usageSpec(run?: CliRun): CliSpec {
         options: [
           {
             flags: '--json',
-            description: 'print the ScanResult as JSON for the tokens mod',
+            description: 'print the report lines as JSON for the tokens mod',
           },
         ],
         run,

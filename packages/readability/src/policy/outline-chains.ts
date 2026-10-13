@@ -1,12 +1,12 @@
-import type { SelectorScope } from '../pipeline/normalize.js';
+import type { SelectorScope } from '../pipeline/normalize.ts';
 
-import { buildDocument } from '../pipeline/dom.js';
+import { buildDocument } from '../pipeline/dom.ts';
 import {
   applySelectors,
   normalizeDocument,
   resolveLazyImages,
-} from '../pipeline/normalize.js';
-import { isGeneratedIdentifier } from './identifiers.js';
+} from '../pipeline/normalize.ts';
+import { isGeneratedIdentifier } from './identifiers.ts';
 
 // Step-0 measured thresholds: 200 own chars is the chain view that produced a
 // working proposal at ~630 tokens, and the debris that view misses (video

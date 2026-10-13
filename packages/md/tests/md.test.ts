@@ -1,6 +1,6 @@
 import { expect, test } from 'claude-code/testing';
 
-import { stubEngine } from './kit/stub.js';
+import { stubEngine } from './stub.ts';
 
 import type { CommandRunResult } from 'claude-code';
 import type { Engine } from 'claude-code/testing';
@@ -49,7 +49,7 @@ test('an md-edit run execs the CLI plain, reports its stdout as one dim line, an
   expect(answer.text).toBeUndefined();
   expect(answer.context).toBeUndefined();
   expect(world.commands).toEqual([
-    expect.stringMatching(/^node .*\/bin\/send\.mjs$/),
+    expect.stringMatching(/^node .*\/src\/index\.ts$/),
   ]);
   expect(world.logs).toEqual([SENT]);
 });
@@ -63,8 +63,8 @@ test('an md-view run adds the --view flag — the two commands are distinct exec
   expect(answer.text).toBeUndefined();
   expect(answer.context).toBeUndefined();
   expect(world.commands).toEqual([
-    expect.stringMatching(/^node .*\/bin\/send\.mjs$/),
-    expect.stringMatching(/^node .*\/bin\/send\.mjs --view$/),
+    expect.stringMatching(/^node .*\/src\/index\.ts$/),
+    expect.stringMatching(/^node .*\/src\/index\.ts --view$/),
   ]);
   expect(world.logs).toEqual([SENT, SENT]);
 });
@@ -76,7 +76,7 @@ test('a refused exec reports the refusal, answers nothing, no crash', async ($, 
   const answer = await run($, 'md-edit');
   expect(answer.text).toBeUndefined();
   expect(world.commands).toEqual([
-    expect.stringMatching(/^node .*\/bin\/send\.mjs$/),
+    expect.stringMatching(/^node .*\/src\/index\.ts$/),
   ]);
   expect(world.logs).toEqual(['permission denied by the user']);
 });

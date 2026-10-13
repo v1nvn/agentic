@@ -17,10 +17,10 @@ import {
   yellow,
 } from '@v1nvn/agentic-core/draw';
 
-import type { GitFacts } from './git.js';
-import type { Row } from './payload.js';
+import type { GitFacts } from './git.ts';
+import type { Row } from './payload.ts';
 
-import { fmtDuration, fmtFixed, fmtK, fmtM, pad2 } from './awk.js';
+import { fmtDuration, fmtFixed, fmtK, fmtM, pad2 } from './awk.ts';
 
 export interface SegmentInput {
   readonly git: GitFacts;

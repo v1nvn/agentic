@@ -1,25 +1,24 @@
 /**
  * The tokens mod. /tokens-usage opens the account report as a pane — one
- * bin/report.mjs --json exec through the exec/accept/parse door, drawn as
- * the CLI's own ink-tagged lines from src/format.ts and re-scanned on its
- * refresh tick while the pane stays open. /tokens-top draws the live session
- * — engine-pushed measures, chunks, the agent roster — no exec, one aging tick.
+ * src/index.ts usage --json exec through the exec/accept/parse door, the
+ * CLI's finished ink-tagged lines accepted and rendered as they came, and
+ * re-scanned on its refresh tick while the pane stays open. /tokens-top
+ * draws the live session — engine-pushed measures, chunks, the agent roster
+ * — no exec, one aging tick.
  */
 
 import { atom, read, update } from 'claude-code';
 
-import type { ScanResult } from '../src/aggregate.js';
-import type { Line } from '../src/text.js';
+import type { Line } from '../src/text.ts';
 import type {
   TopFlow,
   TopMeasure,
   TopNotices,
   TopRunning,
   TopState,
-} from '../src/top.js';
+} from '../src/top.ts';
 
-import { reportLines } from '../src/format.js';
-import { emptyTop, topLines } from '../src/top.js';
+import { emptyTop, topLines } from '../src/top.ts';
 import {
   acceptJson,
   ageAgents,
@@ -30,7 +29,7 @@ import {
   paneRows,
   type PaneSpec,
   showsPane,
-} from './kit/mod.js';
+} from './support.ts';
 
 import type { Elements, EngineInterface, On } from 'claude-code';
 
@@ -129,23 +128,36 @@ function callLabel(e: { tool: string }): string {
   return '';
 }
 
-function parsedScan(parsed: unknown): null | ScanResult {
-  return typeof parsed === 'object' &&
-    parsed !== null &&
-    Array.isArray((parsed as ScanResult).days)
-    ? (parsed as ScanResult)
+function parsedLines(parsed: unknown): null | { lines: Line[] } {
+  if (typeof parsed !== 'object' || parsed === null) {
+    return null;
+  }
+  const { lines } = parsed as { lines?: unknown };
+  if (!Array.isArray(lines)) {
+    return null;
+  }
+  return lines.every(
+    l =>
+      Array.isArray(l) &&
+      l.every(
+        s =>
+          typeof s === 'object' &&
+          s !== null &&
+          typeof (s as { text?: unknown }).text === 'string',
+      ),
+  )
+    ? { lines: lines as Line[] }
     : null;
 }
 
-async function scanUsage($: EngineInterface): Promise<Door<ScanResult>> {
+async function scanUsage($: EngineInterface): Promise<Door<{ lines: Line[] }>> {
   const call = await $.tool.call({
     tool: 'Bash',
-    command: `node ${$.plugin.root}/bin/report.mjs usage --json`,
+    command: `node ${$.plugin.root}/src/index.ts usage --json`,
   });
-  const got = acceptJson(call, 'query failed', parsedScan);
+  const got = acceptJson(call, 'query failed', parsedLines);
   if (got.ok) {
-    const lines = reportLines(got.value, { now: new Date(got.value.now) });
-    await update($, usage, () => ({ lines }));
+    await update($, usage, () => got.value);
   }
   return got;
 }

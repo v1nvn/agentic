@@ -7,14 +7,14 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import { describe, expect, it } from 'vitest';
 
-import { extractArticleFromHtml } from '../../src/tools/extract.js';
-import { outputSchema } from '../../src/tools/output-schema.js';
+import { extractArticleFromHtml } from '../../src/tools/extract.ts';
+import { outputSchema } from '../../src/tools/output-schema.ts';
 import {
   normalizedHashOf,
   registerResources,
   resetCache,
-} from '../../src/resources.js';
-import { createMcpServer } from '../../src/server.js';
+} from '../../src/resources.ts';
+import { createMcpServer } from '../../src/server.ts';
 
 async function connect(server: ReturnType<typeof createMcpServer>): Promise<{
   client: Client;

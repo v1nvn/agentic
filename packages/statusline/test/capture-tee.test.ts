@@ -2,16 +2,16 @@ import { existsSync, readFileSync } from 'node:fs';
 
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { configure } from '../src/configure.js';
-import { capturePath } from '../src/resolve.js';
+import { configure } from '../src/configure.ts';
+import { capturePath } from '../src/resolve.ts';
 import {
   createHomes,
   keyArgv,
   plantRendererRecord,
   settingsCommand,
   tmpFilesUnder,
-} from './fixtures.js';
-import { runRenderer, tickStdin } from './runtime.js';
+} from './fixtures.ts';
+import { runRenderer, tickStdin } from './runtime.ts';
 
 // Both tees live in the entry the keys spawn — these run the real node
 // renderer the way the host shell does. The main surface's tee is pinned in

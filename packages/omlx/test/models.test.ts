@@ -1,13 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { modelsHandler } from '../src/tools/models.js';
+import { modelsHandler } from '../src/tools/models.ts';
 import {
   type FetchStub,
   jsonResponse,
   MISSING_SETTINGS,
   stubFetch,
   textOf,
-} from './helpers.js';
+} from './helpers.ts';
 
 let stub: FetchStub;
 

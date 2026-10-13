@@ -10,22 +10,22 @@ import { fileURLToPath } from 'node:url';
 
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { catalog } from '../src/catalog.js';
-import { configure } from '../src/configure.js';
+import { catalog } from '../src/catalog.ts';
+import { configure } from '../src/configure.ts';
 import {
   capturePath,
   mainKeyValue,
   subagentKeyValue,
   renderMjsPath,
-} from '../src/resolve.js';
+} from '../src/resolve.ts';
 import {
   createHomes,
   keyArgv,
   plantRendererRecord,
   settingsCommand,
   snapshotTree,
-} from './fixtures.js';
-import { DEFAULT_NOW, runRenderer } from './runtime.js';
+} from './fixtures.ts';
+import { DEFAULT_NOW, runRenderer } from './runtime.ts';
 
 const P1 = fileURLToPath(
   new URL('../assets/payloads/p1.json', import.meta.url),
@@ -206,14 +206,14 @@ describe('the deployed resolver through the written key (r2)', () => {
     expect(painted.status).toBe(0);
     expect(painted.stdout.trim()).not.toBe('');
 
-    const alt = join(home, 'alt-install');
-    mkdirSync(alt, { recursive: true });
+    const altRoot = join(home, 'alt-install');
+    mkdirSync(join(altRoot, 'src', 'render'), { recursive: true });
     writeFileSync(
-      join(alt, 'render.mjs'),
+      join(altRoot, 'src', 'render', 'entry.ts'),
       "process.stdout.write('alt install\\n');\n",
     );
     plantRendererRecord(home, {
-      installPath: alt,
+      installPath: altRoot,
       lastUpdated: '2026-02-01T00:00:00Z',
       version: '2.0.0',
     });

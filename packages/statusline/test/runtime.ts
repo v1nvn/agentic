@@ -4,8 +4,8 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { materializeDemoRepo } from '../src/demo-repo.js';
-import { renderStatusline } from '../src/render/engine.js';
+import { materializeDemoRepo } from '../src/demo-repo.ts';
+import { renderStatusline } from '../src/render/engine.ts';
 
 // 2026-09-08T12:20:00Z — after every fixture's cache expiry, so the
 // default-picked cache-expiry=until renders each fixture's own past time on

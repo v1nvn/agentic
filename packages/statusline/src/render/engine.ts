@@ -6,7 +6,7 @@ import {
   toSgr,
 } from '@v1nvn/agentic-core/draw';
 
-import { readGit } from './git.js';
+import { readGit } from './git.ts';
 import {
   DEFAULT_LAYOUT,
   type FitStep,
@@ -16,15 +16,15 @@ import {
   L2_STEPS,
   RUNG_ORDERS,
   validatePick,
-} from './items.js';
-import { parseLayout } from './layout.js';
-import { parseRow } from './payload.js';
+} from './items.ts';
+import { parseLayout } from './layout.ts';
+import { parseRow } from './payload.ts';
 import {
   renderSegment,
   type SegmentInput,
   type Separators,
   styleSeparators,
-} from './segments.js';
+} from './segments.ts';
 
 export interface RenderInput {
   readonly columns?: number;

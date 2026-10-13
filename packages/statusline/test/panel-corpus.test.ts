@@ -19,14 +19,14 @@ import { describe, expect, it } from 'vitest';
 // '\n'. Every golden pins now = DEFAULT_NOW; unlike the engine corpus there
 // are no oracle cases — each panel golden is exact stdout. REGEN_GOLDENS=1
 // rewrites the .ans files instead of comparing.
-import { renderPanel } from '../src/render/panel.js';
-import { THEMES, THEME_NAMES } from '../src/themes.js';
+import { renderPanel } from '../src/render/panel.ts';
+import { THEMES, THEME_NAMES } from '../src/themes.ts';
 import {
   DEFAULT_LAYOUT,
   DEFAULT_PICKS,
   specFor,
-} from '../src/render/items.js';
-import { DEFAULT_NOW, GOLDENS_DIR, golden, loadTick } from './runtime.js';
+} from '../src/render/items.ts';
+import { DEFAULT_NOW, GOLDENS_DIR, golden, loadTick } from './runtime.ts';
 
 type Loose = Record<string, unknown>;
 

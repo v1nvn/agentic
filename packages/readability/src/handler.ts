@@ -1,7 +1,7 @@
 import { toolHandler } from '@v1nvn/agentic-core';
 
-import { toErrorResult } from './errors.js';
-import { logger } from './logger.js';
+import { toErrorResult } from './errors.ts';
+import { logger } from './logger.ts';
 
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 

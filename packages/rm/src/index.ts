@@ -1,6 +1,7 @@
+#!/usr/bin/env node
 import { lastReply, readMarkdownFile, runCli } from '@v1nvn/agentic-core';
 
-import { sendToRemarkable } from './send.js';
+import { sendToRemarkable } from './send.ts';
 
 import type { CliSpec } from '@v1nvn/agentic-core';
 

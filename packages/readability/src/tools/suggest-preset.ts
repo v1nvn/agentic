@@ -1,28 +1,28 @@
 import { z } from 'zod';
 
-import type { GatingSignal } from '../policy/gating.js';
-import type { PresetScope } from '../policy/presets.js';
-import type { SelectorViolation } from '../policy/selector-lint.js';
-import type { ToolHandle } from '../server.js';
-import type { StructuredContent } from './output-schema.js';
+import type { GatingSignal } from '../policy/gating.ts';
+import type { PresetScope } from '../policy/presets.ts';
+import type { SelectorViolation } from '../policy/selector-lint.ts';
+import type { ToolHandle } from '../server.ts';
+import type { StructuredContent } from './output-schema.ts';
 
-import { tool } from '../handler.js';
-import { sampleJson, SuggestParseError } from '../host-sampling.js';
-import { buildDocument } from '../pipeline/dom.js';
-import { normalizeDocument, resolveLazyImages } from '../pipeline/normalize.js';
-import { assessLostSignal } from '../policy/lost-signal.js';
-import { buildChainOutline } from '../policy/outline-chains.js';
+import { tool } from '../handler.ts';
+import { sampleJson, SuggestParseError } from '../host-sampling.ts';
+import { buildDocument } from '../pipeline/dom.ts';
+import { normalizeDocument, resolveLazyImages } from '../pipeline/normalize.ts';
+import { assessLostSignal } from '../policy/lost-signal.ts';
+import { buildChainOutline } from '../policy/outline-chains.ts';
 import {
   addPreset,
   normalizeSiteKey,
   presetForSite,
   removePreset,
-} from '../policy/presets.js';
-import { lintProposal } from '../policy/selector-lint.js';
-import { savePreset } from '../preset-cache.js';
-import { extractArticleFromHtml } from './extract.js';
-import { readHtmlFile } from './html-source.js';
-import { localPathField } from './schemas.js';
+} from '../policy/presets.ts';
+import { lintProposal } from '../policy/selector-lint.ts';
+import { savePreset } from '../preset-cache.ts';
+import { extractArticleFromHtml } from './extract.ts';
+import { readHtmlFile } from './html-source.ts';
+import { localPathField } from './schemas.ts';
 
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';

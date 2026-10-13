@@ -1,4 +1,4 @@
-import { isRecord, orElse } from './jq.js';
+import { isRecord, orElse } from './jq.ts';
 
 export interface RateRow {
   readonly label: string;

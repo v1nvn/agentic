@@ -4,14 +4,14 @@ import { join } from 'node:path';
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { askHandler } from '../src/tools/ask.js';
+import { askHandler } from '../src/tools/ask.ts';
 import {
   jsonResponse,
   MISSING_SETTINGS,
   textOf,
   type FetchStub,
   stubFetch,
-} from './helpers.js';
+} from './helpers.ts';
 
 // Minimal valid 1x1 PNG.
 const PNG_BASE64 =

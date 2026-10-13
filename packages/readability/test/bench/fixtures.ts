@@ -1,7 +1,7 @@
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import type { SitePreset } from '../../src/policy/presets.js';
+import type { SitePreset } from '../../src/policy/presets.ts';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(here, '../..');

@@ -2,9 +2,9 @@ import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { assessLostSignal, NEAR_EMPTY_WORDS } from '../../src/policy/lost-signal.js';
-import { extractArticleFromHtml } from '../../src/tools/extract.js';
-import type { StructuredContent } from '../../src/tools/output-schema.js';
+import { assessLostSignal, NEAR_EMPTY_WORDS } from '../../src/policy/lost-signal.ts';
+import { extractArticleFromHtml } from '../../src/tools/extract.ts';
+import type { StructuredContent } from '../../src/tools/output-schema.ts';
 
 const here = dirname(fileURLToPath(import.meta.url));
 

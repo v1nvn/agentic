@@ -4,11 +4,11 @@
 
 import { z } from 'zod';
 
-import type { ToolHandle } from './server.js';
+import type { ToolHandle } from './server.ts';
 
-import { tool } from './handler.js';
-import { sampleText } from './host-sampling.js';
-import { registerSuggestPresetTool } from './tools/suggest-preset.js';
+import { tool } from './handler.ts';
+import { sampleText } from './host-sampling.ts';
+import { registerSuggestPresetTool } from './tools/suggest-preset.ts';
 
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 

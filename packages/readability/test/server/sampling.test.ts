@@ -7,7 +7,7 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import { describe, expect, it } from 'vitest';
 
-import { createServer } from '../../src/server.js';
+import { createServer } from '../../src/server.ts';
 
 // Mirrors registration.test.ts but the client is constructed ADVERTISING the
 // sampling capability. createServer wires the `initialized` hook itself, so the

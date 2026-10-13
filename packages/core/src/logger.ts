@@ -36,12 +36,15 @@ type Writer = (message: string) => void;
 
 // stdout carries the MCP transport; everything here goes to stderr.
 export class Logger {
+  readonly activeLevel: LogLevel;
+
   private readonly stderr: Writer;
 
   constructor(
-    readonly activeLevel: LogLevel,
+    activeLevel: LogLevel,
     stderr: Writer = line => process.stderr.write(`${line}\n`),
   ) {
+    this.activeLevel = activeLevel;
     this.stderr = stderr;
   }
 

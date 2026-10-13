@@ -1,6 +1,6 @@
-import { buildDocument } from '../../src/pipeline/dom.js';
-import { extractArticleFromHtml } from '../../src/tools/extract.js';
-import { collectImageInventory } from '../../src/policy/images.js';
+import { buildDocument } from '../../src/pipeline/dom.ts';
+import { extractArticleFromHtml } from '../../src/tools/extract.ts';
+import { collectImageInventory } from '../../src/policy/images.ts';
 
 const ORIGIN = 'https://x.example/p';
 

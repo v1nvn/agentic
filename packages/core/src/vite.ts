@@ -5,77 +5,11 @@ import {
 } from 'vite';
 import { configDefaults } from 'vitest/config';
 
-import type { Logger } from './logger.js';
+import type { Logger } from './logger.ts';
 
-import { watchWithReload } from './dev.js';
-import { describeError } from './mcp.js';
-import { shutdownOnSignals } from './shutdown.js';
-
-export interface ModViteOptions {
-  /** Extra CLI-pass entries beside the CLI itself, e.g. tokens' `text` library chunk. */
-  entries?: Record<string, string>;
-  /** The `--mode` that builds the standalone artifact, and the `bin/<name>.mjs` it emits. */
-  standalone: { mode: string; name: string };
-}
-
-export function modVite(
-  mode: string,
-  { standalone, entries = {} }: ModViteOptions,
-) {
-  // The standalone pass emits the artifact the plugin folder carries — the
-  // mod execs it through the session's Bash tool, where no node_modules
-  // exists, so it inlines every dependency. Only ever run under `node`, where
-  // the banner is inert.
-  if (mode === standalone.mode) {
-    return {
-      ssr: { noExternal: true },
-      build: {
-        outDir: 'dist',
-        emptyOutDir: false,
-        sourcemap: true,
-        minify: false,
-        ssr: true,
-        rollupOptions: {
-          input: { [standalone.name]: 'src/index.ts' },
-          output: {
-            banner: '#!/usr/bin/env node',
-            entryFileNames: `${standalone.name}.mjs`,
-          },
-        },
-      },
-    };
-  }
-  // The CLI pass builds the default way: external deps, installed beside it
-  // by npx. SSR/Node build: Vite externalizes node built-ins AND package.json
-  // `dependencies` (`@v1nvn/agentic-core` stays a real dep), so only source
-  // is bundled; ESM out matches "type":"module".
-  return {
-    build: {
-      outDir: 'dist',
-      emptyOutDir: true,
-      sourcemap: true,
-      minify: false,
-      ssr: true,
-      rollupOptions: {
-        input: { index: 'src/index.ts', ...entries },
-        // `bin` (dist/index.js) is exec'd by the kernel; without a shebang
-        // the OS runs it under /bin/sh and `npx <bin>` dies parsing `import`.
-        // Library chunks carry none.
-        output: {
-          banner: (chunk: { facadeModuleId?: string; isEntry: boolean }) =>
-            chunk.isEntry && chunk.facadeModuleId?.endsWith('src/index.ts')
-              ? '#!/usr/bin/env node'
-              : '',
-        },
-      },
-    },
-    test: {
-      globals: true,
-      environment: 'node',
-      exclude: [...configDefaults.exclude, 'dist/**', 'tests/**'],
-    },
-  };
-}
+import { watchWithReload } from './dev.ts';
+import { describeError } from './mcp.ts';
+import { shutdownOnSignals } from './shutdown.ts';
 
 export interface ServerViteOptions {
   testTimeout?: number;
@@ -87,24 +21,6 @@ export function serverVite({ testTimeout }: ServerViteOptions = {}) {
     // (`hmr: false` stops messaging, not the socket): without this a second
     // dev boot dies fighting over the default ws port 24678.
     server: { ws: false },
-    build: {
-      outDir: 'dist',
-      emptyOutDir: true,
-      sourcemap: true,
-      minify: false,
-      // SSR/Node build: Vite externalizes node built-ins AND package.json
-      // `dependencies`, so only source is bundled; ESM out matches
-      // "type":"module".
-      ssr: 'src/index.ts',
-      rollupOptions: {
-        // `bin` (dist/index.js) is exec'd by npx; without a shebang the OS
-        // runs it under /bin/sh and dies parsing `import`.
-        output: {
-          banner: (chunk: { isEntry: boolean }) =>
-            chunk.isEntry ? '#!/usr/bin/env node' : '',
-        },
-      },
-    },
     test: {
       globals: true,
       environment: 'node',

@@ -3,15 +3,15 @@ import { join } from 'node:path';
 
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { parseArgs } from '../src/cli.js';
-import { configure } from '../src/configure.js';
-import { materializeDemoRepo } from '../src/demo-repo.js';
-import { ITEMS } from '../src/render/index.js';
-import { renderPreview, type PreviewRender } from '../src/payloads.js';
-import { preview, type PreviewOptions } from '../src/preview.js';
-import { THEMES, createHomes, settingsPath, writeSettings } from './fixtures.js';
-import { backupPath } from '../src/resolve.js';
-import { DEFAULT_NOW } from './runtime.js';
+import { parseArgs } from '../src/cli.ts';
+import { configure } from '../src/configure.ts';
+import { materializeDemoRepo } from '../src/demo-repo.ts';
+import { ITEMS } from '../src/render/index.ts';
+import { renderPreview, type PreviewRender } from '../src/payloads.ts';
+import { preview, type PreviewOptions } from '../src/preview.ts';
+import { THEMES, createHomes, settingsPath, writeSettings } from './fixtures.ts';
+import { backupPath } from '../src/resolve.ts';
+import { DEFAULT_NOW } from './runtime.ts';
 
 const ESC = '\x1b';
 

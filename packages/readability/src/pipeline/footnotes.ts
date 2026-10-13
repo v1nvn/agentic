@@ -1,4 +1,4 @@
-import { buildDocument } from './dom.js';
+import { buildDocument } from './dom.ts';
 
 export interface FootnoteResult {
   readonly footnoteDefs: readonly string[];

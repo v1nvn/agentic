@@ -9,19 +9,19 @@ import { join } from 'node:path';
 
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { catalog } from '../src/catalog.js';
-import { parseArgs } from '../src/cli.js';
-import { configure, BUNDLED_RESOLVER } from '../src/configure.js';
-import { DATA_DIR } from '../src/render/capture.js';
-import { ITEMS } from '../src/render/index.js';
-import { mainKeyValue, subagentKeyValue, renderMjsPath } from '../src/resolve.js';
+import { catalog } from '../src/catalog.ts';
+import { parseArgs } from '../src/cli.ts';
+import { configure, LAUNCHER } from '../src/configure.ts';
+import { DATA_DIR } from '../src/render/capture.ts';
+import { ITEMS } from '../src/render/index.ts';
+import { mainKeyValue, subagentKeyValue, renderMjsPath } from '../src/resolve.ts';
 import {
   THEMES,
   createHomes,
   settingsCommand,
   settingsPath,
   writeSettings,
-} from './fixtures.js';
+} from './fixtures.ts';
 
 function assertNothingWritten(home: string): void {
   expect(existsSync(settingsPath(home)), 'settings.json').toBe(false);
@@ -445,7 +445,7 @@ describe('configure: resolver sync', () => {
     configure({ home, theme: 'lean' });
 
     expect(readFileSync(renderMjsPath(home), 'utf8')).toBe(
-      readFileSync(BUNDLED_RESOLVER, 'utf8'),
+      readFileSync(LAUNCHER, 'utf8'),
     );
   });
 
@@ -459,7 +459,7 @@ describe('configure: resolver sync', () => {
 
     expect(statSync(synced).mtimeMs).toBe(before);
     expect(readFileSync(synced, 'utf8')).toBe(
-      readFileSync(BUNDLED_RESOLVER, 'utf8'),
+      readFileSync(LAUNCHER, 'utf8'),
     );
   });
 
@@ -472,7 +472,7 @@ describe('configure: resolver sync', () => {
     configure({ home, theme: 'lean' });
 
     expect(readFileSync(synced, 'utf8')).toBe(
-      readFileSync(BUNDLED_RESOLVER, 'utf8'),
+      readFileSync(LAUNCHER, 'utf8'),
     );
   });
 });

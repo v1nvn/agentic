@@ -1,39 +1,39 @@
-import type { SanitizationDiagnostics } from '../pipeline/context.js';
-import type { ToolHandle } from '../server.js';
+import type { SanitizationDiagnostics } from '../pipeline/context.ts';
+import type { ToolHandle } from '../server.ts';
 
-import { ExtractionError } from '../errors.js';
-import { tool } from '../handler.js';
-import { logger } from '../logger.js';
-import { formatPayload } from '../output/format.js';
-import { buildDocument } from '../pipeline/dom.js';
+import { ExtractionError } from '../errors.ts';
+import { tool } from '../handler.ts';
+import { logger } from '../logger.ts';
+import { formatPayload } from '../output/format.ts';
+import { buildDocument } from '../pipeline/dom.ts';
 import {
   applySelectors,
   canonicalizeCodeBlocks,
   normalizeDocument,
   resolveLazyImages,
-} from '../pipeline/normalize.js';
-import { isReaderable, parseArticle } from '../pipeline/readability.js';
-import { resolveReadabilityOptions } from '../pipeline/resolver.js';
-import { sanitizeHtml } from '../pipeline/sanitize.js';
-import { toMarkdown } from '../pipeline/turndown.js';
-import { chunkMarkdown } from '../policy/chunk.js';
-import { assembleDiagnostics, TraceCollector } from '../policy/diagnostics.js';
-import { extractViaFallback } from '../policy/fallback.js';
-import { detectGating } from '../policy/gating.js';
-import { collectImageInventory } from '../policy/images.js';
-import { resolveMetadata } from '../policy/metadata.js';
-import { detectPagination } from '../policy/pagination.js';
-import { resolvePreset } from '../policy/presets.js';
-import { computeTextMetrics } from '../policy/text.js';
-import { truncateMarkdown } from '../policy/truncate.js';
-import * as cache from '../resources.js';
-import { fromLocalPath, withSchemaDefaults } from './html-source.js';
-import { outputSchemaShape } from './output-schema.js';
+} from '../pipeline/normalize.ts';
+import { isReaderable, parseArticle } from '../pipeline/readability.ts';
+import { resolveReadabilityOptions } from '../pipeline/resolver.ts';
+import { sanitizeHtml } from '../pipeline/sanitize.ts';
+import { toMarkdown } from '../pipeline/turndown.ts';
+import { chunkMarkdown } from '../policy/chunk.ts';
+import { assembleDiagnostics, TraceCollector } from '../policy/diagnostics.ts';
+import { extractViaFallback } from '../policy/fallback.ts';
+import { detectGating } from '../policy/gating.ts';
+import { collectImageInventory } from '../policy/images.ts';
+import { resolveMetadata } from '../policy/metadata.ts';
+import { detectPagination } from '../policy/pagination.ts';
+import { resolvePreset } from '../policy/presets.ts';
+import { computeTextMetrics } from '../policy/text.ts';
+import { truncateMarkdown } from '../policy/truncate.ts';
+import * as cache from '../resources.ts';
+import { fromLocalPath, withSchemaDefaults } from './html-source.ts';
+import { outputSchemaShape } from './output-schema.ts';
 import {
   type ExtractFromHtmlInput,
   extractInputSchema,
   extractInputShape,
-} from './schemas.js';
+} from './schemas.ts';
 
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';

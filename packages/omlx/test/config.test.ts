@@ -4,9 +4,9 @@ import { join } from 'node:path';
 
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import { loadConfig } from '../src/config.js';
+import { loadConfig } from '../src/config.ts';
 
-import { MISSING_SETTINGS } from './helpers.js';
+import { MISSING_SETTINGS } from './helpers.ts';
 
 let settingsDir: string;
 

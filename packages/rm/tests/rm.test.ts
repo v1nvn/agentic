@@ -1,6 +1,6 @@
 import { expect, test } from 'claude-code/testing';
 
-import { stubEngine } from './kit/stub.js';
+import { stubEngine } from './stub.ts';
 
 import type { CommandRunResult } from 'claude-code';
 import type { Engine } from 'claude-code/testing';
@@ -46,7 +46,7 @@ test('a run execs the shipped CLI, reports its stdout as one dim line, answers n
   expect(answer.text).toBeUndefined();
   expect(answer.context).toBeUndefined();
   expect(world.commands).toEqual([
-    expect.stringMatching(/^node .*\/bin\/send\.mjs$/),
+    expect.stringMatching(/^node .*\/src\/index\.ts$/),
   ]);
   expect(world.logs).toEqual([SENT]);
 });
@@ -58,7 +58,7 @@ test('a refused exec reports the refusal, answers nothing, no crash', async ($, 
   const answer = await runSend($);
   expect(answer.text).toBeUndefined();
   expect(world.commands).toEqual([
-    expect.stringMatching(/^node .*\/bin\/send\.mjs$/),
+    expect.stringMatching(/^node .*\/src\/index\.ts$/),
   ]);
   expect(world.logs).toEqual(['permission denied by the user']);
 });

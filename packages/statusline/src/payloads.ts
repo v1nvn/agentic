@@ -3,12 +3,12 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { materializeDemoRepo } from './demo-repo.js';
-import { renderStatusline } from './render/index.js';
-import { isRecord } from './render/jq.js';
-import { renderPanel } from './render/panel.js';
-import { resolvePaint } from './render/theme.js';
-import { capturePath } from './resolve.js';
+import { materializeDemoRepo } from './demo-repo.ts';
+import { renderStatusline } from './render/index.ts';
+import { isRecord } from './render/jq.ts';
+import { renderPanel } from './render/panel.ts';
+import { resolvePaint } from './render/theme.ts';
+import { capturePath } from './resolve.ts';
 
 const PAYLOADS_DIR = fileURLToPath(
   new URL('../assets/payloads', import.meta.url),

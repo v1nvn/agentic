@@ -1,31 +1,21 @@
 import { expect, mock, test } from 'claude-code/testing';
 
-import type { RenderInput } from '../src/format.js';
+import type { Line } from '../hooks/support.ts';
 
-import { reportLines } from '../src/format.js';
-import { acceptJson, paneRows } from './kit/mod.js';
-import { stubEngine } from './kit/stub.js';
+import { acceptJson, paneRows } from '../hooks/support.ts';
+import { stubEngine } from './stub.ts';
 
 import type { CommandRunResult } from 'claude-code';
 import type { Engine } from 'claude-code/testing';
 
-// The raw --json payload over a fixed two-hour fixture.
-const RAW = {
-  platform: 'ZAI',
-  model: {
-    x_time: ['2026-10-04 10:00', '2026-10-04 11:00'],
-    tokensUsage: [120000, 300000],
-    modelCallCount: [2, 4],
-    totalUsage: { totalModelCallCount: 6, totalTokensUsage: 420000 },
-    modelSummaryList: [
-      { modelName: 'GLM-5.2', totalTokens: 420000, sortOrder: 1 },
-    ],
-  },
-  tool: {
-    totalUsage: { totalNetworkSearchCount: 3, totalWebReadMcpCount: 5 },
-  },
-  quota: { level: 'max', limits: [] },
-} satisfies RenderInput;
+// The lines payload the CLI's `usage --json` emits, over a fixed fixture:
+// three rows carrying every ink the pane maps.
+const LINES: Line[] = [
+  [{ text: 'GLM Coding Plan · Max', ink: 'bold' }],
+  [{ text: '420K tokens across 6 model calls', ink: 'green' }],
+  [{ text: 'limits — none set', ink: 'dim' }],
+];
+const REPORT = `${JSON.stringify({ lines: LINES })}\n`;
 
 const NO_KEY = 'no API key: set ZAI_AUTH_TOKEN (or --auth-token)';
 const REFRESH_MS = 5 * 60 * 1000;
@@ -106,9 +96,7 @@ test('pane chrome as fields: the frame sizes the rows a pane asks for', () => {
 
 test('session start declaratively registers zai-usage, execs and draws nothing', async ($, on) => {
   mock.clock(on);
-  const world = stubEngine(on, {
-    stdout: `${JSON.stringify(RAW)}\n`,
-  });
+  const world = stubEngine(on, { stdout: REPORT });
 
   await startSession($);
   expect(world.registered).toEqual(['zai-usage']);
@@ -117,39 +105,33 @@ test('session start declaratively registers zai-usage, execs and draws nothing',
   expect(world.opens).toEqual([]);
 });
 
-test('a run execs the shipped CLI with --json, accepts the raw payload, opens the pane sized to the report and renders it', async ($, on) => {
+test('a run execs the CLI source with --json, accepts the lines payload, opens the pane sized to the report and renders it', async ($, on) => {
   mock.clock(on);
-  const world = stubEngine(on, {
-    stdout: `${JSON.stringify(RAW)}\n`,
-  });
+  const world = stubEngine(on, { stdout: REPORT });
   await startSession($);
 
   const answer = await runUsage($);
   expect(answer.text).toBeUndefined();
   expect(answer.context).toBeUndefined();
   expect(world.commands).toEqual([
-    expect.stringMatching(/^node .*\/bin\/usage\.mjs usage --json$/),
+    expect.stringMatching(/^node .*\/src\/index\.ts usage --json$/),
   ]);
   expect(world.logs).toEqual([]);
-  expect(world.opens).toEqual([
-    { id: 'zai-usage', rows: reportLines(RAW).length + 2 },
-  ]);
+  expect(world.opens).toEqual([{ id: 'zai-usage', rows: LINES.length + 2 }]);
 
   const ui = await $.ui.mount({ ...PANE, surface: 'terminal' });
   expect(
     await ui.find({ type: 'Text', text: /GLM Coding Plan · Max/ }),
   ).toBeDefined();
   expect(
-    await ui.find({ type: 'Text', text: /tokens across 6 model calls/ }),
+    await ui.find({ type: 'Text', text: /420K tokens across 6 model calls/ }),
   ).toBeDefined();
   await ui.unmount();
 });
 
 test('the pane re-scans on its refresh tick while open, quietly keeping its last good report', async ($, on) => {
   const clock = mock.clock(on);
-  const world = stubEngine(on, {
-    stdout: `${JSON.stringify(RAW)}\n`,
-  });
+  const world = stubEngine(on, { stdout: REPORT });
 
   await startSession($);
   await clock.advance(REFRESH_MS * 2);
@@ -185,7 +167,7 @@ test('a refused exec logs the refusal, opens no pane, answers nothing', async ($
   const answer = await runUsage($);
   expect(answer.text).toBeUndefined();
   expect(world.commands).toEqual([
-    expect.stringMatching(/^node .*\/bin\/usage\.mjs usage --json$/),
+    expect.stringMatching(/^node .*\/src\/index\.ts usage --json$/),
   ]);
   expect(world.logs).toEqual(['permission denied by the user']);
   expect(world.opens).toEqual([]);

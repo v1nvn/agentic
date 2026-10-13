@@ -10,7 +10,7 @@ import {
   createMcpServer,
   createServer,
   registerTools,
-} from '../../src/server.js';
+} from '../../src/server.ts';
 
 async function connect(server: ReturnType<typeof createMcpServer>): Promise<{
   client: Client;

@@ -1,7 +1,7 @@
 import { buildCli, runCli } from '@v1nvn/agentic-core';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { usageSpec } from '../src/cli.js';
+import { usageSpec } from '../src/cli.ts';
 
 afterEach(() => {
   vi.restoreAllMocks();

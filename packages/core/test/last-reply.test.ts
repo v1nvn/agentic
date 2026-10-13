@@ -2,7 +2,7 @@ import { mkdirSync, mkdtempSync, rmSync, utimesSync, writeFileSync } from 'node:
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { lastReply } from '../src/last-reply.js';
+import { lastReply } from '../src/last-reply.ts';
 
 const assistant = (blocks: unknown[]) =>
   JSON.stringify({ type: 'assistant', message: { content: blocks } });

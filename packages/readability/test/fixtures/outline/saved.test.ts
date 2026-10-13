@@ -2,8 +2,8 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { outlineDocumentFromHtml } from '../../../src/tools/outline.js';
-import type { OutlineStructuredContent } from '../../../src/tools/output-schema.js';
+import { outlineDocumentFromHtml } from '../../../src/tools/outline.ts';
+import type { OutlineStructuredContent } from '../../../src/tools/output-schema.ts';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const fixturePath = join(here, 'saved.html');

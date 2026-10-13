@@ -1,4 +1,4 @@
-import { DEFAULT_LAYOUT } from './render/items.js';
+import { DEFAULT_LAYOUT } from './render/items.ts';
 
 export const THEME_NAMES = [
   'classic',

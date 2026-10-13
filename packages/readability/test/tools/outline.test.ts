@@ -1,5 +1,5 @@
-import { outlineDocumentFromHtml } from '../../src/tools/outline.js';
-import { outlineOutput } from '../../src/tools/output-schema.js';
+import { outlineDocumentFromHtml } from '../../src/tools/outline.ts';
+import { outlineOutput } from '../../src/tools/output-schema.ts';
 
 describe('outline tool', () => {
   it('selectors.include scopes the heading walk to a subtree', () => {

@@ -1,26 +1,26 @@
-import type { SanitizationDiagnostics } from '../pipeline/context.js';
-import type { ToolHandle } from '../server.js';
+import type { SanitizationDiagnostics } from '../pipeline/context.ts';
+import type { ToolHandle } from '../server.ts';
 
-import { tool } from '../handler.js';
-import { formatPayload } from '../output/format.js';
-import { buildDocument } from '../pipeline/dom.js';
+import { tool } from '../handler.ts';
+import { formatPayload } from '../output/format.ts';
+import { buildDocument } from '../pipeline/dom.ts';
 import {
   applySelectors,
   normalizeDocument,
   resolveLazyImages,
-} from '../pipeline/normalize.js';
-import { sanitizeHtml } from '../pipeline/sanitize.js';
-import { toMarkdown } from '../pipeline/turndown.js';
-import { assembleDiagnostics, TraceCollector } from '../policy/diagnostics.js';
-import { computeTextMetrics, nonEmpty } from '../policy/text.js';
-import { truncateMarkdown } from '../policy/truncate.js';
-import { fromLocalPath, withSchemaDefaults } from './html-source.js';
-import { outputSchemaShape } from './output-schema.js';
+} from '../pipeline/normalize.ts';
+import { sanitizeHtml } from '../pipeline/sanitize.ts';
+import { toMarkdown } from '../pipeline/turndown.ts';
+import { assembleDiagnostics, TraceCollector } from '../policy/diagnostics.ts';
+import { computeTextMetrics, nonEmpty } from '../policy/text.ts';
+import { truncateMarkdown } from '../policy/truncate.ts';
+import { fromLocalPath, withSchemaDefaults } from './html-source.ts';
+import { outputSchemaShape } from './output-schema.ts';
 import {
   type HtmlToMarkdownFromHtmlInput,
   htmlToMarkdownInputSchema,
   htmlToMarkdownInputShape,
-} from './schemas.js';
+} from './schemas.ts';
 
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';

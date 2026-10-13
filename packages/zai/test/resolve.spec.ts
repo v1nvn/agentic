@@ -1,8 +1,8 @@
 import { HelpRequested } from '@v1nvn/agentic-core';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { buildProgram, parseArgs, resolveConfig } from '../src/resolve.js';
-import type { ParsedArgs } from '../src/resolve.js';
+import { buildProgram, parseArgs, resolveConfig } from '../src/resolve.ts';
+import type { ParsedArgs } from '../src/resolve.ts';
 
 const env = (vars: Record<string, string>) => vars as NodeJS.ProcessEnv;
 

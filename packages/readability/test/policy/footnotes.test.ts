@@ -1,4 +1,4 @@
-import { processFootnotes } from '../../src/pipeline/footnotes.js';
+import { processFootnotes } from '../../src/pipeline/footnotes.ts';
 
 describe('policy.footnotes processFootnotes', () => {
   it('converts paired sup refs + ordered footnotes list into markdown refs', () => {

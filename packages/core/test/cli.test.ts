@@ -7,7 +7,7 @@ import {
   parseCli,
   runCli,
   type CliSpec,
-} from '../src/cli.js';
+} from '../src/cli.ts';
 
 afterEach(() => {
   vi.restoreAllMocks();

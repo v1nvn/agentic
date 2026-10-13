@@ -3,15 +3,15 @@ import { join } from 'node:path';
 
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { configure } from '../src/configure.js';
-import { transcriptFacts } from '../src/render/facts.js';
+import { configure } from '../src/configure.ts';
+import { transcriptFacts } from '../src/render/facts.ts';
 import {
   createHomes,
   keyArgv,
   plantRendererRecord,
   settingsCommand,
-} from './fixtures.js';
-import { loadTick, runRenderer } from './runtime.js';
+} from './fixtures.ts';
+import { loadTick, runRenderer } from './runtime.ts';
 
 // The panel's transcript door against planted subagent transcripts: the
 // tick's tokenCount and task.effort paint only when a task's transcript has

@@ -1,6 +1,6 @@
-import type { OmlxConfig } from './config.js';
+import type { OmlxConfig } from './config.ts';
 
-import { OmlxError } from './errors.js';
+import { OmlxError } from './errors.ts';
 
 interface ErrorBody {
   detail?: unknown;

@@ -4,8 +4,8 @@ import { describe, expect, it, vi } from 'vitest';
 // item warns exactly once per paint and drops, malformed grammar warns and
 // renders the bare head — the corpus layouts are all grammar-valid, so these
 // are the only red a warn-path deletion would meet.
-import { renderPanel } from '../src/render/panel.js';
-import { DEFAULT_NOW, loadTick } from './runtime.js';
+import { renderPanel } from '../src/render/panel.ts';
+import { DEFAULT_NOW, loadTick } from './runtime.ts';
 
 function paint(layout: string): string {
   return renderPanel({

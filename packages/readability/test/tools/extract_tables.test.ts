@@ -5,8 +5,8 @@ import { fileURLToPath } from 'node:url';
 import {
   extractTablesFromHtml,
   extractTablesHandler,
-} from '../../src/tools/extract_tables.js';
-import { extractTablesOutput } from '../../src/tools/output-schema.js';
+} from '../../src/tools/extract_tables.ts';
+import { extractTablesOutput } from '../../src/tools/output-schema.ts';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const fixturePath = join(here, '../fixtures/tables/saved.html');

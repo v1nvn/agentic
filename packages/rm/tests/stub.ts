@@ -1,8 +1,8 @@
 /**
- * The engine-test kit: the stub session every mod home's tests ride, stamped
- * beside them under `tests/kit/`. It answers the nouns a mod's hooks call —
+ * The rm engine tests' stub session: it answers the nouns the hooks call —
  * command registration, logs, panes, the Bash exec — from memory the way the
- * testing mock answers clock, store and env, and records what crossed.
+ * testing mock answers clock, store and env, and records what crossed. The
+ * island loader keeps tests plugin-relative, so each home owns its stub.
  */
 
 export type ExecAnswer =

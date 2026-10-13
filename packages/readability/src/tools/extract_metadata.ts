@@ -1,17 +1,17 @@
-import type { Metadata } from '../pipeline/context.js';
-import type { ToolHandle } from '../server.js';
+import type { Metadata } from '../pipeline/context.ts';
+import type { ToolHandle } from '../server.ts';
 
-import { tool } from '../handler.js';
-import { buildDocument } from '../pipeline/dom.js';
-import { normalizeDocument } from '../pipeline/normalize.js';
-import { resolveMetadata } from '../policy/metadata.js';
-import { fromLocalPath } from './html-source.js';
-import { extractMetadataOutputShape } from './output-schema.js';
+import { tool } from '../handler.ts';
+import { buildDocument } from '../pipeline/dom.ts';
+import { normalizeDocument } from '../pipeline/normalize.ts';
+import { resolveMetadata } from '../policy/metadata.ts';
+import { fromLocalPath } from './html-source.ts';
+import { extractMetadataOutputShape } from './output-schema.ts';
 import {
   type ExtractMetadataFromHtmlInput,
   extractMetadataInputSchema,
   extractMetadataInputShape,
-} from './schemas.js';
+} from './schemas.ts';
 
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';

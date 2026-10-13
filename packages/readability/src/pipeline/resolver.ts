@@ -1,4 +1,4 @@
-import type { ReadabilityOptions } from './readability.js';
+import type { ReadabilityOptions } from './readability.ts';
 
 export type ExtractionMode = 'aggressive' | 'balanced' | 'conservative';
 

@@ -2,12 +2,12 @@ import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { addPreset, resetPresets } from '../../src/policy/presets.js';
-import { extractArticleFromHtml } from '../../src/tools/extract.js';
-import { extractSectionFromHtml } from '../../src/tools/extract_section.js';
-import { htmlToMarkdownFromHtml } from '../../src/tools/html_to_markdown.js';
-import type { ExtractFromHtmlInput } from '../../src/tools/schemas.js';
-import type { StructuredContent } from '../../src/tools/output-schema.js';
+import { addPreset, resetPresets } from '../../src/policy/presets.ts';
+import { extractArticleFromHtml } from '../../src/tools/extract.ts';
+import { extractSectionFromHtml } from '../../src/tools/extract_section.ts';
+import { htmlToMarkdownFromHtml } from '../../src/tools/html_to_markdown.ts';
+import type { ExtractFromHtmlInput } from '../../src/tools/schemas.ts';
+import type { StructuredContent } from '../../src/tools/output-schema.ts';
 
 type ExtractSelectors = NonNullable<ExtractFromHtmlInput['selectors']>;
 

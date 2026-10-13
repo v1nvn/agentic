@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import {
   lastReply,
   readMarkdownFile,
@@ -5,7 +6,7 @@ import {
   runCli,
 } from '@v1nvn/agentic-core';
 
-import { mdSend } from './share.js';
+import { mdSend } from './share.ts';
 
 import type { CliSpec } from '@v1nvn/agentic-core';
 

@@ -1,7 +1,7 @@
-import type { PreviewRender, PreviewSurfaces } from './payloads.js';
-import type { WizardDeps } from './wizard.js';
+import type { PreviewRender, PreviewSurfaces } from './payloads.ts';
+import type { WizardDeps } from './wizard.ts';
 
-import { renderPreview } from './payloads.js';
+import { renderPreview } from './payloads.ts';
 
 function nextKey(buffer: string): readonly [string, string] | undefined {
   if (buffer === '') {

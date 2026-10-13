@@ -7,8 +7,6 @@
  * quota/limit — the last already passed through processQuotaLimit).
  */
 
-import type { Line } from '../hooks/kit/draw.js';
-
 import {
   bar,
   bold,
@@ -25,7 +23,9 @@ import {
   rule,
   RULE_WIDTH,
   textOf,
-} from '../hooks/kit/draw.js';
+} from '@v1nvn/agentic-core/draw';
+
+import type { Line } from '@v1nvn/agentic-core/draw';
 
 // Lower-half block eighths for vertical bars (1/8 .. 7/8); a full cell uses '█'.
 const VBLOCKS = '▁▂▃▄▅▆▇';

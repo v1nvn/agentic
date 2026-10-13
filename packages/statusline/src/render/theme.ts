@@ -1,5 +1,5 @@
-import { type Theme, THEMES } from '../themes.js';
-import { DEFAULT_LAYOUT, warn } from './items.js';
+import { type Theme, THEMES } from '../themes.ts';
+import { DEFAULT_LAYOUT, warn } from './items.ts';
 
 // One resolver, two doors: the render entry resolves here at paint, and the
 // CLI's catalog/status/wizard import the same function for display — there is

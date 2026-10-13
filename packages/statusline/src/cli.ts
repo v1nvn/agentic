@@ -1,8 +1,8 @@
 import { buildCli, helpTextFor, parseCli } from '@v1nvn/agentic-core';
 
 import pkg from '../package.json' with { type: 'json' };
-import { ITEM_IDS } from './render/items.js';
-import { THEMES } from './themes.js';
+import { ITEM_IDS } from './render/items.ts';
+import { THEMES } from './themes.ts';
 
 import type { CliResult, CliRun, CliSpec } from '@v1nvn/agentic-core';
 

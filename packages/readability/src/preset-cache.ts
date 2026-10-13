@@ -17,10 +17,10 @@ import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { z } from 'zod';
 
-import type { SitePreset } from './policy/presets.js';
+import type { SitePreset } from './policy/presets.ts';
 
-import { logger } from './logger.js';
-import { addPreset, normalizeSiteKey } from './policy/presets.js';
+import { logger } from './logger.ts';
+import { addPreset, normalizeSiteKey } from './policy/presets.ts';
 
 export const PRESETS_DIR_ENV = 'READABILITY_PRESETS_DIR';
 

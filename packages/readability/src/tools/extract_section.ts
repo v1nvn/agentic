@@ -1,18 +1,18 @@
-import type { ToolHandle } from '../server.js';
+import type { ToolHandle } from '../server.ts';
 
-import { ExtractionError } from '../errors.js';
-import { tool } from '../handler.js';
-import { buildDocument } from '../pipeline/dom.js';
-import { normalizeDocument } from '../pipeline/normalize.js';
-import { scopeToHeading } from '../policy/section.js';
-import { extractArticleFromHtml } from './extract.js';
-import { fromLocalPath } from './html-source.js';
-import { outputSchemaShape } from './output-schema.js';
+import { ExtractionError } from '../errors.ts';
+import { tool } from '../handler.ts';
+import { buildDocument } from '../pipeline/dom.ts';
+import { normalizeDocument } from '../pipeline/normalize.ts';
+import { scopeToHeading } from '../policy/section.ts';
+import { extractArticleFromHtml } from './extract.ts';
+import { fromLocalPath } from './html-source.ts';
+import { outputSchemaShape } from './output-schema.ts';
 import {
   type ExtractSectionFromHtmlInput,
   extractSectionInputSchema,
   extractSectionInputShape,
-} from './schemas.js';
+} from './schemas.ts';
 
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';

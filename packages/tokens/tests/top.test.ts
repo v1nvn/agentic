@@ -1,7 +1,7 @@
 import { expect, mock, test } from 'claude-code/testing';
 
-import { ageAgents, cellAt } from './kit/mod.js';
-import { stubEngine } from './kit/stub.js';
+import { ageAgents, cellAt } from '../hooks/support.ts';
+import { stubEngine } from './stub.ts';
 
 import type { On, SessionUsage } from 'claude-code';
 import type { Engine } from 'claude-code/testing';

@@ -1,14 +1,48 @@
 /**
- * The mod kit: the stamped helpers every hooks module rides — the
- * exec/accept/parse door, declarative command registration, pane chrome as
- * fields, the refresh gate and per-agent tick cleanup. It is JSX-free `.ts`
- * and names no engine type: what crosses between a home and the kit is
- * values, hooks and `on` — never `$`, which the validator keeps inside one
- * file (the engine passes `$` to hooks alone). Panes stay the home's `.tsx`;
- * event-fed state stays the engine's own `on()`.
+ * The tokens island's own support: the exec/accept/parse door, pane chrome
+ * as fields, and the per-agent tick bookkeeping. The engine's island loader
+ * imports its own files by relative path alone, so what a home's hooks run
+ * lives in the home; process-side surfaces import @v1nvn/agentic-core
+ * instead. The CLIs emit the finished lines — the island never formats.
  */
 
-import { lineOf, stdoutOf, type ToolLineSource } from './draw.js';
+export interface ToolLineSource {
+  readonly deny?: string;
+  readonly isError?: boolean;
+  readonly result?: unknown;
+  readonly text?: string;
+}
+
+interface Stdio {
+  readonly stderr?: unknown;
+  readonly stdout?: unknown;
+}
+
+function stdioOf(result: unknown): Stdio {
+  return typeof result === 'object' && result !== null ? result : {};
+}
+
+function stdoutOf(result: unknown): string {
+  const { stdout } = stdioOf(result);
+  return typeof stdout === 'string' ? stdout : '';
+}
+
+/** The one line an exec shows: the refusal's reason, stdout, else stderr or `fallback`. */
+export function lineOf(call: ToolLineSource, fallback: string): string {
+  if (call.deny !== undefined) {
+    return call.deny;
+  }
+  if (call.isError === true) {
+    return call.text ?? fallback;
+  }
+  const out = stdoutOf(call.result).trim();
+  if (out !== '') {
+    return out;
+  }
+  const { stderr } = stdioOf(call.result);
+  const err = typeof stderr === 'string' ? stderr.trim() : '';
+  return err !== '' ? err : fallback;
+}
 
 export type Door<T> =
   | { readonly line: string; readonly ok: false }
@@ -62,13 +96,7 @@ export function showsPane(
   return panes.some(p => p.id === pane.id);
 }
 
-/**
- * The exec command's descriptor: what `$.command.register` takes, one row
- * per command. A home declares its commands as this list and registers them
- * in one loop inside its single `session.start` — the validator demands the
- * hook literals and the one `session.start`, so registration is data the
- * home's own hook walks, not a helper `$` cannot cross into.
- */
+/** The exec command's descriptor: one row per command, registered in one loop. */
 export interface CommandSpec {
   readonly description: string;
   readonly name: string;

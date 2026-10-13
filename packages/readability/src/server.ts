@@ -1,20 +1,20 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 
-import { loadConfig } from './config.js';
-import { loadPresets } from './preset-cache.js';
-import { registerResources } from './resources.js';
-import { registerSamplingTools } from './sampling.js';
-import { registerChunkTextTool } from './tools/chunk_text.js';
-import { registerExplainTool } from './tools/explain.js';
-import { registerExtractGridTool } from './tools/extract_grid.js';
-import { registerExtractLinksTool } from './tools/extract_links.js';
-import { registerExtractListTool } from './tools/extract_list.js';
-import { registerExtractMetadataTool } from './tools/extract_metadata.js';
-import { registerExtractSectionTool } from './tools/extract_section.js';
-import { registerExtractTablesTool } from './tools/extract_tables.js';
-import { registerExtractTool } from './tools/extract.js';
-import { registerHtmlToMarkdownTool } from './tools/html_to_markdown.js';
-import { registerOutlineTool } from './tools/outline.js';
+import { loadConfig } from './config.ts';
+import { loadPresets } from './preset-cache.ts';
+import { registerResources } from './resources.ts';
+import { registerSamplingTools } from './sampling.ts';
+import { registerChunkTextTool } from './tools/chunk_text.ts';
+import { registerExplainTool } from './tools/explain.ts';
+import { registerExtractGridTool } from './tools/extract_grid.ts';
+import { registerExtractLinksTool } from './tools/extract_links.ts';
+import { registerExtractListTool } from './tools/extract_list.ts';
+import { registerExtractMetadataTool } from './tools/extract_metadata.ts';
+import { registerExtractSectionTool } from './tools/extract_section.ts';
+import { registerExtractTablesTool } from './tools/extract_tables.ts';
+import { registerExtractTool } from './tools/extract.ts';
+import { registerHtmlToMarkdownTool } from './tools/html_to_markdown.ts';
+import { registerOutlineTool } from './tools/outline.ts';
 
 // Re-exported so the dev hot-reload loop can import server.ts as a single
 // RuntimeModule and pick up every registration family (tools/resources) plus

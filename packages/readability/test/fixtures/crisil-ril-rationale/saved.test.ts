@@ -2,8 +2,8 @@ import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { extractArticleFromHtml } from '../../../src/tools/extract.js';
-import type { StructuredContent } from '../../../src/tools/output-schema.js';
+import { extractArticleFromHtml } from '../../../src/tools/extract.ts';
+import type { StructuredContent } from '../../../src/tools/output-schema.ts';
 
 // Slimmed rendered capture of a CRISIL rating rationale (a Word-to-HTML
 // export laid out as dozens of sibling <table>s):

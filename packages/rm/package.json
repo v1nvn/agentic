@@ -4,10 +4,9 @@
   "description": "Beam a Markdown reply to a reMarkable as EPUB — the rm-send CLI behind the rm plugin.",
   "type": "module",
   "bin": {
-    "rm-send": "dist/index.js"
+    "rm-send": "./src/index.ts"
   },
   "scripts": {
-    "build": "vite build && vite build --mode send",
     "test": "vitest run",
     "test:watch": "vitest"
   },
@@ -27,19 +26,18 @@
     "directory": "packages/rm"
   },
   "files": [
-    "dist"
+    "src"
   ],
   "publishConfig": {
     "access": "public"
   },
   "engines": {
-    "node": ">=22"
+    "node": ">=23.6"
   },
   "dependencies": {
-    "@v1nvn/agentic-core": "workspace:^"
+    "@v1nvn/agentic-core": "0.44.0"
   },
   "devDependencies": {
-    "vite": "^8.1.4",
     "vitest": "^4.1.10"
   }
 }

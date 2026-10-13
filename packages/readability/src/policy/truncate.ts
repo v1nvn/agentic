@@ -1,4 +1,4 @@
-import { hardSplitLines, parseBlocks } from './markdown.js';
+import { hardSplitLines, parseBlocks } from './markdown.ts';
 
 export interface TruncateResult {
   readonly text: string;

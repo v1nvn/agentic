@@ -24,6 +24,4 @@ jobs:
           cache-dependency-path: yarn.lock
       - run: yarn install --immutable
       - run: yarn typecheck
-      - run: yarn build
-      - run: git diff --exit-code packages/statusline/render.mjs
       - run: yarn test

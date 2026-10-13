@@ -1,4 +1,4 @@
-import type { ReadabilityParseResult } from './readability.js';
+import type { ReadabilityParseResult } from './readability.ts';
 
 interface GatingSignal {
   readonly likely: boolean;

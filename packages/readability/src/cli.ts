@@ -6,8 +6,8 @@ import {
   runCli,
 } from '@v1nvn/agentic-core';
 
-import { extractArticleFromHtml } from './tools/extract.js';
-import { readHtmlFile } from './tools/html-source.js';
+import { extractArticleFromHtml } from './tools/extract.ts';
+import { readHtmlFile } from './tools/html-source.ts';
 
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import type { Readable } from 'node:stream';

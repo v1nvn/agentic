@@ -37,8 +37,11 @@ export interface CliInvocation {
 // A --help ask caught mid-parse: the parse doors return it instead of exiting,
 // and runCli answers it (the help payload) on stdout with 0.
 export class HelpRequested extends Error {
-  constructor(readonly command: Command) {
+  readonly command: Command;
+
+  constructor(command: Command) {
     super(`${command.name()} --help`);
+    this.command = command;
   }
 }
 

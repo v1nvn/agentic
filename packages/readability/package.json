@@ -3,13 +3,12 @@
   "version": "0.44.0",
   "description": "MCP server that turns rendered (post-JS) HTML into clean Markdown + metadata via Readability, Turndown, and DOMPurify.",
   "type": "module",
-  "main": "dist/index.js",
-  "bin": "dist/index.js",
+  "main": "./src/index.ts",
+  "bin": "./src/index.ts",
   "scripts": {
-    "build": "vite build",
     "bench": "vite-node test/bench/run.ts",
     "dev": "vite-node src/dev.ts",
-    "start": "node dist/index.js",
+    "start": "node src/index.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:update-goldens": "UPDATE_GOLDENS=1 vitest run",
@@ -33,13 +32,13 @@
     "directory": "packages/readability"
   },
   "files": [
-    "dist"
+    "src"
   ],
   "publishConfig": {
     "access": "public"
   },
   "engines": {
-    "node": ">=22.22.2"
+    "node": ">=23.6"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",

@@ -2,10 +2,10 @@ import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { extractArticleFromHtml } from '../../../src/tools/extract.js';
-import { extractListFromHtml } from '../../../src/tools/extract_list.js';
-import { extractTablesFromHtml } from '../../../src/tools/extract_tables.js';
-import type { StructuredContent } from '../../../src/tools/output-schema.js';
+import { extractArticleFromHtml } from '../../../src/tools/extract.ts';
+import { extractListFromHtml } from '../../../src/tools/extract_list.ts';
+import { extractTablesFromHtml } from '../../../src/tools/extract_tables.ts';
+import type { StructuredContent } from '../../../src/tools/output-schema.ts';
 
 // Slimmed rendered capture of a corporate-announcements feed:
 // https://www.bseindia.com/corporates/ann.html

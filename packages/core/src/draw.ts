@@ -2,7 +2,8 @@
  * The drawing kit — the one home of the repo's terminal drawing model: ink
  * kinds are a closed union, color values are data, surfaces render
  * documents, and `toSgr` is the one skin, resetting each inked segment
- * unless it carries its ink into the next; stamped into each mod home.
+ * unless it carries its ink into the next. Loaded only by processes — the
+ * engine's island loader imports its own files by relative path alone.
  */
 
 export type InkKind =
@@ -92,7 +93,9 @@ function assertNever(kind: never): never {
 function paramsOf(ink: Ink): string {
   if (typeof ink !== 'string') {
     if ('bg' in ink) {
-      return paramsOf(ink.bg).replace(/^3/, '4');
+      return paramsOf(ink.bg)
+        .replace(/^3(\d)/, '4$1')
+        .replace(/^9(\d)/, '10$1');
     }
     return 'indexed' in ink
       ? `38;5;${ink.indexed}`
@@ -208,7 +211,6 @@ export function lineOf(call: ToolLineSource, fallback: string): string {
 }
 
 export const RULE_WIDTH = 68;
-export const LABEL_GUTTER = 9;
 
 export const BLOCK = '█';
 export const TRACK = '·';
@@ -221,16 +223,6 @@ export const EIGHTHS: readonly (string | undefined)[] = [
   '▋',
   '▊',
   '▉',
-];
-export const SPARK_LEVELS: readonly (string | undefined)[] = [
-  '▁',
-  '▂',
-  '▃',
-  '▄',
-  '▅',
-  '▆',
-  '▇',
-  '█',
 ];
 
 export function rule(width: number = RULE_WIDTH): string {
@@ -282,15 +274,6 @@ export function bar(value: number, max: number, width: number): string {
     out += EIGHTHS[fi] ?? '';
   }
   return pad(out, width, 'right');
-}
-
-export function spark(values: readonly number[], width: number): string {
-  const vs = values.slice(-width);
-  const max = Math.max(1, ...vs);
-  const cells = vs.map(
-    v => SPARK_LEVELS[Math.min(7, Math.round((v / max) * 7))] ?? ' ',
-  );
-  return pad(cells.join(''), width, 'right');
 }
 
 export function pad2(n: number): string {

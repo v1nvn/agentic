@@ -64,15 +64,15 @@ and re-vendor `types/claude-code.d.ts` (repo root) from the engine-laid
 | `src/index.ts` | bin entry (`md-send`) — dispatch, exit codes |
 | `src/share.ts` | the `#share=` URL, browser open, clipboard, status line |
 | `hooks/register.ts` | the mod: registers `/md-edit` and `/md-view`, execs the CLI, shows its line |
-| `bin/send.mjs` | the standalone build the mod execs — committed, synced by `yarn build` |
+| `src/index.ts` | the CLI source the mod execs — node runs it directly, nothing built |
 
 ## Contracts
 
 - One status line of output (e.g. `Opened in Markdown-Viewer (link copied).`).
 - The document reaches only the configured viewer — no third-party service.
-- `/md-edit` and `/md-view` are each one `node <plugin root>/bin/send.mjs`
+- `/md-edit` and `/md-view` are each one `node <plugin root>/src/index.ts
   exec through the session's Bash tool (`/md-view` adds `--view`) — the same
   share `npx md-send` runs. The one allow rule both need is
-  `Bash(node <plugin root>/bin/send.mjs:*)`; the first run asks for it once,
+  `Bash(node <plugin root>/src/index.ts:*)`; the first run asks for it once,
   then it is remembered. Its status line is a dim transcript row the model
   never reads.

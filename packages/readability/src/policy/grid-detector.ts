@@ -1,10 +1,10 @@
-import { resolveCellText } from '../pipeline/cell-text.js';
+import { resolveCellText } from '../pipeline/cell-text.ts';
 import {
   CONTAINER_TAGS,
   describeSelector,
   groupChildrenByShape,
   stripLandmarkChrome,
-} from './sibling-scan.js';
+} from './sibling-scan.ts';
 
 export interface GridRow {
   readonly cells: readonly string[];

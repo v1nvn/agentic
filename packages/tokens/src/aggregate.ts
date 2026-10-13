@@ -3,7 +3,7 @@
  * the CLI's walk (scan.ts) and the report's rows (format.ts).
  */
 
-import { ymd } from './text.js';
+import { ymd } from './text.ts';
 
 const DAYS = 7;
 

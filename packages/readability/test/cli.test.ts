@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { parseArgs, readHtml, runExtract } from '../src/cli.js';
+import { parseArgs, readHtml, runExtract } from '../src/cli.ts';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const fixturePath = join(here, 'fixtures/documentation/saved.html');

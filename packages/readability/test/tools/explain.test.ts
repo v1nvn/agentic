@@ -2,9 +2,9 @@ import {
   buildExplainReport,
   type BuildExplainOptions,
   type ExplainReport,
-} from '../../src/policy/explain.js';
-import { addPreset, resetPresets } from '../../src/policy/presets.js';
-import { explainFromHtml, explainHandler } from '../../src/tools/explain.js';
+} from '../../src/policy/explain.ts';
+import { addPreset, resetPresets } from '../../src/policy/presets.ts';
+import { explainFromHtml, explainHandler } from '../../src/tools/explain.ts';
 
 // Modeled on a docs page: a <main><article> with multi-paragraph prose flanked
 // by nav / aside / footer chrome. Readability should score the article far

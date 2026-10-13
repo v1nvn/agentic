@@ -1,6 +1,6 @@
-import { buildDocument } from '../../src/pipeline/dom.js';
-import type { ReadabilityParseResult } from '../../src/pipeline/readability.js';
-import { resolveMetadata } from '../../src/policy/metadata.js';
+import { buildDocument } from '../../src/pipeline/dom.ts';
+import type { ReadabilityParseResult } from '../../src/pipeline/readability.ts';
+import { resolveMetadata } from '../../src/policy/metadata.ts';
 
 function doc(html: string): Document {
   return buildDocument(html, 'https://example.com/page').document;

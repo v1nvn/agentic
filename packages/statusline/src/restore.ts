@@ -16,10 +16,10 @@ import {
   SETTINGS_KEYS,
   type SettingsBackup,
   type SettingsKey,
-} from './configure.js';
-import { DATA_DIR } from './render/capture.js';
-import { isRecord } from './render/jq.js';
-import { backupPath, renderMjsPath } from './resolve.js';
+} from './configure.ts';
+import { DATA_DIR } from './render/capture.ts';
+import { isRecord } from './render/jq.ts';
+import { backupPath, renderMjsPath } from './resolve.ts';
 
 export interface RestoreOptions {
   readonly dryRun?: boolean;

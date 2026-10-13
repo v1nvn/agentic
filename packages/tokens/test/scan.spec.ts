@@ -2,7 +2,7 @@ import { mkdirSync, mkdtempSync, rmSync, utimesSync, writeFileSync } from 'node:
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { scan } from '../src/scan.js';
+import { scan } from '../src/scan.ts';
 
 const now = new Date('2026-08-15T09:41:00');
 

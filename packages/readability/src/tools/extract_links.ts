@@ -1,16 +1,16 @@
-import type { ToolHandle } from '../server.js';
+import type { ToolHandle } from '../server.ts';
 
-import { tool } from '../handler.js';
-import { buildDocument } from '../pipeline/dom.js';
-import { applySelectors } from '../pipeline/normalize.js';
-import { absolutize } from '../pipeline/urls.js';
-import { fromLocalPath, withSchemaDefaults } from './html-source.js';
-import { extractLinksOutputShape } from './output-schema.js';
+import { tool } from '../handler.ts';
+import { buildDocument } from '../pipeline/dom.ts';
+import { applySelectors } from '../pipeline/normalize.ts';
+import { absolutize } from '../pipeline/urls.ts';
+import { fromLocalPath, withSchemaDefaults } from './html-source.ts';
+import { extractLinksOutputShape } from './output-schema.ts';
 import {
   type ExtractLinksFromHtmlInput,
   extractLinksInputSchema,
   extractLinksInputShape,
-} from './schemas.js';
+} from './schemas.ts';
 
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';

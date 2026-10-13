@@ -1,7 +1,7 @@
-import { extractArticleFromHtml } from '../../src/tools/extract.js';
-import { htmlToMarkdownFromHtml } from '../../src/tools/html_to_markdown.js';
-import type { StructuredContent } from '../../src/tools/output-schema.js';
-import { outputSchema } from '../../src/tools/output-schema.js';
+import { extractArticleFromHtml } from '../../src/tools/extract.ts';
+import { htmlToMarkdownFromHtml } from '../../src/tools/html_to_markdown.ts';
+import type { StructuredContent } from '../../src/tools/output-schema.ts';
+import { outputSchema } from '../../src/tools/output-schema.ts';
 
 const ARTICLE_HTML =
   '<html><head><title>Post</title></head><body><article><h1>Title</h1>' +

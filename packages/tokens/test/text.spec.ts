@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { barField, fmtTokens, padL, padR } from '../src/text.js';
+import { barField, fmtTokens, padL, padR } from '../src/text.ts';
 
 describe('text degenerate values', () => {
   it('renders missing values as an em dash', () => {

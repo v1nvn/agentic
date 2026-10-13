@@ -1,13 +1,14 @@
+#!/usr/bin/env node
 import { runCli } from '@v1nvn/agentic-core';
 
-import { catalog } from './catalog.js';
-import { statuslineSpec } from './cli.js';
-import { configure } from './configure.js';
-import { preview } from './preview.js';
-import { restore } from './restore.js';
-import { status } from './status.js';
-import { terminalDeps } from './wizard-tui.js';
-import { createWizard, opensWizard } from './wizard.js';
+import { catalog } from './catalog.ts';
+import { statuslineSpec } from './cli.ts';
+import { configure } from './configure.ts';
+import { preview } from './preview.ts';
+import { restore } from './restore.ts';
+import { status } from './status.ts';
+import { terminalDeps } from './wizard-tui.ts';
+import { createWizard, opensWizard } from './wizard.ts';
 
 function homeOf(flag: string | undefined): string {
   const home = flag ?? process.env.HOME;

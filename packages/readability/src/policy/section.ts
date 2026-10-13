@@ -1,5 +1,5 @@
-import { isElement } from '../pipeline/dom.js';
-import { normalizeHeadingText } from './outline.js';
+import { isElement } from '../pipeline/dom.ts';
+import { normalizeHeadingText } from './outline.ts';
 
 interface HeadingMatch {
   readonly heading: Element;

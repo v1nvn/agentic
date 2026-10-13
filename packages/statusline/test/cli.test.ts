@@ -9,7 +9,7 @@ import {
   parseArgs,
   statuslineSpec,
   VERSION,
-} from '../src/cli.js';
+} from '../src/cli.ts';
 
 // Read the manifest off disk so the test sees the published file, not the
 // bundler-resolved import src/cli.ts uses.

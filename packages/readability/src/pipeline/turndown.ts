@@ -1,11 +1,11 @@
 import TurndownService from 'turndown';
 import { gfm } from 'turndown-plugin-gfm';
 
-import type { TableFormat } from './tables.js';
+import type { TableFormat } from './tables.ts';
 
-import { processFootnotes } from './footnotes.js';
-import { parseTableMatrix, renderTable } from './tables.js';
-import { absolutize } from './urls.js';
+import { processFootnotes } from './footnotes.ts';
+import { parseTableMatrix, renderTable } from './tables.ts';
+import { absolutize } from './urls.ts';
 
 export type CodeBlockStyle = 'fenced' | 'indented';
 export type HeadingStyle = 'atx' | 'setext';

@@ -1,9 +1,9 @@
-import { parseArgv } from './argv.js';
-import { capturePayload } from './capture.js';
-import { renderStatusline } from './engine.js';
-import { transcriptFacts } from './facts.js';
-import { renderPanel } from './panel.js';
-import { resolvePaint } from './theme.js';
+import { parseArgv } from './argv.ts';
+import { capturePayload } from './capture.ts';
+import { renderStatusline } from './engine.ts';
+import { transcriptFacts } from './facts.ts';
+import { renderPanel } from './panel.ts';
+import { resolvePaint } from './theme.ts';
 
 // The render.mjs entry the settings keys spawn: decisions ride argv, ambient
 // state rides env — NO_COLOR, COLUMNS, HOME stay environment because the

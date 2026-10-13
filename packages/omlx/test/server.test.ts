@@ -3,7 +3,7 @@ import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { ListToolsResultSchema } from '@modelcontextprotocol/sdk/types.js';
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { createServer } from '../src/server.js';
+import { createServer } from '../src/server.ts';
 
 import type { Tool } from '@modelcontextprotocol/sdk/types.js';
 

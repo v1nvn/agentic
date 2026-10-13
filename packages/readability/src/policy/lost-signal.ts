@@ -1,6 +1,6 @@
-import type { GatingSignal } from './gating.js';
+import type { GatingSignal } from './gating.ts';
 
-import { countWords } from './text.js';
+import { countWords } from './text.ts';
 
 // Below this the extraction cannot be the article a reader came for. The
 // measured corpus floor: the smallest healthy extract is gatwick at 435 words;

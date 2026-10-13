@@ -2,14 +2,14 @@ import { readFileSync } from 'node:fs';
 
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { configure } from '../src/configure.js';
-import { ITEMS } from '../src/render/index.js';
-import { mainKeyValue, subagentKeyValue, readKeyConfig } from '../src/resolve.js';
+import { configure } from '../src/configure.ts';
+import { ITEMS } from '../src/render/index.ts';
+import { mainKeyValue, subagentKeyValue, readKeyConfig } from '../src/resolve.ts';
 import {
   createHomes,
   settingsCommand,
   settingsPath,
-} from './fixtures.js';
+} from './fixtures.ts';
 
 // The Goal's canonical bytes, typed in full — the golden the writer is pinned
 // against. The program itself is the prefix; decisions ride argv as flags.

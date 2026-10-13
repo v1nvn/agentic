@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { readHtmlFile } from '../../src/tools/html-source.js';
+import { readHtmlFile } from '../../src/tools/html-source.ts';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const fixturePath = join(here, '../fixtures/documentation/saved.html');

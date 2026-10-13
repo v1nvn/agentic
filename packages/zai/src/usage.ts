@@ -10,8 +10,8 @@ import type {
   ZaiModelUsage,
   ZaiQuota,
   ZaiToolUsage,
-} from './format.js';
-import type { ResolvedConfig } from './resolve.js';
+} from './format.ts';
+import type { ResolvedConfig } from './resolve.ts';
 
 interface RawLimit {
   currentValue?: number;

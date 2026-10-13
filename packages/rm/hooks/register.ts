@@ -1,11 +1,10 @@
 /**
  * The rm mod: /rm-send beams the last reply to the reMarkable — one exec of
- * the shipped CLI (bin/send.mjs) through the session's Bash tool, its single
+ * the CLI source (src/index.ts) through the session's Bash tool, its single
  * line shown as a dim transcript row the model never reads.
  */
 
-import { lineOf } from './kit/draw.js';
-import { type CommandSpec } from './kit/mod.js';
+import { type CommandSpec, lineOf } from './support.ts';
 
 import type { EngineInterface, On } from 'claude-code';
 
@@ -27,7 +26,7 @@ export function register(on: On): void {
   on('command.run', { command: 'rm-send' }, async ($: EngineInterface) => {
     const call = await $.tool.call({
       tool: 'Bash',
-      command: `node ${$.plugin.root}/bin/send.mjs`,
+      command: `node ${$.plugin.root}/src/index.ts`,
     });
     $.ui.log(lineOf(call, 'send failed'));
     return {};

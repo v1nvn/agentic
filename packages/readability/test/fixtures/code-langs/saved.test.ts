@@ -2,9 +2,9 @@ import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { extractArticleFromHtml } from '../../../src/tools/extract.js';
-import { htmlToMarkdownFromHtml } from '../../../src/tools/html_to_markdown.js';
-import type { StructuredContent } from '../../../src/tools/output-schema.js';
+import { extractArticleFromHtml } from '../../../src/tools/extract.ts';
+import { htmlToMarkdownFromHtml } from '../../../src/tools/html_to_markdown.ts';
+import type { StructuredContent } from '../../../src/tools/output-schema.ts';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const fixturePath = join(here, 'saved.html');

@@ -1,12 +1,11 @@
 /**
  * The md mod: /md-edit and /md-view send the last reply to the
- * Markdown-Viewer — one exec of the shipped CLI (bin/send.mjs) through the
+ * Markdown-Viewer — one exec of the shipped CLI (src/index.ts) through the
  * session's Bash tool, its single line shown as a dim transcript row the
  * model never reads. /md-view adds the CLI's --view flag (read-only share).
  */
 
-import { lineOf } from './kit/draw.js';
-import { type CommandSpec } from './kit/mod.js';
+import { type CommandSpec, lineOf } from './support.ts';
 
 import type { CommandRunResult, EngineInterface, On } from 'claude-code';
 
@@ -28,7 +27,7 @@ async function share(
   const flag = view ? ' --view' : '';
   const call = await $.tool.call({
     tool: 'Bash',
-    command: `node ${$.plugin.root}/bin/send.mjs${flag}`,
+    command: `node ${$.plugin.root}/src/index.ts${flag}`,
   });
   $.ui.log(lineOf(call, 'share failed'));
   return {};

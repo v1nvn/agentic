@@ -119,6 +119,19 @@ export function barField(v: number, max: number, width: number): string {
   return s.slice(0, width);
 }
 
+/** Ink-tagged meter field: green filled blocks over a dim track, `width` cols. */
+export function meterSegs(
+  pct: null | number | undefined,
+  width: number,
+): Segment[] {
+  const safe = typeof pct === 'number' && Number.isFinite(pct) ? pct : 0;
+  const n = Math.max(0, Math.min(width, Math.round((safe / 100) * width)));
+  return [
+    { text: '█'.repeat(n), ink: 'green' },
+    { text: '·'.repeat(width - n), ink: 'dim' },
+  ];
+}
+
 const SPARK_LEVELS = ['▁', '▂', '▃', '▄', '▅', '▆', '▇', '█'];
 
 /** Sparkline of the last `width` values, solid partial blocks only. */

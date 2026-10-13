@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 
-import type { FromHtmlInput } from './schemas.js';
+import type { FromHtmlInput } from './schemas.ts';
 
 export function readHtmlFile(localPath: string): string {
   const raw = readFileSync(localPath, 'utf8');

@@ -3,7 +3,7 @@ import { rmSync } from 'node:fs';
 import { stripSgr } from '@v1nvn/agentic-core/draw';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import { vlen } from '../src/render/engine.js';
+import { vlen } from '../src/render/engine.ts';
 import {
   createDemoHome,
   DEFAULT_NOW,
@@ -11,7 +11,7 @@ import {
   loadPayload,
   renderAt,
   type DemoHome,
-} from './runtime.js';
+} from './runtime.ts';
 
 // The rung ladder and 2-line wrap are pinned by the golden corpus at their
 // pinned widths; this suite covers what the corpus cannot — the fit invariant

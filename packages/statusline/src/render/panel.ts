@@ -7,21 +7,21 @@ import {
   toSgr,
 } from '@v1nvn/agentic-core/draw';
 
-import type { TaskFacts } from './facts.js';
-import type { GitFacts } from './git.js';
-import type { Row } from './payload.js';
+import type { TaskFacts } from './facts.ts';
+import type { GitFacts } from './git.ts';
+import type { Row } from './payload.ts';
 
-import { stripModelSuffix } from './engine.js';
+import { stripModelSuffix } from './engine.ts';
 import {
   DEFAULT_LAYOUT,
   type FitStep,
   ITEM_IDS,
   RUNG_ORDERS,
   validatePick,
-} from './items.js';
-import { isRecord, jqText, orElse, tsvEscape } from './jq.js';
-import { parseLayout } from './layout.js';
-import { renderSegment, type Separators, styleSeparators } from './segments.js';
+} from './items.ts';
+import { isRecord, jqText, orElse, tsvEscape } from './jq.ts';
+import { parseLayout } from './layout.ts';
+import { renderSegment, type Separators, styleSeparators } from './segments.ts';
 
 // The agent panel, ported from the bash subagent renderer it replaced — a
 // second renderer by ruling: its vlen counts codepoints (jq `length`), not

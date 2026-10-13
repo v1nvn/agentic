@@ -1,5 +1,5 @@
-import { buildDocument } from '../../src/pipeline/dom.js';
-import { detectPagination } from '../../src/policy/pagination.js';
+import { buildDocument } from '../../src/pipeline/dom.ts';
+import { detectPagination } from '../../src/policy/pagination.ts';
 
 function doc(html: string, url?: string): Document {
   return buildDocument(html, url).document;

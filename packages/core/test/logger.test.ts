@@ -6,7 +6,7 @@ import {
   toolHandler,
   type ErrorResult,
   type Logger,
-} from '../src/index.js';
+} from '../src/index.ts';
 
 const toErrorResult = (err: unknown): ErrorResult => ({
   content: [{ type: 'text', text: describeError(err) }],

@@ -1,20 +1,20 @@
-import type { ToolHandle } from '../server.js';
+import type { ToolHandle } from '../server.ts';
 
-import { tool } from '../handler.js';
-import { buildDocument } from '../pipeline/dom.js';
-import { applySelectors } from '../pipeline/normalize.js';
+import { tool } from '../handler.ts';
+import { buildDocument } from '../pipeline/dom.ts';
+import { applySelectors } from '../pipeline/normalize.ts';
 import {
   parseTableMatrix,
   renderTable,
   resolveHeaderKeys,
-} from '../pipeline/tables.js';
-import { fromLocalPath, withSchemaDefaults } from './html-source.js';
-import { extractTablesOutputShape } from './output-schema.js';
+} from '../pipeline/tables.ts';
+import { fromLocalPath, withSchemaDefaults } from './html-source.ts';
+import { extractTablesOutputShape } from './output-schema.ts';
 import {
   type ExtractTablesFromHtmlInput,
   extractTablesInputSchema,
   extractTablesInputShape,
-} from './schemas.js';
+} from './schemas.ts';
 
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';

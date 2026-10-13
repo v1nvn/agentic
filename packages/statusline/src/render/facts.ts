@@ -1,7 +1,7 @@
 import { closeSync, fstatSync, openSync, readSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
 
-import { isRecord } from './jq.js';
+import { isRecord } from './jq.ts';
 
 // Two facts the tick under-reports, read off each subagent's own transcript:
 // used context (the tick's tokenCount is an output-flavored figure, 406

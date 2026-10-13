@@ -1,8 +1,9 @@
+#!/usr/bin/env node
 import { runCli } from '@v1nvn/agentic-core';
 
-import { render } from './format.js';
-import { cliSpec, resolveConfig } from './resolve.js';
-import { fetchReport } from './usage.js';
+import { render, reportLines } from './format.ts';
+import { cliSpec, resolveConfig } from './resolve.ts';
+import { fetchReport } from './usage.ts';
 
 process.exitCode = await runCli(
   cliSpec(async options => {
@@ -14,7 +15,11 @@ process.exitCode = await runCli(
         json: options.json === true,
       }),
     );
-    console.log(options.json === true ? JSON.stringify(input) : render(input));
+    console.log(
+      options.json === true
+        ? JSON.stringify({ lines: reportLines(input) })
+        : render(input),
+    );
   }),
   process.argv.slice(2),
 );

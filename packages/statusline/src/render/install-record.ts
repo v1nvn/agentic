@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { basename, join } from 'node:path';
 
-import { isRecord } from './jq.js';
+import { isRecord } from './jq.ts';
 
 export type InstallRecord =
   | {
@@ -20,7 +20,7 @@ interface Entry {
 
 const RECORD_FILE = join('.claude', 'plugins', 'installed_plugins.json');
 const UNREADABLE = 'installed_plugins.json unreadable';
-const NONE_USABLE = 'no statusline@agentic install with a render.mjs';
+const NONE_USABLE = 'no statusline@agentic install with a src/render/entry.ts';
 
 // Claude Code's own install record (v2 shape): the plugin-update path
 // rewrites it, so the entries name the renderers updates have landed.
@@ -60,7 +60,7 @@ function usable(value: unknown): value is Entry {
   return (
     isRecord(value) &&
     typeof value.installPath === 'string' &&
-    existsSync(join(value.installPath, 'render.mjs'))
+    existsSync(join(value.installPath, 'src', 'render', 'entry.ts'))
   );
 }
 

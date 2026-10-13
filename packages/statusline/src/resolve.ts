@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { join, sep } from 'node:path';
 
-import { DATA_DIR } from './render/capture.js';
+import { DATA_DIR } from './render/capture.ts';
 
 export function capturePath(home: string, surface: 'main' | 'tick'): string {
   return join(home, DATA_DIR, 'captures', `${surface}.json`);

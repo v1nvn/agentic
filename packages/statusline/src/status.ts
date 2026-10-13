@@ -9,19 +9,19 @@ import {
   SETTINGS_KEYS,
   type SettingsBackup,
   type SettingsKey,
-} from './configure.js';
-import { DATA_DIR } from './render/capture.js';
-import { specFor } from './render/index.js';
-import { resolveInstall } from './render/install-record.js';
-import { layoutItemsOf } from './render/layout.js';
+} from './configure.ts';
+import { DATA_DIR } from './render/capture.ts';
+import { specFor } from './render/index.ts';
+import { resolveInstall } from './render/install-record.ts';
+import { layoutItemsOf } from './render/layout.ts';
 import {
   capturePath,
   parseSubagentCommand,
   readKeyConfig,
   renderMjsPath,
   type ScriptConfig,
-} from './resolve.js';
-import { readBackup } from './restore.js';
+} from './resolve.ts';
+import { readBackup } from './restore.ts';
 
 export interface StatusOptions {
   readonly home: string;

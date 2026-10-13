@@ -1,25 +1,15 @@
 {
   "name": "@v1nvn/agentic-core",
   "version": "0.44.0",
-  "description": "Shared source home for the @v1nvn agent tools — runtime helpers and the drawing kit that yarn build stamps into each mod's hooks.",
+  "description": "Shared source home for the @v1nvn agent tools — runtime helpers and the drawing kit every process-side surface imports.",
   "type": "module",
-  "main": "./dist/index.js",
+  "main": "./src/index.ts",
   "exports": {
-    ".": {
-      "types": "./src/index.ts",
-      "default": "./dist/index.js"
-    },
-    "./draw": {
-      "types": "./src/draw.ts",
-      "default": "./dist/draw.js"
-    },
-    "./vite": {
-      "types": "./src/vite.ts",
-      "default": "./dist/vite.js"
-    }
+    ".": "./src/index.ts",
+    "./draw": "./src/draw.ts",
+    "./vite": "./src/vite.ts"
   },
   "scripts": {
-    "build": "vite build",
     "test": "vitest run",
     "test:watch": "vitest"
   },
@@ -39,11 +29,12 @@
     "directory": "packages/core"
   },
   "files": [
-    "dist",
     "src"
   ],
+  "dependencies": {
+    "commander": "^15.0.0"
+  },
   "devDependencies": {
-    "commander": "^15.0.0",
     "vite": "^8.1.4",
     "vitest": "^4.1.10"
   },
@@ -51,6 +42,6 @@
     "access": "public"
   },
   "engines": {
-    "node": ">=22"
+    "node": ">=23.6"
   }
 }

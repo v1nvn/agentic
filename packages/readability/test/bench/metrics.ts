@@ -1,6 +1,6 @@
-import { buildDocument } from '../../src/pipeline/dom.js';
-import { extractArticleFromHtml } from '../../src/tools/extract.js';
-import type { StructuredContent } from '../../src/tools/output-schema.js';
+import { buildDocument } from '../../src/pipeline/dom.ts';
+import { extractArticleFromHtml } from '../../src/tools/extract.ts';
+import type { StructuredContent } from '../../src/tools/output-schema.ts';
 
 export interface FixtureMetrics {
   readonly compressionRatio: number;

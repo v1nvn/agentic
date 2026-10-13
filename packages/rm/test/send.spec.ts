@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { slugify, titleOf } from '../src/send.js';
+import { slugify, titleOf } from '../src/send.ts';
 
 describe('titleOf', () => {
   it('takes the first Markdown heading, stripped of hashes and leading space', () => {

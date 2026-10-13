@@ -8,7 +8,7 @@ import { runDevServer } from '@v1nvn/agentic-core/vite';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { logger } from './logger.js';
+import { logger } from './logger.ts';
 
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 

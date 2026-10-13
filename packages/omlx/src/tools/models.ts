@@ -1,10 +1,10 @@
 import { z } from 'zod';
 
-import type { ToolHandle } from '../server.js';
+import type { ToolHandle } from '../server.ts';
 
-import { loadConfig } from '../config.js';
-import { tool } from '../handler.js';
-import { omlxGet } from '../omlx.js';
+import { loadConfig } from '../config.ts';
+import { tool } from '../handler.ts';
+import { omlxGet } from '../omlx.ts';
 
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';

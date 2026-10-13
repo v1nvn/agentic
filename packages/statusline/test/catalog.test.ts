@@ -1,11 +1,11 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { catalog } from '../src/catalog.js';
-import { buildProgram, parseArgs } from '../src/cli.js';
-import { configure } from '../src/configure.js';
-import { ITEMS } from '../src/render/index.js';
-import { mainKeyValue } from '../src/resolve.js';
-import { THEMES, createHomes, writeSettings } from './fixtures.js';
+import { catalog } from '../src/catalog.ts';
+import { buildProgram, parseArgs } from '../src/cli.ts';
+import { configure } from '../src/configure.ts';
+import { ITEMS } from '../src/render/index.ts';
+import { mainKeyValue } from '../src/resolve.ts';
+import { THEMES, createHomes, writeSettings } from './fixtures.ts';
 
 // Each dead verb is invoked the way a user would really type it — with the
 // arguments it used to accept — so a pass is a surviving verb, not a missing

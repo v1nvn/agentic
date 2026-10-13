@@ -1,14 +1,14 @@
-import type { Chunk } from '../policy/chunk.js';
-import type { ToolHandle } from '../server.js';
+import type { Chunk } from '../policy/chunk.ts';
+import type { ToolHandle } from '../server.ts';
 
-import { tool } from '../handler.js';
-import { chunkMarkdown } from '../policy/chunk.js';
-import { chunkTextOutputShape } from './output-schema.js';
+import { tool } from '../handler.ts';
+import { chunkMarkdown } from '../policy/chunk.ts';
+import { chunkTextOutputShape } from './output-schema.ts';
 import {
   type ChunkTextInput,
   chunkTextInputSchema,
   chunkTextInputShape,
-} from './schemas.js';
+} from './schemas.ts';
 
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
