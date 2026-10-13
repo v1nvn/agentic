@@ -222,6 +222,28 @@ function lockDrift(path, version) {
   return null;
 }
 
+// Claude Code installs a cached plugin's deps with a frozen npm ci and skips
+// the install outright when the manifest and lock disagree — so a lock home's
+// manifest ships runtime dependencies only (workspace toolchain lives at the
+// root) and its lock must describe exactly that manifest.
+function lockManifestDrift(lock) {
+  const home = lock.replace('/package-lock.json', '');
+  const manifest = JSON.parse(readFileSync(join(home, 'package.json'), 'utf8'));
+  if (manifest.devDependencies !== undefined) {
+    return `${home}/package.json: devDependencies on a lock home make the plugin-cache install skip — declare toolchain at the workspace root`;
+  }
+  const root = JSON.parse(readFileSync(lock, 'utf8')).packages?.[''];
+  const declared = manifest.dependencies ?? {};
+  const locked = root?.dependencies ?? {};
+  const same =
+    Object.keys(declared).length === Object.keys(locked).length &&
+    Object.entries(declared).every(([name, range]) => locked[name] === range);
+  if (!same) {
+    return `${lock}: root dependencies ${JSON.stringify(locked)} != ${home}/package.json ${JSON.stringify(declared)}`;
+  }
+  return null;
+}
+
 // Pins invoke npm packages, so the valid names are the scoped ones — plugin
 // manifests carry bare short names that must not leak into the comparison.
 const KNOWN = new Set(
@@ -256,7 +278,7 @@ if (command === '--check') {
     }
   }
   for (const path of LOCKS) {
-    messages.push(lockDrift(path, repo));
+    messages.push(lockDrift(path, repo), lockManifestDrift(path));
   }
   const errors = messages.filter(Boolean);
   if (errors.length > 0) {

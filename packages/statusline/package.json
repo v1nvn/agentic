@@ -5,8 +5,8 @@
   "type": "module",
   "bin": "./src/index.ts",
   "scripts": {
-    "test": "vitest run",
-    "test:watch": "vitest"
+    "test": "yarn run -T vitest run",
+    "test:watch": "yarn run -T vitest"
   },
   "keywords": [
     "claude-code",
@@ -35,8 +35,5 @@
   },
   "dependencies": {
     "@v1nvn/agentic-core": "0.44.0"
-  },
-  "devDependencies": {
-    "vitest": "^4.1.10"
   }
 }

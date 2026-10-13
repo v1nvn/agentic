@@ -82,9 +82,14 @@ name or shape wins.
 - **A mod command's name is `<plugin>-<action>`, hyphenated** — the registered
   name is the whole invocation (`/tokens-usage`, `/rm-send`), so the name carries
   its own scope and never collides with a bare-word built-in.
-- **Scripts resolve binaries only from deps the workspace declares.** Each package
-  declares the tools its scripts invoke (`vite`, `vitest`); the root declares the
-  root-run tools (eslint stack, prettier, typescript).
+- **Scripts resolve binaries only from deps the workspace declares.** The root
+  declares the toolchain (eslint stack, prettier, typescript, vitest); a home
+  that declares no tool of its own reaches the root's through
+  `yarn run -T <bin>` (berry puts no root bins on a home's script PATH). A lock
+  home's `package.json` also ships into users' plugin caches, where Claude Code
+  installs the manifest+lock pair with a frozen `npm ci` and skips the install
+  on any disagreement — so it carries runtime dependencies only, and
+  `set-version.mjs --check` holds the pair in agreement.
 - **Nine independent plugins, one marketplace.** Never collapse them into a
   mega-plugin; each installs and runs on its own.
 - **statusline ships exactly one skill** — root `SKILL.md`, invoked as

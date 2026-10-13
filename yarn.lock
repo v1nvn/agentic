@@ -751,7 +751,6 @@ __metadata:
   resolution: "@v1nvn/md@workspace:packages/md"
   dependencies:
     "@v1nvn/agentic-core": "npm:0.44.0"
-    vitest: "npm:^4.1.10"
   bin:
     md-send: ./src/index.ts
   languageName: unknown
@@ -803,7 +802,6 @@ __metadata:
   resolution: "@v1nvn/rm@workspace:packages/rm"
   dependencies:
     "@v1nvn/agentic-core": "npm:0.44.0"
-    vitest: "npm:^4.1.10"
   bin:
     rm-send: ./src/index.ts
   languageName: unknown
@@ -814,7 +812,6 @@ __metadata:
   resolution: "@v1nvn/statusline@workspace:packages/statusline"
   dependencies:
     "@v1nvn/agentic-core": "npm:0.44.0"
-    vitest: "npm:^4.1.10"
   bin:
     statusline: ./src/index.ts
   languageName: unknown
@@ -825,7 +822,6 @@ __metadata:
   resolution: "@v1nvn/tokens@workspace:packages/tokens"
   dependencies:
     "@v1nvn/agentic-core": "npm:0.44.0"
-    vitest: "npm:^4.1.10"
   bin:
     tokens-report: ./src/index.ts
   languageName: unknown
@@ -836,7 +832,6 @@ __metadata:
   resolution: "@v1nvn/zai@workspace:packages/zai"
   dependencies:
     "@v1nvn/agentic-core": "npm:0.44.0"
-    vitest: "npm:^4.1.10"
   bin:
     zai-usage: ./src/index.ts
   languageName: unknown
