@@ -154,7 +154,7 @@ function rewriteDependencyPins(path, version) {
   }
 }
 
-function apply(version) {
+function apply(version, { locks = true } = {}) {
   for (const path of [SOURCE, ...MIRRORS]) {
     writeVersion(path, version);
   }
@@ -164,7 +164,12 @@ function apply(version) {
   for (const path of [...PINNED_CONFIGS, ...MD_SURFACES]) {
     rewritePins(path, version);
   }
-  regenLocks();
+  // The locks pin the train's own core version with its registry integrity
+  // hash, so they can only regenerate once that version is published — the
+  // release train bumps with --no-locks, publishes core, then re-applies.
+  if (locks) {
+    regenLocks();
+  }
   console.log(
     `${[SOURCE, ...MIRRORS].length} manifests, ${PINNED_CONFIGS.length} config pins, ${MD_SURFACES.length} md npx surfaces, ${LOCKS.length} lockfiles now at ${version}`,
   );
@@ -252,7 +257,9 @@ const KNOWN = new Set(
   ),
 );
 
-const [command, argument] = process.argv.slice(2);
+const argv = process.argv.slice(2).filter(arg => arg !== '--no-locks');
+const noLocks = argv.length !== process.argv.slice(2).length;
+const [command, argument] = argv;
 if (command === '--check') {
   const repo = readVersion(SOURCE);
   const messages = MIRRORS.filter(path => readVersion(path) !== repo).map(
@@ -303,11 +310,13 @@ if (command === '--bump') {
   }
   const parts = triple.slice(1).map(Number);
   parts[index] += 1;
-  apply(parts.map((part, i) => (i > index ? 0 : part)).join('.'));
+  apply(parts.map((part, i) => (i > index ? 0 : part)).join('.'), {
+    locks: !noLocks,
+  });
 } else if (SEMVER.test(command ?? '')) {
-  apply(command);
+  apply(command, { locks: !noLocks });
 } else {
   fail([
-    `usage: set-version.mjs --check | set-version.mjs --bump <major|minor|patch> | set-version.mjs <semver> — got "${command ?? ''}"`,
+    `usage: set-version.mjs --check | set-version.mjs [--no-locks] --bump <major|minor|patch> | set-version.mjs <semver> — got "${command ?? ''}"`,
   ]);
 }

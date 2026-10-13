@@ -35,11 +35,12 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: '26'
+          registry-url: 'https://registry.npmjs.org'
           cache: yarn
           cache-dependency-path: yarn.lock
       - run: yarn install --immutable
       - name: Bump the train version
-        run: node .github/scripts/set-version.mjs --bump "${{ inputs.bump }}"
+        run: node .github/scripts/set-version.mjs --bump "${{ inputs.bump }}" --no-locks
       - name: Install Claude Code CLI
         run: npm install -g @anthropic-ai/claude-code
       - name: Validate plugin + marketplace manifests
@@ -48,6 +49,29 @@ jobs:
           for m in packages/*/.claude-plugin/plugin.json; do
             claude plugin validate "$m"
           done
+
+      # The lockfiles pin the train's own core version with its registry
+      # integrity hash, so core must be on npm before they regenerate — the
+      # release job's per-package skip then publishes only the remaining homes.
+      - name: Publish core at the new version
+        run: |
+          version="$(jq -r .version .claude-plugin/marketplace.json)"
+          if npm view "@v1nvn/agentic-core@$version" version >/dev/null 2>&1; then
+            echo "::notice::@v1nvn/agentic-core@$version already on npm; skipping."
+          else
+            (cd packages/core && yarn npm publish --provenance)
+          fi
+      - name: Regenerate lockfiles against the published core
+        run: |
+          version="$(jq -r .version .claude-plugin/marketplace.json)"
+          for attempt in 1 2 3 4 5; do
+            if node .github/scripts/set-version.mjs "$version"; then
+              exit 0
+            fi
+            echo "registry has not resolved @v1nvn/agentic-core@$version yet (attempt $attempt); retrying in 30s"
+            sleep 30
+          done
+          exit 1
       - name: Check package versions ride the repo version
         run: node .github/scripts/set-version.mjs --check
       - name: Commit and push the bump

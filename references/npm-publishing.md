@@ -14,9 +14,13 @@ Cut a release by dispatching the workflow with a bump step:
 gh workflow run release.yml -f bump=<patch|minor|major>
 ```
 
-The `prepare` job bumps the mirrors, pushes `chore(release): vX.Y.Z`, and the
-release job publishes every package at that sha to npm (trusted publishing,
-`--provenance`) and creates the GitHub release `v<version>`. A dispatch with
+The `prepare` job bumps the mirrors (`--no-locks`), publishes core at the new
+version, regenerates the lockfiles against it, pushes
+`chore(release): vX.Y.Z`, and the release job publishes the remaining packages
+at that sha to npm (trusted publishing, `--provenance`) and creates the GitHub
+release `v<version>`. Core publishes first because the lockfiles pin the
+train's own version with its registry integrity hash — they cannot resolve
+before it exists. A dispatch with
 `bump=none`, like any plain push to `main`, skips `prepare` and publishes the
 current version. `node .github/scripts/set-version.mjs <version>` remains for
 local cuts.
