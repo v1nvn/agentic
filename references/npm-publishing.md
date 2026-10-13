@@ -15,10 +15,12 @@ gh workflow run release.yml -f bump=<patch|minor|major>
 ```
 
 The `prepare` job bumps the mirrors (`--no-locks`), publishes core at the new
-version, regenerates the lockfiles against it, pushes
+version, waits for the registry to serve it, regenerates the lockfiles against
+it, pushes
 `chore(release): vX.Y.Z`, and the release job publishes the remaining packages
 at that sha to npm (trusted publishing, `--provenance`) and creates the GitHub
-release `v<version>`. Core publishes first because the lockfiles pin the
+release `v<version>`. Core publishes first because the per-home lockfiles pin
+the
 train's own version with its registry integrity hash — they cannot resolve
 before it exists. A dispatch with
 `bump=none`, like any plain push to `main`, skips `prepare` and publishes the
@@ -75,11 +77,23 @@ bootstrap publishes.
 - Any push to `main` while a package is unpublished or untrusted re-fails
   `release.yml`. Finish the bootstrap before pushing again.
 
-## Registry lag
+## Registry visibility
 
-`npm view` can 404 a published version for minutes after publish (agentic-core
-and md are recurring laggards). Re-query with `--prefer-online`, or curl
-`registry.npmjs.org/<escaped-name>/<version>` directly, before concluding
-failure; `npm view pkg@version --json` returns an array. Query by the name in
-`package.json`, never the directory — `packages/core` publishes as
-`@v1nvn/agentic-core`.
+The registry serves package metadata with `cache-control: max-age=300`, and
+npm honors that in its local cache — any fetch made before a publish keeps
+answering with the pre-publish state for five minutes after it, however
+healthy the registry is. The old "registry lag" notes were this client cache,
+not server propagation.
+
+- Query past it with `--prefer-online` (`npm view`, `npm install`), or curl
+  `registry.npmjs.org/<escaped-name>/<version>` — the per-version URL is a
+  cache key nothing fetched before the publish, so it answers current state.
+- The train depends on both: `prepare` polls the per-version URL until the
+  just-published core answers, then regenerates the lockfiles — the per-home
+  npm locks with `--prefer-online`, the root `yarn.lock` against the
+  workspace (the exact pins change its core descriptors every bump, and no
+  publish is needed to refresh it). A blind retry shorter than the 300s
+  window cannot succeed.
+- `npm view pkg@version --json` returns an array. Query by the name in
+  `package.json`, never the directory — `packages/core` publishes as
+  `@v1nvn/agentic-core`.
