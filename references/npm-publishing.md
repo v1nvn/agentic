@@ -22,7 +22,10 @@ at that sha to npm (trusted publishing, `--provenance`) and creates the GitHub
 release `v<version>`. Core publishes first because the per-home lockfiles pin
 the
 train's own version with its registry integrity hash — they cannot resolve
-before it exists. A dispatch with
+before it exists. Every publish compiles the registry face first
+(`publish-face.mjs`): node will not type-strip `.ts` under `node_modules`, so
+the npm artifact's entries are `.js` while the git and plugin face stays `.ts`
+source. A dispatch with
 `bump=none`, like any plain push to `main`, skips `prepare` and publishes the
 current version. `node .github/scripts/set-version.mjs <version>` remains for
 local cuts.
@@ -48,13 +51,18 @@ npm has no pre-registration for new names — `npm trust` and the docs both
 require the package to exist (npm/cli#8544). One-time manual pass, then every
 later release is keyless:
 
-1. Current checkout, `yarn install && yarn build`. Publish packs `dist/`, not
-   git — the branch is irrelevant, a stale `dist/` is the risk.
-2. Publish from a **real terminal** — in a non-TTY shell yarn prints the login
-   URL and dies ("unexpected empty event loop"):
-   `(cd packages/<name> && yarn npm publish)` — browser 2FA **per publish**.
+1. Current checkout, `yarn install`.
+2. Compile the registry face, publish from a **real terminal** — in a
+   non-TTY shell yarn prints the login URL and dies ("unexpected empty
+   event loop") — then revert the face. Browser 2FA **per publish**;
    `--otp <code>` works for exactly one publish; reusing a code trips a 429
    OTP rate limit.
+
+   ```sh
+   node .github/scripts/publish-face.mjs packages/<name>
+   (cd packages/<name> && yarn npm publish)
+   node .github/scripts/publish-face.mjs --revert packages/<name>
+   ```
 3. Add the trusted publisher (command above). The first call browser-2FAs —
    take the 5-minute skip it offers.
 4. Re-run the release workflow.
