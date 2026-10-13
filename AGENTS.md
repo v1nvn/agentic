@@ -54,8 +54,12 @@ name or shape wins.
   module registers the home's commands, each `command.run` exec'ing the home's
   CLI source (`node ${$.plugin.root}/src/index.ts`) and answering `{}`. One
   yarn workspace at the root (`"workspaces": ["packages/*"]`); every package
-  publishes to `@v1nvn/*` as source — node ≥23.6 runs the `.ts` entries, no
-  build step, no dist, nothing synced. A home without a `package.json`
+  ships two faces. The git and plugin face is `.ts` source — node ≥23.6 runs
+  the `.ts` entries, no build step, no dist, nothing synced. The registry
+  face is compiled `.js`: node refuses to type-strip `.ts` under
+  `node_modules`, so `publish-face.mjs` compiles it in place before
+  `yarn npm publish` and release.yml reverts it before any commit. A home
+  without a `package.json`
   (`enhansome`, `todo`) holds only its plugin surfaces. Every `npx -y
   @v1nvn/*` line and every core dependency pin, config, manifest or `.md`
   surface, is version-pinned to the train by `set-version.mjs`, which also

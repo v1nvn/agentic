@@ -59,7 +59,9 @@ jobs:
           if npm view "@v1nvn/agentic-core@$version" version >/dev/null 2>&1; then
             echo "::notice::@v1nvn/agentic-core@$version already on npm; skipping."
           else
+            node .github/scripts/publish-face.mjs packages/core
             (cd packages/core && yarn npm publish --provenance)
+            node .github/scripts/publish-face.mjs --revert packages/core
           fi
       # The packument URL a pre-publish guard fetched stays stale in npm's
       # cache for the registry's max-age=300; the per-version URL is a cache
@@ -146,6 +148,9 @@ jobs:
             if npm view "$name@$version" version >/dev/null 2>&1; then
               echo "::notice::$name@$version already on npm; skipping."
             else
+              # Node will not type-strip .ts under node_modules — the registry
+              # face is compiled .js, the git/plugin face stays .ts source.
+              node .github/scripts/publish-face.mjs "$pkg"
               (cd "$pkg" && yarn npm publish --provenance)
             fi
           done
