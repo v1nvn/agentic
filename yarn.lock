@@ -768,7 +768,7 @@ __metadata:
     vitest: "npm:^4.1.10"
     zod: "npm:^4.4.3"
   bin:
-    omlx: dist/index.js
+    omlx: ./src/index.ts
   languageName: unknown
   linkType: soft
 
@@ -794,7 +794,7 @@ __metadata:
     yaml: "npm:^2.9.0"
     zod: "npm:^4.4.3"
   bin:
-    readability: dist/index.js
+    readability: ./src/index.ts
   languageName: unknown
   linkType: soft
 
@@ -813,11 +813,10 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@v1nvn/statusline@workspace:packages/statusline"
   dependencies:
-    "@v1nvn/agentic-core": "workspace:^"
-    vite: "npm:^8.1.4"
+    "@v1nvn/agentic-core": "npm:0.44.0"
     vitest: "npm:^4.1.10"
   bin:
-    statusline: dist/index.js
+    statusline: ./src/index.ts
   languageName: unknown
   linkType: soft
 
