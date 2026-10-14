@@ -115,26 +115,34 @@ function bodyHtml(
   );
 }
 
-export function bodiesView(q: Ruling, view: string, attrs = ''): string {
+// The today block: shown once per ruling, full bodies, no diff.
+export function bodiesToday(q: Ruling, attrs = ''): string {
+  const B = q.bodies;
+  if (B === undefined || !('today' in B)) {
+    return '';
+  }
+  const { head } = viewHeadFor(q, 'today');
+  const todayLetter = (q.opts ?? []).find(o => o.today === true)?.k ?? '';
+  return (
+    `<section class="view today"${attrs}>${head}` +
+    `<div class="stage"><div class="bodies">${bodyHtml(B.today, todayLetter, true)}</div></div></section>`
+  );
+}
+
+// One option's view: only its own body, diffed against today's code.
+export function bodiesOption(q: Ruling, view: string, attrs = ''): string {
   const B = q.bodies;
   if (B === undefined) {
     return '';
   }
   const { head, hue } = viewHeadFor(q, view);
-  const todayLetter = (q.opts ?? []).find(o => o.today === true)?.k ?? '';
-  const letter = view === 'today' ? '' : view.slice(-1);
-  const parts: string[] = [];
-  const hasToday = 'today' in B;
-  if (hasToday) {
-    parts.push(bodyHtml(B.today, todayLetter, true));
+  const letter = view.slice(-1);
+  if (!(letter in B)) {
+    return '';
   }
-  if (letter !== '' && letter in B) {
-    parts.push(
-      bodyHtml(B[letter], letter, false, hasToday ? B.today.code : undefined),
-    );
-  }
+  const todayCode = 'today' in B ? B.today.code : undefined;
   return (
     `<section class="view${hue ? ` ${hue}` : ''}"${attrs}>${head}` +
-    `<div class="stage"><div class="bodies">${parts.join('')}</div></div></section>`
+    `<div class="stage"><div class="bodies">${bodyHtml(B[letter], letter, false, todayCode)}</div></div></section>`
   );
 }

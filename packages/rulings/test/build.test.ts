@@ -59,11 +59,11 @@ function pageDir(text: string): string {
 }
 
 describe('the emitted page', () => {
-  it('pins the example full HTML: toc, sections, stacked views, matrix, notes, merged note', () => {
+  it('pins the example full HTML: sidebar, sections, views, matrix, notes, merged note', () => {
     const { html, hasDiagram } = buildPage(loadPageFile(EXAMPLE));
     expect(hasDiagram).toBe(true);
     expect(html).toMatchSnapshot();
-    expect(html).toContain('<nav class="toc"');
+    expect(html).toContain('<nav class="side"');
     expect(html).toContain('href="#r-G4"');
     expect(html).toContain('id="r-G1"');
     expect(html).toContain('G3 is merged into this ruling.');
@@ -81,7 +81,7 @@ describe('the emitted page', () => {
 });
 
 describe('the interactive chrome', () => {
-  it('keys persistence on the page key and wires pick, none, quick, composer', () => {
+  it('keys persistence on the page key and wires pick, none, quick, notes, composer', () => {
     const { html } = buildPage(loadPageFile(EXAMPLE));
     expect(html).toContain('<body data-key="rulings-testril-pr251">');
     expect(html).toContain('data-pick="G1a"');
@@ -93,6 +93,10 @@ describe('the interactive chrome', () => {
     expect(html).toContain('id="rulings-notes"');
     expect(html).toContain('id="copy-answer"');
     expect(html).toContain('localStorage.getItem');
+    expect(html).toContain('data-note="G2a"');
+    expect(html).toContain('data-unpick=');
+    expect(html).toContain('IntersectionObserver');
+    expect(html).toContain('onotes');
   });
 
   it('emits a page without key with the composer and no storage key', () => {
