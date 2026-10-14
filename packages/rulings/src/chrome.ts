@@ -112,7 +112,6 @@ export function chromeScript(): string {
   function commit() { render(); save(); }
 
   document.addEventListener('click', function (e) {
-    if (e.target.closest('.onote, .bar, a, textarea')) return;
     var x = e.target.closest('[data-unpick]');
     if (x) {
       var xm = REF.exec(x.getAttribute('data-unpick'));
@@ -120,6 +119,7 @@ export function chromeScript(): string {
       commit();
       return;
     }
+    if (e.target.closest('.onote, a, textarea')) return;
     var card = e.target.closest('[data-pick]');
     if (card) {
       var m = REF.exec(card.getAttribute('data-pick'));
@@ -153,11 +153,10 @@ export function chromeScript(): string {
     inp.addEventListener('input', function () { onotes[inp.getAttribute('data-note')] = inp.value; save(); });
   });
 
-  // The sidebar's current-ruling highlight.
   var links = {};
   var sideLinks = document.querySelectorAll('.side a.rl');
   for (var si = 0; si < sideLinks.length; si++) {
-    var h = (sideLinks[si].getAttribute('href') || '').slice(3);
+    var h = (sideLinks[si].getAttribute('href') || '').slice(1);
     if (h) links[h] = sideLinks[si];
   }
   if ('IntersectionObserver' in window && Object.keys(links).length) {

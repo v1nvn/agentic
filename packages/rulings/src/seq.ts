@@ -210,7 +210,7 @@ export function seqView(
   const capKey = Object.keys(d.caps ?? {}).find(k => full(k, id) === view);
   const cap = capKey === undefined ? d.cap : d.caps?.[capKey];
   return (
-    `<section class="view${hue ? ` ${hue}` : ''}"${attrs}>${head}` +
+    `<section class="view${view === 'today' ? ' today' : ''}${hue ? ` ${hue}` : ''}"${attrs}>${head}` +
     `<div class="stage">${legendHtml(d, id)}<div class="scroll">${seqSvg(d, id, view)}</div>` +
     (cap ? `<p class="cap">${cap}</p>` : '') +
     '</div></section>'

@@ -105,10 +105,16 @@ function viewsOf(q: Ruling, id: string): string {
     (q.diagram !== undefined && 'today' in q.diagram.views);
   const out: string[] = [];
   if (hasBase) {
+    const todayAttrs = viewAttrs(q, id, 'today');
+    const todayLetter = (q.opts ?? []).find(o => o.today === true)?.k;
     out.push(
-      isBodies
-        ? bodiesToday(q, viewAttrs(q, id, 'today'))
-        : viewHtml(q, id, 'today', viewAttrs(q, id, 'today')),
+      (isBodies
+        ? bodiesToday(q, todayAttrs)
+        : viewHtml(q, id, 'today', todayAttrs)) +
+        (todayLetter !== undefined
+          ? `<input class="onote" data-note="${id}${todayLetter}" ` +
+            `placeholder="note for ${id}${todayLetter} — rides the answer" aria-label="note for ${id}${todayLetter}">`
+          : ''),
     );
   }
   for (const o of q.opts ?? []) {
@@ -129,9 +135,6 @@ function viewsOf(q: Ruling, id: string): string {
 function viewHtml(q: Ruling, id: string, view: string, attrs: string): string {
   if (q.seq !== undefined) {
     return seqView(q, id, view, attrs);
-  }
-  if (q.bodies !== undefined) {
-    return bodiesOption(q, view, attrs);
   }
   return diagramView(q, view, attrs);
 }
