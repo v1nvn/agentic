@@ -1,0 +1,140 @@
+import { diffLines } from 'diff';
+import Prism from 'prismjs';
+import 'prismjs/components/prism-bash.js';
+import 'prismjs/components/prism-css.js';
+import 'prismjs/components/prism-json.js';
+import 'prismjs/components/prism-typescript.js';
+
+import type { Body, Ruling } from './schema.ts';
+
+import { esc, viewHeadFor } from './html.ts';
+
+const LANG_ALIAS: Record<string, string> = {
+  bash: 'bash',
+  css: 'css',
+  js: 'javascript',
+  json: 'json',
+  markup: 'markup',
+  ts: 'typescript',
+};
+
+function hlBlock(code: string, lang: string | undefined): string {
+  const name = lang === undefined ? undefined : LANG_ALIAS[lang];
+  const grammar = name === undefined ? undefined : Prism.languages[name];
+  if (name === undefined || grammar === undefined) {
+    return esc(code);
+  }
+  try {
+    return Prism.highlight(code, grammar, name);
+  } catch {
+    return esc(code);
+  }
+}
+
+interface Row {
+  s: 'add' | 'ctx' | 'del' | 'ell';
+  t: string;
+}
+
+// An unchanged run of seven or more lines collapses to its first and last
+// line; diff:false on the body keeps the plain snapshot instead.
+function diffHtml(
+  before: string,
+  after: string,
+  lang: string | undefined,
+): string {
+  const rows: Row[] = [];
+  for (const part of diffLines(before, after)) {
+    for (const line of part.value.replace(/\n$/, '').split('\n')) {
+      rows.push({
+        s: part.added ? 'add' : part.removed ? 'del' : 'ctx',
+        t: line,
+      });
+    }
+  }
+  const out: Row[] = [];
+  let i = 0;
+  while (i < rows.length) {
+    if (rows[i].s === 'ctx') {
+      let j = i;
+      while (j < rows.length && rows[j].s === 'ctx') {
+        j++;
+      }
+      if (j - i >= 7) {
+        out.push(
+          rows[i],
+          { s: 'ell', t: `⋯ ${j - i - 2} unchanged lines` },
+          rows[j - 1],
+        );
+        i = j;
+        continue;
+      }
+    }
+    out.push(rows[i]);
+    i++;
+  }
+  return out
+    .map(r => {
+      if (r.s === 'add') {
+        return `<span class="dl add">${hlBlock(r.t, lang)}</span>`;
+      }
+      if (r.s === 'del') {
+        return `<span class="dl del">${hlBlock(r.t, lang)}</span>`;
+      }
+      if (r.s === 'ell') {
+        return `<span class="dl ell">${esc(r.t)}</span>`;
+      }
+      return `<span class="dl ctx">${hlBlock(r.t, lang)}</span>`;
+    })
+    .join('');
+}
+
+function bodyHtml(
+  b: Body,
+  letter: string,
+  isToday: boolean,
+  todayCode?: string,
+): string {
+  const asDiff = !isToday && todayCode !== undefined && b.diff !== false;
+  const inner = asDiff
+    ? diffHtml(todayCode, b.code ?? '', b.lang)
+    : hlBlock(b.code ?? '', b.lang);
+  const state =
+    b.state === 'sketch'
+      ? '<span class="state-chip">sketch — feasibility not checked</span>'
+      : `<span>${b.state ?? (isToday ? 'built today' : 'planned')}</span>`;
+  return (
+    `<div class="body ${isToday ? 'is-today' : 'of-option'}"><div class="tag">` +
+    (letter ? `<span class="lt">${letter}</span>` : '') +
+    state +
+    (asDiff ? '<span class="dleg">diff vs today</span>' : '') +
+    (b.what ? `<b>${b.what}</b>` : '') +
+    `</div><pre${asDiff ? ' class="diff"' : ''}>${inner}</pre>` +
+    (b.cap ? `<p class="bcap">${b.cap}</p>` : '') +
+    '</div>'
+  );
+}
+
+export function bodiesView(q: Ruling, view: string): string {
+  const B = q.bodies;
+  if (B === undefined) {
+    return '';
+  }
+  const { head, hue } = viewHeadFor(q, view);
+  const todayLetter = (q.opts ?? []).find(o => o.today === true)?.k ?? '';
+  const letter = view === 'today' ? '' : view.slice(-1);
+  const parts: string[] = [];
+  const hasToday = 'today' in B;
+  if (hasToday) {
+    parts.push(bodyHtml(B.today, todayLetter, true));
+  }
+  if (letter !== '' && letter in B) {
+    parts.push(
+      bodyHtml(B[letter], letter, false, hasToday ? B.today.code : undefined),
+    );
+  }
+  return (
+    `<section class="view${hue ? ` ${hue}` : ''}">${head}` +
+    `<div class="stage"><div class="bodies">${parts.join('')}</div></div></section>`
+  );
+}

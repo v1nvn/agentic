@@ -2,7 +2,7 @@ import { diffLines } from 'diff';
 import { z } from 'zod';
 
 const LONG_LINE = 76;
-const KINDS = ['call', 'money', 'store', 'check', 'fail'] as const;
+export const KINDS = ['call', 'money', 'store', 'check', 'fail'] as const;
 const LANGS = ['ts', 'js', 'json', 'bash', 'markup', 'css'] as const;
 const VAGUE =
   /\b(more flexible|flexibility|cleaner|more robust|scalable|future[- ]proof|best practice|more maintainable|more elegant)\b/i;
@@ -49,6 +49,16 @@ const body = z.strictObject({
   what: z.string().optional(),
 });
 
+const diagramBody = z.strictObject({
+  cap: z.string().optional(),
+  text: z.string(),
+});
+
+const diagram = z.strictObject({
+  cap: z.string().optional(),
+  views: z.record(z.string(), diagramBody),
+});
+
 const opt = z.strictObject({
   c: z.string().optional(),
   g: z.string().optional(),
@@ -65,6 +75,7 @@ const opt = z.strictObject({
 const ruling = z.strictObject({
   bodies: z.record(z.string(), body).optional(),
   changed: z.string().optional(),
+  diagram: diagram.optional(),
   merged: z.string().regex(RULING_ID).optional(),
   opts: z.array(opt).optional(),
   stake: z.string().optional(),
@@ -94,8 +105,12 @@ const pageSchema = z.strictObject({
 });
 
 export type Opt = z.infer<typeof opt>;
+export type Body = z.infer<typeof body>;
+export type Diagram = z.infer<typeof diagram>;
+export type Overlay = z.infer<typeof overlay>;
 export type Ruling = z.infer<typeof ruling>;
 export type Seq = z.infer<typeof seq>;
+export type Step = z.infer<typeof step>;
 export type Page = z.infer<typeof pageSchema>;
 export interface Verdict {
   errors: string[];
@@ -119,7 +134,7 @@ function overlap(x: string, y: string): number {
   return a.length === 0 ? 0 : a.filter(w => b.has(w)).length / a.length;
 }
 
-function seqViews(d: Seq, owner: string): string[] {
+export function seqViews(d: Seq, owner: string): string[] {
   function full(v: string): string {
     return LETTER.test(v) ? owner + v : v;
   }
@@ -324,8 +339,16 @@ export function validatePage(input: unknown): Verdict {
         `${id}.stake names an internal thing; put it in today and say what the owner sees`,
       );
     }
-    if (q.seq !== undefined && q.bodies !== undefined) {
-      errors.push(`${id} has both a seq and bodies; one picture per ruling`);
+    const pictures: [string, unknown][] = [
+      ['a seq', q.seq],
+      ['bodies', q.bodies],
+      ['a diagram', q.diagram],
+    ];
+    const present = pictures.filter(([, v]) => v !== undefined);
+    if (present.length > 1) {
+      errors.push(
+        `${id} has both ${present[0]?.[0]} and ${present[1]?.[0]}; one picture per ruling`,
+      );
     }
     if (q.seq !== undefined) {
       checkSeq(q.seq, `${id}.seq`, id);
@@ -364,6 +387,20 @@ export function validatePage(input: unknown): Verdict {
         }
       }
     }
+    if (q.diagram !== undefined) {
+      req(
+        q.diagram.cap,
+        `${id}.diagram.cap (the caption: its conclusion in <b>…</b>)`,
+      );
+      conclusionFirst(q.diagram.cap, `${id}.diagram.cap`);
+      for (const [k, v] of Object.entries(q.diagram.views)) {
+        const at = `${id}.diagram.views.${k}`;
+        if (k !== 'today' && !opts.some(o => o.k === k && o.today !== true)) {
+          errors.push(`${at} names no live option that is not today`);
+        }
+        req(v.text, `${at}.text (the mermaid text)`);
+      }
+    }
     if (opts.length < 2) {
       errors.push(`${id} needs at least two live options, has ${opts.length}`);
     }
@@ -380,6 +417,7 @@ export function validatePage(input: unknown): Verdict {
       errors.push(`${id}: only one option can be today`);
     }
     const views = q.seq !== undefined ? seqViews(q.seq, id) : [];
+    const D = q.diagram?.views ?? {};
     const letters = new Set<string>();
     for (const o of opts) {
       const nm = id + o.k;
@@ -397,14 +435,14 @@ export function validatePage(input: unknown): Verdict {
       req(o.c, `${nm}.c (cost)`);
       const shown =
         o.today === true
-          ? q.seq !== undefined || 'today' in B
-          : views.includes(id + o.k) || o.k in B;
+          ? q.seq !== undefined || 'today' in B || 'today' in D
+          : views.includes(id + o.k) || o.k in B || o.k in D;
       if (!shown) {
         errors.push(
           nm +
             (o.today === true
-              ? ' is today, but the ruling has no seq and no bodies.today'
-              : ` has no picture of its own: give it a view in the seq, or bodies.${o.k}`),
+              ? ' is today, but the ruling has no seq, no bodies.today and no diagram view'
+              : ` has no picture of its own: give it a view in the seq, bodies.${o.k} or a diagram view`),
         );
       }
       for (const [kind, text] of [
