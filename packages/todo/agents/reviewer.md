@@ -48,6 +48,9 @@ Findings only, each `file:line`, each claim verified against the code before it 
 called a defect, each tagged `blocking` — wrong behavior, a broken seam, money, a test
 that could not fail, a deviation from the plan — or `nit` — simplification, naming,
 comments, docs. A file outside the brief, an old path left in place and a tracking
-reference in code are blocking; a comment that restates the code is a nit; ambiguous
-means blocking. A consult answers its questions with options and one
+reference in code are blocking; a comment that restates the code is a nit. Wording is
+blocking only when a caller acting on the text would get something other than it says,
+else a nit; a document that is the unit's deliverable is judged as behavior, by its
+close criterion. Any other finding whose severity the code cannot settle is blocking.
+A consult answers its questions with options and one
 recommendation each. No praise, no summary of what is fine.
