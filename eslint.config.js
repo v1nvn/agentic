@@ -26,6 +26,8 @@ export default defineConfig([
       '.pnp.cjs',
       '.pnp.loader.mjs',
       '.yarn/**',
+      // Harness worktrees: full copies of this repo, linted in their own root.
+      '.claude/worktrees/**',
       // Engine-written, regenerated on every plugin load — never hand-edited.
       '**/.claude-plugin/types/**',
       'packages/*/tsconfig.json',
