@@ -92,6 +92,16 @@ and it would ship a second resolution path for one CLI.
   .github/scripts/set-version.mjs --check`; root `typecheck`/`lint`/`test`. No
   browser dep may enter the package — no jsdom, no
   puppeteer, no screenshot path; their absence is itself the invariant.
+- **Tactical map.** Workspace gate: `yarn typecheck && yarn lint && yarn test`,
+  ceiling 2 min (pre-flight measure: 1 min; one minute of headroom). Scoped lines — R1:
+  `node .github/scripts/set-version.mjs --check` + `claude plugin validate
+  packages/rulings`; R2–R4: `yarn workspace @v1nvn/rulings run test`; R5:
+  `claude plugin validate packages/rulings` + `node .github/scripts/build-skills.mjs`;
+  R6: no repo gate — the five live rebuilds are the check. R1's builder writes the
+  enforcement gate script once into `progress/.scratch/rulings-port/` from the
+  inventory (no-browser-dep absence, `--check`, validate) and every builder after
+  runs it.
+- **Small rows:** none — every row carries design freedom.
 - **Stop rules.** Vendored mermaid over ~5 MB, importing ESM, or not defining the
   global → stop and surface. Skill review findings that reshape the surface
   materially → fold into this file and continue.
