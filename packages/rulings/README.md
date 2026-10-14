@@ -14,6 +14,10 @@ Install as a Claude Code plugin: `claude plugin install rulings@agentic`.
 
 Pages live in `~/.claude/rulings/<topic>/` — never `/tmp`, never published.
 A rebuild prints the schema's errors and warnings and exits red on any error.
+The skill's one exec is the pinned `npx -y @v1nvn/rulings@0.46.1 <page-dir>`
+line above, run through the session's Bash tool; the one allow rule it needs is
+`Bash(npx -y @v1nvn/rulings@0.46.1:*)`; the first run asks for it once, then it
+is remembered.
 
 ## Layout
 
