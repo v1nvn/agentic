@@ -29,7 +29,8 @@ it.
   - a test weakened to pass;
   - comments that restate the code; tracking references (plan ids, thread names) in
     code;
-  - files touched outside the brief.
+  - files touched outside the brief;
+  - each checklist line of the plan's enforcement inventory.
 - **Branch review.** A pull request's whole diff against its base, through the lens the
   brief names — regressions, critical issues and simplification (DRY, YAGNI); or
   money, seams, migrations and the doors the units share. Look for what the units do

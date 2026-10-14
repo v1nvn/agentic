@@ -106,7 +106,8 @@ owner ruling, written into the row before the dispatch.
 2. Harden if needed. A plan without per-unit close criteria (testable sentences), reading
    lists and the tactical map is a design, not a runnable plan: the first unit is a
    docs-only hardening unit that writes them — plus an enforcement inventory (tests that
-   must survive byte-for-byte, forbidden idioms, counts that must never rise) and the
+   must survive byte-for-byte, forbidden idioms, counts that must never rise, checklist
+   lines for what no script can check) and the
    small-row line — into the plan's Steps table and Plan section, and commits. Nothing
    builds before they exist. A design that rests on a live measure has the measure run
    once at hardening, on the cheap proxy; a measure that misses its bar reopens the
@@ -258,7 +259,10 @@ owner ruling, written into the row before the dispatch.
    no open blocking finding and any fix is committed on a green gate. Fold the unit's
    scratch into the plan per the rules — what later units need into their rows, what
    the tactical map lacks into the map, its fix entries from the builder that took
-   them — and delete the scratch. A finding outside the
+   them — and delete the scratch. A finding shape an earlier unit's review already
+   raised goes into the enforcement inventory in the same fold — as a checkable the
+   next builder adds to the gate script before its gate, else as a checklist line —
+   so the next build is checked for it before review. A finding outside the
    unit's row does not hold the unit: the unit commits on its row, and the finding lands
    as its own commit after its ruling.
 8. A unit whose deliverable is a document or a dataset — nothing compiles, no gate —

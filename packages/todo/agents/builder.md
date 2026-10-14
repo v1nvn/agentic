@@ -59,6 +59,7 @@ land nothing that does.
 
 ## Report
 
-Report once: when you stop green, or when a deviation stops you —
+Before you report green, walk the enforcement inventory's checklist lines against your
+diff and fix what they catch. Report once: when you stop green, or when a deviation stops you —
 each report wakes the orchestrator, so never send progress. Under ~20 lines, in this order: diff stat; gate tail, pasted raw; per close criterion,
 its proof; the A/B verdict where the row calls for one; deviations; surprises.
