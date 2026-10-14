@@ -23,6 +23,7 @@
 
 ## todo
 
+- **todo — threads carry the plugin version; entry audits a stale stamp** · MEDIUM · [packages/todo] → progress/todo-version-gate.md
 - **Rules promotion triage — where a thread's rules land** · MEDIUM · [packages/todo]
   Draw the line for when a rule earned in a thread promotes to the consumer repo's
   `references/`, and when it belongs in todo's own rules in this repo — the consult's
