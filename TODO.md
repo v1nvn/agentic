@@ -2,11 +2,11 @@
 
 ## Next
 
-1. **Audit — refactor** · HIGH · [packages] → progress/audit-refactor.md
-2. **Rulings — port into the marketplace as the tenth plugin** · HIGH · [packages] → progress/rulings-port.md
-3. **Rules plugin — catalogue · config · per-session render** · HIGH · [packages] → progress/rules-plugin.md
-4. **Mods port — live-verify from a fresh install** · HIGH · [packages]
+1. **Rulings — port into the marketplace as the tenth plugin** · HIGH · [packages] → progress/rulings-port.md
+2. **Rules plugin — catalogue · config · per-session render** · HIGH · [packages] → progress/rules-plugin.md
+3. **Mods port — live-verify from a fresh install** · HIGH · [packages]
    Verify `/rm-send`, `/md-edit`, `/md-view`, `/zai-usage` and the tokens pane `/tokens-usage` from a fresh install — records: archive/mods-port.md, archive/zai-pane.md.
+4. **Timestamps — promote the mod into the marketplace** · MEDIUM · [packages] → progress/timestamps-plugin.md
 
 ## readability
 
@@ -26,7 +26,7 @@
 - **Rules promotion triage — where a thread's rules land** · MEDIUM · [packages/todo]
   Draw the line for when a rule earned in a thread promotes to the consumer repo's
   `references/`, and when it belongs in todo's own rules in this repo — the consult's
-  rulings are recorded in progress/audit-refactor.md. Strict by default; `references/`
+  rulings are recorded in archive/audit-refactor.md. Strict by default; `references/`
   must not accrete.
 - **todo — board pane or band** · [packages/todo]
   Wanted: a zero-token always-visible board; the cost is an island parser of shapes `todo:rules` defines in prose. Unruled — held in the archived consult, archive/mods-port.md.
