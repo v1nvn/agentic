@@ -1,6 +1,7 @@
 var PAGE = {
   eyebrow: "testril, PR 251, native-functions 6",
   title: "PR 251 rulings",
+  key: "rulings-testril-pr251",
   sub: "What to do about the review findings that are real. Nothing is written until you rule.",
 
   notes: [

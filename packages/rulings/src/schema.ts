@@ -87,6 +87,7 @@ const ruling = z.strictObject({
 const group = z.strictObject({
   id: z.string().regex(SLUG, { message: 'must be a lowercase slug' }),
   label: z.string().optional(),
+  quick: z.boolean().optional(),
   rulings: z
     .array(z.string().regex(RULING_ID, { message: 'must look like G1, G2, …' }))
     .min(1),
@@ -95,6 +96,7 @@ const group = z.strictObject({
 const pageSchema = z.strictObject({
   eyebrow: z.string().optional(),
   groups: z.array(group).min(1),
+  key: z.string().min(1).optional(),
   notes: z.array(z.strictObject({ html: z.string().optional() })).optional(),
   rulings: z.record(
     z.string().regex(RULING_ID, { message: 'must look like G1, G2, …' }),
