@@ -2,10 +2,11 @@
 
 ## Next
 
-1. **Rules plugin — catalogue · config · per-session render** · HIGH · [packages] → progress/rules-plugin.md
-2. **Mods port — live-verify from a fresh install** · HIGH · [packages]
+1. **Rulings — the interactive page returns** · HIGH · [packages/rulings] → progress/rulings-interactive.md
+2. **Rules plugin — catalogue · config · per-session render** · HIGH · [packages] → progress/rules-plugin.md
+3. **Mods port — live-verify from a fresh install** · HIGH · [packages]
    Verify `/rm-send`, `/md-edit`, `/md-view`, `/zai-usage` and the tokens pane `/tokens-usage` from a fresh install — records: archive/mods-port.md, archive/zai-pane.md.
-3. **Timestamps — promote the mod into the marketplace** · MEDIUM · [packages] → progress/timestamps-plugin.md
+4. **Timestamps — promote the mod into the marketplace** · MEDIUM · [packages] → progress/timestamps-plugin.md
 
 ## rulings
 
