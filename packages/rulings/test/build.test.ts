@@ -192,6 +192,8 @@ describe('usage', () => {
       expect(main([])).toBe(1);
       expect(main(['a', 'b'])).toBe(1);
       expect(main(['a', '--wat'])).toBe(1);
+      const said = err.mock.calls.flat().join('\n');
+      expect(said).toMatch(/unknown flag/);
     } finally {
       err.mockRestore();
     }
