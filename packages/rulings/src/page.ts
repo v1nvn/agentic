@@ -5,19 +5,19 @@ import vm from 'node:vm';
 import type { Opt, Page, Ruling } from './schema.ts';
 
 import { bodiesView } from './bodies.ts';
+import { chromeScript, panelHtml } from './chrome.ts';
 import { diagramView, mermaidBoot } from './diagram.ts';
 import { esc, hueOf, stripTags } from './html.ts';
 import { seqView } from './seq.ts';
 import { pageCss } from './style.ts';
-import { themeScript } from './theme.ts';
 
 export const PAGE_FILE = 'page.js';
 export const MERMAID_FILE = 'mermaid.min.js';
 
-// Chrome the assembly adds beyond pageCss: the document TOC, the merged
-// meta-line, the notes block.
+// Chrome the assembly adds beyond pageCss: the sticky TOC, the merged
+// meta-line, the notes block, and the pick composer.
 const assemblyCss = `
-.toc { display: grid; gap: 6px; padding-block: 12px 20px; border-bottom: 1px solid var(--rule); }
+.toc { display: grid; gap: 6px; padding-block: 12px 20px; border-bottom: 1px solid var(--rule); position: sticky; top: 0; z-index: 6; background: var(--paper); }
 .toc > div { display: flex; flex-wrap: wrap; gap: 4px 18px; align-items: baseline; }
 .toc .grp { font: 600 11.5px var(--mono); color: var(--muted); }
 .toc a { color: var(--ink); text-decoration: none; font: 500 14px/1.3 var(--sans); display: inline-flex; gap: 7px; align-items: baseline; }
@@ -26,6 +26,39 @@ const assemblyCss = `
 .toc a.merged .t { color: var(--muted); font-style: italic; }
 .notes { display: grid; gap: 8px; padding-top: 16px; }
 .meta-line { font: 12.5px var(--mono); color: var(--muted); margin-top: 3px; }
+
+.view[data-pick] { cursor: pointer; }
+.view[data-pick]:hover .stage { border-color: color-mix(in srgb, var(--o) 85%, var(--rule)); }
+.view[aria-pressed="true"] .stage { border-color: var(--o); box-shadow: 0 0 0 3px color-mix(in srgb, var(--o) 25%, transparent); }
+.view[aria-pressed="true"] .lt { background: var(--o); color: var(--sheet); }
+.view[data-needs].unmet .stage, .col[data-needs].unmet { border-style: dashed; }
+.dep { border: 1px dashed transparent; border-radius: 4px; padding: 0 4px; }
+.unmet .dep { color: var(--k-fail); font-weight: 600; border-color: var(--k-fail); }
+.rhead .none-btn { margin-top: 4px; font: 600 12px var(--mono); color: var(--muted); background: none; border: 1px dashed var(--rule); border-radius: 6px; padding: 2px 9px; cursor: pointer; }
+.rhead .none-btn:hover { color: var(--ink); border-color: var(--ink); }
+.rhead .none-btn.on { color: var(--sheet); background: var(--muted); border-style: solid; border-color: var(--muted); }
+.ghead .quick { font: 600 12.5px var(--sans); color: var(--ink); background: var(--sheet); border: 1px solid var(--rule); border-radius: 999px; padding: 4px 13px; cursor: pointer; }
+.ghead .quick:hover { border-color: var(--ink); }
+.bar { position: fixed; right: 0; bottom: 0; left: 0; z-index: 10; background: var(--sheet); border-top: 1px solid var(--rule); box-shadow: 0 -4px 14px color-mix(in srgb, var(--ink) 8%, transparent); }
+.bar-in { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding-block: 10px; }
+.bar .sum { flex: 1 1 240px; min-width: 0; font: 600 14px var(--mono); }
+.bar .sum .pk { white-space: nowrap; }
+.bar .sum .pk.empty { color: var(--muted); font-weight: 500; }
+.bar .sum .pk.unmet { color: var(--k-fail); }
+.bar .sum .pk i { font: 500 12px var(--sans); font-style: normal; color: var(--k-fail); }
+.bar .sum .sep { color: var(--muted); font-weight: 400; }
+.bar textarea { flex: 0 1 320px; min-width: 160px; min-height: 34px; resize: vertical; font: 13px var(--sans); color: var(--ink); background: var(--paper); border: 1px solid var(--rule); border-radius: 6px; padding: 7px 9px; }
+.bar textarea:focus { outline: none; border-color: var(--ink); }
+.bar button { flex: none; font: 600 13px var(--sans); color: var(--sheet); background: var(--ink); border: 0; border-radius: 6px; padding: 9px 15px; cursor: pointer; }
+.bar button:hover { opacity: 0.88; }
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+body { padding-bottom: 64px; }
+
+@media (max-width: 899px) {
+  .toc { position: static; }
+  .bar textarea { flex-basis: 100%; }
+  body { padding-bottom: 150px; }
+}
 `;
 
 // The authoring door: `var PAGE = { … }` run in a vm, pages being plain data
@@ -45,14 +78,31 @@ function needsOf(o: Opt): string[] {
   return typeof o.needs === 'string' ? [o.needs] : (o.needs ?? []);
 }
 
-function viewHtml(q: Ruling, id: string, view: string): string {
+function viewHtml(q: Ruling, id: string, view: string, attrs: string): string {
   if (q.seq !== undefined) {
-    return seqView(q, id, view);
+    return seqView(q, id, view, attrs);
   }
   if (q.bodies !== undefined) {
-    return bodiesView(q, view);
+    return bodiesView(q, view, attrs);
   }
-  return diagramView(q, view);
+  return diagramView(q, view, attrs);
+}
+
+// The pick wiring a live option's view carries: its pick id, keyboard reach,
+// and the needs the composer checks against the current picks.
+function viewAttrs(q: Ruling, id: string, view: string): string {
+  const opts = q.opts ?? [];
+  const letter =
+    view === 'today' ? opts.find(o => o.today === true)?.k : view.slice(-1);
+  const o = letter === undefined ? undefined : opts.find(x => x.k === letter);
+  if (o === undefined) {
+    return '';
+  }
+  const needs = needsOf(o).join(' ');
+  return (
+    ` data-pick="${id}${o.k}" role="button" tabindex="0"` +
+    (needs ? ` data-needs="${needs}"` : '')
+  );
 }
 
 // The base "today" view first when the ruling carries one, then each live
@@ -80,15 +130,16 @@ function compareHtml(q: Ruling): string {
   const rows = hasHow ? 4 : 3;
   const cols = opts
     .map(o => {
+      const needs = needsOf(o);
       const chips = [
         o.rec === true ? '<span class="star">★ my pick</span>' : '',
         o.today === true ? '<span>as today</span>' : '',
-        ...needsOf(o).map(n => `<span>needs ${n}</span>`),
+        ...needs.map(n => `<span class="dep">needs ${n}</span>`),
       ]
         .filter(c => c !== '')
         .join('');
       return (
-        `<div class="col ${hueOf(o.k)}">` +
+        `<div class="col ${hueOf(o.k)}"${needs.length ? ` data-needs="${needs.join(' ')}"` : ''}>` +
         `<div class="colhead"><span class="lt">${o.k}</span><span><span>${o.t ?? ''}</span>` +
         (chips ? `<span class="meta">${chips}</span>` : '') +
         '</span></div>' +
@@ -129,12 +180,13 @@ function rulingSection(P: Page, id: string): string {
     .join('');
   return (
     `<section class="ruling" id="r-${id}">` +
-    `<div class="rhead"><span class="rid">${id}</span><div><h3>${q.title ?? ''}</h3></div></div>` +
+    `<div class="rhead"><span class="rid">${id}</span><div><h3>${q.title ?? ''}</h3>` +
+    `<button type="button" class="none-btn" data-none="${id}">none of these fit · n</button></div></div>` +
     mergedInto +
     `<p class="stake">${q.stake ?? ''}</p>` +
     `<p class="today">${q.today ?? ''}</p>` +
     `<div class="views">${viewsOf(q, id)
-      .map(v => viewHtml(q, id, v))
+      .map(v => viewHtml(q, id, v, viewAttrs(q, id, v)))
       .join('')}</div>` +
     compareHtml(q) +
     '</section>'
@@ -179,11 +231,23 @@ export function buildPage(input: unknown): BuiltPage {
     .map(n => `<div class="note">${n.html ?? ''}</div>`)
     .join('');
   const groups = P.groups
-    .map(
-      g =>
-        `<div class="ghead"><h2>${esc(g.label ?? '')}</h2></div>` +
-        g.rulings.map(id => rulingSection(P, id)).join(''),
-    )
+    .map(g => {
+      const rec = g.rulings
+        .filter(id => rulingOf(P, id).merged === undefined)
+        .map(id => {
+          const o = (rulingOf(P, id).opts ?? []).find(x => x.rec === true);
+          return o ? id + o.k : '';
+        })
+        .filter(x => x !== '');
+      return (
+        `<div class="ghead"><h2>${esc(g.label ?? '')}</h2>` +
+        (g.quick === true
+          ? `<button type="button" class="quick" data-picks="${rec.join(' ')}">accept ★ recommended</button>`
+          : '') +
+        '</div>' +
+        g.rulings.map(id => rulingSection(P, id)).join('')
+      );
+    })
     .join('');
   const html = `<!doctype html>
 <html lang="en">
@@ -191,11 +255,10 @@ export function buildPage(input: unknown): BuiltPage {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>${esc(P.title ?? '')}</title>
-${themeScript()}
 <style>
 ${pageCss}${assemblyCss}</style>
 </head>
-<body>
+<body${P.key ? ` data-key="${esc(P.key)}"` : ''}>
 <div class="shell masthead">
 <div>
 <div class="eyebrow">${esc(P.eyebrow ?? '')}</div>
@@ -208,7 +271,9 @@ ${tocHtml(P)}
 <div class="notes">${notes}</div>
 ${groups}
 </main>
+${panelHtml()}
 ${hasDiagram ? `<script src="${MERMAID_FILE}"></script>\n${mermaidBoot()}` : ''}
+${chromeScript()}
 </body>
 </html>
 `;

@@ -80,6 +80,38 @@ describe('the emitted page', () => {
   });
 });
 
+describe('the interactive chrome', () => {
+  it('keys persistence on the page key and wires pick, none, quick, composer', () => {
+    const { html } = buildPage(loadPageFile(EXAMPLE));
+    expect(html).toContain('<body data-key="rulings-testril-pr251">');
+    expect(html).toContain('data-pick="G1a"');
+    expect(html).toContain('data-pick="G2b"');
+    expect(html).toContain('data-needs="G1a"');
+    expect(html).toContain('data-none="G1"');
+    expect(html).toContain('data-picks="G1a"');
+    expect(html).toContain('id="picks"');
+    expect(html).toContain('id="rulings-notes"');
+    expect(html).toContain('id="copy-answer"');
+    expect(html).toContain('localStorage.getItem');
+  });
+
+  it('emits a page without key with the composer and no storage key', () => {
+    const dir = pageDir(PLAIN_PAGE);
+    expect(main([dir, '--no-open'])).toBe(0);
+    const html = readFileSync(join(dir, 'index.html'), 'utf8');
+    expect(html).not.toMatch(/<body data-key/);
+    expect(html).toContain('data-pick="G1a"');
+    expect(html).toContain('id="copy-answer"');
+  });
+
+  it('carries the theme cut: no param reading, no data-theme anywhere', () => {
+    const { html } = buildPage(loadPageFile(EXAMPLE));
+    expect(html).not.toContain('data-theme');
+    expect(html).not.toContain('theme=');
+    expect(html).toContain('prefers-color-scheme: dark');
+  });
+});
+
 describe('determinism', () => {
   it('two consecutive builds of the same page are byte-identical', () => {
     const dir = pageDir(readFileSync(EXAMPLE, 'utf8'));
