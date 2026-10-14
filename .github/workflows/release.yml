@@ -63,18 +63,18 @@ jobs:
             (cd packages/core && yarn npm publish --provenance)
             node .github/scripts/publish-face.mjs --revert packages/core
           fi
-      # The packument URL a pre-publish guard fetched stays stale in npm's
-      # cache for the registry's max-age=300; the per-version URL is a cache
-      # key nothing touched before the publish, so it answers current state.
-      # When it answers, the regen's --prefer-online refetch sees the same
-      # edge's packument.
+      # Post-publish visibility is asynchronous on the registry's side: the
+      # per-version URL answers within seconds while the packument route npm
+      # resolves through has served pre-publish state for minutes past the
+      # publish, whatever the client cache does. The poll therefore uses npm
+      # itself — npm view fetches the same packument URL the lock regen
+      # resolves against.
       - name: Wait for the published core to resolve on the registry
         run: |
           version="$(jq -r .version .claude-plugin/marketplace.json)"
-          escaped="$(printf '%s' '@v1nvn/agentic-core' | jq -sRr @uri)"
           for attempt in $(seq 1 60); do
-            curl -fsS "https://registry.npmjs.org/${escaped}/${version}" >/dev/null && exit 0
-            echo "@v1nvn/agentic-core@$version not on the registry yet (attempt ${attempt}/60); retrying in 10s"
+            npm view "@v1nvn/agentic-core@$version" version --prefer-online >/dev/null 2>&1 && exit 0
+            echo "@v1nvn/agentic-core@$version not resolvable on npm yet (attempt ${attempt}/60); retrying in 10s"
             sleep 10
           done
           echo "::error::@v1nvn/agentic-core@$version never resolved on the registry"

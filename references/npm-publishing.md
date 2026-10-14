@@ -87,21 +87,24 @@ bootstrap publishes.
 
 ## Registry visibility
 
-The registry serves package metadata with `cache-control: max-age=300`, and
-npm honors that in its local cache — any fetch made before a publish keeps
-answering with the pre-publish state for five minutes after it, however
-healthy the registry is. The old "registry lag" notes were this client cache,
-not server propagation.
+Two layers serve pre-publish state after a publish. npm's local cache honors
+the registry's `cache-control: max-age=300` — `--prefer-online` busts that
+one. The registry's own propagation is asynchronous and unaffected by any
+client flag: the per-version URL answers within seconds while the packument
+route npm resolves through has served pre-publish state for over four minutes
+past a publish. A green light from any URL other than the packument itself
+proves nothing about what `npm install` sees.
 
-- Query past it with `--prefer-online` (`npm view`, `npm install`), or curl
-  `registry.npmjs.org/<escaped-name>/<version>` — the per-version URL is a
-  cache key nothing fetched before the publish, so it answers current state.
-- The train depends on both: `prepare` polls the per-version URL until the
-  just-published core answers, then regenerates the lockfiles — the per-home
-  npm locks with `--prefer-online`, the root `yarn.lock` against the
-  workspace (the exact pins change its core descriptors every bump, and no
-  publish is needed to refresh it). A blind retry shorter than the 300s
-  window cannot succeed.
+- Query current state with `npm view <pkg>@<version> --prefer-online` — the
+  same client, URL, and cache the install resolves through. The per-version
+  curl (`registry.npmjs.org/<escaped-name>/<version>`) answers origin state
+  faster, but npm never reads that route; it suits skip guards, never a wait
+  guarding a resolution.
+- The train polls `npm view` until the just-published core resolves, then
+  regenerates the lockfiles — the per-home npm locks with `--prefer-online`,
+  the root `yarn.lock` against the workspace (the exact pins change its core
+  descriptors every bump, and no publish is needed to refresh it). The poll
+  budget is minutes because the propagation itself takes minutes.
 - `npm view pkg@version --json` returns an array. Query by the name in
   `package.json`, never the directory — `packages/core` publishes as
   `@v1nvn/agentic-core`.
