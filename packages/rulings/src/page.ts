@@ -56,7 +56,7 @@ function viewHtml(q: Ruling, id: string, view: string): string {
 }
 
 // The base "today" view first when the ruling carries one, then each live
-// non-today option in letter order — the old engine's viewKey set, stacked.
+// non-today option in letter order — the view set a reader walks, stacked.
 function viewsOf(q: Ruling, id: string): string[] {
   const views: string[] = [];
   const hasBase =
