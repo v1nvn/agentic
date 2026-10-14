@@ -1,6 +1,6 @@
 {
   "name": "@v1nvn/rm",
-  "version": "0.46.2",
+  "version": "0.46.3",
   "description": "Beam a Markdown reply to a reMarkable as EPUB — the rm-send CLI behind the rm plugin.",
   "type": "module",
   "bin": {
@@ -35,6 +35,6 @@
     "node": ">=23.6"
   },
   "dependencies": {
-    "@v1nvn/agentic-core": "0.46.2"
+    "@v1nvn/agentic-core": "0.46.3"
   }
 }

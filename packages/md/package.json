@@ -1,6 +1,6 @@
 {
   "name": "@v1nvn/md",
-  "version": "0.46.2",
+  "version": "0.46.3",
   "description": "Send a Markdown reply to the Markdown-Viewer as a #share= URL — the md-send CLI behind the md plugin.",
   "type": "module",
   "bin": {
@@ -34,6 +34,6 @@
     "node": ">=23.6"
   },
   "dependencies": {
-    "@v1nvn/agentic-core": "0.46.2"
+    "@v1nvn/agentic-core": "0.46.3"
   }
 }
