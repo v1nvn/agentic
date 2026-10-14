@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url';
 import vm from 'node:vm';
 import { describe, expect, it } from 'vitest';
 
-import { bodiesView } from '../src/bodies.ts';
+import { bodiesOption, bodiesToday } from '../src/bodies.ts';
 import { diagramView, mermaidBoot } from '../src/diagram.ts';
 import { seqView } from '../src/seq.ts';
 import { validatePage, type Page, type Ruling } from '../src/schema.ts';
@@ -68,32 +68,31 @@ describe('seq view', () => {
 });
 
 describe('bodies view', () => {
-  it('pins the today body: what label, cap caption, no diff', () => {
+  it('pins the today block: shown once, what label, cap caption, no diff', () => {
     const P = example();
-    const html = bodiesView(P.rulings.G2, 'today');
+    const html = bodiesToday(P.rulings.G2);
     expect(html).toMatchSnapshot();
     expect(html).toContain('The quiet walk core runs on every command, today.');
     expect(html).not.toContain('diff vs today');
+    expect(html).toContain('class="view today"');
   });
 
-  it('pins the option diff: prism tokens, dleg, needs chip, gain/cost', () => {
+  it('pins the option diff: its own body only, prism tokens, needs chip', () => {
     const P = example();
-    const html = bodiesView(P.rulings.G2, 'G2a');
+    const html = bodiesOption(P.rulings.G2, 'G2a');
     expect(html).toMatchSnapshot();
     expect(html).toContain('token keyword');
     expect(html).toContain('diff vs today');
     expect(html).toContain('needs G1a');
-    expect(html).toContain('class="gc gain"');
-    expect(html).toContain('class="gc cost"');
+    expect(html).not.toContain('The quiet walk core runs on every command');
   });
 
-  it('pins the sketch body: state chip, no diff, w how-paragraph', () => {
+  it('pins the sketch body: state chip, no diff', () => {
     const P = example();
-    const html = bodiesView(P.rulings.G2, 'G2b');
+    const html = bodiesOption(P.rulings.G2, 'G2b');
     expect(html).toMatchSnapshot();
     expect(html).toContain('sketch — feasibility not checked');
     expect(html).not.toContain('diff vs today');
-    expect(html).toContain('class="how"');
   });
 
   it('collapses unchanged runs at seven lines, not six', () => {
@@ -107,7 +106,7 @@ describe('bodies view', () => {
         },
         opts: [{ c: 'c', g: 'g', k: 'a', t: 't' }],
       };
-      return bodiesView(q, 'G9a');
+      return bodiesOption(q, 'G9a');
     }
     expect(diffCase(8)).toContain('unchanged lines');
     expect(diffCase(7)).not.toContain('unchanged lines');
@@ -124,7 +123,6 @@ describe('diagram view', () => {
     expect(a).toContain(
       'Option a: the daemon re-arms its windows from Postgres on start.',
     );
-    expect(a).toContain('class="gc gain"');
   });
 
   it('emits exactly one mermaid container per view', () => {

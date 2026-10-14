@@ -16,9 +16,9 @@ export function hueOf(k: string): string {
   return 'o-' + 'abcd'.charAt('abcdefghijklmnopqrstuvwxyz'.indexOf(k) % 4);
 }
 
-// One view block head per option: letter chip, title, chips (my pick, as
-// today, needs), then the `w` how-paragraph and gain/cost. The plain
-// "Today" head covers a base view with no today option.
+// One view card head: letter disc, title, chips (my pick, as today, needs),
+// the picked marker the chrome toggles via aria-pressed. Gain, cost and the
+// `w` how-paragraph live once, in the ruling's compare matrix.
 export function viewHeadFor(
   q: Ruling,
   view: string,
@@ -33,7 +33,9 @@ export function viewHeadFor(
     letter === undefined ? undefined : opts.find(x => x.k === letter);
   if (o === undefined) {
     return {
-      head: '<div class="vhead"><span class="vt">Today</span></div>',
+      head:
+        '<div class="vhead"><span class="vt">Today</span>' +
+        '<span class="vmeta">how it works now</span></div>',
       hue: '',
     };
   }
@@ -51,9 +53,6 @@ export function viewHeadFor(
       `<div class="vhead"><span class="lt">${o.k}</span><div class="vtt">` +
       `<span class="vt">${o.t ?? ''}</span>` +
       (chips ? `<span class="vmeta">${chips}</span>` : '') +
-      `</div></div>` +
-      (o.w ? `<p class="how">${o.w}</p>` : '') +
-      `<div class="gc gain"><span class="sign">+</span><span>${o.g ?? ''}</span></div>` +
-      `<div class="gc cost"><span class="sign">−</span><span>${o.c ?? ''}</span></div>`,
+      '</div><span class="pmark">✓ picked</span></div>',
   };
 }

@@ -138,10 +138,12 @@ Not rulings: <X, because Y>.
 The owner answers on the page or in chat; both read verbatim. On the page: clicking a view picks
 that ruling's letter (click it again to unpick), the none-of-these button picks `n` for a ruling
 whose options all miss, and a quick group's accept-recommended button picks its starred letters.
-The composer bar assembles the answer as `G1a, G2c…`, annotates a pick whose `needs` target is
-unpicked as `(needs …)`, and Copy puts the picks plus the notes input's text — picks first, notes
-after — on the clipboard to paste in chat. Picks and notes persist per page, so a reload keeps
-them. In chat the owner types picks like `G1a, G2c` and notes like `G6 note: …`; `G2n` means none
+Each option view carries a note input — its text rides the answer inline after that pick — and the
+composer bar's page note rides after a blank line. The composer annotates a pick whose `needs`
+target is unpicked as `(needs …)`, and Copy puts the whole answer on the clipboard to paste in
+chat: `G2a — its note, G3b (needs G3a) — its note`, blank line, page note. Picks and both note
+kinds persist per page under its `key`, so a reload keeps them. In chat the owner types picks like
+`G1a, G2c` and notes like `G6 note: …`; `G2n` means none
 of these fit, and its note says what is wanted. A note overrides the pick for that ruling. A
 ruling missing from the answer is still open. Never treat your recommendation as the owner's
 answer. A root pick that moves a recommendation is announced before the next question.

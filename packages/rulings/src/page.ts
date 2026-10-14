@@ -4,7 +4,7 @@ import vm from 'node:vm';
 
 import type { Opt, Page, Ruling } from './schema.ts';
 
-import { bodiesView } from './bodies.ts';
+import { bodiesOption, bodiesToday } from './bodies.ts';
 import { chromeScript, panelHtml } from './chrome.ts';
 import { diagramView, mermaidBoot } from './diagram.ts';
 import { esc, hueOf, stripTags } from './html.ts';
@@ -14,50 +14,49 @@ import { pageCss } from './style.ts';
 export const PAGE_FILE = 'page.js';
 export const MERMAID_FILE = 'mermaid.min.js';
 
-// Chrome the assembly adds beyond pageCss: the sticky TOC, the merged
-// meta-line, the notes block, and the pick composer.
+// Chrome the assembly adds beyond pageCss: the pick affordances, the option
+// note inputs, and the composer bar.
 const assemblyCss = `
-.toc { display: grid; gap: 6px; padding-block: 12px 20px; border-bottom: 1px solid var(--rule); position: sticky; top: 0; z-index: 6; background: var(--paper); }
-.toc > div { display: flex; flex-wrap: wrap; gap: 4px 18px; align-items: baseline; }
-.toc .grp { font: 600 11.5px var(--mono); color: var(--muted); }
-.toc a { color: var(--ink); text-decoration: none; font: 500 14px/1.3 var(--sans); display: inline-flex; gap: 7px; align-items: baseline; }
-.toc a:hover { text-decoration: underline; }
-.toc .gid { font: 600 12px var(--mono); color: var(--muted); }
-.toc a.merged .t { color: var(--muted); font-style: italic; }
-.notes { display: grid; gap: 8px; padding-top: 16px; }
-.meta-line { font: 12.5px var(--mono); color: var(--muted); margin-top: 3px; }
-
 .view[data-pick] { cursor: pointer; }
-.view[data-pick]:hover .stage { border-color: color-mix(in srgb, var(--o) 85%, var(--rule)); }
-.view[aria-pressed="true"] .stage { border-color: var(--o); box-shadow: 0 0 0 3px color-mix(in srgb, var(--o) 25%, transparent); }
-.view[aria-pressed="true"] .lt { background: var(--o); color: var(--sheet); }
-.view[data-needs].unmet .stage, .col[data-needs].unmet { border-style: dashed; }
+.view[data-pick]:hover { border-left-color: var(--o); }
+.view[data-pick]:hover .stage { border-color: color-mix(in srgb, var(--o) 55%, var(--rule)); }
+.view[data-pick]:hover .lt { border-color: var(--o); box-shadow: 0 0 0 3px color-mix(in srgb, var(--o) 16%, transparent); }
+.view[aria-pressed="true"] { border-left-width: 5px; border-left-color: var(--o); }
+.view[aria-pressed="true"] .stage { border-color: color-mix(in srgb, var(--o) 70%, var(--rule)); background: color-mix(in srgb, var(--o) 5%, var(--sheet)); }
+.view[aria-pressed="true"] .lt { background: var(--o); color: var(--sheet); box-shadow: 0 0 0 3px color-mix(in srgb, var(--o) 22%, transparent); }
+.pmark { display: none; font: 700 11.5px var(--mono); color: var(--o); margin-left: auto; white-space: nowrap; }
+.view[aria-pressed="true"] .pmark { display: inline; }
+.view[data-needs].unmet { border-left-style: dashed; }
+.view[data-needs].unmet .pmark { display: none; }
 .dep { border: 1px dashed transparent; border-radius: 4px; padding: 0 4px; }
 .unmet .dep { color: var(--k-fail); font-weight: 600; border-color: var(--k-fail); }
-.rhead .none-btn { margin-top: 4px; font: 600 12px var(--mono); color: var(--muted); background: none; border: 1px dashed var(--rule); border-radius: 6px; padding: 2px 9px; cursor: pointer; }
-.rhead .none-btn:hover { color: var(--ink); border-color: var(--ink); }
-.rhead .none-btn.on { color: var(--sheet); background: var(--muted); border-style: solid; border-color: var(--muted); }
-.ghead .quick { font: 600 12.5px var(--sans); color: var(--ink); background: var(--sheet); border: 1px solid var(--rule); border-radius: 999px; padding: 4px 13px; cursor: pointer; }
+.onote { margin-top: 2px; font: 12.5px var(--sans); color: var(--ink); background: none; border: 0; border-bottom: 1px dashed var(--rule); padding: 5px 2px 4px; width: min(100%, 420px); }
+.onote:focus { outline: none; border-bottom-color: var(--o); }
+.onote::placeholder { color: var(--muted); opacity: 0.7; }
+.ghead .quick { font: 600 12px var(--mono); color: var(--ink); background: var(--sheet); border: 1px solid var(--rule); border-radius: 999px; padding: 4px 13px; cursor: pointer; }
 .ghead .quick:hover { border-color: var(--ink); }
-.bar { position: fixed; right: 0; bottom: 0; left: 0; z-index: 10; background: var(--sheet); border-top: 1px solid var(--rule); box-shadow: 0 -4px 14px color-mix(in srgb, var(--ink) 8%, transparent); }
-.bar-in { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding-block: 10px; }
-.bar .sum { flex: 1 1 240px; min-width: 0; font: 600 14px var(--mono); }
-.bar .sum .pk { white-space: nowrap; }
-.bar .sum .pk.empty { color: var(--muted); font-weight: 500; }
-.bar .sum .pk.unmet { color: var(--k-fail); }
-.bar .sum .pk i { font: 500 12px var(--sans); font-style: normal; color: var(--k-fail); }
-.bar .sum .sep { color: var(--muted); font-weight: 400; }
-.bar textarea { flex: 0 1 320px; min-width: 160px; min-height: 34px; resize: vertical; font: 13px var(--sans); color: var(--ink); background: var(--paper); border: 1px solid var(--rule); border-radius: 6px; padding: 7px 9px; }
-.bar textarea:focus { outline: none; border-color: var(--ink); }
-.bar button { flex: none; font: 600 13px var(--sans); color: var(--sheet); background: var(--ink); border: 0; border-radius: 6px; padding: 9px 15px; cursor: pointer; }
-.bar button:hover { opacity: 0.88; }
-:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
-body { padding-bottom: 64px; }
 
-@media (max-width: 899px) {
-  .toc { position: static; }
-  .bar textarea { flex-basis: 100%; }
-  body { padding-bottom: 150px; }
+.bar { position: fixed; z-index: 10; bottom: 18px; left: 50%; transform: translateX(calc(-50% + 114px)); width: min(856px, calc(100vw - 228px - 48px)); background: var(--sheet); border: 1px solid var(--rule); border-radius: 12px; box-shadow: 0 8px 28px color-mix(in srgb, var(--ink) 14%, transparent); }
+.bar-in { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 10px 12px; }
+.chips { flex: 1 1 200px; min-width: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.chips .empty { font: 500 12.5px var(--mono); color: var(--muted); padding: 6px 2px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; font: 600 12.5px var(--mono); color: var(--ink); background: var(--paper); border: 1px solid var(--rule); border-radius: 999px; padding: 3px 6px 3px 4px; }
+.chip .d { width: 19px; height: 19px; border-radius: 50%; display: inline-grid; place-items: center; font-size: 11px; font-weight: 700; color: var(--sheet); }
+.chip.unmet { border-color: var(--k-fail); }
+.chip.unmet .x { color: var(--k-fail); }
+.chip .need { font: 500 10.5px var(--mono); color: var(--k-fail); }
+.chip .x { border: 0; background: none; color: var(--muted); cursor: pointer; font: 700 13px var(--sans); padding: 0 3px; line-height: 1; }
+.chip .x:hover { color: var(--ink); }
+.bar textarea { flex: 0 1 260px; min-width: 150px; min-height: 34px; max-height: 120px; resize: vertical; font: 12.5px var(--sans); color: var(--ink); background: var(--paper); border: 1px solid var(--rule); border-radius: 7px; padding: 8px 10px; }
+.bar textarea:focus { outline: none; border-color: var(--ink); }
+.bar button.go { flex: none; font: 600 13px var(--sans); color: var(--sheet); background: var(--ink); border: 0; border-radius: 7px; padding: 9px 16px; cursor: pointer; }
+.bar button.go:hover { opacity: 0.88; }
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+@media (max-width: 979px) {
+  .side { display: none; }
+  .doc { margin-left: 0; }
+  .bar { left: 12px; right: 12px; transform: none; width: auto; }
 }
 `;
 
@@ -78,16 +77,6 @@ function needsOf(o: Opt): string[] {
   return typeof o.needs === 'string' ? [o.needs] : (o.needs ?? []);
 }
 
-function viewHtml(q: Ruling, id: string, view: string, attrs: string): string {
-  if (q.seq !== undefined) {
-    return seqView(q, id, view, attrs);
-  }
-  if (q.bodies !== undefined) {
-    return bodiesView(q, view, attrs);
-  }
-  return diagramView(q, view, attrs);
-}
-
 // The pick wiring a live option's view carries: its pick id, keyboard reach,
 // and the needs the composer checks against the current picks.
 function viewAttrs(q: Ruling, id: string, view: string): string {
@@ -105,23 +94,46 @@ function viewAttrs(q: Ruling, id: string, view: string): string {
   );
 }
 
-// The base "today" view first when the ruling carries one, then each live
-// non-today option in letter order — the view set a reader walks, stacked.
-function viewsOf(q: Ruling, id: string): string[] {
-  const views: string[] = [];
+// Today once, then each live non-today option in letter order. Bodies rulings
+// split the today block from the option diffs; seq and diagram views differ
+// per view, so they keep one view each.
+function viewsOf(q: Ruling, id: string): string {
+  const isBodies = q.bodies !== undefined;
   const hasBase =
     q.seq !== undefined ||
     (q.bodies !== undefined && 'today' in q.bodies) ||
     (q.diagram !== undefined && 'today' in q.diagram.views);
+  const out: string[] = [];
   if (hasBase) {
-    views.push('today');
+    out.push(
+      isBodies
+        ? bodiesToday(q, viewAttrs(q, id, 'today'))
+        : viewHtml(q, id, 'today', viewAttrs(q, id, 'today')),
+    );
   }
   for (const o of q.opts ?? []) {
-    if (o.today !== true) {
-      views.push(id + o.k);
+    if (o.today === true) {
+      continue;
     }
+    const view = id + o.k;
+    const attrs = viewAttrs(q, id, view);
+    out.push(
+      (isBodies ? bodiesOption(q, view, attrs) : viewHtml(q, id, view, attrs)) +
+        `<input class="onote" data-note="${view}" ` +
+        `placeholder="note for ${view} — rides the answer" aria-label="note for ${view}">`,
+    );
   }
-  return views;
+  return out.join('');
+}
+
+function viewHtml(q: Ruling, id: string, view: string, attrs: string): string {
+  if (q.seq !== undefined) {
+    return seqView(q, id, view, attrs);
+  }
+  if (q.bodies !== undefined) {
+    return bodiesOption(q, view, attrs);
+  }
+  return diagramView(q, view, attrs);
 }
 
 function compareHtml(q: Ruling): string {
@@ -185,25 +197,23 @@ function rulingSection(P: Page, id: string): string {
     mergedInto +
     `<p class="stake">${q.stake ?? ''}</p>` +
     `<p class="today">${q.today ?? ''}</p>` +
-    `<div class="views">${viewsOf(q, id)
-      .map(v => viewHtml(q, id, v, viewAttrs(q, id, v)))
-      .join('')}</div>` +
+    `<div class="views">${viewsOf(q, id)}</div>` +
     compareHtml(q) +
     '</section>'
   );
 }
 
-function tocHtml(P: Page): string {
-  const rows = P.groups
+function sideHtml(P: Page): string {
+  const groups = P.groups
     .map(
       g =>
-        `<div><span class="grp">${esc(g.label ?? '')}</span>` +
+        `<div class="sg"><h2><span>${esc(g.label ?? '')}</span><span class="n">${g.rulings.length}</span></h2>` +
         g.rulings
           .map(id => {
             const q = rulingOf(P, id);
-            const merged = q.merged !== undefined ? ' class="merged"' : '';
+            const merged = q.merged !== undefined ? ' merged' : '';
             return (
-              `<a href="#r-${id}"${merged}><span class="gid">${id}</span>` +
+              `<a class="rl${merged}" href="#r-${id}"><span class="gid">${id}</span>` +
               `<span class="t">${esc(stripTags(q.title ?? ''))}</span></a>`
             );
           })
@@ -211,7 +221,7 @@ function tocHtml(P: Page): string {
         '</div>',
     )
     .join('');
-  return `<nav class="toc" aria-label="Rulings">${rows}</nav>`;
+  return `<nav class="side" aria-label="Rulings">${groups}</nav>`;
 }
 
 export interface BuiltPage {
@@ -259,18 +269,18 @@ export function buildPage(input: unknown): BuiltPage {
 ${pageCss}${assemblyCss}</style>
 </head>
 <body${P.key ? ` data-key="${esc(P.key)}"` : ''}>
-<div class="shell masthead">
-<div>
+${sideHtml(P)}
+<div class="doc">
+<main class="col-in">
+<div class="masthead">
 <div class="eyebrow">${esc(P.eyebrow ?? '')}</div>
 <h1>${esc(P.title ?? '')}</h1>
 <p class="sub">${P.sub ?? ''}</p>
 </div>
-</div>
-<main class="shell">
-${tocHtml(P)}
 <div class="notes">${notes}</div>
 ${groups}
 </main>
+</div>
 ${panelHtml()}
 ${hasDiagram ? `<script src="${MERMAID_FILE}"></script>\n${mermaidBoot()}` : ''}
 ${chromeScript()}
