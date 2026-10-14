@@ -1,6 +1,6 @@
 {
   "name": "@v1nvn/zai",
-  "version": "0.49.0",
+  "version": "0.50.0",
   "description": "Query GLM Coding Plan quota and usage — the zai-usage CLI behind the zai plugin.",
   "type": "module",
   "bin": {
@@ -35,6 +35,6 @@
     "node": ">=23.6"
   },
   "dependencies": {
-    "@v1nvn/agentic-core": "0.49.0"
+    "@v1nvn/agentic-core": "0.50.0"
   }
 }

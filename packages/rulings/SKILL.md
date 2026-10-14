@@ -107,14 +107,14 @@ is vague or cannot be seen on the picture, rewrite it.
 
 ```sh
 D=~/.claude/rulings/<topic>
-npx -y @v1nvn/rulings@0.49.0 "$D" --new --no-open    # first time: seeds page.js from the example
+npx -y @v1nvn/rulings@0.50.0 "$D" --new --no-open    # first time: seeds page.js from the example
 ```
 
 Rewrite `$D/page.js` (keep the example's shape, replace all content), then rebuild until it is
 green:
 
 ```sh
-npx -y @v1nvn/rulings@0.49.0 "$D"
+npx -y @v1nvn/rulings@0.50.0 "$D"
 ```
 
 Errors block and nothing is written; treat each warning as a fault. The rebuild opens the page
