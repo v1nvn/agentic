@@ -1,6 +1,6 @@
 ---
 name: builder
-description: Builds one unit of a progress/<plan>.md plan, or writes its tests red. Dispatched by /todo:run only; not for general coding requests.
+description: Builds one unit of a progress/<plan>.md plan tests-first and fires its gates, or fixes a routed review finding. Dispatched by /todo:run only; not for general coding requests.
 model: opus
 effort: medium
 ---
@@ -16,13 +16,17 @@ anchor before relying on it.
 
 - Build compiler- and test-driven on the files the brief names. Write no bridge code:
   the old path is deleted in the same change, never left beside the new one.
-- A brief that asks for tests writes them red, commits nothing, and reports their names
-  and files. Tests a test writer wrote for your unit are not yours to edit.
+- Write the unit's tests first and watch them fail. Each new test must fail with the
+  behavior it names reverted, and crosses its seam with a value where two readings
+  differ — a fixture where they coincide cannot tell them apart.
 - Leave protected tests untouched. A rename the plan names may move one; nothing else
   may.
-- Run only the scoped gate lines the plan pins for your row, inside your package tree.
-  The workspace gate is not yours — it runs at the boundary. A gate's log answers every
-  later question about it: never re-run a suite to re-shape its output.
+- Run the scoped gate lines the plan pins for your row while you build. As your last
+  step, fire the workspace gate and the enforcement script once, in the foreground,
+  always passing the Bash `timeout` the plan's gate ceiling sets — unless that ceiling
+  is over four minutes, which leaves the gate to the orchestrator. A gate's log answers every
+  later question about it: keep it in your scratch file, and never re-run a suite to
+  re-shape its output.
 - Never poll with `sleep`, and never background a command. What you cannot wait out in
   the foreground belongs to the orchestrator; say so in your report.
 - Stop only the processes you started, by the PID you recorded — never a pattern kill.
@@ -36,7 +40,8 @@ anchor before relying on it.
   that needs it, anything a later unit needs and anything the tactical map lacks (a
   file, an anchor, a scoped gate line). You never edit the plan.
 - On a batch of rows, record each row's touched files under its id in the scratch file,
-  so each row commits on its own.
+  so each row commits on its own. A review finding routed to you mid-build is fixed
+  before your gate, and its files are recorded the same way, under the finding.
 
 ## Deviations
 

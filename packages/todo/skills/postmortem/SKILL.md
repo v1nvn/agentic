@@ -22,7 +22,7 @@ the autopsied repo's suite command — the gate line the run's plan pinned, else
 derived from the repo as a run derives it (`run/SKILL.md`, Open.4). It prints
 markdown:
 
-- the time tree: wall, owner wait, orchestrator generation, every worker's wall split
+- the time tree: wall, owner wait (owner questions included), stalls, orchestrator generation, every worker's wall split
   into generation and tools, every background span with how much of it overlapped work;
 - per worker: type, the model and effort it ran at, wall, minutes from spawn to its
   first edit (the context it had to build before working), generation, tool time, model calls, median turn gap;
@@ -48,13 +48,15 @@ wait an inherent dependency chain forces. Confirm each survivor with its minutes
 the rule it breaks, quoted by line from `run/SKILL.md` or the role file in
 `agents/` that holds it. The script's candidates:
 
-- an orchestrator suite run (run: the session never gates);
-- a suite run by any worker but the clerk (clerk: the workspace gate is yours alone;
-  builder: run only the scoped gate lines; reviewer: never run a build or a test suite);
+- an orchestrator suite run in the foreground (run: its only commands are waits,
+  started in the background);
+- a suite run by a reviewer (reviewer: never run a build or a test suite);
 - a worker Bash `sleep` poll, or one `sleep` past five minutes (builder: never poll with
   `sleep`);
 - a suite re-run inside five minutes whose command differs only in output shaping
-  (clerk: the gate re-fires only for a stated cause);
+  (builder: never re-run a suite to re-shape its output);
+- a cold resume: a worker continued by message after five idle minutes (run: no worker
+  idle five minutes is resumed);
 - an idle span where one background ritual ran and nothing else did.
 
 ## Report

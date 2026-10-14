@@ -14,6 +14,8 @@ const CACHE_TTL = 300000;
 const EDITS = new Set(['Edit', 'Write', 'NotebookEdit']);
 const TOLLED = new Set(['attachment', 'meta', 'queue']);
 const ORCHESTRATOR = 'orchestrator';
+const BASH_TIMEOUT = 120000;
+const STALL_SLACK = 60000;
 
 const ts = s => new Date(s).getTime();
 const mins = ms => ms / 60000;
@@ -169,7 +171,18 @@ const bashOf = runs =>
       start: r.start,
       dur: r.dur,
       cmd: String(r.input.command ?? ''),
+      bg: Boolean(r.input.run_in_background),
     }));
+
+// The harness moves a foreground Bash call past its timeout to the background,
+// so a result arriving well after that timeout is a stalled host, not work.
+const stalled = runs =>
+  runs.filter(
+    r =>
+      r.name === 'Bash' &&
+      !r.input.run_in_background &&
+      r.dur > (r.input.timeout ?? BASH_TIMEOUT) + STALL_SLACK,
+  );
 
 function main(transcript, suiteSrc) {
   const SUITE = suiteSrc ? new RegExp(suiteSrc) : null;
@@ -218,11 +231,14 @@ function main(transcript, suiteSrc) {
     label: s.label,
   }));
   const orchRuns = toolRuns(ev);
+  const questions = orchRuns.filter(r => r.name === 'AskUserQuestion');
+  ownerWait += questions.reduce((a, r) => a + r.dur, 0);
   const fgTools = orchRuns
     .filter(
       r =>
         !(
           r.name === 'Agent' ||
+          r.name === 'AskUserQuestion' ||
           (r.name === 'Bash' && r.input.run_in_background)
         ),
     )
@@ -270,6 +286,12 @@ function main(transcript, suiteSrc) {
         }
       }
       const runs = toolRuns(wev);
+      const resumes = [];
+      for (const [i, e] of wev.entries()) {
+        if (i === 0 || !['user_other', 'human'].includes(kind(e))) continue;
+        const idle = ts(e.timestamp) - ts(wev[i - 1].timestamp);
+        if (idle >= CACHE_TTL) resumes.push({ at: ts(e.timestamp), idle });
+      }
       workers.push({
         desc: meta.description ?? '?',
         type: meta.agentType ?? '?',
@@ -285,6 +307,7 @@ function main(transcript, suiteSrc) {
         gaps,
         runs,
         bash: bashOf(runs),
+        resumes,
         usage: ledger(wev),
         firstEdit: Math.min(
           ...runs.filter(r => EDITS.has(r.name)).map(r => r.start - w0),
@@ -293,9 +316,17 @@ function main(transcript, suiteSrc) {
     }
   }
 
+  const stalls = [
+    ...stalled(orchRuns).map(r => ({ who: ORCHESTRATOR, r })),
+    ...workers.flatMap(w => stalled(w.runs).map(r => ({ who: w.desc, r }))),
+  ];
+  const stallTime = spanUnion(
+    stalls.map(({ r }) => [r.start, r.start + r.dur]),
+  );
+
   console.log('# postmortem\n');
   console.log(
-    `session ${basename(transcript)}  wall ${fmt(wall)}  owner wait ${fmt(ownerWait)}  orchestrator gen ${fmt(gen)}  orchestrator wait ${fmt(wait)}  foreground tools ${fmt(fgTools)}\n`,
+    `session ${basename(transcript)}  wall ${fmt(wall)}  owner wait ${fmt(ownerWait)}  stalls ${fmt(stallTime)}  orchestrator gen ${fmt(gen)}  orchestrator wait ${fmt(wait)}  foreground tools ${fmt(fgTools)}\n`,
   );
 
   console.log('## workers\n');
@@ -409,12 +440,18 @@ function main(transcript, suiteSrc) {
     return seg.split('|')[0].trim();
   };
   const orchSuites = SUITE
-    ? bashOf(orchRuns).filter(b => SUITE.test(b.cmd))
+    ? bashOf(orchRuns).filter(b => !b.bg && SUITE.test(b.cmd))
     : [];
   if (orchSuites.length) {
     flagged = true;
     console.log(
-      `- orchestrator ran a suite: ${orchSuites.length} run(s), ${fmt(orchSuites.reduce((a, b) => a + b.dur, 0))}`,
+      `- orchestrator ran a suite in the foreground: ${orchSuites.length} run(s), ${fmt(orchSuites.reduce((a, b) => a + b.dur, 0))}`,
+    );
+  }
+  for (const { who, r } of stalls) {
+    flagged = true;
+    console.log(
+      `- stalled tool result: ${who} — \`${String(r.input.command).slice(0, 60)}\` returned after ${fmt(r.dur)} at ${hhmm(r.start)}; counted in stalls, not work`,
     );
   }
   for (const w of workers) {
@@ -428,10 +465,16 @@ function main(transcript, suiteSrc) {
         `- sleep poll: ${w.desc} slept ${sleeps.length} times, ${fmt(sleeps.reduce((a, b) => a + b.dur, 0))} total — first at ${hhmm(sleeps[0].start)}: ${sleeps[0].cmd.slice(0, 60)}`,
       );
     }
-    if (!/clerk/i.test(`${w.type} ${w.desc}`) && suites.length) {
+    if (/review/i.test(`${w.type} ${w.desc}`) && suites.length) {
       flagged = true;
       console.log(
-        `- suite outside the clerk: ${w.desc} — ${suites.length} run(s), ${fmt(suites.reduce((a, b) => a + b.dur, 0))}`,
+        `- suite run by a reviewer: ${w.desc} — ${suites.length} run(s), ${fmt(suites.reduce((a, b) => a + b.dur, 0))}`,
+      );
+    }
+    for (const { at, idle } of w.resumes) {
+      flagged = true;
+      console.log(
+        `- cold resume: ${w.desc} continued at ${hhmm(at)} after ${fmt(idle)} idle`,
       );
     }
     const clusters = new Map();
@@ -483,7 +526,7 @@ function main(transcript, suiteSrc) {
 
   if (!flagged) console.log('(none)');
   console.log(
-    '\nmeasure limits: thinking is encrypted (generation = gap before an assistant message); parallel tools overlap; owner wait folds attachments before a human message; a gap background work fully covered counts as orchestrator wait, partial coverage stays in gen; transcript token sums run below cost-state, which counts retries.',
+    '\nmeasure limits: thinking is encrypted (generation = gap before an assistant message); parallel tools overlap; owner wait folds attachments before a human message and counts owner questions; a foreground Bash result past its timeout counts as a stall; a gap background work fully covered counts as orchestrator wait, partial coverage stays in gen; transcript token sums run below cost-state, which counts retries.',
   );
 }
 

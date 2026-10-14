@@ -1,6 +1,6 @@
 ---
 name: run
-description: Execute a progress/<plan>.md plan file unit by unit — fresh builder, reviewer and clerk subagents per unit, each unit closed on its stated criteria, one commit per unit; landing the final unit closes the thread in the same sitting. Use when the user points at a plan file and asks to run it, fully or a named subset of units.
+description: Execute a progress/<plan>.md plan file unit by unit — fresh builder and reviewer subagents per unit, the next unit building while the last is reviewed, each unit closed on its stated criteria, one commit per unit, a whole-branch review before the PR; landing the final unit closes the thread in the same sitting. Use when the user points at a plan file and asks to run it, fully or a named subset of units.
 argument-hint: <plan> [units]
 ---
 
@@ -37,28 +37,31 @@ changed assertion, or a test deleted beyond the row's list, stops.
 
 ## Session frame
 
-The session is orchestrator and decision-maker only. It never builds, reviews or gates:
-it dispatches, commits, rules, routes review and passes tiers. Nothing falls back to the
-session — a reproduction, a gate, a script goes to the role that owns it. The owner
+The session is orchestrator and decision-maker only. It never builds or reviews: it
+dispatches, commits, rules, routes findings and passes tiers. Its only long-running
+commands are the waits no worker may hold — the pre-flight gate, a gate past four minutes, a ritual —
+started in the background. It is the one agent whose cache lasts an hour, so it is the
+cheapest place to wait and the dearest place to read: every line it reads is re-read
+at each wake. Nothing else falls back to the session — a reproduction or a script goes
+to the role that owns it. The owner
 answers only what §Deviations posts. Every decision is written into the plan as it is
 made, into the section the pick affects (Steps, Plan, Design; open reviewer findings in
 Current state), never a log section — the veto table lives only in the final report.
 The plan file, with its scratch notes and ritual records, is the resume record — a
 later session picks up from those alone; write no parallel run document. On resume,
-fold any scratch notes in first, then have the clerk re-run the last landed unit's
-close criteria instead of trusting its row.
+fold any scratch notes in first, then have a reviewer re-check the last landed unit's
+close criteria (a resume check, not a re-review) instead of trusting its row.
 
 ## Dispatch
 
-Every worker is a spawn of one of the plugin's three role agents. A role's file carries
+Every worker is a spawn of one of the plugin's two role agents. A role's file carries
 its law, so a brief carries only pointers. Never `fork` — a fork copies the
 orchestrator's context — and never another agent type.
 
-| role            | does                                                                                              |
-| --------------- | ------------------------------------------------------------------------------------------------- |
-| `todo:builder`  | builds a unit, or writes its tests red                                                            |
-| `todo:reviewer` | read-only: blind review, re-review, slice review, design or split consult, rescue diagnosis       |
-| `todo:clerk`    | the workspace gate, the enforcement script, scripts, tails, scratch drafts, close-criteria checks |
+| role            | does                                                                                             |
+| --------------- | ------------------------------------------------------------------------------------------------ |
+| `todo:builder`  | builds a unit tests-first, fires its gates, fixes routed findings, writes scripts                |
+| `todo:reviewer` | read-only: blind review with close-criteria checks, branch review, slice review, consult, rescue |
 
 The tier rides the dispatch. A cell's `model/effort` pair becomes the Agent call's
 `model` and `effort` parameters — `sonnet/low` dispatches with `model: "sonnet"`,
@@ -81,10 +84,14 @@ owner ruling, written into the row before the dispatch.
   wire bodies, signatures) is reviewed at the role default whatever the cell says.
 - The `consult` cell marks `todo:reviewer` consults, comma-separated, each at the tier
   the plan names for it, else the role default:
-  - `design` or `split` — **before dispatch**, on a row that leaves design open or may
-    pass the size signal: the consult reads the code the row names and rules the open
-    picks and the split, and the orchestrator writes them into the row before the
-    builder sees it;
+  - `design` or `split` — dispatched **beside the previous unit's build**, so it never
+    holds a dispatch, on a row that leaves design open or may pass the size signal —
+    after that build reports when it touches the row's files, at pre-flight for the
+    first unit; a consult not back when its unit is due holds that dispatch. Its
+    brief names the exact open picks; the consult reads the code the row names and
+    rules those picks and the split, and the orchestrator writes them into the row
+    before the builder sees it. A consult that must read widely to find its questions
+    marks a plan that was not hardened;
   - `review` — **a slice review** beside the unit's blind review, over only the diff the
     plan marks high-stakes (its silent-failure carriers, money).
 
@@ -106,28 +113,31 @@ owner ruling, written into the row before the dispatch.
 3. Resolve the scope to an ordered unit list. A row that carries unrelated risks — a
    coverage change beside a money change — is split at hardening. The orchestrator reads
    no source, so it never guesses a row's size: a row the plan marks `split` takes its
-   consult before dispatch; for any other, the size signal organizes its review and
+   consult beside the previous unit's build; for any other, the size signal organizes its review and
    stops nothing.
    Small work is one dispatch. The rows the plan's `Small rows:` line names — a row
    qualifies only when it leaves no design freedom (deletions, renames, doc fixes, swaps
    to a named target), and nothing money-touching or design-bearing ever does — batch
    into one builder dispatch per thread or PR group. The brief points at all of them; the
-   builder works them in sequence on their scoped gates and records each row's files; the
-   clerk runs one workspace gate at the batch's end; the orchestrator commits row by row
+   builder works them in sequence on their scoped gates, records each row's files, and
+   fires one workspace gate at the batch's end; the orchestrator commits row by row
    from those file lists, and rows sharing a file land in one commit naming both ids.
-   Then one blind review over the whole batch diff and one clerk check of every row's
-   close criteria. The pipeline count scales with risk, not with unit count.
+   Then one blind review over the whole batch diff checks every row's close criteria.
+   The pipeline count scales with risk, not with unit count.
 4. Derive the run mechanics:
    - Gates by construction. The tactical map pins each row's scoped gate lines — the
      components the row touches plus their dependents, inside the builder's package
-     tree — and the builder runs only those. The workspace gate is the boundary's: the
-     clerk fires it immediately before a commit that changes code it exercises, and at
-     a PR group's end; a batch fires it once at its end, and the row commits that follow
-     that green fire nothing more. A firing re-fires only for a stated cause — changed
-     code, or a flake with the failure quoted — and the clerk flags a firing whose
-     extracted result matches the last on the same tree as one that answered nothing,
-     which is a deviation. Where builds are slow, ration every run to the narrowest
-     scope that answers the question.
+     tree — and the workspace gate line with its ceiling: its minutes as the pre-flight
+     gate measured them, rounded up. The builder runs the scoped lines while it builds
+     and, for a ceiling of four minutes or under, the workspace gate once as its last
+     step, in the foreground with the Bash `timeout` set to the ceiling: a command the
+     harness moves to the background leaves a subagent polling. A ceiling over four
+     minutes outlasts a subagent's cache, so that gate is the orchestrator's — started
+     in the background once the builder stops, its red result routed like a blocking
+     finding.
+     A batch fires it once at its end, and the row commits that follow that green fire
+     nothing more. A firing re-fires only for a stated cause — changed code, or a flake
+     with the failure quoted.
    - Any A/B ritual the plan names: record before, record after — both records go to
      `progress/.scratch/<slug>/`, the ritual-record folder the rules keep until the
      thread closes — and land only on the plan's landing rule (e.g. green count up
@@ -143,7 +153,7 @@ owner ruling, written into the row before the dispatch.
      command, and a sleep loop past five minutes re-writes the poller's whole cache each
      poll. While a ritual holds a resource the gate needs, each active brief names the
      gate the resource permits and defers one workspace-gate firing to the ritual's end.
-     The clerk writes the ritual's script and reconciles its output. A unit held on an
+     A builder writes the ritual's script and reconciles its output. A unit held on an
      owner ruling runs its after pass on the held tree meanwhile; the ruling re-runs only
      the inputs its change touches. A ritual blocks only marking the PR ready for
      review — never a commit, a push or a dispatch.
@@ -162,7 +172,7 @@ owner ruling, written into the row before the dispatch.
 6. Preconditions before the first dispatch: tree clean on the plan's base (the default
    branch when the plan names none) — when the prompt asks for a worktree, the run creates
    one on a new branch off that base and the check applies there; the workspace gate
-   green at the start, fired by the clerk; every unit on another thread the scope is
+   green at the start, fired by the orchestrator in the background, its minutes written into the tactical map as the gate's ceiling; every unit on another thread the scope is
    gated on has landed there — its closing test is in the tree, or its plan's Steps
    table says so; the environment the scoped units need (cluster, env vars, secrets,
    disk, `gh` auth, quiet neighbors — file watchers, IDE indexers and test-discovery
@@ -171,81 +181,85 @@ owner ruling, written into the row before the dispatch.
 ## Workers
 
 - Fresh spawns per unit, every role. A worker inherits only the common base: its role
-  file and the plan; within a unit it is continued by message. Everything unit-private —
-  notes, state file, gate output — lives in the builder's and the clerk's per-worker
-  scratch files, a reviewer's in its report, and dies when the unit closes; the fold is the only way a
-  finding outlives its worker. No worker lives across units, and none carries another's
-  transcript.
+  file and the plan. Everything unit-private — notes, state file, gate output — lives in
+  the builder's per-worker scratch file, a reviewer's in its report, and dies when the
+  unit closes; the fold is the only way a finding outlives its worker. No worker lives
+  past its unit except to take a routed finding while still building, and none carries
+  another's transcript.
+- One builder at a time, no worktrees inside a run, no parallel builds — except
+  document and dataset units (§Per-unit loop 8). A unit's build overlaps only the
+  previous unit's review and the next unit's read-only prep — its trace, its consult,
+  its brief.
 - Briefs point at the plan's row and sections, name the files the worker owns, and state
   what "done" means (the unit's close criteria). Briefs never paste plan text. A brief
   that names a heavyweight ritual tool pins its full invocation from the plan — filters,
   jobs, timeout, output. Where the plan does not yet pin one, the orchestrator has it
   derived once, writes it into the plan, and every brief thereafter uses that line.
-- A builder the clerk reads past the context ceiling (a third of its window) is ended at
-  that report and a successor continues from its state file: a subagent's cache expires
-  after five idle minutes, so one long gate re-writes the whole context at the write
-  rate. For the same reason a builder idle past five minutes is not resumed: its next
-  round goes to a successor.
+- No worker ever waits — not on a gate, a review or a reply — and no worker idle five
+  minutes is resumed, any role: a subagent's cache expires after five idle minutes, so
+  a resume re-writes its whole context at the write rate. Its next work goes to a live
+  worker or a successor. A builder past the context ceiling (a third of its window, off
+  the last usage entry of its transcript) is ended at its report and a successor
+  continues from its state file.
 - The orchestrator never opens a source file to understand it. It reads reports, gate
   output, `git diff` and `git show` diffs, and the diff classes the plan flags as
   silent-failure carriers (migrations, wire bodies, signatures).
 - Round-trips happen only at boundaries; each one wakes the orchestrator and re-reads
   its whole context. A builder reports once — when it stops green, or on a
-  deviation — never with mid-build progress. The clerk gets one message per
-  boundary carrying all of that boundary's work — the workspace gate, the enforcement
-  script, and at close the close criteria — and answers in one report.
-- A stalled or rate-limited worker is continued by message, never replaced. A
-  successor starts from the worker's state file, and only once the original is gone.
+  deviation — never with mid-build progress. While a worker is in flight, the
+  orchestrator checks on it every five minutes; with none in flight, it sets no timer.
+- A worker stalled or rate-limited for under five minutes is continued by message;
+  past five idle minutes it is ended and a successor starts from its state file.
 
 ## Per-unit loop
 
-1. Test writer first where the plan names the unit's tests: a builder spawn whose brief
-   asks for the tests red; it commits nothing and reports test names and files, and the
-   unit's builder may not edit them. Where the plan doesn't name tests, red-first rides
-   in the builder's brief.
-2. The builder builds on the row's scoped gates and stops green with the tree
-   uncommitted. One clerk message fires the workspace gate and the enforcement script
-   together; on green the orchestrator commits the build as one commit (one line, no
-   co-author trailer) and appends to or opens the PR, because auto mode refuses a
-   worker's commit. The lockfile, README and docs the gate exercises ride that commit;
-   a build split across commits is a deviation. A deviation stops its item, not the
-   builder, and nothing that depends on it lands until the orchestrator answers.
-3. Where the enforcement inventory names checkables, the clerk writes the gate script
-   from it once, and every boundary message runs it beside the workspace gate. Red
-   items route back by message; the reviewer is not dispatched until green.
-4. Review: a fresh `todo:reviewer`, blind — the diff and the plan's sections, never the
-   builder's report — at the tier the `review` cell names, plus a slice review where the
-   `consult` cell names `review`.
-5. Fix rounds go back to the builder by message, or to its successor under §Workers' idle
-   rule: at most two. A round whose diff changes no code the workspace gate exercises —
-   free comments, plan text, formatting, docs the gate does not test — runs the repo's
-   fast checks and the enforcement script only. A third means the unit is wrong: the
+1. The builder writes the unit's tests red first, builds on the row's scoped gates,
+   fires the workspace gate and the enforcement script as its last step (§Open.4), and
+   stops green with the tree uncommitted. Where the enforcement inventory names
+   checkables, the first builder writes the gate script from it once into
+   `progress/.scratch/<slug>/`, and every builder after runs it.
+2. On green the orchestrator commits the build as one commit (one line, no co-author
+   trailer) and appends to or opens the PR, because auto mode refuses a worker's
+   commit. The lockfile, README and docs the gate exercises ride that commit; a build
+   split across commits is a deviation. A deviation stops its item, not the builder,
+   and nothing that depends on it lands until the orchestrator answers.
+3. In the same wake it dispatches the unit's blind reviewer and the next unit's
+   builder: the next unit builds on the committed one while it is reviewed. The
+   reviewer is a fresh `todo:reviewer` — the diff, the plan's sections and the gate
+   log in the builder's scratch file, never the builder's report — at the tier the `review` cell names, plus a slice review where
+   the `consult` cell names `review`. It checks the row's close criteria with raw
+   output, and tags each finding `blocking` or `nit`.
+4. A `blocking` finding goes by message to the live builder — a builder is live from
+   dispatch until it reports; usually the next unit's, mid-build — which fixes it
+   before its own gate and records the fix's files under the finding, so the
+   orchestrator commits the fix apart from its unit. A reported builder is never
+   messaged again. Where the next
+   unit builds on the faulted code, its dependent items wait for the fix. With no
+   builder live, the finding leads the next builder's brief; after the last unit it
+   goes to the branch review's fix builder (§Close). Never hold a builder alive to await
+   its own review. The review that follows names the fix commit in its brief, so it
+   diffs the fix too; no fix is re-reviewed on its own. `nit` findings are written into the plan's Current state and wait for
+   §Close.
+5. A blocking finding that following review still finds open means the unit is wrong: the
    orchestrator reads the specific finding, not the diff, and may take the rescue — a
-   reviewer consult that diagnoses the failure — then one round to a fresh builder with
-   the diagnosis in its brief, at the tier the consult recommends and the orchestrator
-   picks; said in one line and listed
-   in the veto table. A fix round is verified by one re-review scoped to that round's
-   findings.
-6. Route a reported deviation through Deviations. A pick inside the plan's named
-   scope: pick it by CLAUDE.md and the plan's own law, write it into the owning
-   section, ripple-check later sections in the same edit, note it for the veto table,
-   continue the builder. Anything else follows §Deviations' ruling — taken and said in
-   one line unless it touches money or names what a caller sees; those stop the run
-   and are posted to the owner. The
-   reviewer is dispatched when the builder stops after its build, so every question the
-   unit holds — the builder's and the reviewer's — goes to the owner in one message. A
-   question that touches money or would mint a unit is posted only after a read-only
-   trace of the code it rests on, so every option it offers is buildable.
-7. Close the unit — only on its stated close criteria (greps, tests, gate firings),
-   checked by the clerk, never on the builder's say-so. Fold the unit's scratch into the
-   plan per the rules — what later units need into their rows, what the tactical map
-   lacks into the map — delete the scratch, then dispatch the next. A finding outside the
+   reviewer consult that diagnoses the failure — then routes the diagnosis to the live
+   builder or a fresh one, at the tier the consult recommends and the orchestrator
+   picks; said in one line and listed in the veto table.
+6. Route a reported deviation through §Deviations: a pick inside the plan's named
+   scope is written into the owning section with later sections ripple-checked in the
+   same edit, and the builder continues. What stops the run goes to the owner with the
+   builder's questions and the reviewer's in one message. A question that touches money or would mint a unit is posted only after a
+   read-only trace of the code it rests on, so every option it offers is buildable.
+7. Close the unit — only on its stated close criteria (greps, tests, gate firings), as
+   its reviewer reported them, never on the builder's say-so — once its review holds
+   no open blocking finding and any fix is committed on a green gate. Fold the unit's
+   scratch into the plan per the rules — what later units need into their rows, what
+   the tactical map lacks into the map, its fix entries from the builder that took
+   them — and delete the scratch. A finding outside the
    unit's row does not hold the unit: the unit commits on its row, and the finding lands
    as its own commit after its ruling.
-   Strictly serial: one unit at a time, no worktrees inside a run, no parallel units. Read-only prep for the next unit — its trace, its before pass, its brief — runs
-   beside the current one; its build does not.
 8. A unit whose deliverable is a document or a dataset — nothing compiles, no gate —
-   skips the test writer and the gate. Its reviewer checks the deliverable against
+   skips the gate. Its reviewer checks the deliverable against
    the unit's close criterion as written (a row count against the source's catalog, never
    a sample), and such units run in parallel where the plan says they do. The builder
    records the command or URL its count came from; the reviewer re-runs it and never
@@ -273,11 +287,18 @@ owner ruling, written into the row before the dispatch.
 
 ## Close
 
+- Branch review at each PR group's end, once its last unit's review is in: two fresh
+  `todo:reviewer`s in parallel over the group's whole diff against its base — one for
+  regressions, critical issues and simplification (DRY, YAGNI), one for money, seams,
+  migrations and every door the units share. A per-unit review sees one unit; these
+  see what the units do together. Then one fresh builder takes every blocking finding
+  and every queued nit, fires the workspace gate per §Open.4, and stops green; the orchestrator
+  commits and the PR is marked ready. The fix diff gets no further review.
 - Landing the thread's final unit closes the thread in the same sitting, per the
   rules' closing paragraph, after the unit's own close has folded its notes into the thread file.
   Delete the thread's index entry as part of that close; mint any successor the picks
   created via `/todo:new` — its close-moment trigger.
-- Whole-run audit when the plan carries one: the clerk writes and runs the script from
+- Whole-run audit when the plan carries one: a builder writes and runs the script from
   the plan's audit list, no builds.
 - Index entries close only on green evidence.
 - Final report: PR URLs; the evidence ladder the plan tracks (start → per-unit →
