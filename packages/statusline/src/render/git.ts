@@ -21,6 +21,9 @@ const BRANCH_AB = /^# branch\.ab \+(\d+) -(\d+)$/;
 
 function gitEnv(env: GitEnv): Readonly<Record<string, string>> {
   return {
+    // `git status` otherwise rewrites the index under .git/index.lock to
+    // refresh stale stat info, racing the user's own git add/commit.
+    GIT_OPTIONAL_LOCKS: '0',
     HOME: env.home,
     LC_ALL: 'C',
     PATH: process.env.PATH ?? '',
