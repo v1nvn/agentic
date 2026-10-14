@@ -229,7 +229,8 @@ owner ruling, written into the row before the dispatch.
    reviewer is a fresh `todo:reviewer` — the diff, the plan's sections and the gate
    log in the builder's scratch file, never the builder's report — at the tier the `review` cell names, plus a slice review where
    the `consult` cell names `review`. It checks the row's close criteria with raw
-   output, and tags each finding `blocking` or `nit`.
+   output, and tags each finding `blocking` or `nit`. A report naming a process its
+   builder could not stop holds the next dispatch until that process is stopped.
 4. A `blocking` finding goes by message to the live builder — a builder is live from
    dispatch until it reports; usually the next unit's, mid-build — which fixes it
    before its own gate and records the fix's files under the finding, so the

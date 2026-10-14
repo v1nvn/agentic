@@ -34,6 +34,10 @@ anchor before relying on it.
 - Never poll with `sleep`, and never background a command. What you cannot wait out in
   the foreground belongs to the orchestrator; say so in your report.
 - Stop only the processes you started, by the PID you recorded — never a pattern kill.
+  Before you report, confirm every one has exited — a daemon, a cluster, a command
+  the harness moved to the background: a survivor holds the next gate's resources. Stop
+  one by its PID or the stop line the plan pins, and name any you could not stop, with
+  its PID, in the report.
 - Stop green with the tree uncommitted. The orchestrator commits.
 
 ## Scratch and the plan
