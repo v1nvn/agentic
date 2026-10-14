@@ -1,0 +1,42 @@
+{
+  "name": "@v1nvn/rulings",
+  "version": "0.46.1",
+  "description": "Build a decisions page — one self-contained HTML page of rulings with pictures and pick letters — the rulings CLI behind the rulings plugin.",
+  "type": "module",
+  "bin": "./src/index.ts",
+  "scripts": {
+    "test": "yarn run -T vitest run",
+    "test:watch": "yarn run -T vitest"
+  },
+  "keywords": [
+    "claude-code",
+    "rulings",
+    "decisions",
+    "cli"
+  ],
+  "author": {
+    "name": "v1nvn",
+    "email": "v1n@outlook.com"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/v1nvn/agentic.git",
+    "directory": "packages/rulings"
+  },
+  "files": [
+    "src"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=23.6"
+  },
+  "dependencies": {
+    "@v1nvn/agentic-core": "0.46.1",
+    "diff": "^9.0.0",
+    "prismjs": "^1.30.0",
+    "zod": "^4.4.3"
+  }
+}

@@ -1,7 +1,7 @@
 # agentic
 
-Nine Claude Code plugins, installed independently from one marketplace. The code lives
-in eight npm packages (`@v1nvn/*`); each plugin directory is a thin manifest — most run
+Ten Claude Code plugins, installed independently from one marketplace. The code lives
+in nine npm packages (`@v1nvn/*`); each plugin directory is a thin manifest — most run
 their package through version-pinned `npx`; `enhansome` is an HTTP MCP config pointing
 at the hosted registry server, and `todo` is manifest + skills, no package.
 
@@ -16,6 +16,7 @@ at the hosted registry server, and `todo` is manifest + skills, no package.
 | **tokens**      | Live token usage — the account report as a pane, and the live session (context, flow, limits, agents) as a pane. | `/tokens-usage`, `/tokens-top`                        |
 | **statusline**  | Pick a theme for the status line + agent panel, or revert the setup.                                                                   | `/statusline:lab`                                                |
 | **todo**        | Work tracking — the rules plus seven verbs over `TODO.md`, `progress/`, `references/`, `archive/`. Every repo carries data only.         | `/todo:run <plan>`, or a what's-next ask              |
+| **rulings**     | Put decisions the owner must make on one local HTML page — each ruling self-contained, its options pictured and lettered.                | "rulings", "consult me"                               |
 
 `rm`, `md`, `zai` and `tokens` are zero-token the mod way — a function-hook module serves the command, a surface the model never reads.
 
@@ -31,7 +32,7 @@ Add the marketplace, then install any subset. Each plugin stands alone.
 
 ```sh
 claude plugin marketplace add v1nvn/agentic
-claude plugin install rm@agentic        # or: readability, omlx, enhansome, md, zai, tokens, statusline, todo
+claude plugin install rm@agentic        # or: readability, omlx, enhansome, md, zai, tokens, statusline, todo, rulings
 ```
 
 Start Claude Code and run the command shown above for the plugin you installed.
@@ -135,7 +136,7 @@ gone: a blank line at the next paint.
 ## Layout
 
 A plugin's root is its package home; there is no `plugins/` directory — all
-nine plugins root at `packages/<name>/` itself. Seven homes publish
+ten plugins root at `packages/<name>/` itself. Eight homes publish
 npm code.
 
 ```
@@ -158,6 +159,8 @@ packages/                           one yarn workspace — every plugin's home
   statusline/                        the configure CLI + renderer, pure TS (@v1nvn/statusline) — the plugin root itself:
                                      .claude-plugin/ + SKILL.md (see statusline above)
                                      + src/render/launcher.mjs (the data-dir deploy, zero deps)
+  rulings/                           the decisions-page builder, pure TS (@v1nvn/rulings) — the plugin root itself:
+                                     .claude-plugin/ + README.md (the skill lands with /rulings:consult)
   enhansome/  todo/                 package-less homes — the plugin root itself:
                                     .claude-plugin/ + .mcp.json, todo: .claude-plugin/ + skills/ + README.md
 types/claude-code.d.ts              vendored mod API declarations, engine-written per version

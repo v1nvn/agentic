@@ -6,9 +6,10 @@ A Claude Code plugin marketplace: `readability` and `omlx` (local MCP servers) p
 `/zai-usage` and `/tokens-usage` open the usage panes, `/tokens-top` the live
 session),
 `statusline` (status line +
-agent panel), and `todo` (work tracking) — nine independently-installable plugins
+agent panel), `rulings` (decision pages), and `todo` (work tracking) — ten
+independently-installable plugins
 in one repo. Each plugin's root is its package home, `packages/<name>/` itself.
-Seven homes publish npm code (`@v1nvn/*`), while
+Eight homes publish npm code (`@v1nvn/*`), while
 `enhansome` points its
 `.mcp.json` at the deployed server and `todo` is manifest, skills and agents, no package.
 
@@ -96,7 +97,7 @@ name or shape wins.
   installs the manifest+lock pair with a frozen `npm ci` and skips the install
   on any disagreement — so it carries runtime dependencies only, and
   `set-version.mjs --check` holds the pair in agreement.
-- **Nine independent plugins, one marketplace.** Never collapse them into a
+- **Ten independent plugins, one marketplace.** Never collapse them into a
   mega-plugin; each installs and runs on its own.
 - **statusline ships exactly one skill** — root `SKILL.md`, invoked as
   `/statusline:lab` (the plugin prefix is irremovable), folding
