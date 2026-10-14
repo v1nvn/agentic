@@ -272,7 +272,10 @@ owner ruling, written into the row before the dispatch.
    records the command or URL its count came from; the reviewer re-runs it and never
    takes the builder's number. Parallel builders write only their files and never run
    git or edit the plan; the orchestrator commits each unit and folds its notes into the plan
-   once its reviewer passes.
+   once its reviewer passes. Such a unit may measure built code from a landed commit,
+   on resources of its own the plan names, beside the next build: its row holds the
+   match criterion, a mismatch is a blocking finding against the measured row routed
+   per 4, and its reviewer re-runs the source side only.
 
 ## Red lines
 
