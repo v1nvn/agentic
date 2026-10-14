@@ -811,7 +811,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@v1nvn/rulings@workspace:packages/rulings"
   dependencies:
-    "@v1nvn/agentic-core": "npm:0.46.3"
+    "@v1nvn/agentic-core": "npm:0.46.4"
     diff: "npm:^9.0.0"
     prismjs: "npm:^1.30.0"
     zod: "npm:^4.4.3"
