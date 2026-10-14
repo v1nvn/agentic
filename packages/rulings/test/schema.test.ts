@@ -21,10 +21,9 @@ function loadExample(): any {
 const allText = (r: { errors: string[]; warnings: string[] }) =>
   [...r.errors, ...r.warnings].join('\n');
 
-describe('cut fields reject as unknown keys', () => {
+describe('unknown keys reject', () => {
   it.each([
-    ['page key', (P: any) => (P.key = 'rulings-example')],
-    ['group quick', (P: any) => (P.groups[0].quick = ['G1'])],
+    ['page keys plural', (P: any) => (P.keys = 'rulings-example')],
     ['ruling when', (P: any) => (P.rulings.G1.when = 'G2a')],
     ['opt withdrawn', (P: any) => (P.rulings.G1.opts[0].withdrawn = 'reason')],
     ['ruling fix', (P: any) => (P.rulings.G1.fix = 'x')],
@@ -42,9 +41,27 @@ describe('cut fields reject as unknown keys', () => {
   });
 });
 
-describe('the grown example parses green', () => {
-  it('carries w, cap, what, needs and one merged ruling with zero errors', () => {
+describe('the interactive fields admit', () => {
+  it('a page with key and a group with quick parse green', () => {
     const P = loadExample();
+    P.key = 'rulings-example';
+    P.groups[0].quick = true;
+    expect(validatePage(P).errors).toEqual([]);
+    const Q = loadExample();
+    expect(validatePage(Q).errors).toEqual([]);
+  });
+
+  it('an empty page key rejects', () => {
+    const P = loadExample();
+    P.key = '';
+    expect(allText(validatePage(P))).toContain('key');
+  });
+});
+
+describe('the grown example parses green', () => {
+  it('carries key, w, cap, what, needs and one merged ruling with zero errors', () => {
+    const P = loadExample();
+    expect(P.key).toBeTruthy();
     expect(P.rulings.G2.opts[1].w).toBeTruthy();
     expect(P.rulings.G2.bodies.today.what).toBeTruthy();
     expect(P.rulings.G2.bodies.today.cap).toBeTruthy();
