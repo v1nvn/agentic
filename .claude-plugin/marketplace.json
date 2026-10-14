@@ -60,7 +60,7 @@
       "name": "todo",
       "source": "./packages/todo",
       "category": "productivity",
-      "description": "Work tracking — the rules plus seven verbs (init, new, run, status, audit, handoff, postmortem) over TODO.md, progress/, references/, archive/, and the builder and reviewer agents a run dispatches."
+      "description": "Work tracking — the rules plus eight verbs (init, new, run, review, status, audit, handoff, postmortem) over TODO.md, progress/, references/, archive/, and the builder and reviewer agents a run dispatches."
     }
   ]
 }

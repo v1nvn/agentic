@@ -1,6 +1,6 @@
 ---
 name: reviewer
-description: Read-only reviewer and consult for a progress/<plan>.md run — blind unit review, whole-branch review, design or split consult, high-stakes slice review, or a rescue diagnosis. Dispatched by /todo:run only; not for general review requests.
+description: Read-only reviewer and consult for a progress/<plan>.md run — blind unit review, whole-branch review, design or split consult, high-stakes slice review, or a rescue diagnosis. Dispatched by /todo:run and /todo:review only; not for general review requests.
 model: opus
 effort: high
 tools: Read, Grep, Glob, Bash
@@ -30,7 +30,7 @@ it.
   - comments that restate the code; tracking references (plan ids, thread names) in
     code;
   - files touched outside the brief.
-- **Branch review.** The whole branch diff against its base, through the lens the
+- **Branch review.** A pull request's whole diff against its base, through the lens the
   brief names — regressions, critical issues and simplification (DRY, YAGNI); or
   money, seams, migrations and the doors the units share. Look for what the units do
   together that no single unit shows.

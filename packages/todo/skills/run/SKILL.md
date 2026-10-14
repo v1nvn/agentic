@@ -1,6 +1,6 @@
 ---
 name: run
-description: Execute a progress/<plan>.md plan file unit by unit — fresh builder and reviewer subagents per unit, the next unit building while the last is reviewed, each unit closed on its stated criteria, one commit per unit, a whole-branch review before the PR; landing the final unit closes the thread in the same sitting. Use when the user points at a plan file and asks to run it, fully or a named subset of units.
+description: Execute a progress/<plan>.md plan file unit by unit — fresh builder and reviewer subagents per unit, the next unit building while the last is reviewed, each unit closed on its stated criteria, one commit per unit; landing the final unit closes the thread in the same sitting. Use when the user points at a plan file and asks to run it, fully or a named subset of units.
 argument-hint: <plan> [units]
 ---
 
@@ -58,10 +58,10 @@ Every worker is a spawn of one of the plugin's two role agents. A role's file ca
 its law, so a brief carries only pointers. Never `fork` — a fork copies the
 orchestrator's context — and never another agent type.
 
-| role            | does                                                                                             |
-| --------------- | ------------------------------------------------------------------------------------------------ |
-| `todo:builder`  | builds a unit tests-first, fires its gates, fixes routed findings, writes scripts                |
-| `todo:reviewer` | read-only: blind review with close-criteria checks, branch review, slice review, consult, rescue |
+| role            | does                                                                              |
+| --------------- | --------------------------------------------------------------------------------- |
+| `todo:builder`  | builds a unit tests-first, fires its gates, fixes routed findings, writes scripts |
+| `todo:reviewer` | read-only: blind review with close-criteria checks, slice review, consult, rescue |
 
 The tier rides the dispatch. A cell's `model/effort` pair becomes the Agent call's
 `model` and `effort` parameters — `sonnet/low` dispatches with `model: "sonnet"`,
@@ -236,10 +236,11 @@ owner ruling, written into the row before the dispatch.
    messaged again. Where the next
    unit builds on the faulted code, its dependent items wait for the fix. With no
    builder live, the finding leads the next builder's brief; after the last unit it
-   goes to the branch review's fix builder (§Close). Never hold a builder alive to await
+   goes to one fresh builder, whose fix the run commits on a
+   green gate. Never hold a builder alive to await
    its own review. The review that follows names the fix commit in its brief, so it
-   diffs the fix too; no fix is re-reviewed on its own. `nit` findings are written into the plan's Current state and wait for
-   §Close.
+   diffs the fix too; no fix is re-reviewed on its own. `nit` findings are not fixed in the run: they are written into the plan's
+   Current state, which `/todo:review` reads, and listed in the final report.
 5. A blocking finding that following review still finds open means the unit is wrong: the
    orchestrator reads the specific finding, not the diff, and may take the rescue — a
    reviewer consult that diagnoses the failure — then routes the diagnosis to the live
@@ -287,13 +288,6 @@ owner ruling, written into the row before the dispatch.
 
 ## Close
 
-- Branch review at each PR group's end, once its last unit's review is in: two fresh
-  `todo:reviewer`s in parallel over the group's whole diff against its base — one for
-  regressions, critical issues and simplification (DRY, YAGNI), one for money, seams,
-  migrations and every door the units share. A per-unit review sees one unit; these
-  see what the units do together. Then one fresh builder takes every blocking finding
-  and every queued nit, fires the workspace gate per §Open.4, and stops green; the orchestrator
-  commits and the PR is marked ready. The fix diff gets no further review.
 - Landing the thread's final unit closes the thread in the same sitting, per the
   rules' closing paragraph, after the unit's own close has folded its notes into the thread file.
   Delete the thread's index entry as part of that close; mint any successor the picks
