@@ -47,6 +47,7 @@ const MD_SURFACES = [
   'packages/md/README.md',
   'packages/omlx/README.md',
   'packages/readability/README.md',
+  'packages/rulings/README.md',
   'packages/statusline/README.md',
 ];
 
