@@ -1,6 +1,6 @@
 {
   "name": "@v1nvn/tokens",
-  "version": "0.46.4",
+  "version": "0.47.0",
   "description": "Per-model token usage and cache hit rate from local transcripts — the tokens-report CLI behind the tokens plugin.",
   "type": "module",
   "bin": {
@@ -35,6 +35,6 @@
     "node": ">=23.6"
   },
   "dependencies": {
-    "@v1nvn/agentic-core": "0.46.4"
+    "@v1nvn/agentic-core": "0.47.0"
   }
 }
