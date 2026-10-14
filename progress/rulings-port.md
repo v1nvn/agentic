@@ -11,29 +11,28 @@ AGENTS.md, the README and the marketplace manifest say ten.
 
 ## Current state
 
-R1–R5 closed (see rows) — the plugin is whole on branch `rulings-port`: home,
-schema door, three emitters, builder CLI, `/rulings:consult`. R6 is operational,
-not a build: the registry confirms `@v1nvn/rulings` unpublished (404) and
-`release.yml` green on main — the bootstrap (owner's real terminal, per-publish
-browser 2FA, then `npm trust`) must land BEFORE the thread PR merges, or the
-merge re-fails the whole train's release. The run opened the PR and posted the
-owner the bootstrap→merge→bump→install→rebuild→delete sequence. Nits open for
-`/todo:review`: root README "seven verbs"; schema.test.ts mutation tuples' dead
-expected-substring; compareHtml duplicates viewHeadFor's chip assembly
-(page.ts:83-101 vs html.ts:40-57); page.ts:219 restating comment;
-merged-ruling-with-diagram seam (mermaid boots for a ruling that renders none);
-bodies.ts:39-40 and seq.ts:48-50 restating comments; home README layout tree
-misses SKILL.md at the root; SKILL.md Step 5's `$D` does not survive between
-Bash calls.
+R1–R5 closed (see rows; the two rebases onto 0.46.3/0.46.4 rewrote the unit SHAs —
+the rows' evidence anchors resolve by subject on main, e.g. `git log --grep
+"feat(rulings)"`). PR #26 merged (rebase-merge after the owner's npm bootstrap —
+`@v1nvn/rulings` published and trusted first, exactly as the plan sequenced); the
+minor dispatch cut **v0.47.0** (`997605d`), and `npm view @v1nvn/rulings@0.47.0
+--prefer-online` resolves — keyless with provenance. The plugin is live on the
+train and in the marketplace manifest. Nits open for `/todo:review`: root README
+"seven verbs"; schema.test.ts mutation tuples' dead expected-substring;
+compareHtml duplicates viewHeadFor's chip assembly (page.ts:83-101 vs
+html.ts:40-57); page.ts:219 restating comment; merged-ruling-with-diagram seam
+(mermaid boots for a ruling that renders none); bodies.ts:39-40 and seq.ts:48-50
+restating comments; home README layout tree misses SKILL.md at the root;
+SKILL.md Step 5's `$D` does not survive between Bash calls.
 
 ## Next step
 
-Owner: run the npm bootstrap (references/npm-publishing.md — publish
-`@v1nvn/rulings` from a real terminal, add the trusted publisher), then merge the
-thread PR. Post-merge sitting: dispatch the release bump, `claude plugin install
-rulings@agentic`, rebuild the five pages (strip `key`/`quick` first; counts in
-the tactical map), open pr272-design, delete `~/.claude/skills/rulings` with its
-node_modules, close the thread.
+The R6 remainder, one sitting: `claude plugin install rulings@agentic`; rebuild
+the five pages — strip `key`/group `quick` from each `page.js` first (counts in
+the tactical map), then `npx -y @v1nvn/rulings@0.47.0
+~/.claude/rulings/<topic>`; the owner opens pr272-design; `rm -rf
+~/.claude/skills/rulings` (its node_modules goes with it; old `shots/` dirs not
+ported); then close the thread — index entry deleted, file to `archive/`.
 
 ## Steps
 
