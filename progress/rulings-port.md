@@ -11,23 +11,22 @@ AGENTS.md, the README and the marketplace manifest say ten.
 
 ## Current state
 
-R1–R3 closed (see rows). R4 landed, awaiting blind review: `src/cli.ts` (the real
-`<dir> [--new] [--no-open]` door) + `src/page.ts` (assembly — masthead, TOC,
-sections, views, static matrix, merged boxes, notes); errors block and exit red,
-warnings print; emit self-contained except mermaid, copied only on diagram pages;
-byte-identical rebuilds proven; `--new` refuses an existing page.js; 64 scoped
-tests; workspace gate green. The builder took one live chrome-devtools render
-probe (light + dark) beyond the snapshot gate — ruled consistent: the plan cuts
-browser QA as a gate, CLAUDE.md's look-at-the-surface law gets one probe.
-Nits open for `/todo:review`: root README "seven verbs"; schema.test.ts mutation
-tuples' dead expected-substring; two code-restating comments (bodies.ts:39-40,
-seq.ts:48-50).
+R1–R3 closed (see rows). R4 landed (`eed544f`), review in flight. R5 landed,
+awaiting blind review: `packages/rulings/SKILL.md` (`name: consult` →
+`/rulings:consult`, trigger words kept), written after the skill-creator review —
+kept the flow/ruling-selection gates, writing rules, three kinds, answer protocol,
+pushback taxonomy, AskUserQuestion rule, free-mermaid-on-open line; cut list
+grepped clean; home README skill section + root README invocation cell; SKILL.md
+joined MD_SURFACES; all gates green, no promotion owed. The builder's one
+chrome-devtools probe at R4 ruled consistent (plan cuts browser QA as a gate;
+CLAUDE.md's look-at-the-surface law gets one probe). Nits open for
+`/todo:review`: root README "seven verbs"; schema.test.ts mutation tuples' dead
+expected-substring; two code-restating comments (bodies.ts:39-40, seq.ts:48-50).
 
 ## Next step
 
-R4 review and R5 build in flight. On R5's green report: commit, close R4, dispatch
-R5's reviewer; R6 (cutover) follows — npm bootstrap first per
-references/npm-publishing.md.
+R4 review in flight. Sequence R6 from references/npm-publishing.md: bootstrap
+order, what the run lands before the PR, what waits on the owner's merge.
 
 ## Steps
 
