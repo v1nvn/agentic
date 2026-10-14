@@ -1,9 +1,10 @@
 # agentic
 
-Ten Claude Code plugins, installed independently from one marketplace. The code lives
+Eleven Claude Code plugins, installed independently from one marketplace. The code lives
 in nine npm packages (`@v1nvn/*`); each plugin directory is a thin manifest — most run
 their package through version-pinned `npx`; `enhansome` is an HTTP MCP config pointing
-at the hosted registry server, and `todo` is manifest + skills, no package.
+at the hosted registry server, and `todo` and `notify` carry no package — `todo`
+manifest + skills, `notify` a hooks module.
 
 | Plugin          | What it does                                                                                                                           | Invoke                                                |
 | --------------- | -------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
@@ -17,14 +18,16 @@ at the hosted registry server, and `todo` is manifest + skills, no package.
 | **statusline**  | Pick a theme for the status line + agent panel, or revert the setup.                                                                   | `/statusline:lab`                                                |
 | **todo**        | Work tracking — the rules plus seven verbs over `TODO.md`, `progress/`, `references/`, `archive/`. Every repo carries data only.         | `/todo:run <plan>`, or a what's-next ask              |
 | **rulings**     | Put decisions the owner must make on one local HTML page — each ruling self-contained, its options pictured and lettered.                | `/rulings:consult`, or "consult me"                   |
+| **notify**      | Native macOS banners on permission prompts and true-done turns — the repo, the session, the message itself.                             | automatic — fires on its own                          |
 
-`rm`, `md`, `zai` and `tokens` are zero-token the mod way — a function-hook module serves the command, a surface the model never reads.
+`rm`, `md`, `zai`, `tokens` and `notify` are zero-token the mod way — a function-hook module serves a surface the model never reads.
 
 ## Prerequisites
 
 - Claude Code
 - Node.js — the package-backed plugins run through `npx`
 - A running [omlx](https://github.com/jundot/omlx) server on `127.0.0.1:6659`, for `omlx` (`omlx serve`)
+- macOS, for `notify` — `osascript` posts the banners
 
 ## Install
 
@@ -32,7 +35,7 @@ Add the marketplace, then install any subset. Each plugin stands alone.
 
 ```sh
 claude plugin marketplace add v1nvn/agentic
-claude plugin install rm@agentic        # or: readability, omlx, enhansome, md, zai, tokens, statusline, todo, rulings
+claude plugin install rm@agentic        # or: readability, omlx, enhansome, md, zai, tokens, statusline, todo, rulings, notify
 ```
 
 Start Claude Code and run the command shown above for the plugin you installed.

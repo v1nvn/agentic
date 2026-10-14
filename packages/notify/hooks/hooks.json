@@ -1,0 +1,4 @@
+{
+  "description": "Zero-token banners: a permission prompt and a true-done stop each post one native macOS notification",
+  "modules": ["./register.ts"]
+}

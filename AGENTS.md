@@ -6,12 +6,14 @@ A Claude Code plugin marketplace: `readability` and `omlx` (local MCP servers) p
 `/zai-usage` and `/tokens-usage` open the usage panes, `/tokens-top` the live
 session),
 `statusline` (status line +
-agent panel), `rulings` (decision pages), and `todo` (work tracking) — ten
+agent panel), `rulings` (decision pages), `notify` (native macOS banners), and
+`todo` (work tracking) — eleven
 independently-installable plugins
 in one repo. Each plugin's root is its package home, `packages/<name>/` itself.
 Eight homes publish npm code (`@v1nvn/*`), while
 `enhansome` points its
-`.mcp.json` at the deployed server and `todo` is manifest, skills and agents, no package.
+`.mcp.json` at the deployed server, and `notify` and `todo` carry no package —
+`notify` a manifest and a hooks module, `todo` manifest, skills and agents.
 
 ## Philosophy
 
