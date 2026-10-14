@@ -41,7 +41,7 @@ export function viewHeadFor(
   const chips = [
     o.rec === true ? '<span class="star">★ my pick</span>' : '',
     o.today === true ? '<span>as today</span>' : '',
-    ...needs.map(n => `<span>needs ${n}</span>`),
+    ...needs.map(n => `<span class="dep">needs ${n}</span>`),
   ]
     .filter(c => c !== '')
     .join(' · ');

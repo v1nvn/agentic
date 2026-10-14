@@ -8,7 +8,6 @@ import { diagramView, mermaidBoot } from '../src/diagram.ts';
 import { seqView } from '../src/seq.ts';
 import { validatePage, type Page, type Ruling } from '../src/schema.ts';
 import { pageCss } from '../src/style.ts';
-import { themeScript } from '../src/theme.ts';
 
 function example(): Page {
   const text = readFileSync(
@@ -136,10 +135,10 @@ describe('diagram view', () => {
     expect(all.match(/class="mermaid"/g)).toHaveLength(3);
   });
 
-  it('boots mermaid through the theme door', () => {
+  it('boots mermaid on the system theme alone', () => {
     const boot = mermaidBoot();
-    expect(boot).toContain("prefers-color-scheme: dark");
-    expect(boot).toContain("'data-theme'");
+    expect(boot).toContain('prefers-color-scheme: dark');
+    expect(boot).not.toContain('data-theme');
     expect(boot).toContain(".run({ querySelector: '.mermaid' })");
   });
 });
@@ -151,10 +150,9 @@ describe('page styles and theme door', () => {
     expect(pageCss).toContain('system-ui');
   });
 
-  it('carries the dark door beside the param door', () => {
+  it('dark mode is the media query alone: no param door, no override block', () => {
     expect(pageCss).toContain('prefers-color-scheme: dark');
-    expect(pageCss).toContain('[data-theme="dark"]');
-    expect(themeScript()).toContain('theme=(light|dark)');
+    expect(pageCss).not.toContain('data-theme');
   });
 });
 

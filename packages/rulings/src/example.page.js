@@ -9,7 +9,7 @@ var PAGE = {
   ],
 
   groups: [
-    { id: "money", label: "What a buyer is owed", rulings: ["G1", "G3"] },
+    { id: "money", label: "What a buyer is owed", quick: true, rulings: ["G1", "G3"] },
     { id: "code", label: "A code change", rulings: ["G2"] },
     { id: "ops", label: "What a restart does", rulings: ["G4"] }
   ],

@@ -115,7 +115,7 @@ function bodyHtml(
   );
 }
 
-export function bodiesView(q: Ruling, view: string): string {
+export function bodiesView(q: Ruling, view: string, attrs = ''): string {
   const B = q.bodies;
   if (B === undefined) {
     return '';
@@ -134,7 +134,7 @@ export function bodiesView(q: Ruling, view: string): string {
     );
   }
   return (
-    `<section class="view${hue ? ` ${hue}` : ''}">${head}` +
+    `<section class="view${hue ? ` ${hue}` : ''}"${attrs}>${head}` +
     `<div class="stage"><div class="bodies">${parts.join('')}</div></div></section>`
   );
 }

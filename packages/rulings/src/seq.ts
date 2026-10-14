@@ -196,7 +196,12 @@ function seqSvg(d: Seq, owner: string, view: string): string {
   return out + '</svg>';
 }
 
-export function seqView(q: Ruling, id: string, view: string): string {
+export function seqView(
+  q: Ruling,
+  id: string,
+  view: string,
+  attrs = '',
+): string {
   const d = q.seq;
   if (d === undefined) {
     return '';
@@ -205,7 +210,7 @@ export function seqView(q: Ruling, id: string, view: string): string {
   const capKey = Object.keys(d.caps ?? {}).find(k => full(k, id) === view);
   const cap = capKey === undefined ? d.cap : d.caps?.[capKey];
   return (
-    `<section class="view${hue ? ` ${hue}` : ''}">${head}` +
+    `<section class="view${hue ? ` ${hue}` : ''}"${attrs}>${head}` +
     `<div class="stage">${legendHtml(d, id)}<div class="scroll">${seqSvg(d, id, view)}</div>` +
     (cap ? `<p class="cap">${cap}</p>` : '') +
     '</div></section>'
