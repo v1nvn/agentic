@@ -27,8 +27,10 @@ is remembered.
 (the owner asked, or three or more linked, or four or more independent, decisions), read the
 code and write `page.js`, run the pinned `npx` line above through the session's Bash tool
 until it exits green and the page opens, announce the path and the recommendation in chat
-without repeating the page, then read picks back as typed letters (`G1a`, `G2n`,
-`G6 note: …`). Pushback updates `page.js` and rebuilds with `--no-open` for a reload;
+without repeating the page, then read the answer back. The owner picks on the page — a view
+click, the none button, a quick group's accept-recommended — and pastes the composer's copied
+answer (picks, unmet needs, notes), or types picks (`G1a`, `G2n`, `G6 note: …`) in chat; both
+read verbatim. Pushback updates `page.js` and rebuilds with `--no-open` for a reload;
 one to three simple decisions never reach the page — they go through AskUserQuestion.
 
 ## Layout

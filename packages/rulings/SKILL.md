@@ -12,8 +12,9 @@ a real case. Nothing is written to the repo until the owner has ruled.
 Pictures first. Every option is argued as hard as the recommended one: its own picture, a gain
 and a cost of the same weight. An option not worth that goes in the notes.
 
-The page is a static document: every view and the compare matrix render on their own, the owner
-reads it top to bottom, and the answer comes back in chat as typed letters.
+The page renders on its own — every view and the compare matrix need no server — and a composer
+bar turns the owner's clicks into an answer to paste in chat. The page assists; chat remains the
+channel the answer comes back on.
 
 ## Step 0 — Decide whether this is a page
 
@@ -69,7 +70,8 @@ it goes on the page.
 | a flow, a state, anything the other two cannot draw | free mermaid text, a view per option | `diagram` |
 
 `needs: "G7a"` on an option says it only makes sense under that pick; the page shows it as a
-chip. Rulings whose picks change each other's options are not a page: settle them in chat
+chip, and the composer names the pick unmet until that need lands. Rulings whose picks change
+each other's options are not a page: settle them in chat
 (Step 0).
 
 The build cannot parse mermaid text — a broken diagram is checked only when the page opens.
@@ -127,15 +129,22 @@ First message, short; do not repeat the page:
 
 ```
 The rulings are on one page: <path>/index.html. Nothing is written yet.
+Pick on the page and Copy, or type picks here.
 <group>: <G1 name>, <G2 name>.
 I recommend <G1a, G2c>. Most important fact from the code: <fact, file:line>.
 Not rulings: <X, because Y>.
 ```
 
-The owner types picks like `G1a, G2c` and notes like `G6 note: …`. `G2n` means none of these
-fit; its note says what is wanted. A note overrides the pick for that ruling. A ruling missing
-from the answer is still open. Never treat your recommendation as the owner's answer. A root
-pick that moves a recommendation is announced before the next question.
+The owner answers on the page or in chat; both read verbatim. On the page: clicking a view picks
+that ruling's letter (click it again to unpick), the none-of-these button picks `n` for a ruling
+whose options all miss, and a quick group's accept-recommended button picks its starred letters.
+The composer bar assembles the answer as `G1a, G2c…`, annotates a pick whose `needs` target is
+unpicked as `(needs …)`, and Copy puts the picks plus the notes input's text — picks first, notes
+after — on the clipboard to paste in chat. Picks and notes persist per page, so a reload keeps
+them. In chat the owner types picks like `G1a, G2c` and notes like `G6 note: …`; `G2n` means none
+of these fit, and its note says what is wanted. A note overrides the pick for that ruling. A
+ruling missing from the answer is still open. Never treat your recommendation as the owner's
+answer. A root pick that moves a recommendation is announced before the next question.
 
 **One to three simple decisions, in chat** — AskUserQuestion, not a page: one question per
 decision, two to four options, each option's description carrying its gain and cost, the
@@ -170,8 +179,9 @@ Then: `Written: <G1a, G2c>. Nothing is committed. <file>: <what changed>. One th
 | Field | Req. | What to write |
 |---|---|---|
 | `eyebrow`, `title`, `sub` | title, sub | Repo and thread; two or three words; one sentence ending "Nothing is written until you rule." |
+| `key` | no | a stable slug for the topic; the composer's picks and notes persist in the browser under it. |
 | `notes` | no | `[{ html }]`: "Not rulings" and what you decided. |
-| `groups` | yes | `[{ id, label, rulings: ["G1"] }]`: the label heads the group. |
+| `groups` | yes | `[{ id, label, quick, rulings: ["G1"] }]`: the label heads the group; `quick: true` gives the group's rulings an accept-recommended button. |
 | `rulings` | yes | One entry per id. |
 
 A ruling: `title` (a question), `stake`, `today`, one of `seq`, `bodies` or `diagram`,
