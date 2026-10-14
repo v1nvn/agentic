@@ -23,7 +23,6 @@
 
 ## todo
 
-- **Progress sweep — every plan onto the role-agent Steps shape** · HIGH · [progress] → progress/progress-sweep.md
 - **Rules promotion triage — where a thread's rules land** · MEDIUM · [packages/todo]
   Draw the line for when a rule earned in a thread promotes to the consumer repo's
   `references/`, and when it belongs in todo's own rules in this repo — the consult's
@@ -31,11 +30,11 @@
   must not accrete.
 - **todo — board pane or band** · [packages/todo]
   Wanted: a zero-token always-visible board; the cost is an island parser of shapes `todo:rules` defines in prose. Unruled — held in the archived consult, archive/mods-port.md.
+- **todo:run — re-measure under the role agents** · HIGH
+  Wanted: a fresh `/todo:run` of `progress/audit-refactor.md` whose `/todo:postmortem` per-unit wall, tokens and minutes to first edit sit beside the baseline recorded in archive/run-costs.md.
 
 ## Parked
 
-- **todo:run — re-measure under the role agents** · HIGH — revisit when the progress sweep's unit 3 lands
-  Wanted: a fresh `/todo:run` of `progress/audit-refactor.md` whose `/todo:postmortem` per-unit wall, tokens and minutes to first edit sit beside the baseline recorded in archive/run-costs.md.
 - **Panel row — per-task cache and cost** · LOW · [packages/statusline] — revisit when Claude Code ships them in the tick
   The tick carries neither; the only door today is a 3-hop transcript mine.
 - **Panel row — retire the transcript-derived used-context reader** · LOW · [packages/statusline] → progress/tokencount-reader.md — revisit when a Claude Code changelog entry fixes subagentStatusLine's tokenCount
