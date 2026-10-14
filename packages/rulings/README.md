@@ -19,6 +19,16 @@ line above, run through the session's Bash tool; the one allow rule it needs is
 `Bash(npx -y @v1nvn/rulings@0.46.1:*)`; the first run asks for it once, then it
 is remembered.
 
+## Skill
+
+`/rulings:consult` is the plugin's one skill. From the model's seat: decide it is a page
+(the owner asked, or three or more linked, or four or more independent, decisions), read the
+code and write `page.js`, run the pinned `npx` line above through the session's Bash tool
+until it exits green and the page opens, announce the path and the recommendation in chat
+without repeating the page, then read picks back as typed letters (`G1a`, `G2n`,
+`G6 note: …`). Pushback updates `page.js` and rebuilds with `--no-open` for a reload;
+one to three simple decisions never reach the page — they go through AskUserQuestion.
+
 ## Layout
 
 ```

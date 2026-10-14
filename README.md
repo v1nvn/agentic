@@ -16,7 +16,7 @@ at the hosted registry server, and `todo` is manifest + skills, no package.
 | **tokens**      | Live token usage — the account report as a pane, and the live session (context, flow, limits, agents) as a pane. | `/tokens-usage`, `/tokens-top`                        |
 | **statusline**  | Pick a theme for the status line + agent panel, or revert the setup.                                                                   | `/statusline:lab`                                                |
 | **todo**        | Work tracking — the rules plus seven verbs over `TODO.md`, `progress/`, `references/`, `archive/`. Every repo carries data only.         | `/todo:run <plan>`, or a what's-next ask              |
-| **rulings**     | Put decisions the owner must make on one local HTML page — each ruling self-contained, its options pictured and lettered.                | "rulings", "consult me"                               |
+| **rulings**     | Put decisions the owner must make on one local HTML page — each ruling self-contained, its options pictured and lettered.                | `/rulings:consult`, or "consult me"                   |
 
 `rm`, `md`, `zai` and `tokens` are zero-token the mod way — a function-hook module serves the command, a surface the model never reads.
 
@@ -160,7 +160,7 @@ packages/                           one yarn workspace — every plugin's home
                                      .claude-plugin/ + SKILL.md (see statusline above)
                                      + src/render/launcher.mjs (the data-dir deploy, zero deps)
   rulings/                           the decisions-page builder, pure TS (@v1nvn/rulings) — the plugin root itself:
-                                     .claude-plugin/ + README.md (the skill lands with /rulings:consult)
+                                     .claude-plugin/ + SKILL.md (see rulings above) + README.md
   enhansome/  todo/                 package-less homes — the plugin root itself:
                                     .claude-plugin/ + .mcp.json, todo: .claude-plugin/ + skills/ + README.md
 types/claude-code.d.ts              vendored mod API declarations, engine-written per version
