@@ -2,11 +2,15 @@
 
 ## Next
 
-1. **Rulings — port into the marketplace as the tenth plugin** · HIGH · [packages] → progress/rulings-port.md
-2. **Rules plugin — catalogue · config · per-session render** · HIGH · [packages] → progress/rules-plugin.md
-3. **Mods port — live-verify from a fresh install** · HIGH · [packages]
+1. **Rules plugin — catalogue · config · per-session render** · HIGH · [packages] → progress/rules-plugin.md
+2. **Mods port — live-verify from a fresh install** · HIGH · [packages]
    Verify `/rm-send`, `/md-edit`, `/md-view`, `/zai-usage` and the tokens pane `/tokens-usage` from a fresh install — records: archive/mods-port.md, archive/zai-pane.md.
-4. **Timestamps — promote the mod into the marketplace** · MEDIUM · [packages] → progress/timestamps-plugin.md
+3. **Timestamps — promote the mod into the marketplace** · MEDIUM · [packages] → progress/timestamps-plugin.md
+
+## rulings
+
+- **Rulings — port nits** · LOW · [packages/rulings]
+  Eight review nits from the port: dead expected-substrings in mutation tuples, a duplicated chip assembly, restating comments, a mermaid-boots-for-merged-rulings seam, a stale layout tree, and a `$D` that dies between Bash calls. Recorded in archive/rulings-port.md's close.
 
 ## readability
 
