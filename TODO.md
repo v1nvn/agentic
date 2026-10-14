@@ -2,7 +2,8 @@
 
 ## Next
 
-1. **Rules plugin — catalogue · config · per-session render** · HIGH · [packages] → progress/rules-plugin.md
+1. **Rulings — the page's design pass** · HIGH · [packages/rulings] → progress/rulings-page-ux.md
+2. **Rules plugin — catalogue · config · per-session render** · HIGH · [packages] → progress/rules-plugin.md
 3. **Mods port — live-verify from a fresh install** · HIGH · [packages]
    Verify `/rm-send`, `/md-edit`, `/md-view`, `/zai-usage` and the tokens pane `/tokens-usage` from a fresh install — records: archive/mods-port.md, archive/zai-pane.md.
 4. **Timestamps — promote the mod into the marketplace** · MEDIUM · [packages] → progress/timestamps-plugin.md
