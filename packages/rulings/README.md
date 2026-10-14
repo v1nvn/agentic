@@ -25,5 +25,10 @@ is remembered.
 packages/rulings/                   the builder CLI, pure TS — the plugin root itself:
                                      .claude-plugin/ + README.md
   src/index.ts                      the CLI entry
+  src/schema.ts                     the page schema — one typed door
+  src/seq.ts, bodies.ts, diagram.ts the three picture emitters (SVG, prism diff, mermaid)
+  src/style.ts, theme.ts            the page stylesheet and the ?theme= door
+  src/vendor/mermaid.min.js         vendored upstream mermaid@11, copied into a
+                                     page dir only when a diagram ruling exists
   test/                             the vitest suite
 ```

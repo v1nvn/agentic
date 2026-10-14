@@ -9,7 +9,8 @@ var PAGE = {
 
   groups: [
     { id: "money", label: "What a buyer is owed", rulings: ["G1", "G3"] },
-    { id: "code", label: "A code change", rulings: ["G2"] }
+    { id: "code", label: "A code change", rulings: ["G2"] },
+    { id: "ops", label: "What a restart does", rulings: ["G4"] }
   ],
 
   rulings: {
@@ -72,6 +73,24 @@ var PAGE = {
       title: "Should the reader’s window mint its own leaf band?",
       merged: "G1",
       changed: "Same money question as G1 — whether the window owns its leaf blocks is what option b there rules."
+    },
+
+    G4: {
+      title: "Who re-arms a reader’s window after a daemon restart?",
+      stake: "<b>Roughly 1 daemon restart a week lands mid-read; each one pays a leaf read’s holder half into the void until a human notices.</b>",
+      today: "The window lives only in the daemon’s memory. After a crash the console shows the reader with no window; whoever is on call reads the ledger, rebuilds the range by hand, and the next read pays the band again.",
+      diagram: {
+        cap: "<b>Today a crash loses the window; the read pays into the void until a human rebuilds it.</b>",
+        views: {
+          today: { text: "flowchart TD\n  R[daemon restarts] --> L[window lost]\n  L --> V[read pays the holder half into the void]\n  V --> P[a human rebuilds the window from the console]\n  P --> A[the read pays the band again]" },
+          a: { cap: "<b>Option a: the daemon re-arms its windows from Postgres on start.</b> No void window.", text: "flowchart TD\n  R[daemon restarts] --> S[daemon reads the window from Postgres]\n  S --> A[the read pays the band again]" },
+          b: { cap: "<b>Option b: the read re-arms the window before paying.</b> One extra write per read.", text: "flowchart TD\n  R[daemon restarts] --> L[window lost]\n  L --> C[the read re-arms the window first]\n  C --> A[the read pays the band again]" }
+        }
+      },
+      opts: [
+        { k: "a", rec: true, t: "The daemon re-arms its windows from Postgres on start", g: "A restart becomes a non-event: the window survives, reads never pay into the void, no human in the loop.", c: "One more table the daemon owns and migrates; the start sequence grows a step." },
+        { k: "b", t: "The read re-arms the window before paying", w: "The read already opens a transaction on the leaf rows; arming the window there is one more write on the same connection, with no new owner of state.", g: "The protocol fixes itself; no daemon change at all.", c: "Every read pays one extra write — about 40 a day at current traffic." }
+      ]
     }
   }
 };
