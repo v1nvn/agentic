@@ -25,6 +25,7 @@ is remembered.
 packages/rulings/                   the builder CLI, pure TS — the plugin root itself:
                                      .claude-plugin/ + README.md
   src/index.ts                      the CLI entry
+  src/cli.ts, page.ts               the command door and the page assembly
   src/schema.ts                     the page schema — one typed door
   src/seq.ts, bodies.ts, diagram.ts the three picture emitters (SVG, prism diff, mermaid)
   src/style.ts, theme.ts            the page stylesheet and the ?theme= door
