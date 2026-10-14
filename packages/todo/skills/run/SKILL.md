@@ -50,7 +50,8 @@ Current state), never a log section — the veto table lives only in the final r
 The plan file, with its scratch notes and ritual records, is the resume record — a
 later session picks up from those alone; write no parallel run document. On resume,
 fold any scratch notes in first, then have a reviewer re-check the last landed unit's
-close criteria (a resume check, not a re-review) instead of trusting its row.
+close criteria (a resume check, not a re-review; its row is in the live file or, once
+its group landed, in `archive/<slug>.md`) instead of trusting its row.
 
 ## Dispatch
 
@@ -239,8 +240,8 @@ owner ruling, written into the row before the dispatch.
    goes to one fresh builder, whose fix the run commits on a
    green gate. Never hold a builder alive to await
    its own review. The review that follows names the fix commit in its brief, so it
-   diffs the fix too; no fix is re-reviewed on its own. `nit` findings are not fixed in the run: they are written into the plan's
-   Current state, which `/todo:review` reads, and listed in the final report.
+   diffs the fix too; no fix is re-reviewed on its own. `nit` findings are written into the plan's Current state and wait for the
+   nit sweep at the end of their PR group (§Close).
 5. A blocking finding that following review still finds open means the unit is wrong: the
    orchestrator reads the specific finding, not the diff, and may take the rescue — a
    reviewer consult that diagnoses the failure — then routes the diagnosis to the live
@@ -287,6 +288,24 @@ owner ruling, written into the row before the dispatch.
    leave silent divergence behind.
 
 ## Close
+
+When a PR group's last unit closes, or the run's scope ends inside a group:
+
+- Nit sweep, skipped when none are queued: one fresh builder at the role default
+  takes every `nit` queued in Current state, fires the workspace gate per §Open.4, and
+  stops green; the orchestrator commits and removes the swept nits from Current state.
+  One fresh reviewer at the role default reviews only the sweep's diff — a sweep across many files breaks things the
+  gate cannot see. Its blocking findings take one round from a fresh builder,
+  committed on a green gate; its nits go to the final report, never to another sweep.
+- Archive what landed: every landed row of the group — this run's and any the group
+  landed earlier; its open rows stay — and the plan text only those rows used
+  (tactical-map entries, inventory items, rulings) append verbatim to
+  `archive/<slug>.md`, created when absent, under the group's heading — a group
+  already headed there continues under it — and leave the live file, which keeps only
+  open work. One commit, before the PR is marked ready. Skipped when the group holds
+  the thread's final unit: the thread's close appends the whole file.
+
+At the run's end:
 
 - Landing the thread's final unit closes the thread in the same sitting, per the
   rules' closing paragraph, after the unit's own close has folded its notes into the thread file.

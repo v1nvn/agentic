@@ -24,9 +24,11 @@ A thread or unit that does not resolve: say so and stop.
    - a next step waits on a date that has passed;
    - a pointer or reference names a file that moved or never existed;
    - a thread whose goal is met still sits in `progress/`;
+   - a landed PR group's rows, or the plan text only they used, still in the live thread file;
+   - a thread whose landed work sits in more than one `archive/` file — `archive/<slug>.md` is its one home;
    - a fact lives in two files, or the two copies disagree;
    - a name the tracking no longer uses — a retired skill, rule or file.
-3. **Loss.** Work an archived thread deferred that no live entry carries; a `progress/` file no entry points at.
+3. **Loss.** Work a landed row or an archived thread deferred that no live entry carries; a `progress/` file no entry points at.
 
 ## Fixes
 

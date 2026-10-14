@@ -14,10 +14,10 @@ closed: say so and stop.
 - `gh pr view <pr> --json number,title,state,baseRefName,headRefName,isCrossRepository`
   names the base and the head; `git fetch origin <base> <head>`, and the diff under
   review is `git diff origin/<base>...origin/<head>`.
-- A PR a `/todo:run` run opened has its plan in `progress/`, or in `archive/` once the
-  thread closed — matched by the branch name or the plan ids in its commits. Its Steps
-  rows, its tactical map's workspace gate line and the `nit` findings its
-  `## Current state` queued are the review's context. Several candidates, or none:
+- A PR a `/todo:run` run opened has its plan in `progress/<slug>.md` while the
+  thread is live and its landed rows in `archive/<slug>.md` — the whole plan once the
+  thread closed — matched by the branch name or the plan ids in its commits.
+  Its rows and its tactical map's workspace gate line are the review's context. Several candidates, or none:
   the diff is the whole context.
 
 The session reads no source and no diff itself; the reviewers do.
@@ -36,8 +36,7 @@ A reviewer whose report comes back empty or malformed is re-dispatched once.
 ## Report
 
 One list, `blocking` before `nit`, each `file:line — finding — lens`; a finding both
-reviewers raised appears once, under both lenses, and the plan's queued nits join the
-nit list. Then stop: the owner picks what to fix — all, `blocking` only, or named
+reviewers raised appears once, under both lenses. Then stop: the owner picks what to fix — all, `blocking` only, or named
 findings.
 
 ## Fix

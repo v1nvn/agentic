@@ -15,7 +15,8 @@ state — do not write a parallel handoff document; that is a second home for th
 facts.
 
 1. Fold the sitting's scratch notes into the thread file per the rules: Current state
-   (what is true and verified now), Next step, and the Steps table. A decision that
+   (what is true and verified now), Next step, and the Steps table; a landed PR
+   group's rows append to `archive/<slug>.md`. A decision that
    outlives the thread goes to `references/`, not the thread file.
 2. Update the `TODO.md` index entry only if the title, priority or areas changed.
 3. Print a short pointer prompt the user can paste into the fresh session:
