@@ -22,8 +22,11 @@ anchor before relying on it.
   differ — a fixture where they coincide cannot tell them apart.
 - Leave protected tests untouched. A rename the plan names may move one; nothing else
   may.
-- Run the scoped gate lines the plan pins for your row while you build. As your last
-  step, fire the workspace gate and the enforcement script once, in the foreground,
+- While you build, run only the scoped gate lines the plan pins for your row, or
+  narrower (one test), never wider: a wider suite mid-build is paid again at the end
+  and proves nothing the scoped lines do not. A row with no pinned line gets one at
+  the width the run's tactical map constructs, recorded in your scratch file for the
+  fold. As your last step, fire the workspace gate and the enforcement script once, in the foreground,
   always passing the Bash `timeout` the plan's gate ceiling sets — unless that ceiling
   is over four minutes, which leaves the gate to the orchestrator. A gate's log answers every
   later question about it: keep it in your scratch file, and never re-run a suite to
