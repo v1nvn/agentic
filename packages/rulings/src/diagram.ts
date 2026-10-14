@@ -17,7 +17,7 @@ export function diagramView(q: Ruling, view: string, attrs = ''): string {
   const { head, hue } = viewHeadFor(q, view);
   const cap = v.cap ?? d.cap;
   return (
-    `<section class="view${hue ? ` ${hue}` : ''}"${attrs}>${head}` +
+    `<section class="view${view === 'today' ? ' today' : ''}${hue ? ` ${hue}` : ''}"${attrs}>${head}` +
     `<div class="stage diagram"><div class="mermaid">${esc(v.text)}</div>` +
     (cap ? `<p class="cap">${cap}</p>` : '') +
     '</div></section>'
