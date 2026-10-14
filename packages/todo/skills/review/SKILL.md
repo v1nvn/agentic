@@ -1,47 +1,59 @@
 ---
 name: review
-description: Review a pull request's whole diff with two blind reviewers in parallel — one for regressions, critical issues and simplification (DRY, YAGNI), one for money, seams, migrations and shared doors — then fix what the owner picks on the PR branch. Use when the owner asks for a review of a PR, most often one a /todo:run run opened.
+description: Review a pull request's whole diff and fix the findings the owner picks on the PR branch. Use when the owner asks for a review of a PR, most often one a /todo:run run opened.
 argument-hint: <pr>
 disable-model-invocation: true
 ---
 
 Review one pull request end to end. The argument names a PR in the current repo — a
-number, a URL or a branch. One that does not resolve: say so and stop.
+number, a URL or a branch. One that does not resolve, or a PR already merged or
+closed: say so and stop.
 
 ## Gather
 
-- `gh pr view <pr> --json number,title,baseRefName,headRefName,additions,deletions` names
-  the base, the branch and the size.
+- `gh pr view <pr> --json number,title,state,baseRefName,headRefName,isCrossRepository`
+  names the base and the head; `git fetch origin <base> <head>`, and the diff under
+  review is `git diff origin/<base>...origin/<head>`.
 - A PR a `/todo:run` run opened has its plan in `progress/`, or in `archive/` once the
   thread closed — matched by the branch name or the plan ids in its commits. Its Steps
-  rows, its tactical map's gate lines and the `nit` findings its Current state queued
-  are the review's context. No plan: the diff is the whole context.
+  rows, its tactical map's workspace gate line and the `nit` findings its
+  `## Current state` queued are the review's context. Several candidates, or none:
+  the diff is the whole context.
 
 The session reads no source and no diff itself; the reviewers do.
 
 ## Review
 
-Dispatch two fresh `todo:reviewer`s in one message, so they run in parallel, each on
-a branch review of the PR against its base, each brief naming the PR, the base and the
-plan path when there is one:
+Dispatch two fresh `todo:reviewer`s in one message, so they run in parallel, each on a
+branch review — the brief names the diff command above, the plan path when there is
+one, and its lens:
 
-- one through regressions, critical issues and simplification — DRY, YAGNI;
-- one through money, seams, migrations and the doors the diff's parts share — what
-  the units do together that no single unit shows.
+- regressions, critical issues and simplification (DRY, YAGNI);
+- money, seams, migrations and the doors the units share.
+
+A reviewer whose report comes back empty or malformed is re-dispatched once.
 
 ## Report
 
 One list, `blocking` before `nit`, each `file:line — finding — lens`; a finding both
-reviewers raised appears once, and the plan's queued nits join the nit list. Then stop:
-the owner picks what to fix — all, `blocking` only, or named findings.
+reviewers raised appears once, under both lenses, and the plan's queued nits join the
+nit list. Then stop: the owner picks what to fix — all, `blocking` only, or named
+findings.
 
 ## Fix
 
-On the owner's pick, check the tree first: it must be the PR's branch and clean, or
-stop and say so. Dispatch one fresh `todo:builder` whose brief names the PR branch,
-the picked findings, and the workspace gate line with its ceiling — the plan's, else
-the repo's gate from its CLAUDE.md or package scripts with a ten-minute ceiling. It
-fixes, fires the gate, and stops green with the tree uncommitted. The session commits
-— one conventional line — and pushes to the PR branch, never to its base. The fix
-diff gets no further review; say so in the closing line with the commit and the
-findings left unfixed.
+On the owner's pick, check the tree: it must be the PR's head branch, clean, and equal
+to `origin/<head>`; a cross-repository PR cannot be pushed to. Otherwise say so and
+stop.
+
+Dispatch one fresh `todo:builder`. Its brief names the PR branch, the picked findings,
+its scratch file `progress/.scratch/review-<pr>-builder.md`, and the workspace gate
+line with its ceiling — the plan's, else the repo's gate from its CLAUDE.md or package
+scripts. The builder fires a gate whose ceiling is four minutes or under; a longer or
+unmeasured gate the session fires in the background once the builder stops, and a red
+result goes to a successor builder with the failure in its brief. Items the builder
+reports as stopped go back to the owner with its options.
+
+Commit only what landed on a green gate — one conventional line, no trailer — push to
+the PR branch, never to its base, and delete the scratch file. The fix diff gets no
+further review; the closing line names the commit and the findings left unfixed.
