@@ -12,17 +12,23 @@ monospace ledger voice — shipped at v0.50.0 and all five live pages rebuilt.
 
 ## Current state
 
-Nothing landed. The owner rejected the v0.49.0 page's UX: sticky full-width TOC
-wall, today-body repetition in every view, no selection affordance, invisible
-selected state, one global notes box, chip soup, no group rhythm, characterless
-type. Behavior (pick/copy/persist/needs/n/accept-quick) is review-green and
-stays; this pass reworks presentation and adds per-option notes.
+U1 and U2 landed (`ee41b08` + review fixes `d2092f9`, PR #28 merged; the
+release cut v0.50.0 green): sidebar nav with active-ruling highlight, today
+once per ruling with option views carrying only their diff, loud pick
+affordance and selected state, per-option note inputs + page note riding the
+copied answer, notes as rows, group bands, mono ledger voice. The surface
+audit walked all ten standing rules on live screenshots (dark, light, narrow,
+phone, empty and loaded); the blind reviewer's three blocking findings (dead
+× chip, highlight key, the today-marked option's missing note input) are fixed
+and live-verified. Stopped on the owner's order before U3's rebuilds: the five
+pages under `~/.claude/rulings/` still carry their v0.49.0 builds.
 
 ## Next step
 
-The session builds the rework itself (frontend-design skill invoked by the
-owner — the screenshot iteration loop needs the session's eyes), then
-surface-audit, then a reviewer pass on behavior preservation.
+Rebuild the five pages on `npx -y @v1nvn/rulings@0.50.0` (page.js files need
+no edits — the key/quick strip of the last thread already rides admitted),
+update the installed plugin, and close the thread with the owner's look at
+pr272-design.
 
 ## Steps
 
