@@ -77,7 +77,7 @@ export function chromeScript(): string {
     var c = document.querySelector('[data-pick="' + id + '"]');
     if (!c) return 'var(--ink)';
     for (var i = 0; i < c.classList.length; i++) {
-      if (c.classList[i].indexOf('o-') === 0) return 'var(--' + c.classList[i] + ')';
+      if (c.classList[i].indexOf('o-') === 0) return 'var(--opt-' + c.classList[i].slice(2) + ')';
     }
     return 'var(--ink)';
   }
@@ -112,6 +112,8 @@ export function chromeScript(): string {
   function commit() { render(); save(); }
 
   document.addEventListener('click', function (e) {
+    var sel = window.getSelection ? window.getSelection() : null;
+    if (sel && String(sel)) return;
     var x = e.target.closest('[data-unpick]');
     if (x) {
       var xm = REF.exec(x.getAttribute('data-unpick'));
@@ -148,7 +150,12 @@ export function chromeScript(): string {
     var card = e.target.closest('[data-pick]');
     if (card) { e.preventDefault(); card.click(); }
   });
-  if (notesIn) notesIn.addEventListener('input', function () { note = notesIn.value; save(); });
+  function sizeNote() {
+    if (!notesIn) return;
+    notesIn.style.height = 'auto';
+    notesIn.style.height = notesIn.scrollHeight + 'px';
+  }
+  if (notesIn) notesIn.addEventListener('input', function () { note = notesIn.value; save(); sizeNote(); });
   noteIns.forEach(function (inp) {
     inp.addEventListener('input', function () { onotes[inp.getAttribute('data-note')] = inp.value; save(); });
   });
@@ -162,10 +169,11 @@ export function chromeScript(): string {
   if ('IntersectionObserver' in window && Object.keys(links).length) {
     var io = new IntersectionObserver(function (ents) {
       ents.forEach(function (en) {
-        if (!en.isIntersecting) return;
-        for (var k in links) links[k].classList.remove('here');
         var l = links[en.target.id];
-        if (l) { l.classList.add('here'); }
+        if (!l) return;
+        if (!en.isIntersecting) { l.classList.remove('here'); return; }
+        for (var k in links) links[k].classList.remove('here');
+        l.classList.add('here');
       });
     }, { rootMargin: '-12% 0px -78% 0px' });
     var secs = document.querySelectorAll('section[id]');
@@ -193,19 +201,36 @@ export function chromeScript(): string {
     document.body.removeChild(ta);
     return ok;
   }
+  function within(p, ms) {
+    return new Promise(function (res) {
+      var over = false;
+      var t = setTimeout(function () { if (!over) { over = true; res(false); } }, ms);
+      p.then(
+        function () { if (!over) { over = true; clearTimeout(t); res(true); } },
+        function () { if (!over) { over = true; clearTimeout(t); res(false); } }
+      );
+    });
+  }
   if (copyBtn) copyBtn.addEventListener('click', function () {
-    var t = answerText();
     var done = function (ok) {
       copyBtn.textContent = ok ? 'Copied' : 'Copy failed — copy the summary by hand';
       setTimeout(function () { copyBtn.textContent = 'Copy answer'; }, 1800);
     };
+    if (entries().length === 0) {
+      copyBtn.textContent = 'No picks yet — click a view first';
+      setTimeout(function () { copyBtn.textContent = 'Copy answer'; }, 1800);
+      return;
+    }
+    var t = answerText();
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(t).then(function () { done(true); }, function () { done(fallbackCopy(t)); });
+      within(navigator.clipboard.writeText(t), 1500).then(function (ok) {
+        done(ok ? true : fallbackCopy(t));
+      });
     } else done(fallbackCopy(t));
   });
 
   load();
-  if (notesIn) notesIn.value = note;
+  if (notesIn) { notesIn.value = note; sizeNote(); }
   noteIns.forEach(function (inp) { inp.value = onotes[inp.getAttribute('data-note')] || ''; });
   render();
 })();

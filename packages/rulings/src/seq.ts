@@ -1,7 +1,7 @@
 import type { Overlay, Ruling, Seq, Step } from './schema.ts';
 
 import { esc, stripTags, viewHeadFor } from './html.ts';
-import { KINDS, seqViews } from './schema.ts';
+import { KINDS } from './schema.ts';
 
 const KIND_TEXT: Record<(typeof KINDS)[number], string> = {
   call: 'a call or a reply',
@@ -33,13 +33,26 @@ function overlayFor(
   return undefined;
 }
 
-function legendHtml(d: Seq, owner: string): string {
+// The steps one view owns: overlays expand in place, `in` steps belong only
+// to the views that name them.
+function viewSteps(d: Seq, view: string, owner: string): Step[] {
+  return d.steps.filter(st =>
+    st.in
+      ? view !== 'today' && st.in.map(v => full(v, owner)).includes(view)
+      : true,
+  );
+}
+
+function legendHtml(d: Seq, owner: string, view: string): string {
   const used = new Set(d.steps.map(st => st.k));
   const kinds = KINDS.filter(k => used.has(k)).map(
     k =>
       `<span style="--k:var(--k-${k})"><i${k === 'check' ? ' class="dash"' : ''}></i>${KIND_TEXT[k]}</span>`,
   );
-  const sw = seqViews(d, owner).length
+  const changes = viewSteps(d, view, owner).some(
+    st => st.in !== undefined || overlayFor(st, view, owner) !== undefined,
+  );
+  const sw = changes
     ? '<span><b class="sw"></b>what this option changes</span>'
     : '';
   return `<div class="legend">${kinds.join('')}${sw}</div>`;
@@ -48,12 +61,8 @@ function legendHtml(d: Seq, owner: string): string {
 // An option view expands each step's overlay, keeps only steps the view owns
 // (`in`) and tags those rows new / changed / gone — the two load-bearing
 // features no mermaid equivalent carries.
-function seqSvg(d: Seq, owner: string, view: string): string {
-  const steps = d.steps.filter(st =>
-    st.in
-      ? view !== 'today' && st.in.map(v => full(v, owner)).includes(view)
-      : true,
-  );
+function seqSvg(d: Seq, owner: string, view: string, cap: string): string {
+  const steps = viewSteps(d, view, owner);
   const L = d.lanes.length;
   const G = 92;
   const LW = 170;
@@ -78,7 +87,7 @@ function seqSvg(d: Seq, owner: string, view: string): string {
     return 40 + (s ? 14 : 0) + (ov?.n ? 16 : 0);
   });
   const H = top + rows.reduce((a, b) => a + b, 0) + 12;
-  let out = `<svg class="seq" viewBox="0 0 ${W} ${H}" style="min-width:${Math.min(W, 760)}px" role="img" aria-label="${esc(stripTags(d.cap ?? ''))}">`;
+  let out = `<svg class="seq" viewBox="0 0 ${W} ${H}" style="min-width:${Math.min(W, 760)}px" role="img" aria-label="${esc(stripTags(cap))}">`;
   if (nb) {
     out += `<rect class="ledger-bg" x="${lanesW + gap - 6}" y="8" width="${nb * BW + 12}" height="${H - 14}" rx="4"/>`;
   }
@@ -211,7 +220,7 @@ export function seqView(
   const cap = capKey === undefined ? d.cap : d.caps?.[capKey];
   return (
     `<section class="view${view === 'today' ? ' today' : ''}${hue ? ` ${hue}` : ''}"${attrs}>${head}` +
-    `<div class="stage">${legendHtml(d, id)}<div class="scroll">${seqSvg(d, id, view)}</div>` +
+    `<div class="stage">${legendHtml(d, id, view)}<div class="scroll">${seqSvg(d, id, view, cap ?? '')}</div>` +
     (cap ? `<p class="cap">${cap}</p>` : '') +
     '</div></section>'
   );
