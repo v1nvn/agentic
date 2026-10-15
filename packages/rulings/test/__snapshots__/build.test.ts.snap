@@ -53,7 +53,6 @@ section[id^="r-"] { scroll-margin-top: 14px; }
 .masthead h1 { font-size: 31px; letter-spacing: -0.01em; margin-top: 6px; }
 .masthead .sub { color: var(--muted); max-width: 64ch; margin-top: 8px; font-size: 14.5px; }
 
-/* Sidebar navigation and its ruled state */
 .side .scount { font: 600 var(--mono-s) var(--mono); letter-spacing: 0.04em; color: var(--muted); padding: 0 8px 14px; }
 .side .sg { margin-bottom: 16px; }
 .side .sg h2 { padding: 0 8px 5px; display: flex; justify-content: space-between; }
@@ -68,7 +67,7 @@ section[id^="r-"] { scroll-margin-top: 14px; }
 .side a.rl.ruled .gid { color: var(--ink); }
 .side a.rl.ruled::after { content: "✓"; margin-left: auto; flex: none; font: 700 var(--mono-s) var(--mono); color: var(--add); }
 
-/* Wayfinding pill: the sidebar's current position, reachable below the sidebar's own cut */
+/* reachable below the sidebar's own cut */
 .where { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); z-index: 9; display: none; max-width: calc(100vw - 24px); padding: 6px 14px; border-radius: 999px; background: var(--sheet); border: 1px solid var(--rule); box-shadow: 0 4px 16px color-mix(in srgb, var(--ink) 12%, transparent); text-decoration: none; color: var(--ink); font: 12.5px var(--sans); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .where:hover { border-color: var(--ink); }
 @media (max-width: 979px) {
@@ -188,7 +187,6 @@ svg text.note { font-size: 11.5px; font-weight: 600; fill: var(--o); }
 .view[aria-pressed="true"] { border-left-width: 5px; border-left-color: var(--o); }
 .view[aria-pressed="true"] .stage { border-color: color-mix(in srgb, var(--o) 70%, var(--rule)); background: color-mix(in srgb, var(--o) 5%, var(--sheet)); }
 .view[aria-pressed="true"] .lt { background: var(--o); color: var(--sheet); box-shadow: 0 0 0 3px color-mix(in srgb, var(--o) 22%, transparent); }
-.view[aria-pressed="true"] .body .tag .lt { background: var(--o); color: var(--sheet); }
 .pmark { display: none; font: 700 var(--mono-l) var(--mono); color: var(--o); margin-left: auto; white-space: nowrap; }
 .view[aria-pressed="true"] .pmark { display: inline; }
 .view[data-needs].unmet { border-left-style: dashed; }
@@ -218,7 +216,6 @@ svg text.note { font-size: 11.5px; font-weight: 600; fill: var(--o); }
 .bar button.go:hover { opacity: 0.88; }
 :focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 
-/* The bar rests as a strip until work arrives: no picks and no note. */
 .bar.rest .bar-in { padding: 6px 12px; }
 .bar.rest textarea { display: none; }
 .bar.rest button.go { padding: 6px 14px; }
@@ -230,7 +227,6 @@ svg text.note { font-size: 11.5px; font-weight: 600; fill: var(--o); }
   .bar { left: 12px; right: 12px; transform: none; width: auto; }
 }
 
-/* On a phone the bar collapses to the tab's chip count; the tab opens the composer. */
 @media (max-width: 640px) {
   .bar { bottom: 12px; text-align: center; }
   .bar .bar-in { display: none; }

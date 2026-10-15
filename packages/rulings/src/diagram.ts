@@ -45,7 +45,6 @@ export function mermaidBoot(): string {
   draw(mq.matches);
   function flip(e) { draw(e.matches); }
   if (mq.addEventListener) mq.addEventListener('change', flip);
-  else if (mq.addListener) mq.addListener(flip);
 })();
 </script>`;
 }
