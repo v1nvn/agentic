@@ -113,6 +113,17 @@ describe('the interactive chrome', () => {
     expect(html).toContain('onotes');
   });
 
+  it('emits the resting bar, the narrow tab, the ruled counter and the wayfinding pill', () => {
+    const { html } = buildPage(loadPageFile(EXAMPLE));
+    expect(html).toContain('id="rulings-bar"');
+    expect(html).toContain('id="bar-tab"');
+    expect(html).toContain('aria-controls="rulings-bar-in"');
+    expect(html).toContain('id="ruled-count"');
+    expect(html).toContain('0 of 3 ruled');
+    expect(html).toMatch(/<a class="where" id="rulings-where"[^>]* hidden>/);
+    expect(html).not.toContain('max-height: 120px');
+  });
+
   it('emits a page without key with the composer and no storage key', () => {
     const dir = pageDir(PLAIN_PAGE);
     expect(main([dir, '--no-open'])).toBe(0);

@@ -3,12 +3,13 @@
 // storage key rides on <body data-key="…">, and all mutable state lives in
 // localStorage under that key, never in the file.
 export function panelHtml(): string {
-  return `<footer class="bar">
-<div class="bar-in">
+  return `<footer class="bar" id="rulings-bar">
+<div class="bar-in" id="rulings-bar-in">
 <div class="chips" id="picks" aria-live="polite"></div>
 <textarea id="rulings-notes" rows="1" placeholder="page note — anything the answer should carry"></textarea>
 <button type="button" class="go" id="copy-answer">Copy answer</button>
 </div>
+<button type="button" class="bar-tab" id="bar-tab" aria-expanded="false" aria-controls="rulings-bar-in">no picks yet</button>
 </footer>`;
 }
 
@@ -24,6 +25,10 @@ export function chromeScript(): string {
   var sum = document.getElementById('picks');
   var notesIn = document.getElementById('rulings-notes');
   var copyBtn = document.getElementById('copy-answer');
+  var bar = document.getElementById('rulings-bar');
+  var tab = document.getElementById('bar-tab');
+  var countEl = document.getElementById('ruled-count');
+  var where = document.getElementById('rulings-where');
   var pick = {};
   var onotes = {};
   var note = '';
@@ -96,6 +101,14 @@ export function chromeScript(): string {
     }
     if (!sum) return;
     var es = entries();
+    if (bar) bar.classList.toggle('rest', es.length === 0 && (notesIn ? note : '') === '');
+    if (tab) tab.textContent = es.length === 0 ? 'no picks yet' : es.length + (es.length === 1 ? ' pick' : ' picks');
+    if (countEl) {
+      var ruled = 0;
+      ORDER.forEach(function (id) { if (pick[id]) ruled++; });
+      countEl.textContent = ruled + ' of ' + ORDER.length + ' ruled';
+    }
+    for (var rk in links) links[rk].classList.toggle('ruled', !!pick[rk.slice(2)]);
     if (es.length === 0) {
       sum.innerHTML = '<span class="empty">no picks yet — click a view</span>';
       return;
@@ -112,8 +125,6 @@ export function chromeScript(): string {
   function commit() { render(); save(); }
 
   document.addEventListener('click', function (e) {
-    var sel = window.getSelection ? window.getSelection() : null;
-    if (sel && String(sel)) return;
     var x = e.target.closest('[data-unpick]');
     if (x) {
       var xm = REF.exec(x.getAttribute('data-unpick'));
@@ -124,6 +135,10 @@ export function chromeScript(): string {
     if (e.target.closest('.onote, a, textarea')) return;
     var card = e.target.closest('[data-pick]');
     if (card) {
+      var sel = window.getSelection ? window.getSelection() : null;
+      // a click ending a drag-select carries a live selection and detail > 0;
+      // a keyboard-activated pick (card.click()) carries detail 0
+      if (sel && String(sel) && e.detail) return;
       var m = REF.exec(card.getAttribute('data-pick'));
       if (m) { if (pick[m[1]] === m[2]) delete pick[m[1]]; else pick[m[1]] = m[2]; }
       commit();
@@ -152,28 +167,53 @@ export function chromeScript(): string {
   });
   function sizeNote() {
     if (!notesIn) return;
+    var cap = Math.max(120, (window.innerHeight || 640) - 220);
     notesIn.style.height = 'auto';
-    notesIn.style.height = notesIn.scrollHeight + 'px';
+    notesIn.style.height = Math.min(notesIn.scrollHeight, cap) + 'px';
   }
+  if (tab && bar) tab.addEventListener('click', function () {
+    var open = !bar.classList.contains('open');
+    bar.classList.toggle('open', open);
+    tab.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if (open) sizeNote();
+  });
   if (notesIn) notesIn.addEventListener('input', function () { note = notesIn.value; save(); sizeNote(); });
   noteIns.forEach(function (inp) {
     inp.addEventListener('input', function () { onotes[inp.getAttribute('data-note')] = inp.value; save(); });
   });
 
   var links = {};
+  var titles = {};
   var sideLinks = document.querySelectorAll('.side a.rl');
   for (var si = 0; si < sideLinks.length; si++) {
     var h = (sideLinks[si].getAttribute('href') || '').slice(1);
-    if (h) links[h] = sideLinks[si];
+    if (!h) continue;
+    links[h] = sideLinks[si];
+    var t = sideLinks[si].querySelector('.t');
+    titles[h] = t ? t.textContent : '';
+  }
+  var hereId = null;
+  function setWhere(id) {
+    if (!where) return;
+    if (!id) { where.setAttribute('hidden', ''); return; }
+    where.removeAttribute('hidden');
+    where.setAttribute('href', '#r-' + id);
+    where.textContent = id + ' · ' + (titles['r-' + id] || '');
   }
   if ('IntersectionObserver' in window && Object.keys(links).length) {
     var io = new IntersectionObserver(function (ents) {
       ents.forEach(function (en) {
         var l = links[en.target.id];
         if (!l) return;
-        if (!en.isIntersecting) { l.classList.remove('here'); return; }
+        if (!en.isIntersecting) {
+          l.classList.remove('here');
+          if (hereId === en.target.id) { hereId = null; setWhere(null); }
+          return;
+        }
         for (var k in links) links[k].classList.remove('here');
         l.classList.add('here');
+        hereId = en.target.id;
+        setWhere(en.target.id.slice(2));
       });
     }, { rootMargin: '-12% 0px -78% 0px' });
     var secs = document.querySelectorAll('section[id]');

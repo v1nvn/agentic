@@ -26,13 +26,13 @@ export const pageCss = `
 .o-a { --o: var(--opt-a); } .o-b { --o: var(--opt-b); } .o-c { --o: var(--opt-c); } .o-d { --o: var(--opt-d); }
 
 * { box-sizing: border-box; }
-html { background: var(--paper); }
+html { background: var(--paper); scroll-behavior: smooth; }
 body { margin: 0; background: var(--paper); color: var(--ink); font: 14.5px/1.55 var(--sans); }
 code { font: 0.86em var(--mono); background: var(--code); border: 1px solid var(--rule); padding: 0 4px; border-radius: 3px; overflow-wrap: anywhere; }
 h1, h3 { margin: 0; font-family: var(--serif); font-weight: 600; line-height: 1.18; text-wrap: balance; }
 h2 { margin: 0; font: 600 12px var(--mono); letter-spacing: 0.08em; color: var(--muted); }
 p { margin: 0; }
-@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } html { scroll-behavior: auto; } }
 
 /* Layout: fixed sidebar left, one content column. */
 .side { position: fixed; top: 0; bottom: 0; left: 0; width: 228px; padding: 22px 14px 90px; border-right: 1px solid var(--rule); background: var(--paper); overflow-y: auto; overscroll-behavior: contain; }
@@ -45,7 +45,8 @@ section[id^="r-"] { scroll-margin-top: 14px; }
 .masthead h1 { font-size: 31px; letter-spacing: -0.01em; margin-top: 6px; }
 .masthead .sub { color: var(--muted); max-width: 64ch; margin-top: 8px; font-size: 14.5px; }
 
-/* Sidebar navigation */
+/* Sidebar navigation and its ruled state */
+.side .scount { font: 600 11px var(--mono); letter-spacing: 0.04em; color: var(--muted); padding: 0 8px 14px; }
 .side .sg { margin-bottom: 16px; }
 .side .sg h2 { padding: 0 8px 5px; display: flex; justify-content: space-between; }
 .side .sg h2 .n { letter-spacing: 0; }
@@ -55,6 +56,17 @@ section[id^="r-"] { scroll-margin-top: 14px; }
 .side a.rl:hover { color: var(--ink); background: color-mix(in srgb, var(--ink) 5%, transparent); }
 .side a.rl.here { color: var(--ink); background: var(--sheet); box-shadow: inset var(--rail) 0 0 var(--ink); }
 .side a.rl.merged .t { font-style: italic; }
+.side a.rl.ruled { color: var(--ink); }
+.side a.rl.ruled .gid { color: var(--ink); }
+.side a.rl.ruled::after { content: "✓"; margin-left: auto; flex: none; font: 700 11px var(--mono); color: var(--add); }
+
+/* Wayfinding pill: the sidebar's current position, reachable below the sidebar's own cut */
+.where { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); z-index: 9; display: none; max-width: calc(100vw - 24px); padding: 6px 14px; border-radius: 999px; background: var(--sheet); border: 1px solid var(--rule); box-shadow: 0 4px 16px color-mix(in srgb, var(--ink) 12%, transparent); text-decoration: none; color: var(--ink); font: 12.5px var(--sans); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.where:hover { border-color: var(--ink); }
+@media (max-width: 979px) {
+  .where:not([hidden]) { display: block; }
+  section[id^="r-"] { scroll-margin-top: 54px; }
+}
 
 /* Notes: one row per entry, the bold lead-in as its mono marker */
 .notes { display: grid; gap: 7px; padding-block: 14px 26px; max-width: 78ch; }
