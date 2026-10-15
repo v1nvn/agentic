@@ -116,7 +116,7 @@ export function chromeScript(): string {
     sum.innerHTML = es.map(function (e) {
       return '<span class="chip' + (e.bad.length ? ' unmet' : '') + '">' +
         '<span class="d" style="background:' + chipHue(e.label) + '">' + e.label.slice(-1) + '</span>' +
-        e.label +
+        e.label.slice(0, -1) +
         (e.bad.length ? '<span class="need">needs ' + e.bad.join(' ') + '</span>' : '') +
         '<button type="button" class="x" data-unpick="' + e.label + '" aria-label="unpick ' + e.label + '">×</button>' +
         '</span>';
