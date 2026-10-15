@@ -20,19 +20,15 @@ phone sheet, <980 pill, note-cap agreement) and closed on its review, its
 drag-select keyboard nit closed with it; U9 landed `e25f417` (one name per meaning, the letter's one rule,
 reader-facing example, two mono sizes, merged once) and closed on its review,
 the `optOf` comment and dead `.mermaid svg` rule nits closed with it. U3
-open. No blocking findings open. Queued nits for the PR group's sweep:
-source-token unit guards (the mermaid theme guard in `pictures.test.ts` and
-the U8 emission pins in `build.test.ts` — same class); a captionless seq view
-renders `aria-label=""` — omit the attribute when empty; a dead
-`mq.addListener` fallback in `diagram.ts`; a drive-by prettier reformat hunk
-in `build.test.ts` rides U7; the ell assertion in `pictures.test.ts`
-mislabels one supplementary pin (the growth is pinned by the cap-cite and the
-snapshot); U8's new CSS section comments restate their rules (the pill
-comment's "reachable below the sidebar's own cut" clause earns its place, the
-drag-select comment cites the UI-Events `detail` contract and stays); U9's
-`.view[aria-pressed="true"] .body .tag .lt` rule in `page.ts` is inert (the
-broader pressed-view rule already fills it) and the second assertion of the
-bodies-tag-letter test pins the dead text. Live verification runs programmatic
+open. The nit sweep landed `cfd6e5a` and passed its review on A/B evidence —
+all seven queued nits fixed. One fix round is open: `yarn typecheck` is red
+with five errors CI would catch (`build.test.ts:360` `cb` on `never` from the
+sweep's own `FakeIO.last` narrowing; four inherited from closed units —
+`seq.ts:60`'s unused `view` param from U7, and three `number | undefined`
+errors in `build.test.ts:85-87` from U6). The typecheck gate was missing from
+the minted gate lines — now added to the map. Context nit for the final
+report only: prettier drift on the three test files, identical before and
+after the sweep. Live verification runs programmatic
 (own headless Chrome over raw CDP) — the harness's image-Read path uploads
 screenshots off-machine, so no screenshot file is Read; reviews on this
 branch extract the commit under review to a pristine location while builders
@@ -40,8 +36,8 @@ run. The five pages under `~/.claude/rulings/` still carry v0.49.0 builds.
 
 ## Next step
 
-Run the PR group's nit sweep, then its review, then the audit list's
-surface audit before U3.
+Fix round for the five typecheck errors (one fresh builder), its commit, then
+the audit list's surface audit, the archive fold, and U3.
 
 ## Steps
 
@@ -73,8 +69,9 @@ surface audit before U3.
   real `quiet` at `packages/core/src/cli.ts` is a read reference for the
   example's cap. U8: `chrome.ts` + `style.ts` + `page.ts` (sidebar).
   U9: `style.ts`, `html.ts`, `example.page.js`, `SKILL.md`, `README.md`.
-  Scoped gate `yarn workspace @v1nvn/rulings run test`; workspace gate
-  `yarn test` at the repo root, ceiling 1 min (pre-flight measured 48.5s).
+  Scoped gate `yarn workspace @v1nvn/rulings run test`; workspace gates
+  `yarn test` then `yarn typecheck` at the repo root, ceiling 1 min
+  (pre-flight measured 48.5s) — CI typechecks before testing, so both fire.
   U3 adds validate +
   build-skills + set-version --check and the five live rebuilds; its review
   is none because it changes no code — release and rebuild mechanics only,
