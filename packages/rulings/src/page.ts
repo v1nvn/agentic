@@ -24,7 +24,8 @@ const assemblyCss = `
 .view[aria-pressed="true"] { border-left-width: 5px; border-left-color: var(--o); }
 .view[aria-pressed="true"] .stage { border-color: color-mix(in srgb, var(--o) 70%, var(--rule)); background: color-mix(in srgb, var(--o) 5%, var(--sheet)); }
 .view[aria-pressed="true"] .lt { background: var(--o); color: var(--sheet); box-shadow: 0 0 0 3px color-mix(in srgb, var(--o) 22%, transparent); }
-.pmark { display: none; font: 700 11.5px var(--mono); color: var(--o); margin-left: auto; white-space: nowrap; }
+.view[aria-pressed="true"] .body .tag .lt { background: var(--o); color: var(--sheet); }
+.pmark { display: none; font: 700 var(--mono-l) var(--mono); color: var(--o); margin-left: auto; white-space: nowrap; }
 .view[aria-pressed="true"] .pmark { display: inline; }
 .view[data-needs].unmet { border-left-style: dashed; }
 .view[data-needs].unmet .pmark { display: none; }
@@ -33,18 +34,18 @@ const assemblyCss = `
 .onote { margin-top: 2px; font: 12.5px var(--sans); color: var(--ink); background: none; border: 0; border-bottom: 1px dashed var(--rule); padding: 5px 2px 4px; width: min(100%, 420px); }
 .onote:focus { outline: none; border-bottom-color: var(--o); }
 .onote::placeholder { color: var(--muted); opacity: 0.7; }
-.ghead .quick { font: 600 12px var(--mono); color: var(--ink); background: var(--sheet); border: 1px solid var(--rule); border-radius: 999px; padding: 4px 13px; cursor: pointer; }
+.ghead .quick { font: 600 var(--mono-l) var(--mono); color: var(--ink); background: var(--sheet); border: 1px solid var(--rule); border-radius: 999px; padding: 4px 13px; cursor: pointer; }
 .ghead .quick:hover { border-color: var(--ink); }
 
 .bar { position: fixed; z-index: 10; bottom: 18px; left: 50%; transform: translateX(calc(-50% + 114px)); width: min(856px, calc(100vw - 228px - 48px)); background: var(--sheet); border: 1px solid var(--rule); border-radius: 12px; box-shadow: 0 8px 28px color-mix(in srgb, var(--ink) 14%, transparent); }
 .bar-in { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 10px 12px; }
 .chips { flex: 1 1 200px; min-width: 0; display: flex; flex-wrap: wrap; gap: 6px; }
-.chips .empty { font: 500 12.5px var(--mono); color: var(--muted); padding: 6px 2px; }
-.chip { display: inline-flex; align-items: center; gap: 6px; font: 600 12.5px var(--mono); color: var(--ink); background: var(--paper); border: 1px solid var(--rule); border-radius: 999px; padding: 3px 6px 3px 4px; }
-.chip .d { width: 19px; height: 19px; border-radius: 50%; display: inline-grid; place-items: center; font-size: 11px; font-weight: 700; color: var(--sheet); }
+.chips .empty { font: 500 var(--mono-l) var(--mono); color: var(--muted); padding: 6px 2px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; font: 600 var(--mono-l) var(--mono); color: var(--ink); background: var(--paper); border: 1px solid var(--rule); border-radius: 999px; padding: 3px 6px 3px 4px; }
+.chip .d { width: 19px; height: 19px; border-radius: 50%; display: inline-grid; place-items: center; font-size: var(--mono-s); font-weight: 700; color: var(--sheet); }
 .chip.unmet { border-color: var(--k-fail); }
 .chip.unmet .x { color: var(--k-fail); }
-.chip .need { font: 500 10.5px var(--mono); color: var(--k-fail); }
+.chip .need { font: 500 var(--mono-s) var(--mono); color: var(--k-fail); }
 .chip .x { border: 0; background: none; color: var(--muted); cursor: pointer; font: 700 13px var(--sans); padding: 0 3px; line-height: 1; }
 .chip .x:hover { color: var(--ink); }
 .bar textarea { flex: 0 1 260px; min-width: 150px; min-height: 34px; resize: vertical; font: 12.5px var(--sans); color: var(--ink); background: var(--paper); border: 1px solid var(--rule); border-radius: 7px; padding: 8px 10px; }
@@ -57,7 +58,7 @@ const assemblyCss = `
 .bar.rest .bar-in { padding: 6px 12px; }
 .bar.rest textarea { display: none; }
 .bar.rest button.go { padding: 6px 14px; }
-.bar .bar-tab { display: none; font: 600 12.5px var(--mono); color: var(--ink); background: var(--sheet); border: 1px solid var(--rule); border-radius: 999px; padding: 8px 16px; cursor: pointer; box-shadow: 0 8px 28px color-mix(in srgb, var(--ink) 14%, transparent); }
+.bar .bar-tab { display: none; font: 600 var(--mono-l) var(--mono); color: var(--ink); background: var(--sheet); border: 1px solid var(--rule); border-radius: 999px; padding: 8px 16px; cursor: pointer; box-shadow: 0 8px 28px color-mix(in srgb, var(--ink) 14%, transparent); }
 
 @media (max-width: 979px) {
   .side { display: none; }
@@ -126,7 +127,7 @@ function viewsOf(q: Ruling, id: string): string {
         : viewHtml(q, id, 'today', todayAttrs)) +
         (todayLetter !== undefined
           ? `<input class="onote" data-note="${id}${todayLetter}" ` +
-            `placeholder="note for ${id}${todayLetter} — rides the answer" aria-label="note for ${id}${todayLetter}">`
+            `placeholder="note for ${id}${todayLetter}" aria-label="note for ${id}${todayLetter}">`
           : ''),
     );
   }
@@ -139,7 +140,7 @@ function viewsOf(q: Ruling, id: string): string {
     out.push(
       (isBodies ? bodiesOption(q, view, attrs) : viewHtml(q, id, view, attrs)) +
         `<input class="onote" data-note="${view}" ` +
-        `placeholder="note for ${view} — rides the answer" aria-label="note for ${view}">`,
+        `placeholder="note for ${view}" aria-label="note for ${view}">`,
     );
   }
   return out.join('');
@@ -169,14 +170,14 @@ function rulingSection(P: Page, id: string): string {
   const mergedInto = Object.entries(P.rulings)
     .filter(([, m]) => m.merged === id)
     .map(
-      ([mid, m]) =>
-        `<div class="changed"><b>${mid} is merged into this ruling.</b> ${m.changed ?? ''}</div>`,
+      ([mid]) =>
+        `<div class="changed"><b>${mid} is merged into this ruling.</b></div>`,
     )
     .join('');
   return (
     `<section class="ruling" id="r-${id}">` +
     `<div class="rhead"><span class="rid">${id}</span><div><h3>${q.title ?? ''}</h3>` +
-    `<button type="button" class="none-btn" data-none="${id}">none of these fit · n</button></div></div>` +
+    `<button type="button" class="none-btn" data-none="${id}">none of these fit</button></div></div>` +
     mergedInto +
     `<p class="stake">${q.stake ?? ''}</p>` +
     `<p class="today">${q.today ?? ''}</p>` +

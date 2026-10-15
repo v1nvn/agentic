@@ -50,18 +50,18 @@ var PAGE = {
           lang: "ts",
           what: "The quiet walk core runs on every command, today.",
           code: 'function quiet(\n  command: Command,\n  onUsageError: (command: Command) => void,\n): void {\n  command.configureOutput({\n    writeOut: () => undefined,\n    writeErr: () => undefined,\n  });\n  command.exitOverride(err => {\n    const code = (err as { code?: string }).code;\n    if (code === \'commander.help\' || code === \'commander.helpDisplayed\') {\n      throw new HelpRequested(command);\n    }\n    onUsageError(command);\n    throw err;\n  });\n  command.commands.forEach(c => {\n    quiet(c, onUsageError);\n  });\n}\n\nexport function parseCli<T = HelpRequested>(\n  spec: CliSpec,\n  argv: readonly string[],\n  onHelp?: CliHelpHook<T>,\n  onUsageError?: (command: Command, err: Error) => void,\n): CliInvocation | HelpRequested | T | undefined {\n  let invocation: CliInvocation | undefined;\n  const program = materialize(spec, found => {\n    invocation = found;\n  });\n  let errored: Command | undefined;\n  quiet(program, command => {\n    errored = command;\n  });\n  try {\n    program.parse([...argv], { from: \'user\' });\n  } catch (err) {\n    if (!(err instanceof HelpRequested)) {\n      if (errored !== undefined) {\n        const cause = err instanceof Error ? err : new Error(String(err));\n        onUsageError?.(errored, cause);\n      }\n      return undefined;\n    }\n    return onHelp !== undefined\n      ? onHelp(err.command.name(), err.command.helpInformation())\n      : err;\n  }\n  return invocation;\n}',
-          cap: "From <code>core/src/cli.ts:139-189</code>, the walk and its caller. The engine computes and tints the delta against each option."
+          cap: "From <code>core/src/cli.ts:139-189</code>, the walk and its caller. Each option below marks only the lines it changes."
         },
         a: {
           lang: "ts",
           code: 'function quiet(\n  command: Command,\n  onUsageError: (command: Command) => void,\n): void {\n  command.configureOutput({\n    writeOut: () => undefined,\n    writeErr: () => undefined,\n  });\n  command.commands.forEach(c => {\n    quiet(c, onUsageError);\n  });\n}\n\nexport function parseCli<T = HelpRequested>(\n  spec: CliSpec,\n  argv: readonly string[],\n  onHelp?: CliHelpHook<T>,\n  onUsageError?: (command: Command, err: Error) => void,\n): CliInvocation | HelpRequested | T | undefined {\n  let invocation: CliInvocation | undefined;\n  const program = materialize(spec, found => {\n    invocation = found;\n  });\n  let errored: Command | undefined;\n  quiet(program, command => {\n    errored = command;\n  });\n  try {\n    program.parse([...argv], { from: \'user\' });\n  } catch (err) {\n    if (!(err instanceof HelpRequested)) {\n      if (errored !== undefined) {\n        const cause = err instanceof Error ? err : new Error(String(err));\n        onUsageError?.(errored, cause);\n      }\n      return undefined;\n    }\n    return onHelp !== undefined\n      ? onHelp(err.command.name(), err.command.helpInformation())\n      : err;\n  }\n  return invocation;\n}',
-          cap: "Write the after-code in full; the engine computes and tints the delta. A long unchanged run collapses on its own."
+          cap: "Only the exitOverride block is removed; every other line is unchanged."
         },
         b: {
           diff: false,
           state: "sketch",
           code: 'parseQuietly(program, args, err =>\n  err instanceof HelpRequested\n    ? { help: err.command }\n    : commanderCode(err) === "commander.helpDisplayed"\n      ? { help: currentCommand(program) }\n      : undefined,\n)',
-          cap: "A sketch: feasibility not checked. diff: false keeps side-by-side snapshots when the pair is not the same code."
+          cap: "Shown whole rather than marked line by line: it is not the same code as today’s walk."
         }
       },
       opts: [
