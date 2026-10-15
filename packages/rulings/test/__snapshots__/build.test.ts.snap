@@ -32,13 +32,13 @@ exports[`the emitted page > pins the example full HTML: sidebar, sections, views
 .o-a { --o: var(--opt-a); } .o-b { --o: var(--opt-b); } .o-c { --o: var(--opt-c); } .o-d { --o: var(--opt-d); }
 
 * { box-sizing: border-box; }
-html { background: var(--paper); }
+html { background: var(--paper); scroll-behavior: smooth; }
 body { margin: 0; background: var(--paper); color: var(--ink); font: 14.5px/1.55 var(--sans); }
 code { font: 0.86em var(--mono); background: var(--code); border: 1px solid var(--rule); padding: 0 4px; border-radius: 3px; overflow-wrap: anywhere; }
 h1, h3 { margin: 0; font-family: var(--serif); font-weight: 600; line-height: 1.18; text-wrap: balance; }
 h2 { margin: 0; font: 600 12px var(--mono); letter-spacing: 0.08em; color: var(--muted); }
 p { margin: 0; }
-@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } html { scroll-behavior: auto; } }
 
 /* Layout: fixed sidebar left, one content column. */
 .side { position: fixed; top: 0; bottom: 0; left: 0; width: 228px; padding: 22px 14px 90px; border-right: 1px solid var(--rule); background: var(--paper); overflow-y: auto; overscroll-behavior: contain; }
@@ -51,7 +51,8 @@ section[id^="r-"] { scroll-margin-top: 14px; }
 .masthead h1 { font-size: 31px; letter-spacing: -0.01em; margin-top: 6px; }
 .masthead .sub { color: var(--muted); max-width: 64ch; margin-top: 8px; font-size: 14.5px; }
 
-/* Sidebar navigation */
+/* Sidebar navigation and its ruled state */
+.side .scount { font: 600 11px var(--mono); letter-spacing: 0.04em; color: var(--muted); padding: 0 8px 14px; }
 .side .sg { margin-bottom: 16px; }
 .side .sg h2 { padding: 0 8px 5px; display: flex; justify-content: space-between; }
 .side .sg h2 .n { letter-spacing: 0; }
@@ -61,6 +62,17 @@ section[id^="r-"] { scroll-margin-top: 14px; }
 .side a.rl:hover { color: var(--ink); background: color-mix(in srgb, var(--ink) 5%, transparent); }
 .side a.rl.here { color: var(--ink); background: var(--sheet); box-shadow: inset var(--rail) 0 0 var(--ink); }
 .side a.rl.merged .t { font-style: italic; }
+.side a.rl.ruled { color: var(--ink); }
+.side a.rl.ruled .gid { color: var(--ink); }
+.side a.rl.ruled::after { content: "✓"; margin-left: auto; flex: none; font: 700 11px var(--mono); color: var(--add); }
+
+/* Wayfinding pill: the sidebar's current position, reachable below the sidebar's own cut */
+.where { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); z-index: 9; display: none; max-width: calc(100vw - 24px); padding: 6px 14px; border-radius: 999px; background: var(--sheet); border: 1px solid var(--rule); box-shadow: 0 4px 16px color-mix(in srgb, var(--ink) 12%, transparent); text-decoration: none; color: var(--ink); font: 12.5px var(--sans); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.where:hover { border-color: var(--ink); }
+@media (max-width: 979px) {
+  .where:not([hidden]) { display: block; }
+  section[id^="r-"] { scroll-margin-top: 54px; }
+}
 
 /* Notes: one row per entry, the bold lead-in as its mono marker */
 .notes { display: grid; gap: 7px; padding-block: 14px 26px; max-width: 78ch; }
@@ -199,21 +211,38 @@ svg text.note { font-size: 11.5px; font-weight: 600; fill: var(--o); }
 .chip .need { font: 500 10.5px var(--mono); color: var(--k-fail); }
 .chip .x { border: 0; background: none; color: var(--muted); cursor: pointer; font: 700 13px var(--sans); padding: 0 3px; line-height: 1; }
 .chip .x:hover { color: var(--ink); }
-.bar textarea { flex: 0 1 260px; min-width: 150px; min-height: 34px; max-height: 120px; resize: vertical; font: 12.5px var(--sans); color: var(--ink); background: var(--paper); border: 1px solid var(--rule); border-radius: 7px; padding: 8px 10px; }
+.bar textarea { flex: 0 1 260px; min-width: 150px; min-height: 34px; resize: vertical; font: 12.5px var(--sans); color: var(--ink); background: var(--paper); border: 1px solid var(--rule); border-radius: 7px; padding: 8px 10px; }
 .bar textarea:focus { outline: none; border-color: var(--ink); }
 .bar button.go { flex: none; font: 600 13px var(--sans); color: var(--sheet); background: var(--ink); border: 0; border-radius: 7px; padding: 9px 16px; cursor: pointer; }
 .bar button.go:hover { opacity: 0.88; }
 :focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+/* The bar rests as a strip until work arrives: no picks and no note. */
+.bar.rest .bar-in { padding: 6px 12px; }
+.bar.rest textarea { display: none; }
+.bar.rest button.go { padding: 6px 14px; }
+.bar .bar-tab { display: none; font: 600 12.5px var(--mono); color: var(--ink); background: var(--sheet); border: 1px solid var(--rule); border-radius: 999px; padding: 8px 16px; cursor: pointer; box-shadow: 0 8px 28px color-mix(in srgb, var(--ink) 14%, transparent); }
 
 @media (max-width: 979px) {
   .side { display: none; }
   .doc { margin-left: 0; }
   .bar { left: 12px; right: 12px; transform: none; width: auto; }
 }
+
+/* On a phone the bar collapses to the tab's chip count; the tab opens the composer. */
+@media (max-width: 640px) {
+  .bar { bottom: 12px; text-align: center; }
+  .bar .bar-in { display: none; }
+  .bar.open .bar-in { display: flex; flex-direction: column; align-items: stretch; max-height: calc(100vh - 120px); overflow-y: auto; }
+  .bar.open textarea { display: block; flex: 1 1 auto; width: 100%; min-width: 0; }
+  .bar .chips { flex-basis: auto; }
+  .bar .bar-tab { display: inline-flex; margin: 8px 0 0; }
+}
 </style>
 </head>
 <body data-key="rulings-testril-pr251">
-<nav class="side" aria-label="Rulings"><div class="sg"><h2><span>What a buyer is owed</span><span class="n">2</span></h2><a class="rl" href="#r-G1"><span class="gid">G1</span><span class="t">Who owns a leaf block inside its reader’s window?</span></a><a class="rl merged" href="#r-G3"><span class="gid">G3</span><span class="t">Should the reader’s window mint its own leaf band?</span></a></div><div class="sg"><h2><span>A code change</span><span class="n">1</span></h2><a class="rl" href="#r-G2"><span class="gid">G2</span><span class="t">Should core stop replacing a caller’s exit handler?</span></a></div><div class="sg"><h2><span>What a restart does</span><span class="n">1</span></h2><a class="rl" href="#r-G4"><span class="gid">G4</span><span class="t">Who re-arms a reader’s window after a daemon restart?</span></a></div></nav>
+<nav class="side" aria-label="Rulings"><div class="scount" id="ruled-count">0 of 3 ruled</div><div class="sg"><h2><span>What a buyer is owed</span><span class="n">2</span></h2><a class="rl" href="#r-G1"><span class="gid">G1</span><span class="t">Who owns a leaf block inside its reader’s window?</span></a><a class="rl merged" href="#r-G3"><span class="gid">G3</span><span class="t">Should the reader’s window mint its own leaf band?</span></a></div><div class="sg"><h2><span>A code change</span><span class="n">1</span></h2><a class="rl" href="#r-G2"><span class="gid">G2</span><span class="t">Should core stop replacing a caller’s exit handler?</span></a></div><div class="sg"><h2><span>What a restart does</span><span class="n">1</span></h2><a class="rl" href="#r-G4"><span class="gid">G4</span><span class="t">Who re-arms a reader’s window after a daemon restart?</span></a></div></nav>
+<a class="where" id="rulings-where" hidden></a>
 <div class="doc">
 <main class="col-in">
 <div class="masthead">
@@ -281,12 +310,13 @@ svg text.note { font-size: 11.5px; font-weight: 600; fill: var(--o); }
 )</pre><p class="bcap">A sketch: feasibility not checked. diff: false keeps side-by-side snapshots when the pair is not the same code.</p></div></div></div><p class="how">recover already maps commander error codes to ink replies; this adds one arm — helpDisplayed re-renders the failing command’s own usage instead of the root usage.</p><div class="gc gain"><span class="sign">+</span><span>No shared-code change; statusline’s recover learns commander’s helpDisplayed code on its own.</span></div><div class="gc cost"><span class="sign">−</span><span>The trap stays set for the next caller that installs an override. Every future CLI re-learns it.</span></div></section><input class="onote" data-note="G2b" placeholder="note for G2b — rides the answer" aria-label="note for G2b"></div></section><div class="ghead"><h2>What a restart does</h2></div><section class="ruling" id="r-G4"><div class="rhead"><span class="rid">G4</span><div><h3>Who re-arms a reader’s window after a daemon restart?</h3><button type="button" class="none-btn" data-none="G4">none of these fit · n</button></div></div><p class="stake"><b>Roughly 1 daemon restart a week lands mid-read; each one pays a leaf read’s holder half into the void until a human notices.</b></p><p class="today">The window lives only in the daemon’s memory. After a crash the console shows the reader with no window; whoever is on call reads the ledger, rebuilds the range by hand, and the next read pays the band again.</p><div class="views"><section class="view today"><div class="vhead"><span class="vt">Today</span><span class="vmeta">how it works now</span></div><div class="stage"><div class="legend"><span style="--k:var(--k-call)"><i></i>a call or a reply</span><span style="--k:var(--k-money)"><i></i>money moves</span><span style="--k:var(--k-store)"><i></i>a write that lasts</span><span style="--k:var(--k-fail)"><i></i>an error</span></div><div class="scroll"><svg class="seq" viewBox="0 0 906 242" style="min-width:760px" role="img" aria-label="Today a crash loses the window; the read pays into the void until a human rebuilds it."><rect class="ledger-bg" x="784" y="8" width="120" height="228" rx="4"/><line class="life" x1="177" y1="56" x2="177" y2="234"/><g class="actor"><rect x="100" y="12" width="154" height="44" rx="4"/><text x="177" y="39" text-anchor="middle">Daemon</text></g><line class="life" x1="347" y1="56" x2="347" y2="234"/><g class="actor"><rect x="270" y="12" width="154" height="44" rx="4"/><text x="347" y="39" text-anchor="middle">Postgres</text></g><line class="life" x1="517" y1="56" x2="517" y2="234"/><g class="actor"><rect x="440" y="12" width="154" height="44" rx="4"/><text x="517" y="39" text-anchor="middle">Reader</text></g><line class="life" x1="687" y1="56" x2="687" y2="234"/><g class="actor"><rect x="610" y="12" width="154" height="44" rx="4"/><text x="687" y="39" text-anchor="middle">On call</text></g><text class="balh" x="844" y="32" text-anchor="middle">Windows</text><text class="balh" x="844" y="46" text-anchor="middle">armed</text><text class="num" x="4" y="90">start</text><text class="bal" x="844" y="90" text-anchor="middle">1</text><g><text class="num" x="14" y="122" text-anchor="middle">1</text><g class="self k-fail"><rect x="92" y="100" width="311.6" height="36" rx="18"/><text x="247.8" y="115" text-anchor="middle">daemon restarts mid-read</text><text class="sub" x="247.8" y="130" text-anchor="middle">the window lives only in the daemon’s memory</text></g></g><text class="bal chg" x="844" y="122" text-anchor="middle">0</text><g><text class="num" x="14" y="176" text-anchor="middle">3</text><g class="self k-money"><rect x="364.4" y="159" width="305.2" height="26" rx="13"/><text x="517" y="176" text-anchor="middle">the read pays the holder half into the void</text></g></g><g><text class="num" x="14" y="216" text-anchor="middle">4</text><g class="e k-call"><line x1="687" y1="212" x2="181" y2="212"/><polygon class="head" points="177,212 186,207 186,217"/><text x="432" y="204" text-anchor="middle">a human rebuilds the window from the console</text></g></g><text class="bal chg" x="844" y="216" text-anchor="middle">1</text></svg></div><p class="cap"><b>Today a crash loses the window; the read pays into the void until a human rebuilds it.</b></p></div></section><section class="view o-a" data-pick="G4a" role="button" tabindex="0"><div class="vhead"><span class="lt">a</span><div class="vtt"><span class="vt">The daemon re-arms its windows from Postgres on start</span><span class="vmeta"><span class="star">★ my pick</span></span></div><span class="pmark">✓ picked</span></div><div class="stage"><div class="legend"><span style="--k:var(--k-call)"><i></i>a call or a reply</span><span style="--k:var(--k-money)"><i></i>money moves</span><span style="--k:var(--k-store)"><i></i>a write that lasts</span><span style="--k:var(--k-fail)"><i></i>an error</span><span><b class="sw"></b>what this option changes</span></div><div class="scroll"><svg class="seq" viewBox="0 0 906 258" style="min-width:760px" role="img" aria-label="Option a: the daemon re-arms its windows from Postgres on start. No void window."><rect class="ledger-bg" x="784" y="8" width="120" height="244" rx="4"/><rect class="band" x="4" y="98" width="768" height="50" rx="3"/><rect class="band" x="4" y="152" width="768" height="52" rx="3"/><rect class="band" x="4" y="208" width="768" height="36" rx="3"/><line class="life" x1="177" y1="56" x2="177" y2="250"/><g class="actor"><rect x="100" y="12" width="154" height="44" rx="4"/><text x="177" y="39" text-anchor="middle">Daemon</text></g><line class="life" x1="347" y1="56" x2="347" y2="250"/><g class="actor"><rect x="270" y="12" width="154" height="44" rx="4"/><text x="347" y="39" text-anchor="middle">Postgres</text></g><line class="life" x1="517" y1="56" x2="517" y2="250"/><g class="actor"><rect x="440" y="12" width="154" height="44" rx="4"/><text x="517" y="39" text-anchor="middle">Reader</text></g><line class="life" x1="687" y1="56" x2="687" y2="250"/><g class="actor"><rect x="610" y="12" width="154" height="44" rx="4"/><text x="687" y="39" text-anchor="middle">On call</text></g><text class="balh" x="844" y="32" text-anchor="middle">Windows</text><text class="balh" x="844" y="46" text-anchor="middle">armed</text><text class="num" x="4" y="90">start</text><text class="bal" x="844" y="90" text-anchor="middle">1</text><g><text class="num" x="14" y="122" text-anchor="middle">2</text><g class="tg tg-new"><rect x="26" y="109" width="58" height="18" rx="9"/><text x="55" y="122" text-anchor="middle">new</text></g><g class="e k-store"><line x1="177" y1="118" x2="343" y2="118"/><polygon class="head" points="347,118 338,113 338,123"/><text x="262" y="110" text-anchor="middle">daemon re-arms the window from Postgres</text><text class="sub" x="262" y="134" text-anchor="middle">one more table the daemon owns</text></g></g><text class="bal chg" x="844" y="122" text-anchor="middle">1</text><g><text class="num" x="14" y="176" text-anchor="middle">3</text><g class="tg tg-changed"><rect x="26" y="163" width="58" height="18" rx="9"/><text x="55" y="176" text-anchor="middle">changed</text></g><g class="self k-money"><rect x="431.6" y="159" width="170.8" height="26" rx="13"/><text x="517" y="176" text-anchor="middle">the read pays the band</text></g></g><text class="note" x="517" y="197" text-anchor="middle">the window survived the restart</text><g class="gone"><text class="num" x="14" y="232" text-anchor="middle">4</text><g class="tg tg-gone"><rect x="26" y="219" width="58" height="18" rx="9"/><text x="55" y="232" text-anchor="middle">gone</text></g><g class="e k-call"><line x1="687" y1="228" x2="181" y2="228"/><polygon class="head" points="177,228 186,223 186,233"/><text x="432" y="220" text-anchor="middle">a human rebuilds the window from the console</text></g><line class="strike" x1="286.8" y1="216" x2="577.2" y2="216"/></g></svg></div><p class="cap"><b>Option a: the daemon re-arms its windows from Postgres on start.</b> No void window.</p></div><div class="gc gain"><span class="sign">+</span><span>A restart becomes a non-event: the window survives, reads never pay into the void, no human in the loop.</span></div><div class="gc cost"><span class="sign">−</span><span>One more table the daemon owns and migrates; the start sequence grows a step.</span></div></section><input class="onote" data-note="G4a" placeholder="note for G4a — rides the answer" aria-label="note for G4a"><section class="view o-b" data-pick="G4b" role="button" tabindex="0"><div class="vhead"><span class="lt">b</span><div class="vtt"><span class="vt">The read re-arms the window before paying</span></div><span class="pmark">✓ picked</span></div><div class="stage"><div class="legend"><span style="--k:var(--k-call)"><i></i>a call or a reply</span><span style="--k:var(--k-money)"><i></i>money moves</span><span style="--k:var(--k-store)"><i></i>a write that lasts</span><span style="--k:var(--k-fail)"><i></i>an error</span><span><b class="sw"></b>what this option changes</span></div><div class="scroll"><svg class="seq" viewBox="0 0 906 204" style="min-width:760px" role="img" aria-label="Option b: the read re-arms the window before paying. One extra write per read."><rect class="ledger-bg" x="784" y="8" width="120" height="190" rx="4"/><rect class="band" x="4" y="98" width="768" height="52" rx="3"/><rect class="band" x="4" y="154" width="768" height="36" rx="3"/><line class="life" x1="177" y1="56" x2="177" y2="196"/><g class="actor"><rect x="100" y="12" width="154" height="44" rx="4"/><text x="177" y="39" text-anchor="middle">Daemon</text></g><line class="life" x1="347" y1="56" x2="347" y2="196"/><g class="actor"><rect x="270" y="12" width="154" height="44" rx="4"/><text x="347" y="39" text-anchor="middle">Postgres</text></g><line class="life" x1="517" y1="56" x2="517" y2="196"/><g class="actor"><rect x="440" y="12" width="154" height="44" rx="4"/><text x="517" y="39" text-anchor="middle">Reader</text></g><line class="life" x1="687" y1="56" x2="687" y2="196"/><g class="actor"><rect x="610" y="12" width="154" height="44" rx="4"/><text x="687" y="39" text-anchor="middle">On call</text></g><text class="balh" x="844" y="32" text-anchor="middle">Windows</text><text class="balh" x="844" y="46" text-anchor="middle">armed</text><text class="num" x="4" y="90">start</text><text class="bal" x="844" y="90" text-anchor="middle">1</text><g><text class="num" x="14" y="122" text-anchor="middle">3</text><g class="tg tg-changed"><rect x="26" y="109" width="58" height="18" rx="9"/><text x="55" y="122" text-anchor="middle">changed</text></g><g class="self k-money"><rect x="351.6" y="105" width="330.8" height="26" rx="13"/><text x="517" y="122" text-anchor="middle">the read re-arms the window, then pays the band</text></g></g><text class="note" x="517" y="143" text-anchor="middle">one extra write per read</text><text class="bal chg" x="844" y="122" text-anchor="middle">1</text><g class="gone"><text class="num" x="14" y="178" text-anchor="middle">4</text><g class="tg tg-gone"><rect x="26" y="165" width="58" height="18" rx="9"/><text x="55" y="178" text-anchor="middle">gone</text></g><g class="e k-call"><line x1="687" y1="174" x2="181" y2="174"/><polygon class="head" points="177,174 186,169 186,179"/><text x="432" y="166" text-anchor="middle">a human rebuilds the window from the console</text></g><line class="strike" x1="286.8" y1="162" x2="577.2" y2="162"/></g></svg></div><p class="cap"><b>Option b: the read re-arms the window before paying.</b> One extra write per read.</p></div><p class="how">The read already opens a transaction on the leaf rows; arming the window there is one more write on the same connection, with no new owner of state.</p><div class="gc gain"><span class="sign">+</span><span>The protocol fixes itself; no daemon change at all.</span></div><div class="gc cost"><span class="sign">−</span><span>Every read pays one extra write — about 40 a day at current traffic.</span></div></section><input class="onote" data-note="G4b" placeholder="note for G4b — rides the answer" aria-label="note for G4b"></div></section>
 </main>
 </div>
-<footer class="bar">
-<div class="bar-in">
+<footer class="bar" id="rulings-bar">
+<div class="bar-in" id="rulings-bar-in">
 <div class="chips" id="picks" aria-live="polite"></div>
 <textarea id="rulings-notes" rows="1" placeholder="page note — anything the answer should carry"></textarea>
 <button type="button" class="go" id="copy-answer">Copy answer</button>
 </div>
+<button type="button" class="bar-tab" id="bar-tab" aria-expanded="false" aria-controls="rulings-bar-in">no picks yet</button>
 </footer>
 
 <script>
@@ -300,6 +330,10 @@ svg text.note { font-size: 11.5px; font-weight: 600; fill: var(--o); }
   var sum = document.getElementById('picks');
   var notesIn = document.getElementById('rulings-notes');
   var copyBtn = document.getElementById('copy-answer');
+  var bar = document.getElementById('rulings-bar');
+  var tab = document.getElementById('bar-tab');
+  var countEl = document.getElementById('ruled-count');
+  var where = document.getElementById('rulings-where');
   var pick = {};
   var onotes = {};
   var note = '';
@@ -372,6 +406,14 @@ svg text.note { font-size: 11.5px; font-weight: 600; fill: var(--o); }
     }
     if (!sum) return;
     var es = entries();
+    if (bar) bar.classList.toggle('rest', es.length === 0 && (notesIn ? note : '') === '');
+    if (tab) tab.textContent = es.length === 0 ? 'no picks yet' : es.length + (es.length === 1 ? ' pick' : ' picks');
+    if (countEl) {
+      var ruled = 0;
+      ORDER.forEach(function (id) { if (pick[id]) ruled++; });
+      countEl.textContent = ruled + ' of ' + ORDER.length + ' ruled';
+    }
+    for (var rk in links) links[rk].classList.toggle('ruled', !!pick[rk.slice(2)]);
     if (es.length === 0) {
       sum.innerHTML = '<span class="empty">no picks yet — click a view</span>';
       return;
@@ -388,8 +430,6 @@ svg text.note { font-size: 11.5px; font-weight: 600; fill: var(--o); }
   function commit() { render(); save(); }
 
   document.addEventListener('click', function (e) {
-    var sel = window.getSelection ? window.getSelection() : null;
-    if (sel && String(sel)) return;
     var x = e.target.closest('[data-unpick]');
     if (x) {
       var xm = REF.exec(x.getAttribute('data-unpick'));
@@ -400,6 +440,10 @@ svg text.note { font-size: 11.5px; font-weight: 600; fill: var(--o); }
     if (e.target.closest('.onote, a, textarea')) return;
     var card = e.target.closest('[data-pick]');
     if (card) {
+      var sel = window.getSelection ? window.getSelection() : null;
+      // a click ending a drag-select carries a live selection and detail > 0;
+      // a keyboard-activated pick (card.click()) carries detail 0
+      if (sel && String(sel) && e.detail) return;
       var m = REF.exec(card.getAttribute('data-pick'));
       if (m) { if (pick[m[1]] === m[2]) delete pick[m[1]]; else pick[m[1]] = m[2]; }
       commit();
@@ -428,28 +472,53 @@ svg text.note { font-size: 11.5px; font-weight: 600; fill: var(--o); }
   });
   function sizeNote() {
     if (!notesIn) return;
+    var cap = Math.max(120, (window.innerHeight || 640) - 220);
     notesIn.style.height = 'auto';
-    notesIn.style.height = notesIn.scrollHeight + 'px';
+    notesIn.style.height = Math.min(notesIn.scrollHeight, cap) + 'px';
   }
+  if (tab && bar) tab.addEventListener('click', function () {
+    var open = !bar.classList.contains('open');
+    bar.classList.toggle('open', open);
+    tab.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if (open) sizeNote();
+  });
   if (notesIn) notesIn.addEventListener('input', function () { note = notesIn.value; save(); sizeNote(); });
   noteIns.forEach(function (inp) {
     inp.addEventListener('input', function () { onotes[inp.getAttribute('data-note')] = inp.value; save(); });
   });
 
   var links = {};
+  var titles = {};
   var sideLinks = document.querySelectorAll('.side a.rl');
   for (var si = 0; si < sideLinks.length; si++) {
     var h = (sideLinks[si].getAttribute('href') || '').slice(1);
-    if (h) links[h] = sideLinks[si];
+    if (!h) continue;
+    links[h] = sideLinks[si];
+    var t = sideLinks[si].querySelector('.t');
+    titles[h] = t ? t.textContent : '';
+  }
+  var hereId = null;
+  function setWhere(id) {
+    if (!where) return;
+    if (!id) { where.setAttribute('hidden', ''); return; }
+    where.removeAttribute('hidden');
+    where.setAttribute('href', '#r-' + id);
+    where.textContent = id + ' · ' + (titles['r-' + id] || '');
   }
   if ('IntersectionObserver' in window && Object.keys(links).length) {
     var io = new IntersectionObserver(function (ents) {
       ents.forEach(function (en) {
         var l = links[en.target.id];
         if (!l) return;
-        if (!en.isIntersecting) { l.classList.remove('here'); return; }
+        if (!en.isIntersecting) {
+          l.classList.remove('here');
+          if (hereId === en.target.id) { hereId = null; setWhere(null); }
+          return;
+        }
         for (var k in links) links[k].classList.remove('here');
         l.classList.add('here');
+        hereId = en.target.id;
+        setWhere(en.target.id.slice(2));
       });
     }, { rootMargin: '-12% 0px -78% 0px' });
     var secs = document.querySelectorAll('section[id]');

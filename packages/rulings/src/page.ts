@@ -47,16 +47,32 @@ const assemblyCss = `
 .chip .need { font: 500 10.5px var(--mono); color: var(--k-fail); }
 .chip .x { border: 0; background: none; color: var(--muted); cursor: pointer; font: 700 13px var(--sans); padding: 0 3px; line-height: 1; }
 .chip .x:hover { color: var(--ink); }
-.bar textarea { flex: 0 1 260px; min-width: 150px; min-height: 34px; max-height: 120px; resize: vertical; font: 12.5px var(--sans); color: var(--ink); background: var(--paper); border: 1px solid var(--rule); border-radius: 7px; padding: 8px 10px; }
+.bar textarea { flex: 0 1 260px; min-width: 150px; min-height: 34px; resize: vertical; font: 12.5px var(--sans); color: var(--ink); background: var(--paper); border: 1px solid var(--rule); border-radius: 7px; padding: 8px 10px; }
 .bar textarea:focus { outline: none; border-color: var(--ink); }
 .bar button.go { flex: none; font: 600 13px var(--sans); color: var(--sheet); background: var(--ink); border: 0; border-radius: 7px; padding: 9px 16px; cursor: pointer; }
 .bar button.go:hover { opacity: 0.88; }
 :focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 
+/* The bar rests as a strip until work arrives: no picks and no note. */
+.bar.rest .bar-in { padding: 6px 12px; }
+.bar.rest textarea { display: none; }
+.bar.rest button.go { padding: 6px 14px; }
+.bar .bar-tab { display: none; font: 600 12.5px var(--mono); color: var(--ink); background: var(--sheet); border: 1px solid var(--rule); border-radius: 999px; padding: 8px 16px; cursor: pointer; box-shadow: 0 8px 28px color-mix(in srgb, var(--ink) 14%, transparent); }
+
 @media (max-width: 979px) {
   .side { display: none; }
   .doc { margin-left: 0; }
   .bar { left: 12px; right: 12px; transform: none; width: auto; }
+}
+
+/* On a phone the bar collapses to the tab's chip count; the tab opens the composer. */
+@media (max-width: 640px) {
+  .bar { bottom: 12px; text-align: center; }
+  .bar .bar-in { display: none; }
+  .bar.open .bar-in { display: flex; flex-direction: column; align-items: stretch; max-height: calc(100vh - 120px); overflow-y: auto; }
+  .bar.open textarea { display: block; flex: 1 1 auto; width: 100%; min-width: 0; }
+  .bar .chips { flex-basis: auto; }
+  .bar .bar-tab { display: inline-flex; margin: 8px 0 0; }
 }
 `;
 
@@ -170,6 +186,9 @@ function rulingSection(P: Page, id: string): string {
 }
 
 function sideHtml(P: Page): string {
+  const ruleable = P.groups
+    .flatMap(g => g.rulings)
+    .filter(id => rulingOf(P, id).merged === undefined).length;
   const groups = P.groups
     .map(
       g =>
@@ -187,7 +206,7 @@ function sideHtml(P: Page): string {
         '</div>',
     )
     .join('');
-  return `<nav class="side" aria-label="Rulings">${groups}</nav>`;
+  return `<nav class="side" aria-label="Rulings"><div class="scount" id="ruled-count">0 of ${ruleable} ruled</div>${groups}</nav>`;
 }
 
 export interface BuiltPage {
@@ -236,6 +255,7 @@ ${pageCss}${assemblyCss}</style>
 </head>
 <body${P.key ? ` data-key="${esc(P.key)}"` : ''}>
 ${sideHtml(P)}
+<a class="where" id="rulings-where" hidden></a>
 <div class="doc">
 <main class="col-in">
 <div class="masthead">
