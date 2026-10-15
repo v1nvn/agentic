@@ -7,7 +7,7 @@ import type { Opt, Page, Ruling } from './schema.ts';
 import { bodiesOption, bodiesToday } from './bodies.ts';
 import { chromeScript, panelHtml } from './chrome.ts';
 import { diagramView, mermaidBoot } from './diagram.ts';
-import { esc, hueOf, stripTags } from './html.ts';
+import { esc, optOf, stripTags } from './html.ts';
 import { seqView } from './seq.ts';
 import { pageCss } from './style.ts';
 
@@ -80,10 +80,7 @@ function needsOf(o: Opt): string[] {
 // The pick wiring a live option's view carries: its pick id, keyboard reach,
 // and the needs the composer checks against the current picks.
 function viewAttrs(q: Ruling, id: string, view: string): string {
-  const opts = q.opts ?? [];
-  const letter =
-    view === 'today' ? opts.find(o => o.today === true)?.k : view.slice(-1);
-  const o = letter === undefined ? undefined : opts.find(x => x.k === letter);
+  const o = optOf(q, view);
   if (o === undefined) {
     return '';
   }
@@ -139,39 +136,6 @@ function viewHtml(q: Ruling, id: string, view: string, attrs: string): string {
   return diagramView(q, view, attrs);
 }
 
-function compareHtml(q: Ruling): string {
-  const opts = q.opts ?? [];
-  const hasHow = opts.some(o => o.w !== undefined);
-  const rows = hasHow ? 4 : 3;
-  const cols = opts
-    .map(o => {
-      const needs = needsOf(o);
-      const chips = [
-        o.rec === true ? '<span class="star">★ my pick</span>' : '',
-        o.today === true ? '<span>as today</span>' : '',
-        ...needs.map(n => `<span class="dep">needs ${n}</span>`),
-      ]
-        .filter(c => c !== '')
-        .join('');
-      return (
-        `<div class="col ${hueOf(o.k)}"${needs.length ? ` data-needs="${needs.join(' ')}"` : ''}>` +
-        `<div class="colhead"><span class="lt">${o.k}</span><span><span>${o.t ?? ''}</span>` +
-        (chips ? `<span class="meta">${chips}</span>` : '') +
-        '</span></div>' +
-        (hasHow ? `<p class="how">${o.w ?? ''}</p>` : '') +
-        `<div class="gc gain"><span class="sign">+</span><span>${o.g ?? ''}</span></div>` +
-        `<div class="gc cost"><span class="sign">−</span><span>${o.c ?? ''}</span></div>` +
-        '</div>'
-      );
-    })
-    .join('');
-  return (
-    `<div class="compare"><div class="matrix" style="grid-template-columns:repeat(${opts.length}, minmax(220px, 1fr));--rows:${rows}">` +
-    cols +
-    '</div></div>'
-  );
-}
-
 // validatePage's green verdict already proved every group ruling exists.
 function rulingOf(P: Page, id: string): Ruling {
   return P.rulings[id];
@@ -201,7 +165,6 @@ function rulingSection(P: Page, id: string): string {
     `<p class="stake">${q.stake ?? ''}</p>` +
     `<p class="today">${q.today ?? ''}</p>` +
     `<div class="views">${viewsOf(q, id)}</div>` +
-    compareHtml(q) +
     '</section>'
   );
 }

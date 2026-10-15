@@ -7,7 +7,7 @@ import 'prismjs/components/prism-typescript.js';
 
 import type { Body, Ruling } from './schema.ts';
 
-import { esc, viewHeadFor } from './html.ts';
+import { esc, verdictFor, viewHeadFor } from './html.ts';
 
 const LANG_ALIAS: Record<string, string> = {
   bash: 'bash',
@@ -125,7 +125,9 @@ export function bodiesToday(q: Ruling, attrs = ''): string {
   const todayLetter = (q.opts ?? []).find(o => o.today === true)?.k ?? '';
   return (
     `<section class="view today"${attrs}>${head}` +
-    `<div class="stage"><div class="bodies">${bodyHtml(B.today, todayLetter, true)}</div></div></section>`
+    `<div class="stage"><div class="bodies">${bodyHtml(B.today, todayLetter, true)}</div></div>` +
+    verdictFor(q, 'today') +
+    '</section>'
   );
 }
 
@@ -143,6 +145,8 @@ export function bodiesOption(q: Ruling, view: string, attrs = ''): string {
   const todayCode = 'today' in B ? B.today.code : undefined;
   return (
     `<section class="view${hue ? ` ${hue}` : ''}"${attrs}>${head}` +
-    `<div class="stage"><div class="bodies">${bodyHtml(B[letter], letter, false, todayCode)}</div></div></section>`
+    `<div class="stage"><div class="bodies">${bodyHtml(B[letter], letter, false, todayCode)}</div></div>` +
+    verdictFor(q, view) +
+    '</section>'
   );
 }
