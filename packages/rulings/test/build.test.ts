@@ -61,7 +61,7 @@ function pageDir(text: string): string {
 describe('the emitted page', () => {
   it('pins the example full HTML: sidebar, sections, views, verdict tails, notes, merged note', () => {
     const { html, hasDiagram } = buildPage(loadPageFile(EXAMPLE));
-    expect(hasDiagram).toBe(true);
+    expect(hasDiagram).toBe(false);
     expect(html).toMatchSnapshot();
     expect(html).toContain('<nav class="side"');
     expect(html).toContain('href="#r-G4"');
@@ -86,10 +86,10 @@ describe('the emitted page', () => {
     expect(html.match(/★ my pick/g)).toHaveLength(3);
   });
 
-  it('carries exactly one external reference, the vendored mermaid, relatively', () => {
+  it('references nothing external: the example carries no diagram, no scripts', () => {
     const { html } = buildPage(loadPageFile(EXAMPLE));
-    expect(html.match(/<script src=/g)).toHaveLength(1);
-    expect(html).toContain('<script src="mermaid.min.js"></script>');
+    expect(html).not.toContain('<script src=');
+    expect(html).not.toContain('window.mermaid');
     expect(html).not.toMatch(/https?:\/\/|src="\/|href="\//);
   });
 });
@@ -138,11 +138,7 @@ describe('determinism', () => {
     expect(main([dir, '--no-open'])).toBe(0);
     const second = readFileSync(join(dir, 'index.html'));
     expect(second.equals(first)).toBe(true);
-    expect(readdirSync(dir).sort()).toEqual([
-      'index.html',
-      'mermaid.min.js',
-      'page.js',
-    ]);
+    expect(readdirSync(dir).sort()).toEqual(['index.html', 'page.js']);
   });
 
   it('carries no timestamp, absolute path or generated marker', () => {
@@ -227,9 +223,13 @@ describe('the bin door', () => {
     open.push(dir);
     mkdirSync(dir, { recursive: true });
     writeFileSync(join(dir, PAGE_FILE), PLAIN_PAGE);
-    const ran = spawnSync(process.execPath, ['src/index.ts', dir, '--no-open'], {
-      cwd: fileURLToPath(new URL('..', import.meta.url)),
-    });
+    const ran = spawnSync(
+      process.execPath,
+      ['src/index.ts', dir, '--no-open'],
+      {
+        cwd: fileURLToPath(new URL('..', import.meta.url)),
+      },
+    );
     expect(ran.status).toBe(0);
     expect(existsSync(join(dir, 'index.html'))).toBe(true);
   });

@@ -69,6 +69,9 @@ it goes on the page.
 | a request and its answer, or code | today's body and one body per option, shown as a diff | `bodies` |
 | a flow, a state, anything the other two cannot draw | free mermaid text, a view per option | `diagram` |
 
+A chain whose options add, drop or change steps is a `seq`, not a `diagram`: each option
+view draws only its delta rows on the shared lanes and ledger.
+
 `needs: "G7a"` on an option says it only makes sense under that pick; the page shows it as a
 chip, and the composer names the pick unmet until that need lands. Rulings whose picks change
 each other's options are not a page: settle them in chat
