@@ -20,12 +20,13 @@ function example(): Page {
   return structuredClone(ctx.PAGE) as Page;
 }
 
-describe('the example carries all three kinds', () => {
-  it('validates green with a seq, a bodies and a diagram ruling', () => {
+describe('the example page', () => {
+  it('validates green with two seq rulings and a bodies ruling, no diagram', () => {
     const P = example();
     expect(P.rulings.G1.seq).toBeTruthy();
     expect(P.rulings.G2.bodies).toBeTruthy();
-    expect(P.rulings.G4.diagram).toBeTruthy();
+    expect(P.rulings.G4.seq).toBeTruthy();
+    expect(P.rulings.G4.diagram).toBeFalsy();
     expect(validatePage(P).errors).toEqual([]);
   });
 });
@@ -52,6 +53,50 @@ describe('seq view', () => {
     );
   });
 
+  it('draws only an option’s delta rows, at their true chain numbers', () => {
+    const P = example();
+    const html = seqView(P.rulings.G1, 'G1', 'G1b');
+    expect(html).toContain('bands [30, 40) and [40, 50)');
+    expect(html).toContain('holder half goes to Paul’s leaf band');
+    expect(html).not.toContain('pays 2,400 for the reader');
+    expect(html).not.toContain('reader rows land [40, 50)');
+    expect(html).not.toContain('reads leaf rows [40, 50) and pays');
+    const nums = [...html.matchAll(/class="num"[^>]*>(\d+)<\/text>/g)].map(
+      m => m[1],
+    );
+    expect(nums).toEqual(['2', '5']);
+  });
+
+  it('threads the ledger through undrawn steps so drawn balances are true', () => {
+    const q: Ruling = {
+      opts: [
+        { c: 'c', g: 'g', k: 'a', rec: true, t: 'a' },
+        { c: 'c', g: 'g', k: 'b', t: 'b' },
+      ],
+      seq: {
+        lanes: ['l', 'r'],
+        ledger: ['n'],
+        start: [0],
+        steps: [
+          { f: 0, k: 'store', t: 1, x: 'base write', b: [5] },
+          {
+            f: 0,
+            k: 'call',
+            t: 1,
+            x: 'tweak',
+            o: { a: { x: 'tweaked for a' }, b: { x: 'tweaked' } },
+          },
+          { f: 1, k: 'check', t: 0, x: 'read', o: { b: { b: [null] } } },
+        ],
+      },
+    };
+    const html = seqView(q, 'G9', 'G9b');
+    expect(html).not.toContain('base write');
+    expect(html).toMatch(
+      />read<\/text>(?:<\/g>)+<text class="bal"[^>]*>5<\/text>/,
+    );
+  });
+
   it('draws new and gone tags for in and del overlays', () => {
     const P = example();
     const s = P.rulings.G1.seq;
@@ -68,21 +113,23 @@ describe('seq view', () => {
 });
 
 describe('bodies view', () => {
-  it('pins the today block: shown once, what label, cap caption, no diff', () => {
+  it('pins the today block: shown once, what label, cap cites the real quiet, no diff', () => {
     const P = example();
     const html = bodiesToday(P.rulings.G2);
     expect(html).toMatchSnapshot();
     expect(html).toContain('The quiet walk core runs on every command, today.');
+    expect(html).toContain('<code>core/src/cli.ts:139-189</code>');
     expect(html).not.toContain('diff vs today');
     expect(html).toContain('class="view today"');
   });
 
-  it('pins the option diff: its own body only, prism tokens, needs chip', () => {
+  it('pins the option diff: its own body only, prism tokens, needs chip, collapsed runs', () => {
     const P = example();
     const html = bodiesOption(P.rulings.G2, 'G2a');
     expect(html).toMatchSnapshot();
     expect(html).toContain('token keyword');
     expect(html).toContain('diff vs today');
+    expect(html).toContain('unchanged lines');
     expect(html).toContain('needs G1a');
     expect(html).not.toContain('The quiet walk core runs on every command');
   });
@@ -113,23 +160,44 @@ describe('bodies view', () => {
   });
 });
 
+function diagramRuling(): Ruling {
+  return {
+    opts: [
+      { c: 'c', g: 'g', k: 'a', rec: true, t: 'Re-arm on start' },
+      { c: 'c', g: 'g', k: 'b', t: 'Re-arm in the read' },
+    ],
+    diagram: {
+      cap: '<b>Today a crash loses the window.</b>',
+      views: {
+        today: {
+          text: 'flowchart TD\n  R[daemon restarts] --> L[window lost]',
+        },
+        a: {
+          cap: '<b>Option a: the daemon re-arms from Postgres.</b>',
+          text: 'flowchart TD\n  R[daemon restarts] --> S[window read from Postgres] --> A[the read pays the band]',
+        },
+        b: {
+          text: 'flowchart TD\n  R[daemon restarts] --> C[the read re-arms the window] --> A[the read pays the band]',
+        },
+      },
+    },
+  };
+}
+
 describe('diagram view', () => {
   it('pins the today view and an option view: container, escaped text, cap, head', () => {
-    const P = example();
-    expect(diagramView(P.rulings.G4, 'today')).toMatchSnapshot();
-    const a = diagramView(P.rulings.G4, 'G4a');
+    const q = diagramRuling();
+    expect(diagramView(q, 'today')).toMatchSnapshot();
+    const a = diagramView(q, 'G4a');
     expect(a).toMatchSnapshot();
     expect(a).toContain('class="mermaid"');
-    expect(a).toContain(
-      'Option a: the daemon re-arms its windows from Postgres on start.',
-    );
+    expect(a).toContain('--&gt;');
+    expect(a).toContain('Option a: the daemon re-arms from Postgres.');
   });
 
   it('emits exactly one mermaid container per view', () => {
-    const P = example();
-    const all = ['today', 'G4a', 'G4b']
-      .map(v => diagramView(P.rulings.G4, v))
-      .join('');
+    const q = diagramRuling();
+    const all = ['today', 'G4a', 'G4b'].map(v => diagramView(q, v)).join('');
     expect(all.match(/class="mermaid"/g)).toHaveLength(3);
   });
 
@@ -141,7 +209,7 @@ describe('diagram view', () => {
   });
 });
 
-describe('render defects — the fix pass', () => {
+describe('the picture surfaces', () => {
   it('scopes the today measure to the head paragraph so it cannot land on a view', () => {
     expect(pageCss).toMatch(/p\.today\s*\{[^}]*max-width: 68ch/);
     expect(pageCss).not.toMatch(/(^|\})\s*\.today\s*\{/);

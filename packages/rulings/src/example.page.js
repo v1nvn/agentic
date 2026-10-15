@@ -49,12 +49,12 @@ var PAGE = {
         today: {
           lang: "ts",
           what: "The quiet walk core runs on every command, today.",
-          code: 'function quiet(command: Command): void {\n  command\n    .allowExcessArguments(false)\n    .exitOverride()\n    .configureOutput({\n      writeOut: () => undefined,\n      writeErr: () => undefined,\n    });\n  command.commands.forEach(quiet);\n}',
-          cap: "From <code>core/src/cli.ts:8-17</code>. The engine computes and tints the delta against each option."
+          code: 'function quiet(\n  command: Command,\n  onUsageError: (command: Command) => void,\n): void {\n  command.configureOutput({\n    writeOut: () => undefined,\n    writeErr: () => undefined,\n  });\n  command.exitOverride(err => {\n    const code = (err as { code?: string }).code;\n    if (code === \'commander.help\' || code === \'commander.helpDisplayed\') {\n      throw new HelpRequested(command);\n    }\n    onUsageError(command);\n    throw err;\n  });\n  command.commands.forEach(c => {\n    quiet(c, onUsageError);\n  });\n}\n\nexport function parseCli<T = HelpRequested>(\n  spec: CliSpec,\n  argv: readonly string[],\n  onHelp?: CliHelpHook<T>,\n  onUsageError?: (command: Command, err: Error) => void,\n): CliInvocation | HelpRequested | T | undefined {\n  let invocation: CliInvocation | undefined;\n  const program = materialize(spec, found => {\n    invocation = found;\n  });\n  let errored: Command | undefined;\n  quiet(program, command => {\n    errored = command;\n  });\n  try {\n    program.parse([...argv], { from: \'user\' });\n  } catch (err) {\n    if (!(err instanceof HelpRequested)) {\n      if (errored !== undefined) {\n        const cause = err instanceof Error ? err : new Error(String(err));\n        onUsageError?.(errored, cause);\n      }\n      return undefined;\n    }\n    return onHelp !== undefined\n      ? onHelp(err.command.name(), err.command.helpInformation())\n      : err;\n  }\n  return invocation;\n}',
+          cap: "From <code>core/src/cli.ts:139-189</code>, the walk and its caller. The engine computes and tints the delta against each option."
         },
         a: {
           lang: "ts",
-          code: 'function quiet(command: Command): void {\n  command\n    .allowExcessArguments(false)\n    .configureOutput({\n      writeOut: () => undefined,\n      writeErr: () => undefined,\n    });\n  command.commands.forEach(quiet);\n}',
+          code: 'function quiet(\n  command: Command,\n  onUsageError: (command: Command) => void,\n): void {\n  command.configureOutput({\n    writeOut: () => undefined,\n    writeErr: () => undefined,\n  });\n  command.commands.forEach(c => {\n    quiet(c, onUsageError);\n  });\n}\n\nexport function parseCli<T = HelpRequested>(\n  spec: CliSpec,\n  argv: readonly string[],\n  onHelp?: CliHelpHook<T>,\n  onUsageError?: (command: Command, err: Error) => void,\n): CliInvocation | HelpRequested | T | undefined {\n  let invocation: CliInvocation | undefined;\n  const program = materialize(spec, found => {\n    invocation = found;\n  });\n  let errored: Command | undefined;\n  quiet(program, command => {\n    errored = command;\n  });\n  try {\n    program.parse([...argv], { from: \'user\' });\n  } catch (err) {\n    if (!(err instanceof HelpRequested)) {\n      if (errored !== undefined) {\n        const cause = err instanceof Error ? err : new Error(String(err));\n        onUsageError?.(errored, cause);\n      }\n      return undefined;\n    }\n    return onHelp !== undefined\n      ? onHelp(err.command.name(), err.command.helpInformation())\n      : err;\n  }\n  return invocation;\n}',
           cap: "Write the after-code in full; the engine computes and tints the delta. A long unchanged run collapses on its own."
         },
         b: {
@@ -80,13 +80,21 @@ var PAGE = {
       title: "Who re-arms a reader’s window after a daemon restart?",
       stake: "<b>Roughly 1 daemon restart a week lands mid-read; each one pays a leaf read’s holder half into the void until a human notices.</b>",
       today: "The window lives only in the daemon’s memory. After a crash the console shows the reader with no window; whoever is on call reads the ledger, rebuilds the range by hand, and the next read pays the band again.",
-      diagram: {
+      seq: {
+        lanes: ["Daemon", "Postgres", "Reader", "On call"],
+        ledger: ["Windows\narmed"],
+        start: [1],
+        steps: [
+          { f: 0, t: 0, k: "fail", x: "daemon restarts mid-read", s: "the window lives only in the daemon’s memory", b: [0] },
+          { f: 0, t: 1, k: "store", x: "daemon re-arms the window from Postgres", s: "one more table the daemon owns", b: [1], in: ["a"] },
+          { f: 2, t: 2, k: "money", x: "the read pays the holder half into the void",
+            o: { a: { x: "the read pays the band", n: "the window survived the restart" },
+                 b: { x: "the read re-arms the window, then pays the band", b: [1], n: "one extra write per read" } } },
+          { f: 3, t: 0, k: "call", x: "a human rebuilds the window from the console", b: [1],
+            o: { a: { a: "del" }, b: { a: "del" } } }
+        ],
         cap: "<b>Today a crash loses the window; the read pays into the void until a human rebuilds it.</b>",
-        views: {
-          today: { text: "flowchart TD\n  R[daemon restarts] --> L[window lost]\n  L --> V[read pays the holder half into the void]\n  V --> P[a human rebuilds the window from the console]\n  P --> A[the read pays the band again]" },
-          a: { cap: "<b>Option a: the daemon re-arms its windows from Postgres on start.</b> No void window.", text: "flowchart TD\n  R[daemon restarts] --> S[daemon reads the window from Postgres]\n  S --> A[the read pays the band again]" },
-          b: { cap: "<b>Option b: the read re-arms the window before paying.</b> One extra write per read.", text: "flowchart TD\n  R[daemon restarts] --> L[window lost]\n  L --> C[the read re-arms the window first]\n  C --> A[the read pays the band again]" }
-        }
+        caps: { a: "<b>Option a: the daemon re-arms its windows from Postgres on start.</b> No void window.", b: "<b>Option b: the read re-arms the window before paying.</b> One extra write per read." }
       },
       opts: [
         { k: "a", rec: true, t: "The daemon re-arms its windows from Postgres on start", g: "A restart becomes a non-event: the window survives, reads never pay into the void, no human in the loop.", c: "One more table the daemon owns and migrates; the start sequence grows a step." },
