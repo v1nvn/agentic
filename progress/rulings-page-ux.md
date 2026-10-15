@@ -14,7 +14,7 @@ the five live pages rebuilt on it, and the owner's look passes.
 U1 and U2 landed (`ee41b08` + `d2092f9`, PR #28, v0.50.0 green). The fix-pass
 run is on branch `rulings-fix-pass`: U4+U5 landed as one batch commit
 `1221898` and closed on the blind review's own output; U6 landed `55a5aae`
-(compare folded into view cards) with its blind review in flight; U7's design
+(compare folded into view cards) and closed on its review; U7's design
 consult is ruling; U8, U9 and U3 open. One blocking finding is open, routed to
 U7's builder's brief: the pictures test describe carries the run's name.
 Queued nits for the PR group's sweep: the mermaid unit guard asserts source
@@ -23,7 +23,8 @@ the attribute when empty; the drag-select guard swallows keyboard-activated
 picks while a selection is alive — scope the return to `[data-pick]`; the bar
 textarea's 120px cap clips tall persisted notes (fact carried into U8's row);
 a duplicated `viewSteps` comment in `seq.ts`; a dead `mq.addListener`
-fallback in `diagram.ts`. Live verification runs programmatic (own headless
+fallback in `diagram.ts`; the `optOf` comment in `html.ts` restates its three
+lines — one clause would carry it. Live verification runs programmatic (own headless
 Chrome over raw CDP) — the harness's image-Read path uploads screenshots
 off-machine, so no screenshot file is Read. The five pages under
 `~/.claude/rulings/` still carry v0.49.0 builds.
@@ -42,7 +43,7 @@ carries the run's name).
 | U2  | audit and review                           | session | role   |         | landed: surface audit + blind review fixed and live-verified, same PR #28                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | U4  | render defects — today card, sidebar, aria |        | role   |         | landed: `1221898`, closed on the blind review's own output (all criteria PASS, guard reverts red) |
 | U5  | composer defects — chips, copy, notes      |        | role   |         | landed: `1221898` (batch commit naming both ids); one blocking finding open — test describe carries the run's name, routed to the next builder |
-| U6  | one home for gain/cost                     |        | role   | design  | consult ruled: fold, delete the compare — each option's `w`, gain and cost render exactly once as the verdict tail of its own view card (head → stage → `w` if present → gain → cost, inside `section.view`); the compare block, its seven CSS rules and its duplicated chips are deleted, zero new CSS; a today-marked card carries its option's verdict tail, an unmarked today card none; `build.test.ts`'s compare pin flips to absent plus a `gc gain` row present inside a view; SKILL.md drops its compare-matrix clause in the same commit; if the grown card breaks the `role="button"` accessible name, pin it here; snapshots move; gates green |
+| U6  | one home for gain/cost                     |        | role   | design  | landed: `55a5aae`, closed on the blind review's own output (all criteria PASS, accessible-name conditional verified not fired) |
 | U7  | deltas not twins                           |        | role   | design  | a ruling draws today's picture once; each option view carries only its delta against it (seq: changed/new/gone rows banded on shared frame or delta-only frames; diagram: shared nodes, changed node tinted; bodies stays the model) per the consult's direction; the diff collapse fires for short bodies or the threshold is sized so it can; a diagram stage caps to its diagram's width; the example's G4 section is no longer ~39% of the page; snapshots move; gates green |
 | U8  | bar, state, wayfinding                     |        | role   |         | the bar's resting state with no picks is a strip ≤ ~48px and expands on first pick; at 390px it collapses to a chip count that opens the bar; the sidebar marks each ruled ruling and states N of M ruled (masthead or sidebar); below 980px a wayfinding affordance reaches the current group/ruling; the page note's autogrow and the bar's height cap agree — a tall persisted note reaches its text by design; keyboard and focus behavior preserved; snapshots move; gates green |
 | U9  | language pass                              |        | role   |         | the author's recommendation and the owner's pick carry distinct plain names ("recommended" / "picked") everywhere including the quick button; the letter follows one rule — outlined until picked, filled when picked — across view heads, stage tags, compare and chips, and the chip prints the letter once; today cards have one shape across rulings; the shipped example's captions and placeholders speak to the reader (no engine vocabulary, no `· n` chat syntax, no "rides the answer"); mono structural text uses two sizes; the merged sentence appears once; SKILL.md and README follow in the same commit |
