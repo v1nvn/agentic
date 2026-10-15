@@ -101,7 +101,7 @@ function seqSvg(d: Seq, owner: string, view: string, cap: string): string {
     return 40 + (s ? 14 : 0) + (ov?.n ? 16 : 0);
   });
   const H = top + rows.reduce((a, b) => a + b, 0) + 12;
-  let out = `<svg class="seq" viewBox="0 0 ${W} ${H}" style="min-width:${Math.min(W, 760)}px" role="img" aria-label="${esc(stripTags(cap))}">`;
+  let out = `<svg class="seq" viewBox="0 0 ${W} ${H}" style="min-width:${Math.min(W, 760)}px" role="img"${cap ? ` aria-label="${esc(stripTags(cap))}"` : ''}>`;
   if (nb) {
     out += `<rect class="ledger-bg" x="${lanesW + gap - 6}" y="8" width="${nb * BW + 12}" height="${H - 14}" rx="4"/>`;
   }

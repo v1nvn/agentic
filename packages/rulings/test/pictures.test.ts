@@ -67,6 +67,21 @@ describe('seq view', () => {
     expect(nums).toEqual(['2', '5']);
   });
 
+  it('omits the svg aria-label when no caption resolves', () => {
+    const q: Ruling = {
+      opts: [
+        { c: 'c', g: 'g', k: 'a', rec: true, t: 'a' },
+        { c: 'c', g: 'g', k: 'b', t: 'b' },
+      ],
+      seq: {
+        lanes: ['l', 'r'],
+        steps: [{ f: 0, k: 'call', t: 1, x: 'hi' }],
+      },
+    };
+    expect(seqView(q, 'G9', 'G9a')).not.toContain('aria-label');
+    expect(seqView(q, 'G9', 'today')).not.toContain('aria-label');
+  });
+
   it('threads the ledger through undrawn steps so drawn balances are true', () => {
     const q: Ruling = {
       opts: [
@@ -129,7 +144,7 @@ describe('bodies view', () => {
     expect(html).toMatchSnapshot();
     expect(html).toContain('token keyword');
     expect(html).toContain('diff vs today');
-    expect(html).toContain('unchanged lines');
+    expect(html).toContain('⋯ 33 unchanged lines');
     expect(html).toContain('needs G1a');
     expect(html).not.toContain('The quiet walk core runs on every command');
   });
@@ -200,13 +215,6 @@ describe('diagram view', () => {
     const all = ['today', 'G4a', 'G4b'].map(v => diagramView(q, v)).join('');
     expect(all.match(/class="mermaid"/g)).toHaveLength(3);
   });
-
-  it('boots mermaid on the system theme alone', () => {
-    const boot = mermaidBoot();
-    expect(boot).toContain('prefers-color-scheme: dark');
-    expect(boot).not.toContain('data-theme');
-    expect(boot).toContain(".run({ querySelector: '.mermaid' })");
-  });
 });
 
 describe('the picture surfaces', () => {
@@ -247,12 +255,106 @@ describe('the picture surfaces', () => {
     expect(seqView(q, 'G9', 'G9b')).not.toContain('what this option changes');
     expect(seqView(q, 'G9', 'today')).not.toContain('what this option changes');
   });
+});
 
-  it('re-renders mermaid when the system scheme flips, without reload', () => {
-    const boot = mermaidBoot();
-    expect(boot).toContain("addEventListener('change'");
-    expect(boot).toContain("removeAttribute('data-processed')");
-    expect(boot).toContain('textContent');
+describe('the mermaid boot', () => {
+  interface Draw {
+    sel: string;
+    seen: string[];
+    hadProcessed: boolean[];
+  }
+
+  // The boot ships as static script text, so its behavior is tested by
+  // running the real bytes in a vm: a fake matchMedia, a fake mermaid that
+  // stamps each container as processed, and the containers it renders.
+  function bootedOn(dark: boolean) {
+    const authored = ['flowchart TD\n  A --> B', 'flowchart TD\n  C --> D'];
+    const nodes = authored.map(src => {
+      const attrs: Record<string, string> = {};
+      return {
+        attrs,
+        textContent: src,
+        setAttribute(n: string, v: string): void {
+          attrs[n] = v;
+        },
+        removeAttribute(n: string): void {
+          delete attrs[n];
+        },
+      };
+    });
+    const inits: unknown[] = [];
+    const draws: Draw[] = [];
+    let flip: ((e: { matches: boolean }) => void) | null = null;
+    const mq = {
+      matches: dark,
+      addEventListener(_t: string, fn: (e: { matches: boolean }) => void) {
+        flip = fn;
+      },
+    };
+    const queries: string[] = [];
+    const sandbox = {
+      document: { querySelectorAll: (sel: string) => sel === '.mermaid' ? nodes : [] },
+      window: {
+        matchMedia(q: string): typeof mq {
+          queries.push(q);
+          return mq;
+        },
+        mermaid: {
+          initialize(cfg: unknown): void {
+            inits.push(cfg);
+          },
+          run({ querySelector }: { querySelector: string }): void {
+            draws.push({
+              sel: querySelector,
+              seen: nodes.map(n => n.textContent),
+              hadProcessed: nodes.map(n => 'data-processed' in n.attrs),
+            });
+            nodes.forEach(n => {
+              n.setAttribute('data-processed', 'yes');
+              n.textContent = '<svg>rendered</svg>';
+            });
+          },
+        },
+      },
+    };
+    const code = mermaidBoot()
+      .replace(/^<script>\n/, '')
+      .replace(/<\/script>$/, '');
+    vm.runInNewContext(code, sandbox);
+    return {
+      draws,
+      inits,
+      queries,
+      flipTo(d: boolean): void {
+        mq.matches = d;
+        flip?.({ matches: d });
+      },
+    };
+  }
+
+  it('boots every container under the system theme alone', () => {
+    const m = bootedOn(false);
+    expect(m.queries).toEqual(['(prefers-color-scheme: dark)']);
+    expect(m.inits).toEqual([{ startOnLoad: false, theme: 'default' }]);
+    expect(m.draws).toHaveLength(1);
+    expect(m.draws[0].sel).toBe('.mermaid');
+    expect(m.draws[0].seen).toEqual([
+      'flowchart TD\n  A --> B',
+      'flowchart TD\n  C --> D',
+    ]);
+    expect(bootedOn(true).inits).toEqual([{ startOnLoad: false, theme: 'dark' }]);
+  });
+
+  it('re-renders from the authored source when the scheme flips, without reload', () => {
+    const m = bootedOn(false);
+    m.flipTo(true);
+    expect(m.inits[1]).toEqual({ startOnLoad: false, theme: 'dark' });
+    expect(m.draws).toHaveLength(2);
+    expect(m.draws[1].seen).toEqual([
+      'flowchart TD\n  A --> B',
+      'flowchart TD\n  C --> D',
+    ]);
+    expect(m.draws[1].hadProcessed).toEqual([false, false]);
   });
 });
 
