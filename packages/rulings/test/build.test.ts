@@ -59,7 +59,7 @@ function pageDir(text: string): string {
 }
 
 describe('the emitted page', () => {
-  it('pins the example full HTML: sidebar, sections, views, matrix, notes, merged note', () => {
+  it('pins the example full HTML: sidebar, sections, views, verdict tails, notes, merged note', () => {
     const { html, hasDiagram } = buildPage(loadPageFile(EXAMPLE));
     expect(hasDiagram).toBe(true);
     expect(html).toMatchSnapshot();
@@ -69,7 +69,21 @@ describe('the emitted page', () => {
     expect(html).toContain('G3 is merged into this ruling.');
     expect(html).toContain('Not rulings: two findings are decided.');
     expect(html).toMatch(/class="views"/);
-    expect(html).toMatch(/class="compare"/);
+    expect(html).not.toMatch(/class="compare"/);
+    const viewBlocks =
+      html.match(/<section class="view[^"]*"[^>]*>[\s\S]*?<\/section>/g) ?? [];
+    expect(viewBlocks).toHaveLength(8);
+    expect(viewBlocks.filter(b => b.includes('gc gain'))).toHaveLength(6);
+    const todayBlocks = viewBlocks.filter(b => b.includes('view today'));
+    expect(todayBlocks).toHaveLength(3);
+    expect(todayBlocks[0]).toContain('gc gain');
+    expect(todayBlocks[1]).not.toContain('gc gain');
+    expect(todayBlocks[2]).not.toContain('gc gain');
+    const g2b = viewBlocks.find(b => b.includes('data-pick="G2b"'));
+    expect(g2b?.indexOf('class="stage"')).toBeLessThan(g2b?.indexOf('class="how"'));
+    expect(g2b?.indexOf('class="how"')).toBeLessThan(g2b?.indexOf('gc gain'));
+    expect(g2b?.indexOf('gc gain')).toBeLessThan(g2b?.indexOf('gc cost'));
+    expect(html.match(/★ my pick/g)).toHaveLength(3);
   });
 
   it('carries exactly one external reference, the vendored mermaid, relatively', () => {
