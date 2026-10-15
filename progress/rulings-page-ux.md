@@ -20,24 +20,25 @@ phone sheet, <980 pill, note-cap agreement) and closed on its review, its
 drag-select keyboard nit closed with it; U9 landed `e25f417` (one name per meaning, the letter's one rule,
 reader-facing example, two mono sizes, merged once) and closed on its review,
 the `optOf` comment and dead `.mermaid svg` rule nits closed with it. U3
-open. The nit sweep landed `cfd6e5a` and passed its review on A/B evidence —
-all seven queued nits fixed. One fix round is open: `yarn typecheck` is red
-with five errors CI would catch (`build.test.ts:360` `cb` on `never` from the
-sweep's own `FakeIO.last` narrowing; four inherited from closed units —
-`seq.ts:60`'s unused `view` param from U7, and three `number | undefined`
-errors in `build.test.ts:85-87` from U6). The typecheck gate was missing from
-the minted gate lines — now added to the map. Context nit for the final
-report only: prettier drift on the three test files, identical before and
-after the sweep. Live verification runs programmatic
-(own headless Chrome over raw CDP) — the harness's image-Read path uploads
-screenshots off-machine, so no screenshot file is Read; reviews on this
-branch extract the commit under review to a pristine location while builders
-run. The five pages under `~/.claude/rulings/` still carry v0.49.0 builds.
+open. The nit sweep landed `cfd6e5a`, passed its review on A/B evidence, and
+the five typecheck errors it surfaced (one its own, four inherited from
+closed units) are fixed at `e729199` — `yarn typecheck` exit 0, now a named
+gate line. The whole-run surface audit walked the rebuilt example (dark,
+light, 979, 390, empty, loaded, keyboard) green on all probes: one home per
+option, deltas not twins, the letter's one rule, the resting bar with
+un-resting note, sidebar ruled marks and N of M, the pill, the sheet, the
+contract untouched. Context nit for the final report only: prettier drift on
+the three test files, identical before and after the sweep. Live verification
+runs programmatic (own headless Chrome over raw CDP) — the harness's
+image-Read path uploads screenshots off-machine, so no screenshot file is
+Read. The five pages under `~/.claude/rulings/` still carry v0.49.0 builds.
 
 ## Next step
 
-Fix round for the five typecheck errors (one fresh builder), its commit, then
-the audit list's surface audit, the archive fold, and U3.
+Push `rulings-fix-pass`, open the PR against `main`; on the owner's merge,
+dispatch the minor release, wait for the registry to serve it, rebuild the
+five pages on the published version, live-check pr272-design, close the
+thread.
 
 ## Steps
 
