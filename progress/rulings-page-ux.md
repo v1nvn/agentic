@@ -14,27 +14,26 @@ the five live pages rebuilt on it, and the owner's look passes.
 U1 and U2 landed (`ee41b08` + `d2092f9`, PR #28, v0.50.0 green). The fix-pass
 run is on branch `rulings-fix-pass`: U4+U5 landed as one batch commit
 `1221898` and closed on the blind review's own output; U6 landed `55a5aae`
-(compare folded into view cards) and closed on its review; U7's design
-consult is ruling; U8, U9 and U3 open. One blocking finding is open, routed to
-U7's builder's brief: the pictures test describe carries the run's name.
-Queued nits for the PR group's sweep: the mermaid unit guard asserts source
-tokens, not behavior; a captionless seq view renders `aria-label=""` — omit
-the attribute when empty; the drag-select guard swallows keyboard-activated
-picks while a selection is alive — scope the return to `[data-pick]`; the bar
-textarea's 120px cap clips tall persisted notes (fact carried into U8's row);
-a duplicated `viewSteps` comment in `seq.ts`; a dead `mq.addListener`
+and closed; U7 landed `e4834cc` (delta-only frames, G4 as a seq) and closed
+on its review. U8 is building; U9 and U3 open. No blocking findings open —
+the describe rename rode U7's commit. Queued nits for the PR group's sweep:
+the mermaid unit guard asserts source tokens, not behavior; a captionless seq
+view renders `aria-label=""` — omit the attribute when empty; the drag-select
+guard's keyboard scoping is assigned to U8's builder; a dead `mq.addListener`
 fallback in `diagram.ts`; the `optOf` comment in `html.ts` restates its three
 lines — one clause would carry it; the `.mermaid svg` max-width rule in
-`style.ts` is dead (mermaid's inline style outranks it). Live verification runs programmatic (own headless
-Chrome over raw CDP) — the harness's image-Read path uploads screenshots
-off-machine, so no screenshot file is Read. The five pages under
+`style.ts` is dead (mermaid's inline style outranks it); a drive-by prettier
+reformat hunk in `build.test.ts` rides U7; the ell assertion in
+`pictures.test.ts` mislabels one supplementary pin (the growth is pinned by
+the cap-cite and the snapshot). Live verification runs programmatic (own
+headless Chrome over raw CDP) — the harness's image-Read path uploads
+screenshots off-machine, so no screenshot file is Read. The five pages under
 `~/.claude/rulings/` still carry v0.49.0 builds.
 
 ## Next step
 
-U7 is building under its consult's rulings; on its green report commit the
-build (the pictures-test describe rename rides it as the routed finding),
-dispatch its blind reviewer, and dispatch U8's builder.
+U8 is building; on its green report commit the build, dispatch its blind
+reviewer, and dispatch U9's builder.
 
 ## Steps
 
@@ -45,7 +44,7 @@ dispatch its blind reviewer, and dispatch U8's builder.
 | U4  | render defects — today card, sidebar, aria |        | role   |         | landed: `1221898`, closed on the blind review's own output (all criteria PASS, guard reverts red) |
 | U5  | composer defects — chips, copy, notes      |        | role   |         | landed: `1221898` (batch commit naming both ids); one blocking finding open — test describe carries the run's name, routed to the next builder |
 | U6  | one home for gain/cost                     |        | role   | design  | landed: `55a5aae`, closed on the blind review's own output (all criteria PASS, accessible-name conditional verified not fired) |
-| U7  | deltas not twins                           |        | role   | design  | consult ruled — seq: delta-only frames on the shared geometry (lanes, ledger headers, start row and true step numbers shared; only delta rows drawn; the balance threads silently through every step so drawn `b` values are true; no end-balance footer); diagram: no engine delta mechanism, the door keeps whole authored views and SKILL.md routes delta-chains to seq; the example's G4 converts to a seq (its options are add/remove steps on one chain); bodies: the collapse threshold stays absolute 7 — the example's G2 grows a ~35-line today body so the ell fires and its cap cites the real `quiet` location; the diagram stage cap dissolved — measured false: mermaid ships `width=100%` with an inline `max-width`, every stage already tracks its column at 1440 and 390, and a content-based cap collapses to the 300px replaced-element default, so nothing landed and the dead `.mermaid svg` max-width rule joins the nits; the example's G4 section is no longer ~39% of the page; a could-fail pin asserts an option view omits unchanged rows' labels; snapshots move; gates green |
+| U7  | deltas not twins                           |        | role   | design  | landed: `e4834cc`, closed on the blind review's own output (delta pins red on revert, the stage-cap dissolution independently reproduced, G4 26% vs the 37% baseline) |
 | U8  | bar, state, wayfinding                     |        | role   |         | the bar's resting state with no picks is a strip ≤ ~48px and expands on first pick; at 390px it collapses to a chip count that opens the bar; the sidebar marks each ruled ruling and states N of M ruled (masthead or sidebar); below 980px a wayfinding affordance reaches the current group/ruling; the page note's autogrow and the bar's height cap agree — a tall persisted note reaches its text by design; keyboard and focus behavior preserved; snapshots move; gates green |
 | U9  | language pass                              |        | role   |         | the author's recommendation and the owner's pick carry distinct plain names ("recommended" / "picked") everywhere including the quick button; the letter follows one rule — outlined until picked, filled when picked — across view heads, stage tags, compare and chips, and the chip prints the letter once; today cards have one shape across rulings; the shipped example's captions and placeholders speak to the reader (no engine vocabulary, no `· n` chat syntax, no "rides the answer"); mono structural text uses two sizes; the merged sentence appears once; SKILL.md and README follow in the same commit |
 | U3  | release and rebuild                        |        | none   |         | PR merged, the version shipping U4–U9 published and resolving, five pages rebuilt, live check on pr272-design, thread closed |
