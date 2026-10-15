@@ -12,7 +12,7 @@ a real case. Nothing is written to the repo until the owner has ruled.
 Pictures first. Every option is argued as hard as the recommended one: its own picture, a gain
 and a cost of the same weight. An option not worth that goes in the notes.
 
-The page renders on its own — every view and the compare matrix need no server — and a composer
+The page renders on its own — every view, with its gain and cost, needs no server — and a composer
 bar turns the owner's clicks into an answer to paste in chat. The page assists; chat remains the
 channel the answer comes back on.
 

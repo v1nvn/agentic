@@ -1,6 +1,6 @@
 import type { Ruling } from './schema.ts';
 
-import { esc, viewHeadFor } from './html.ts';
+import { esc, verdictFor, viewHeadFor } from './html.ts';
 
 // Free mermaid text, one block per view: the container text is authored
 // data, parsed in the browser on open — the build cannot check its syntax.
@@ -20,7 +20,9 @@ export function diagramView(q: Ruling, view: string, attrs = ''): string {
     `<section class="view${view === 'today' ? ' today' : ''}${hue ? ` ${hue}` : ''}"${attrs}>${head}` +
     `<div class="stage diagram"><div class="mermaid">${esc(v.text)}</div>` +
     (cap ? `<p class="cap">${cap}</p>` : '') +
-    '</div></section>'
+    '</div>' +
+    verdictFor(q, view) +
+    '</section>'
   );
 }
 

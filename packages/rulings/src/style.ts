@@ -162,12 +162,4 @@ svg text.note { font-size: 11.5px; font-weight: 600; fill: var(--o); }
 
 .stage.diagram .mermaid { display: flex; justify-content: center; padding: 14px; overflow-x: auto; }
 .stage.diagram .mermaid svg { max-width: 100%; height: auto; }
-
-.compare { overflow-x: auto; padding-bottom: 2px; margin-top: 14px; }
-.matrix { display: grid; gap: 0 12px; grid-template-rows: repeat(var(--rows), auto); }
-.col { display: grid; grid-row: span var(--rows); grid-template-rows: subgrid; row-gap: 8px; padding-bottom: 12px; border-radius: 8px; border: 1px solid var(--rule); background: var(--sheet); }
-.col > * { padding-inline: 14px; }
-.colhead { display: flex; gap: 10px; align-items: flex-start; padding-top: 12px; font: 600 13.5px/1.3 var(--sans); }
-.colhead .lt { width: 27px; height: 27px; font-size: 13.5px; }
-.colhead .meta { display: flex; flex-wrap: wrap; gap: 4px 10px; margin-top: 3px; font: 400 11.5px var(--mono); color: var(--muted); }
 `;

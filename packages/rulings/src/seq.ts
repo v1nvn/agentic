@@ -1,6 +1,6 @@
 import type { Overlay, Ruling, Seq, Step } from './schema.ts';
 
-import { esc, stripTags, viewHeadFor } from './html.ts';
+import { esc, stripTags, verdictFor, viewHeadFor } from './html.ts';
 import { KINDS } from './schema.ts';
 
 const KIND_TEXT: Record<(typeof KINDS)[number], string> = {
@@ -222,6 +222,8 @@ export function seqView(
     `<section class="view${view === 'today' ? ' today' : ''}${hue ? ` ${hue}` : ''}"${attrs}>${head}` +
     `<div class="stage">${legendHtml(d, id, view)}<div class="scroll">${seqSvg(d, id, view, cap ?? '')}</div>` +
     (cap ? `<p class="cap">${cap}</p>` : '') +
-    '</div></section>'
+    '</div>' +
+    verdictFor(q, view) +
+    '</section>'
   );
 }
