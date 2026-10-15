@@ -15,25 +15,29 @@ U1 and U2 landed (`ee41b08` + `d2092f9`, PR #28, v0.50.0 green). The fix-pass
 run is on branch `rulings-fix-pass`: U4+U5 landed as one batch commit
 `1221898` and closed on the blind review's own output; U6 landed `55a5aae`
 and closed; U7 landed `e4834cc` (delta-only frames, G4 as a seq) and closed
-on its review. U8 is building; U9 and U3 open. No blocking findings open —
-the describe rename rode U7's commit. Queued nits for the PR group's sweep:
-the mermaid unit guard asserts source tokens, not behavior; a captionless seq
-view renders `aria-label=""` — omit the attribute when empty; the drag-select
-guard's keyboard scoping is assigned to U8's builder; a dead `mq.addListener`
-fallback in `diagram.ts`; the `optOf` comment in `html.ts` restates its three
-lines — one clause would carry it; the `.mermaid svg` max-width rule in
-`style.ts` is dead (mermaid's inline style outranks it); a drive-by prettier
-reformat hunk in `build.test.ts` rides U7; the ell assertion in
-`pictures.test.ts` mislabels one supplementary pin (the growth is pinned by
-the cap-cite and the snapshot). Live verification runs programmatic (own
-headless Chrome over raw CDP) — the harness's image-Read path uploads
-screenshots off-machine, so no screenshot file is Read. The five pages under
-`~/.claude/rulings/` still carry v0.49.0 builds.
+on its review; U8 landed `de5adb7` (resting strip, ruled marks and N of M,
+phone sheet, <980 pill, note-cap agreement) and closed on its review, its
+drag-select keyboard nit closed with it. U9 is building (carrying the `optOf`
+comment and dead `.mermaid svg` rule nits); U3 open. No blocking findings
+open. Queued nits for the PR group's sweep: source-token unit guards (the
+mermaid theme guard in `pictures.test.ts` and the U8 emission pins in
+`build.test.ts` — same class); a captionless seq view renders `aria-label=""`
+— omit the attribute when empty; a dead `mq.addListener` fallback in
+`diagram.ts`; a drive-by prettier reformat hunk in `build.test.ts` rides U7;
+the ell assertion in `pictures.test.ts` mislabels one supplementary pin (the
+growth is pinned by the cap-cite and the snapshot); U8's new CSS section
+comments restate their rules (the pill comment's "reachable below the
+sidebar's own cut" clause earns its place, the drag-select comment cites the
+UI-Events `detail` contract and stays). Live verification runs programmatic
+(own headless Chrome over raw CDP) — the harness's image-Read path uploads
+screenshots off-machine, so no screenshot file is Read; reviews on this
+branch extract the commit under review to a pristine location while builders
+run. The five pages under `~/.claude/rulings/` still carry v0.49.0 builds.
 
 ## Next step
 
-U8 is building; on its green report commit the build, dispatch its blind
-reviewer, and dispatch U9's builder.
+U9 is building; on its green report commit the build, dispatch its blind
+reviewer, then run the nit sweep and the audit list before U3.
 
 ## Steps
 
@@ -45,7 +49,7 @@ reviewer, and dispatch U9's builder.
 | U5  | composer defects — chips, copy, notes      |        | role   |         | landed: `1221898` (batch commit naming both ids); one blocking finding open — test describe carries the run's name, routed to the next builder |
 | U6  | one home for gain/cost                     |        | role   | design  | landed: `55a5aae`, closed on the blind review's own output (all criteria PASS, accessible-name conditional verified not fired) |
 | U7  | deltas not twins                           |        | role   | design  | landed: `e4834cc`, closed on the blind review's own output (delta pins red on revert, the stage-cap dissolution independently reproduced, G4 26% vs the 37% baseline) |
-| U8  | bar, state, wayfinding                     |        | role   |         | the bar's resting state with no picks is a strip ≤ ~48px and expands on first pick; at 390px it collapses to a chip count that opens the bar; the sidebar marks each ruled ruling and states N of M ruled (masthead or sidebar); below 980px a wayfinding affordance reaches the current group/ruling; the page note's autogrow and the bar's height cap agree — a tall persisted note reaches its text by design; keyboard and focus behavior preserved; snapshots move; gates green |
+| U8  | bar, state, wayfinding                     |        | role   |         | landed: `de5adb7`, closed on the blind review's own output (pristine-commit walk, guard revert red; the pre-pick-note question ruled fine — zero-pick copy already refuses, a note alone un-rests the bar) |
 | U9  | language pass                              |        | role   |         | the author's recommendation and the owner's pick carry distinct plain names ("recommended" / "picked") everywhere including the quick button; the letter follows one rule — outlined until picked, filled when picked — across view heads, stage tags, compare and chips, and the chip prints the letter once; today cards have one shape across rulings; the shipped example's captions and placeholders speak to the reader (no engine vocabulary, no `· n` chat syntax, no "rides the answer"); mono structural text uses two sizes; the merged sentence appears once; SKILL.md and README follow in the same commit |
 | U3  | release and rebuild                        |        | none   |         | PR merged, the version shipping U4–U9 published and resolving, five pages rebuilt, live check on pr272-design, thread closed |
 
