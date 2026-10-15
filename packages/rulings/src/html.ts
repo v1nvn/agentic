@@ -16,8 +16,8 @@ export function hueOf(k: string): string {
   return 'o-' + 'abcd'.charAt('abcdefghijklmnopqrstuvwxyz'.indexOf(k) % 4);
 }
 
-// The option a view belongs to: the today-marked one for a today view (none
-// if no option is marked), else the one whose letter ends the view id.
+// A today view names the today-marked option; any other view its trailing
+// letter.
 export function optOf(q: Ruling, view: string): Opt | undefined {
   const opts = q.opts ?? [];
   const letter =
@@ -25,8 +25,8 @@ export function optOf(q: Ruling, view: string): Opt | undefined {
   return letter === undefined ? undefined : opts.find(x => x.k === letter);
 }
 
-// One view card head: letter disc, title, chips (my pick, as today, needs),
-// the picked marker the chrome toggles via aria-pressed.
+// One view card head: letter disc, title, chips (recommended, as today,
+// needs), the picked marker the chrome toggles via aria-pressed.
 export function viewHeadFor(
   q: Ruling,
   view: string,
@@ -38,14 +38,14 @@ export function viewHeadFor(
   if (o === undefined) {
     return {
       head:
-        '<div class="vhead"><span class="vt">Today</span>' +
-        '<span class="vmeta">how it works now</span></div>',
+        '<div class="vhead"><div class="vtt"><span class="vt">Today</span>' +
+        '<span class="vmeta">how it works now</span></div></div>',
       hue: '',
     };
   }
   const needs = typeof o.needs === 'string' ? [o.needs] : (o.needs ?? []);
   const chips = [
-    o.rec === true ? '<span class="star">★ my pick</span>' : '',
+    o.rec === true ? '<span class="star">★ recommended</span>' : '',
     o.today === true ? '<span>as today</span>' : '',
     ...needs.map(n => `<span class="dep">needs ${n}</span>`),
   ]

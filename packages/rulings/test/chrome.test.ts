@@ -316,6 +316,17 @@ describe('the composer chips', () => {
     expect(h.sum.innerHTML).toContain('background:var(--opt-b)');
     expect(h.sum.innerHTML).toContain('>b</span>');
   });
+
+  it('prints the letter once: the dot carries it, the label names the ruling', () => {
+    const h = harness();
+    h.docClick({ target: h.cardB });
+    const visible = h.sum.innerHTML.replace(
+      /(data-unpick|aria-label)="[^"]*"/g,
+      '',
+    );
+    expect(visible).toContain('>b</span>G1');
+    expect(visible).not.toContain('G1b');
+  });
 });
 
 describe('the copy button', () => {

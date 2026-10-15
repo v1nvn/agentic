@@ -83,7 +83,7 @@ describe('the emitted page', () => {
     expect(g2b?.indexOf('class="stage"')).toBeLessThan(g2b?.indexOf('class="how"'));
     expect(g2b?.indexOf('class="how"')).toBeLessThan(g2b?.indexOf('gc gain'));
     expect(g2b?.indexOf('gc gain')).toBeLessThan(g2b?.indexOf('gc cost'));
-    expect(html.match(/★ my pick/g)).toHaveLength(3);
+    expect(html.match(/★ recommended/g)).toHaveLength(4);
   });
 
   it('references nothing external: the example carries no diagram, no scripts', () => {
@@ -91,6 +91,64 @@ describe('the emitted page', () => {
     expect(html).not.toContain('<script src=');
     expect(html).not.toContain('window.mermaid');
     expect(html).not.toMatch(/https?:\/\/|src="\/|href="\//);
+  });
+});
+
+describe('the language pass', () => {
+  it('names the recommendation and the pick, never "my pick"', () => {
+    const { html } = buildPage(loadPageFile(EXAMPLE));
+    expect(html.match(/class="star">★ recommended</g)).toHaveLength(3);
+    expect(html).toContain('>accept ★ recommended</button>');
+    expect(html.match(/<span class="pmark">✓ picked<\/span>/g)).toHaveLength(6);
+    expect(html).not.toContain('my pick');
+  });
+
+  it('prints the none button without chat syntax', () => {
+    const { html } = buildPage(loadPageFile(EXAMPLE));
+    expect(html).toContain('>none of these fit</button>');
+    expect(html).not.toContain('· n');
+  });
+
+  it('carries the merged sentence once, in the merged ruling’s own section', () => {
+    const { html } = buildPage(loadPageFile(EXAMPLE));
+    expect(html.match(/Same money question as G1/g)).toHaveLength(1);
+    expect(html.match(/G3 is merged into this ruling\./g)).toHaveLength(1);
+  });
+
+  it('shapes every today card like an option card: vhead wrapping vtt', () => {
+    const { html } = buildPage(loadPageFile(EXAMPLE));
+    expect(html.match(/<div class="vhead">/g)).toHaveLength(8);
+    expect(html.match(/<div class="vhead"><div class="vtt">/g)).toHaveLength(2);
+    expect(html).not.toContain('<div class="vhead"><span class="vt">');
+  });
+
+  it('speaks to the reader: no engine vocabulary in captions and placeholders', () => {
+    const { html } = buildPage(loadPageFile(EXAMPLE));
+    expect(html).not.toMatch(/The engine|diff: false|rides the answer/);
+    expect(html.match(/placeholder="note for G\d[a-z]?"/g)).toHaveLength(6);
+  });
+
+  it('draws mono structure at exactly two sizes', () => {
+    const { html } = buildPage(loadPageFile(EXAMPLE));
+    const css = html.slice(html.indexOf('<style>'), html.indexOf('</style>'));
+    expect(css).toContain('--mono-s: 11px');
+    expect(css).toContain('--mono-l: 12.5px');
+    expect(css).not.toMatch(/[\d.]+px[^;{}]*var\(--mono\)/);
+  });
+
+  it('fills a bodies tag letter only when its view is picked', () => {
+    const { html } = buildPage(loadPageFile(EXAMPLE));
+    const css = html.slice(html.indexOf('<style>'), html.indexOf('</style>'));
+    expect(css).not.toMatch(/\.body\.of-option \.tag \.lt \{[^}]*background/);
+    expect(css).toMatch(
+      /\[aria-pressed="true"\] \.body \.tag \.lt \{[^}]*background: var\(--o\)/,
+    );
+  });
+
+  it('carries no dead mermaid max-width rule', () => {
+    const { html } = buildPage(loadPageFile(EXAMPLE));
+    const css = html.slice(html.indexOf('<style>'), html.indexOf('</style>'));
+    expect(css).not.toMatch(/\.mermaid svg/);
   });
 });
 
