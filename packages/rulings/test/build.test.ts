@@ -82,9 +82,10 @@ describe('the emitted page', () => {
     expect(todayBlocks[1]).not.toContain('gc gain');
     expect(todayBlocks[2]).not.toContain('gc gain');
     const g2b = viewBlocks.find(b => b.includes('data-pick="G2b"'));
-    expect(g2b?.indexOf('class="stage"')).toBeLessThan(g2b?.indexOf('class="how"'));
-    expect(g2b?.indexOf('class="how"')).toBeLessThan(g2b?.indexOf('gc gain'));
-    expect(g2b?.indexOf('gc gain')).toBeLessThan(g2b?.indexOf('gc cost'));
+    if (g2b === undefined) throw new Error('fixture: the G2b view');
+    expect(g2b.indexOf('class="stage"')).toBeLessThan(g2b.indexOf('class="how"'));
+    expect(g2b.indexOf('class="how"')).toBeLessThan(g2b.indexOf('gc gain'));
+    expect(g2b.indexOf('gc gain')).toBeLessThan(g2b.indexOf('gc cost'));
     expect(html.match(/★ recommended/g)).toHaveLength(4);
   });
 
@@ -294,6 +295,9 @@ function emittedChrome(html: string) {
     html.lastIndexOf('</script>'),
   );
   vm.runInNewContext(code, sandbox);
+  // The vm script constructs the FakeIO; the cast undoes the null narrowing
+  // from the reset above, which cannot see that assignment.
+  const io = FakeIO.last as FakeIO | null;
   return {
     bar,
     barIn,
@@ -306,7 +310,7 @@ function emittedChrome(html: string) {
       return card;
     },
     count,
-    io: FakeIO.last,
+    io,
     link: (id: string): El | undefined =>
       links.find(l => l.getAttribute('href') === `#r-${id}`),
     section: (id: string): El | undefined =>
