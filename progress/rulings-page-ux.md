@@ -31,9 +31,9 @@ off-machine, so no screenshot file is Read. The five pages under
 
 ## Next step
 
-Dispatch U7's builder once its design consult reports; its brief leads with
-the open blocking finding from the batch review (the pictures test describe
-carries the run's name).
+U7 is building under its consult's rulings; on its green report commit the
+build (the pictures-test describe rename rides it as the routed finding),
+dispatch its blind reviewer, and dispatch U8's builder.
 
 ## Steps
 
@@ -44,7 +44,7 @@ carries the run's name).
 | U4  | render defects — today card, sidebar, aria |        | role   |         | landed: `1221898`, closed on the blind review's own output (all criteria PASS, guard reverts red) |
 | U5  | composer defects — chips, copy, notes      |        | role   |         | landed: `1221898` (batch commit naming both ids); one blocking finding open — test describe carries the run's name, routed to the next builder |
 | U6  | one home for gain/cost                     |        | role   | design  | landed: `55a5aae`, closed on the blind review's own output (all criteria PASS, accessible-name conditional verified not fired) |
-| U7  | deltas not twins                           |        | role   | design  | a ruling draws today's picture once; each option view carries only its delta against it (seq: changed/new/gone rows banded on shared frame or delta-only frames; diagram: shared nodes, changed node tinted; bodies stays the model) per the consult's direction; the diff collapse fires for short bodies or the threshold is sized so it can; a diagram stage caps to its diagram's width; the example's G4 section is no longer ~39% of the page; snapshots move; gates green |
+| U7  | deltas not twins                           |        | role   | design  | consult ruled — seq: delta-only frames on the shared geometry (lanes, ledger headers, start row and true step numbers shared; only delta rows drawn; the balance threads silently through every step so drawn `b` values are true; no end-balance footer); diagram: no engine delta mechanism, the door keeps whole authored views and SKILL.md routes delta-chains to seq; the example's G4 converts to a seq (its options are add/remove steps on one chain); bodies: the collapse threshold stays absolute 7 — the example's G2 grows a ~35-line today body so the ell fires and its cap cites the real `quiet` location; one CSS rule caps a diagram stage to its width, regex-pinned, witnessed by a scratch diagram page in the live check; the example's G4 section is no longer ~39% of the page; a could-fail pin asserts an option view omits unchanged rows' labels; snapshots move; gates green |
 | U8  | bar, state, wayfinding                     |        | role   |         | the bar's resting state with no picks is a strip ≤ ~48px and expands on first pick; at 390px it collapses to a chip count that opens the bar; the sidebar marks each ruled ruling and states N of M ruled (masthead or sidebar); below 980px a wayfinding affordance reaches the current group/ruling; the page note's autogrow and the bar's height cap agree — a tall persisted note reaches its text by design; keyboard and focus behavior preserved; snapshots move; gates green |
 | U9  | language pass                              |        | role   |         | the author's recommendation and the owner's pick carry distinct plain names ("recommended" / "picked") everywhere including the quick button; the letter follows one rule — outlined until picked, filled when picked — across view heads, stage tags, compare and chips, and the chip prints the letter once; today cards have one shape across rulings; the shipped example's captions and placeholders speak to the reader (no engine vocabulary, no `· n` chat syntax, no "rides the answer"); mono structural text uses two sizes; the merged sentence appears once; SKILL.md and README follow in the same commit |
 | U3  | release and rebuild                        |        | none   |         | PR merged, the version shipping U4–U9 published and resolving, five pages rebuilt, live check on pr272-design, thread closed |
@@ -58,9 +58,12 @@ carries the run's name).
   extract, `verdictFor`), one verdict line each in `seq.ts`, `diagram.ts`,
   `bodies.ts`, `page.ts` (delete `compareHtml` and its call), `style.ts`
   (delete the compare rules), `build.test.ts` pin swap, `SKILL.md`. U7:
-  `seq.ts`, `diagram.ts`, `bodies.ts`
-  (collapse threshold) + `example.page.js` where the example's content must
-  show the mechanism. U8: `chrome.ts` + `style.ts` + `page.ts` (sidebar).
+  `seq.ts` (delta frames, true step numbers, silent balance run), `style.ts`
+  (the stage cap rule), `example.page.js` (G4→seq, G2 body growth),
+  `SKILL.md` (one clause), `pictures.test.ts` + `build.test.ts` (pin flips +
+  the could-fail delta pin) — `bodies.ts` and `diagram.ts` carry no diff; the
+  real `quiet` at `packages/core/src/cli.ts` is a read reference for the
+  example's cap. U8: `chrome.ts` + `style.ts` + `page.ts` (sidebar).
   U9: `style.ts`, `html.ts`, `example.page.js`, `SKILL.md`, `README.md`.
   Scoped gate `yarn workspace @v1nvn/rulings run test`; workspace gate
   `yarn test` at the repo root, ceiling 1 min (pre-flight measured 48.5s).
