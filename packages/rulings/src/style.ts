@@ -47,7 +47,6 @@ section[id^="r-"] { scroll-margin-top: 14px; }
 .masthead h1 { font-size: 31px; letter-spacing: -0.01em; margin-top: 6px; }
 .masthead .sub { color: var(--muted); max-width: 64ch; margin-top: 8px; font-size: 14.5px; }
 
-/* Sidebar navigation and its ruled state */
 .side .scount { font: 600 var(--mono-s) var(--mono); letter-spacing: 0.04em; color: var(--muted); padding: 0 8px 14px; }
 .side .sg { margin-bottom: 16px; }
 .side .sg h2 { padding: 0 8px 5px; display: flex; justify-content: space-between; }
@@ -62,7 +61,7 @@ section[id^="r-"] { scroll-margin-top: 14px; }
 .side a.rl.ruled .gid { color: var(--ink); }
 .side a.rl.ruled::after { content: "✓"; margin-left: auto; flex: none; font: 700 var(--mono-s) var(--mono); color: var(--add); }
 
-/* Wayfinding pill: the sidebar's current position, reachable below the sidebar's own cut */
+/* reachable below the sidebar's own cut */
 .where { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); z-index: 9; display: none; max-width: calc(100vw - 24px); padding: 6px 14px; border-radius: 999px; background: var(--sheet); border: 1px solid var(--rule); box-shadow: 0 4px 16px color-mix(in srgb, var(--ink) 12%, transparent); text-decoration: none; color: var(--ink); font: 12.5px var(--sans); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .where:hover { border-color: var(--ink); }
 @media (max-width: 979px) {

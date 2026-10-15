@@ -24,7 +24,6 @@ const assemblyCss = `
 .view[aria-pressed="true"] { border-left-width: 5px; border-left-color: var(--o); }
 .view[aria-pressed="true"] .stage { border-color: color-mix(in srgb, var(--o) 70%, var(--rule)); background: color-mix(in srgb, var(--o) 5%, var(--sheet)); }
 .view[aria-pressed="true"] .lt { background: var(--o); color: var(--sheet); box-shadow: 0 0 0 3px color-mix(in srgb, var(--o) 22%, transparent); }
-.view[aria-pressed="true"] .body .tag .lt { background: var(--o); color: var(--sheet); }
 .pmark { display: none; font: 700 var(--mono-l) var(--mono); color: var(--o); margin-left: auto; white-space: nowrap; }
 .view[aria-pressed="true"] .pmark { display: inline; }
 .view[data-needs].unmet { border-left-style: dashed; }
@@ -54,7 +53,6 @@ const assemblyCss = `
 .bar button.go:hover { opacity: 0.88; }
 :focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 
-/* The bar rests as a strip until work arrives: no picks and no note. */
 .bar.rest .bar-in { padding: 6px 12px; }
 .bar.rest textarea { display: none; }
 .bar.rest button.go { padding: 6px 14px; }
@@ -66,7 +64,6 @@ const assemblyCss = `
   .bar { left: 12px; right: 12px; transform: none; width: auto; }
 }
 
-/* On a phone the bar collapses to the tab's chip count; the tab opens the composer. */
 @media (max-width: 640px) {
   .bar { bottom: 12px; text-align: center; }
   .bar .bar-in { display: none; }

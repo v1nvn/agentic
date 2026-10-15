@@ -11,10 +11,12 @@ import {
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import vm from 'node:vm';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { main } from '../src/cli.ts';
 import { buildPage, loadPageFile, PAGE_FILE } from '../src/page.ts';
+import { El, FakeIO, type FakeEvent } from './dom.ts';
 
 const EXAMPLE = fileURLToPath(new URL('../src/example.page.js', import.meta.url));
 
@@ -140,9 +142,6 @@ describe('the language pass', () => {
     const { html } = buildPage(loadPageFile(EXAMPLE));
     const css = html.slice(html.indexOf('<style>'), html.indexOf('</style>'));
     expect(css).not.toMatch(/\.body\.of-option \.tag \.lt \{[^}]*background/);
-    expect(css).toMatch(
-      /\[aria-pressed="true"\] \.body \.tag \.lt \{[^}]*background: var\(--o\)/,
-    );
   });
 
   it('carries no dead mermaid max-width rule', () => {
@@ -151,6 +150,173 @@ describe('the language pass', () => {
     expect(css).not.toMatch(/\.mermaid svg/);
   });
 });
+
+// The emitted page boots its own chrome: the real script bytes from the
+// built html run in a vm over a fake DOM parsed out of the same html, so a
+// test pins the DOM the panel and the script build, not the strings they
+// came from.
+function emittedChrome(html: string) {
+  FakeIO.last = null;
+  const body = new El('body');
+  const key = /<body data-key="([^"]*)">/.exec(html);
+  if (key) body.setAttribute('data-key', key[1]);
+  const cards = [
+    ...html.matchAll(/<section class="([^"]*)" data-pick="([^"]+)"([^>]*)>/g),
+  ].map(m => {
+    const el = new El('section', m[1].split(/\s+/).filter(Boolean));
+    el.setAttribute('data-pick', m[2]);
+    el.parent = body;
+    const needs = /data-needs="([^"]*)"/.exec(m[3]);
+    if (needs) el.setAttribute('data-needs', needs[1]);
+    return el;
+  });
+  const noteIns = [
+    ...html.matchAll(/<input class="onote" data-note="([^"]+)"/g),
+  ].map(m => {
+    const el = new El('input');
+    el.setAttribute('data-note', m[1]);
+    return el;
+  });
+  const noneBtns = [
+    ...html.matchAll(/<button type="button" class="none-btn" data-none="([^"]+)">/g),
+  ].map(m => {
+    const el = new El('button');
+    el.setAttribute('data-none', m[1]);
+    return el;
+  });
+  const links = [
+    ...html.matchAll(
+      /<a class="rl[^"]*" href="#r-([^"]+)"><span class="gid">[^<]*<\/span><span class="t">([^<]*)<\/span>/g,
+    ),
+  ].map(m => {
+    const el = new El('a', ['rl']);
+    el.setAttribute('href', `#r-${m[1]}`);
+    const t = new El('span', ['t']);
+    t.textContent = m[2];
+    el.appendChild(t);
+    return el;
+  });
+  const secs = [...html.matchAll(/<section class="ruling" id="([^"]+)">/g)].map(
+    m => {
+      const el = new El('section');
+      el.setAttribute('id', m[1]);
+      return el;
+    },
+  );
+  function byId(id: string, tag: string, classes: string[] = []): El | null {
+    if (!html.includes(`id="${id}"`)) return null;
+    const el = new El(tag, classes);
+    el.setAttribute('id', id);
+    return el;
+  }
+  const bar = byId('rulings-bar', 'footer', ['bar']);
+  const barIn = byId('rulings-bar-in', 'div');
+  const sum = byId('picks', 'div');
+  const notesIn = byId('rulings-notes', 'textarea');
+  const copyBtn = byId('copy-answer', 'button');
+  const count = byId('ruled-count', 'div', ['scount']);
+  const tabMatch = /class="bar-tab" id="([^"]+)" aria-expanded="([^"]*)" aria-controls="([^"]+)">/.exec(
+    html,
+  );
+  const tab = tabMatch
+    ? (() => {
+        const el = new El('button', ['bar-tab']);
+        el.setAttribute('id', tabMatch[1]);
+        el.setAttribute('aria-expanded', tabMatch[2]);
+        el.setAttribute('aria-controls', tabMatch[3]);
+        return el;
+      })()
+    : null;
+  const where = /<a class="where" id="([^"]+)" hidden>/.exec(html)
+    ? byId('rulings-where', 'a', ['where'])
+    : null;
+  where?.setAttribute('hidden', '');
+  const withIds = [bar, barIn, sum, notesIn, copyBtn, count, tab, where];
+  const idMap = new Map(
+    withIds.filter((e): e is El => e !== null).map(e => [e.id, e]),
+  );
+  const listeners: Record<string, ((e: FakeEvent) => void)[]> = {};
+  const doc = {
+    body,
+    addEventListener(t: string, h: (e: FakeEvent) => void): void {
+      (listeners[t] ??= []).push(h);
+    },
+    getElementById(id: string): El | null {
+      return idMap.get(id) ?? null;
+    },
+    querySelectorAll(sel: string): El[] {
+      switch (sel) {
+        case '[data-pick]':
+          return cards;
+        case '[data-needs]':
+          return cards.filter(c => c.getAttribute('data-needs') !== null);
+        case '.onote':
+          return noteIns;
+        case '[data-none]':
+          return noneBtns;
+        case '.side a.rl':
+          return links;
+        case 'section[id]':
+          return secs;
+        default:
+          return [];
+      }
+    },
+    querySelector(sel: string): El | null {
+      const m = /^\[data-pick="(.+)"\]$/.exec(sel);
+      return m
+        ? (cards.find(c => c.getAttribute('data-pick') === m[1]) ?? null)
+        : null;
+    },
+  };
+  const storage = new Map<string, string>();
+  const sandbox = {
+    document: doc,
+    IntersectionObserver: FakeIO,
+    navigator: { clipboard: { writeText: () => Promise.resolve() } },
+    localStorage: {
+      getItem: (k: string): string | null => storage.get(k) ?? null,
+      setItem: (k: string, v: string): void => {
+        storage.set(k, v);
+      },
+    },
+    setTimeout,
+    clearTimeout,
+    window: {
+      getSelection: (): { toString(): string } => ({ toString: () => '' }),
+      IntersectionObserver: FakeIO,
+      innerHeight: 900,
+    },
+  };
+  const start = html.lastIndexOf('<script>');
+  const code = html.slice(
+    start + '<script>'.length,
+    html.lastIndexOf('</script>'),
+  );
+  vm.runInNewContext(code, sandbox);
+  return {
+    bar,
+    barIn,
+    click(el: El): void {
+      for (const h of listeners.click ?? []) h({ target: el, detail: 1 });
+    },
+    clickCard(pick: string): El | undefined {
+      const card = cards.find(c => c.getAttribute('data-pick') === pick);
+      if (card !== undefined) this.click(card);
+      return card;
+    },
+    count,
+    io: FakeIO.last,
+    link: (id: string): El | undefined =>
+      links.find(l => l.getAttribute('href') === `#r-${id}`),
+    section: (id: string): El | undefined =>
+      secs.find(s => s.id === `r-${id}`),
+    storage,
+    sum,
+    tab,
+    where,
+  };
+}
 
 describe('the interactive chrome', () => {
   it('keys persistence on the page key and wires pick, none, quick, notes, composer', () => {
@@ -171,15 +337,42 @@ describe('the interactive chrome', () => {
     expect(html).toContain('onotes');
   });
 
-  it('emits the resting bar, the narrow tab, the ruled counter and the wayfinding pill', () => {
+  it('boots the emitted chrome into a resting bar, a counting tab, an honest counter and a hidden pill', () => {
     const { html } = buildPage(loadPageFile(EXAMPLE));
-    expect(html).toContain('id="rulings-bar"');
-    expect(html).toContain('id="bar-tab"');
-    expect(html).toContain('aria-controls="rulings-bar-in"');
-    expect(html).toContain('id="ruled-count"');
-    expect(html).toContain('0 of 3 ruled');
-    expect(html).toMatch(/<a class="where" id="rulings-where"[^>]* hidden>/);
+    const page = emittedChrome(html);
+    const bar = page.bar;
+    const tab = page.tab;
+    const count = page.count;
+    if (bar === null || tab === null || count === null) {
+      throw new Error('fixture: the emitted panel ids');
+    }
+    expect(bar.classes.contains('rest')).toBe(true);
+    expect(tab.textContent).toBe('no picks yet');
+    expect(tab.getAttribute('aria-controls')).toBe(page.barIn?.id);
+    expect(count.textContent).toBe('0 of 3 ruled');
+    expect(page.sum?.innerHTML).toContain('no picks yet — click a view');
+    expect(page.where?.getAttribute('hidden')).toBe('');
     expect(html).not.toContain('max-height: 120px');
+
+    const io = page.io;
+    const g1 = page.section('G1');
+    if (io === null || g1 === undefined) throw new Error('fixture: spy band');
+    io.cb([{ target: g1, isIntersecting: true }]);
+    expect(page.where?.getAttribute('hidden')).toBeNull();
+    expect(page.where?.getAttribute('href')).toBe('#r-G1');
+    expect(page.where?.textContent).toContain(
+      'Who owns a leaf block inside its reader’s window?',
+    );
+
+    const g2a = page.clickCard('G2a');
+    expect(g2a).toBeDefined();
+    expect(bar.classes.contains('rest')).toBe(false);
+    expect(count.textContent).toBe('1 of 3 ruled');
+    expect(page.sum?.innerHTML).toContain('needs G1a');
+    page.clickCard('G1a');
+    expect(count.textContent).toBe('2 of 3 ruled');
+    expect(page.sum?.innerHTML).not.toContain('needs G1a');
+    expect(page.link('G1')?.classes.contains('ruled')).toBe(true);
   });
 
   it('emits a page without key with the composer and no storage key', () => {
@@ -292,13 +485,9 @@ describe('the bin door', () => {
     open.push(dir);
     mkdirSync(dir, { recursive: true });
     writeFileSync(join(dir, PAGE_FILE), PLAIN_PAGE);
-    const ran = spawnSync(
-      process.execPath,
-      ['src/index.ts', dir, '--no-open'],
-      {
-        cwd: fileURLToPath(new URL('..', import.meta.url)),
-      },
-    );
+    const ran = spawnSync(process.execPath, ['src/index.ts', dir, '--no-open'], {
+      cwd: fileURLToPath(new URL('..', import.meta.url)),
+    });
     expect(ran.status).toBe(0);
     expect(existsSync(join(dir, 'index.html'))).toBe(true);
   });
