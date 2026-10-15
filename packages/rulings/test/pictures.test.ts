@@ -141,6 +141,53 @@ describe('diagram view', () => {
   });
 });
 
+describe('render defects — the fix pass', () => {
+  it('scopes the today measure to the head paragraph so it cannot land on a view', () => {
+    expect(pageCss).toMatch(/p\.today\s*\{[^}]*max-width: 68ch/);
+    expect(pageCss).not.toMatch(/(^|\})\s*\.today\s*\{/);
+  });
+
+  it('names each seq svg by its own view caption, not the ruling base cap', () => {
+    const P = example();
+    expect(seqView(P.rulings.G1, 'G1', 'G1b')).toContain(
+      'aria-label="Option b: all 20 paid leaf blocks have an owner. The read pays Paul."',
+    );
+    expect(seqView(P.rulings.G1, 'G1', 'today')).toContain(
+      'aria-label="Today 10 paid leaf blocks have no owner. A read of them pays no holder."',
+    );
+  });
+
+  it('carries the changes legend key only on a view that changes rows', () => {
+    const P = example();
+    expect(seqView(P.rulings.G1, 'G1', 'G1b')).toContain(
+      'what this option changes',
+    );
+    expect(seqView(P.rulings.G1, 'G1', 'today')).not.toContain(
+      'what this option changes',
+    );
+    const q: Ruling = {
+      opts: [
+        { c: 'c', g: 'g', k: 'a', rec: true, t: 'a' },
+        { c: 'c', g: 'g', k: 'b', t: 'b' },
+      ],
+      seq: {
+        lanes: ['l', 'r'],
+        steps: [{ f: 0, k: 'call', o: { a: { x: 'only a changes' } }, t: 1, x: 'hi' }],
+      },
+    };
+    expect(seqView(q, 'G9', 'G9a')).toContain('what this option changes');
+    expect(seqView(q, 'G9', 'G9b')).not.toContain('what this option changes');
+    expect(seqView(q, 'G9', 'today')).not.toContain('what this option changes');
+  });
+
+  it('re-renders mermaid when the system scheme flips, without reload', () => {
+    const boot = mermaidBoot();
+    expect(boot).toContain("addEventListener('change'");
+    expect(boot).toContain("removeAttribute('data-processed')");
+    expect(boot).toContain('textContent');
+  });
+});
+
 describe('page styles and theme door', () => {
   it('fetches nothing on open: no imports, no urls, system fonts only', () => {
     expect(pageCss).not.toMatch(/@import|url\(/i);
