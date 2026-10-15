@@ -57,7 +57,7 @@ function runsIn(st: Step, view: string, owner: string): boolean {
   return joins && overlayFor(st, view, owner)?.a !== 'del';
 }
 
-function legendHtml(d: Seq, view: string, hasDeltas: boolean): string {
+function legendHtml(d: Seq, hasDeltas: boolean): string {
   const used = new Set(d.steps.map(st => st.k));
   const kinds = KINDS.filter(k => used.has(k)).map(
     k =>
@@ -249,7 +249,7 @@ export function seqView(
     view !== 'today' && d.steps.some(st => drawnIn(st, view, id));
   return (
     `<section class="view${view === 'today' ? ' today' : ''}${hue ? ` ${hue}` : ''}"${attrs}>${head}` +
-    `<div class="stage">${legendHtml(d, view, hasDeltas)}<div class="scroll">${seqSvg(d, id, view, cap ?? '')}</div>` +
+    `<div class="stage">${legendHtml(d, hasDeltas)}<div class="scroll">${seqSvg(d, id, view, cap ?? '')}</div>` +
     (cap ? `<p class="cap">${cap}</p>` : '') +
     '</div>' +
     verdictFor(q, view) +
