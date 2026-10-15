@@ -75,8 +75,8 @@ section[id^="r-"] { scroll-margin-top: 14px; }
 .rhead .none-btn:hover { color: var(--ink); border-color: var(--ink); }
 .rhead .none-btn.on { color: var(--sheet); background: var(--muted); border-style: solid; border-color: var(--muted); }
 .stake { font: 600 16.5px/1.45 var(--serif); max-width: 62ch; margin-top: 10px; }
-.today { font: 14.5px/1.55 var(--sans); max-width: 68ch; color: var(--muted); margin-top: 8px; }
-.today b { color: var(--ink); }
+p.today { font: 14.5px/1.55 var(--sans); max-width: 68ch; color: var(--muted); margin-top: 8px; }
+p.today b { color: var(--ink); }
 .changed { border: 1px solid var(--rule); background: var(--sheet); padding: 10px 14px; max-width: 78ch; font-size: 13.5px; border-radius: 8px; margin-top: 10px; }
 .meta-line { font: 12px var(--mono); color: var(--muted); margin-top: 3px; }
 

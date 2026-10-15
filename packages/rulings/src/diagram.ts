@@ -25,13 +25,25 @@ export function diagramView(q: Ruling, view: string, attrs = ''): string {
 }
 
 // The diagram boot: the system theme decides, and every .mermaid container
-// renders under it.
+// renders under it — again, without a reload, when the scheme flips.
 export function mermaidBoot(): string {
   return `<script>
 (function () {
-  var dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  window.mermaid.initialize({ startOnLoad: false, theme: dark ? 'dark' : 'default' });
-  window.mermaid.run({ querySelector: '.mermaid' });
+  var nodes = Array.prototype.slice.call(document.querySelectorAll('.mermaid'));
+  var src = nodes.map(function (n) { return n.textContent; });
+  var mq = window.matchMedia('(prefers-color-scheme: dark)');
+  function draw(dark) {
+    window.mermaid.initialize({ startOnLoad: false, theme: dark ? 'dark' : 'default' });
+    nodes.forEach(function (n, i) {
+      n.textContent = src[i];
+      n.removeAttribute('data-processed');
+    });
+    window.mermaid.run({ querySelector: '.mermaid' });
+  }
+  draw(mq.matches);
+  function flip(e) { draw(e.matches); }
+  if (mq.addEventListener) mq.addEventListener('change', flip);
+  else if (mq.addListener) mq.addListener(flip);
 })();
 </script>`;
 }
