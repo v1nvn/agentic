@@ -33,36 +33,50 @@ function overlayFor(
   return undefined;
 }
 
-// The steps one view owns: overlays expand in place, `in` steps belong only
-// to the views that name them.
-function viewSteps(d: Seq, view: string, owner: string): Step[] {
-  return d.steps.filter(st =>
-    st.in
-      ? view !== 'today' && st.in.map(v => full(v, owner)).includes(view)
-      : true,
+// A step a view draws as a delta: today draws the whole chain (minus steps
+// that join an option), an option view draws only the steps it adds (`in`)
+// or reshapes (`o`).
+function drawnIn(st: Step, view: string, owner: string): boolean {
+  if (view === 'today') {
+    return st.in === undefined;
+  }
+  return (
+    (st.in?.map(v => full(v, owner)).includes(view) ?? false) ||
+    overlayFor(st, view, owner) !== undefined
   );
 }
 
-function legendHtml(d: Seq, owner: string, view: string): string {
+// A step that happens in the view: everything the chain holds, minus steps
+// that exist only in other options (`in`) and steps the view strikes (`del`).
+function runsIn(st: Step, view: string, owner: string): boolean {
+  if (view === 'today') {
+    return st.in === undefined;
+  }
+  const joins =
+    st.in === undefined || st.in.map(v => full(v, owner)).includes(view);
+  return joins && overlayFor(st, view, owner)?.a !== 'del';
+}
+
+function legendHtml(d: Seq, view: string, hasDeltas: boolean): string {
   const used = new Set(d.steps.map(st => st.k));
   const kinds = KINDS.filter(k => used.has(k)).map(
     k =>
       `<span style="--k:var(--k-${k})"><i${k === 'check' ? ' class="dash"' : ''}></i>${KIND_TEXT[k]}</span>`,
   );
-  const changes = viewSteps(d, view, owner).some(
-    st => st.in !== undefined || overlayFor(st, view, owner) !== undefined,
-  );
-  const sw = changes
+  const sw = hasDeltas
     ? '<span><b class="sw"></b>what this option changes</span>'
     : '';
   return `<div class="legend">${kinds.join('')}${sw}</div>`;
 }
 
-// An option view expands each step's overlay, keeps only steps the view owns
-// (`in`) and tags those rows new / changed / gone — the two load-bearing
-// features no mermaid equivalent carries.
+// One view on the shared geometry: lanes, ledger heads and the start row are
+// common to every view of the chain. The ledger runs silently through all the
+// steps that happen in the view — drawn or not — so a drawn row shows the
+// true balance at its true chain number; no end-balance footer.
 function seqSvg(d: Seq, owner: string, view: string, cap: string): string {
-  const steps = viewSteps(d, view, owner);
+  const drawn = d.steps
+    .map((st, i) => ({ st, n: i + 1 }))
+    .filter(({ st }) => drawnIn(st, view, owner));
   const L = d.lanes.length;
   const G = 92;
   const LW = 170;
@@ -81,7 +95,7 @@ function seqSvg(d: Seq, owner: string, view: string, cap: string): string {
   function fmt(v: Cell): string {
     return typeof v === 'number' ? v.toLocaleString('en-US') : String(v);
   }
-  const rows = steps.map(st => {
+  const rows = drawn.map(({ st }) => {
     const ov = overlayFor(st, view, owner);
     const s = ov?.s ?? st.s;
     return 40 + (s ? 14 : 0) + (ov?.n ? 16 : 0);
@@ -91,13 +105,13 @@ function seqSvg(d: Seq, owner: string, view: string, cap: string): string {
   if (nb) {
     out += `<rect class="ledger-bg" x="${lanesW + gap - 6}" y="8" width="${nb * BW + 12}" height="${H - 14}" rx="4"/>`;
   }
-  let y0 = top;
-  steps.forEach((st, i) => {
-    if (st.in !== undefined || overlayFor(st, view, owner) !== undefined) {
+  if (view !== 'today') {
+    let y0 = top;
+    drawn.forEach((_, i) => {
       out += `<rect class="band" x="4" y="${y0 + 2}" width="${lanesW - 4}" height="${rows[i] - 4}" rx="3"/>`;
-    }
-    y0 += rows[i];
-  });
+      y0 += rows[i];
+    });
+  }
   d.lanes.forEach((a, i) => {
     out += `<line class="life" x1="${X(i)}" y1="56" x2="${X(i)}" y2="${H - 8}"/>`;
     const parts = a.split('\n');
@@ -125,8 +139,23 @@ function seqSvg(d: Seq, owner: string, view: string, cap: string): string {
     );
   }
   const prev: Cell[] = (d.start ?? []).slice();
-  y0 = top;
-  steps.forEach((st, i) => {
+  const bals = new Map<Step, { post: Cell[]; pre: Cell[] }>();
+  for (const st of d.steps) {
+    if (!runsIn(st, view, owner)) {
+      continue;
+    }
+    const b = overlayFor(st, view, owner)?.b ?? st.b;
+    if (b === undefined) {
+      continue;
+    }
+    const pre = prev.slice();
+    b.forEach((raw, j) => {
+      prev[j] = raw ?? prev[j] ?? null;
+    });
+    bals.set(st, { pre, post: prev.slice() });
+  }
+  let y0 = top;
+  drawn.forEach(({ st, n }, i) => {
     const ov = overlayFor(st, view, owner);
     const gone = ov?.a === 'del';
     const isNew = st.in !== undefined;
@@ -135,7 +164,7 @@ function seqSvg(d: Seq, owner: string, view: string, cap: string): string {
     const y = y0 + 22;
     const tag = isNew ? 'new' : gone ? 'gone' : ov ? 'changed' : null;
     out += `<g${gone ? ' class="gone"' : ''}>`;
-    out += `<text class="num" x="14" y="${y + 4}" text-anchor="middle">${i + 1}</text>`;
+    out += `<text class="num" x="14" y="${y + 4}" text-anchor="middle">${n}</text>`;
     if (tag) {
       out += `<g class="tg tg-${tag}"><rect x="26" y="${y - 9}" width="58" height="18" rx="9"/><text x="55" y="${y + 4}" text-anchor="middle">${tag}</text></g>`;
     }
@@ -191,13 +220,11 @@ function seqSvg(d: Seq, owner: string, view: string, cap: string): string {
       );
       out += `<text class="note" x="${ncx}" y="${ly}" text-anchor="middle">${esc(ov.n)}</text>`;
     }
-    const b = ov?.b ?? st.b;
-    if (b !== undefined && !gone) {
-      b.forEach((raw, j) => {
-        const v: Cell = raw ?? prev[j] ?? null;
-        const chg = v !== (prev[j] ?? null);
+    const bal = bals.get(st);
+    if (bal !== undefined) {
+      bal.post.forEach((v, j) => {
+        const chg = v !== (bal.pre[j] ?? null);
         out += `<text class="bal${chg ? ' chg' : ''}" x="${bx(j)}" y="${y + 4}" text-anchor="middle">${esc(fmt(v))}</text>`;
-        prev[j] = v;
       });
     }
     y0 += rows[i];
@@ -218,9 +245,11 @@ export function seqView(
   const { head, hue } = viewHeadFor(q, view);
   const capKey = Object.keys(d.caps ?? {}).find(k => full(k, id) === view);
   const cap = capKey === undefined ? d.cap : d.caps?.[capKey];
+  const hasDeltas =
+    view !== 'today' && d.steps.some(st => drawnIn(st, view, id));
   return (
     `<section class="view${view === 'today' ? ' today' : ''}${hue ? ` ${hue}` : ''}"${attrs}>${head}` +
-    `<div class="stage">${legendHtml(d, id, view)}<div class="scroll">${seqSvg(d, id, view, cap ?? '')}</div>` +
+    `<div class="stage">${legendHtml(d, view, hasDeltas)}<div class="scroll">${seqSvg(d, id, view, cap ?? '')}</div>` +
     (cap ? `<p class="cap">${cap}</p>` : '') +
     '</div>' +
     verdictFor(q, view) +
