@@ -138,7 +138,7 @@ function pageDir(text: string): string {
 describe('the emitted page', () => {
   it('pins the example full HTML: sidebar, sections, table, compare, notes, merged note', () => {
     const { html, hasDiagram } = buildPage(loadPageFile(EXAMPLE));
-    expect(hasDiagram).toBe(false);
+    expect(hasDiagram).toBe(true);
     expect(html).toMatchSnapshot();
     expect(html).toContain('<nav class="side"');
     expect(html).toContain('href="#r-G4"');
@@ -149,9 +149,9 @@ describe('the emitted page', () => {
     expect(html).toMatch(/class="compare"/);
     expect(html).not.toMatch(/class="views"/);
     const wraps = html.match(/<div class="vwrap[^"]*"/g) ?? [];
-    expect(wraps).toHaveLength(8);
-    expect(html.match(/class="vg"/g)).toHaveLength(6);
-    expect(html.match(/class="vc"/g)).toHaveLength(6);
+    expect(wraps).toHaveLength(10);
+    expect(html.match(/class="vg"/g)).toHaveLength(8);
+    expect(html.match(/class="vc"/g)).toHaveLength(8);
     expect(html.match(/class="how"/g)).toHaveLength(2);
     expect(html).not.toContain('class="gc');
     expect(html.indexOf('id="view-G2b"')).toBeLessThan(
@@ -160,7 +160,7 @@ describe('the emitted page', () => {
     expect(html.lastIndexOf('class="how"')).toBeGreaterThan(
       html.indexOf('id="view-G4b"'),
     );
-    expect(html.match(/★ recommended/g)).toHaveLength(4);
+    expect(html.match(/★ recommended/g)).toHaveLength(5);
   });
 
   it('renders the table once per ruling: one head, one row per option', () => {
@@ -169,14 +169,14 @@ describe('the emitted page', () => {
       html.match(
         /<div class="vtable"><div class="vhead"><span>option<\/span><span>gain<\/span><span>cost<\/span><\/div>/g,
       ),
-    ).toHaveLength(3);
-    expect(html.match(/<div class="vrow /g)).toHaveLength(6);
-    expect(html.match(/<span class="pmark">✓ picked<\/span>/g)).toHaveLength(6);
+    ).toHaveLength(4);
+    expect(html.match(/<div class="vrow /g)).toHaveLength(8);
+    expect(html.match(/<span class="pmark">✓ picked<\/span>/g)).toHaveLength(8);
     expect(
       html.match(
         /<input class="onote" data-note="[^"]+" placeholder="note for [^"]+" aria-label="note for [^"]+">/g,
       ),
-    ).toHaveLength(6);
+    ).toHaveLength(8);
     expect(html).toContain(
       '<div class="vrow o-a" data-view="today"',
     );
@@ -189,8 +189,8 @@ describe('the emitted page', () => {
     const { html } = buildPage(loadPageFile(EXAMPLE));
     expect(
       html.match(/<button type="button" class="lt disc o-[ab]" data-pick="/g),
-    ).toHaveLength(6);
-    expect(html.match(/data-pick="G/g)).toHaveLength(12);
+    ).toHaveLength(8);
+    expect(html.match(/data-pick="G/g)).toHaveLength(16);
     expect(html).toContain(
       '<div class="vwrap o-a" data-view="today" data-pick="G1a" role="tabpanel" id="view-G1-today">',
     );
@@ -203,29 +203,29 @@ describe('the emitted page', () => {
     expect(html).not.toMatch(/class="vrow[^"]*" data-pick/);
     expect(
       html.match(/<button type="button" class="tl[^"]*" role="tab" /g),
-    ).toHaveLength(8);
+    ).toHaveLength(10);
   });
 
   it('puts every view in the DOM with exactly one visible per ruling', () => {
     const { html } = buildPage(loadPageFile(EXAMPLE));
     const compares = html.match(/<div class="compare">[\s\S]*?<\/section>/g) ?? [];
-    expect(compares).toHaveLength(3);
+    expect(compares).toHaveLength(4);
     for (const compare of compares) {
       expect(compare.match(/role="tabpanel" id="[^"]+">/g)).toHaveLength(1);
     }
-    expect(html.match(/role="tabpanel" id="[^"]+" hidden>/g)).toHaveLength(5);
+    expect(html.match(/role="tabpanel" id="[^"]+" hidden>/g)).toHaveLength(6);
   });
 
   it('emits the tab strip with tab semantics wired to the wraps', () => {
     const { html } = buildPage(loadPageFile(EXAMPLE));
-    expect(html.match(/role="tab"/g)).toHaveLength(8);
+    expect(html.match(/role="tab"/g)).toHaveLength(10);
     expect(
       html.match(/role="tab" aria-selected="true"/g),
-    ).toHaveLength(3);
+    ).toHaveLength(4);
     expect(
       html.match(/role="tab" aria-selected="false"/g),
-    ).toHaveLength(5);
-    expect(html.match(/role="tabpanel"/g)).toHaveLength(8);
+    ).toHaveLength(6);
+    expect(html.match(/role="tabpanel"/g)).toHaveLength(10);
     expect(html).toContain(
       '<div class="tabs" role="tablist"><button type="button" class="tl o-a" role="tab" aria-selected="true" aria-controls="view-G1-today" data-view="today"><span class="lt">a</span><span class="tt">Keep one band per paid block, as ruled in 6.5</span><span class="asr">today</span></button>',
     );
@@ -237,10 +237,10 @@ describe('the emitted page', () => {
     }
   });
 
-  it('references nothing external: the example carries no diagram, no scripts', () => {
+  it('references nothing external: the one script tag is the vendored mermaid', () => {
     const { html } = buildPage(loadPageFile(EXAMPLE));
-    expect(html).not.toContain('<script src=');
-    expect(html).not.toContain('window.mermaid');
+    expect(html.match(/<script src="mermaid.min.js"><\/script>/g)).toHaveLength(1);
+    expect(html).toContain('window.mermaid');
     expect(html).not.toMatch(/https?:\/\/|src="\/|href="\//);
   });
 });
@@ -248,7 +248,7 @@ describe('the emitted page', () => {
 describe('the folds', () => {
   it('shows two sentences of a three-sentence today and folds the rest', () => {
     const { html } = buildPage(loadPageFile(EXAMPLE));
-    expect(html.match(/<p class="today">/g)).toHaveLength(5);
+    expect(html.match(/<p class="today">/g)).toHaveLength(6);
     expect(html).toContain(
       '<p class="today">Paul buys a reader on a leaf. The daemon records an owner for each block it builds, called a <b>band</b>.</p>' +
         '<details class="fold"><summary>the rest</summary><p class="today">A read pays half its fee to the band, which stops where the reader’s window starts.</p></details>',
@@ -336,7 +336,7 @@ describe('the today sentence warning', () => {
 describe('the language pass', () => {
   it('names the recommendation and the pick, never "my pick"', () => {
     const { html } = buildPage(loadPageFile(EXAMPLE));
-    expect(html.match(/class="star">★ recommended</g)).toHaveLength(3);
+    expect(html.match(/class="star">★ recommended</g)).toHaveLength(4);
     expect(html).toContain('>accept ★ recommended</button>');
     expect(html).not.toContain('my pick');
   });
@@ -355,15 +355,15 @@ describe('the language pass', () => {
 
   it('marks the as-today option on its row and its tab, nowhere else', () => {
     const { html } = buildPage(loadPageFile(EXAMPLE));
-    expect(html.match(/<span class="asr">as today<\/span>/g)).toHaveLength(1);
-    expect(html.match(/<span class="asr">today<\/span>/g)).toHaveLength(1);
+    expect(html.match(/<span class="asr">as today<\/span>/g)).toHaveLength(2);
+    expect(html.match(/<span class="asr">today<\/span>/g)).toHaveLength(2);
     expect(html).not.toContain('how it works now');
   });
 
   it('speaks to the reader: no engine vocabulary in captions and placeholders', () => {
     const { html } = buildPage(loadPageFile(EXAMPLE));
     expect(html).not.toMatch(/The engine|diff: false|rides the answer/);
-    expect(html.match(/placeholder="note for G\d[a-z]?"/g)).toHaveLength(6);
+    expect(html.match(/placeholder="note for G\d[a-z]?"/g)).toHaveLength(8);
   });
 
   it('draws mono structure at exactly two sizes', () => {
@@ -432,8 +432,7 @@ describe('the verdict fragment warning', () => {
   });
 });
 
-// The real script bytes run in a vm over a fake DOM parsed out of the same
-// html, so the test pins the DOM the panel and the script build.
+// The real script bytes run in a vm over a fake DOM parsed from the same html.
 function emittedChrome(html: string) {
   FakeIO.last = null;
   const body = new El('body');
@@ -551,9 +550,7 @@ function emittedChrome(html: string) {
         case '[data-pick]':
           return cards;
         case '[data-needs]':
-          return [...cards, ...needsRows].filter(
-            c => c.getAttribute('data-needs') !== null,
-          );
+          return needsRows;
         case '.onote':
           return noteIns;
         case '[data-none]':
@@ -655,7 +652,7 @@ describe('the interactive chrome', () => {
     expect(bar.classes.contains('rest')).toBe(true);
     expect(tab.textContent).toBe('no picks yet');
     expect(tab.getAttribute('aria-controls')).toBe(page.barIn?.id);
-    expect(count.textContent).toBe('0 of 3 ruled');
+    expect(count.textContent).toBe('0 of 4 ruled');
     expect(page.sum?.innerHTML).toContain('no picks yet — pick a letter');
     expect(page.where?.getAttribute('hidden')).toBe('');
     expect(html).not.toContain('max-height: 120px');
@@ -673,10 +670,10 @@ describe('the interactive chrome', () => {
     const g2a = page.clickCard('G2a');
     expect(g2a).toBeDefined();
     expect(bar.classes.contains('rest')).toBe(false);
-    expect(count.textContent).toBe('1 of 3 ruled');
+    expect(count.textContent).toBe('1 of 4 ruled');
     expect(page.sum?.innerHTML).toContain('needs G1a');
     page.clickCard('G1a');
-    expect(count.textContent).toBe('2 of 3 ruled');
+    expect(count.textContent).toBe('2 of 4 ruled');
     expect(page.sum?.innerHTML).not.toContain('needs G1a');
     expect(page.link('G1')?.classes.contains('ruled')).toBe(true);
   });
@@ -706,7 +703,11 @@ describe('determinism', () => {
     expect(main([dir, '--no-open'])).toBe(0);
     const second = readFileSync(join(dir, 'index.html'));
     expect(second.equals(first)).toBe(true);
-    expect(readdirSync(dir).sort()).toEqual(['index.html', 'page.js']);
+    expect(readdirSync(dir).sort()).toEqual([
+      'index.html',
+      'mermaid.min.js',
+      'page.js',
+    ]);
   });
 
   it('carries no timestamp, absolute path or generated marker', () => {

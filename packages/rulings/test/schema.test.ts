@@ -308,7 +308,7 @@ describe('errors block, warnings print', () => {
 
   it('eleven rulings warn and nothing else errors', () => {
     const P = loadExample();
-    for (let i = 5; i <= 12; i++) {
+    for (let i = 6; i <= 12; i++) {
       P.rulings[`G${i}`] = structuredClone(P.rulings.G2);
       P.groups[1].rulings.push(`G${i}`);
     }
