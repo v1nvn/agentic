@@ -1,6 +1,6 @@
 # Rulings — the verdict-table layout
 
-**Run:** session builds U1; U2–U4 dispatch · one commit per unit, one PR per thread
+**Run:** one commit per unit, one PR per thread
 
 ## Goal
 
@@ -28,7 +28,7 @@ Branch `rulings-verdict-table` off `rulings-fix-pass`, build U1.
 
 | id | unit | model | review | consult | close criteria |
 | --- | --- | --- | --- | ------- | -------------- |
-| U1 | one home per ruling — verdict table + one stage | session | role | design | table renders g/c once per option as fragments; per-view heads, verdict tails and per-view note inputs deleted; all views in DOM, one visible; `yarn workspace @v1nvn/rulings run test` green with moved pins; example's g/c pass the fragment warning |
+| U1 | one home per ruling — verdict table + one stage | sonnet | role | design | table renders g/c once per option as fragments; per-view heads, verdict tails and per-view note inputs deleted; all views in DOM, one visible; `yarn workspace @v1nvn/rulings run test` green with moved pins; example's g/c pass the fragment warning |
 | U2 | the folds — today, notes, long today-code | sonnet | role | | today renders two sentences then a fold; the notes block folds on its bold lead; a bodies today block over 20 lines folds with a count-labelled expander; >3-sentence today warns; SKILL Step 2 moves in the same change |
 | U3 | the gestures — look vs pick | sonnet | role | | tab or row body switches the shown view; letter disc and the shown picture pick; a stored pick restores its view on load; needs chips and unmet marks live on rows; answer text and storage shape byte-identical (contract tests unchanged); SKILL Step 6 moves in the same change |
 | U4 | example and docs to the new authoring | sonnet | role | | example.page.js demonstrates 2-sentence todays, fragment g/c, one-line w; SKILL Steps 2–4 swept; README's surface description matches the page |
