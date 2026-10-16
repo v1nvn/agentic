@@ -7,7 +7,7 @@ import type { Page, Ruling } from './schema.ts';
 import { bodiesOption, bodiesToday } from './bodies.ts';
 import { chromeScript, panelHtml } from './chrome.ts';
 import { diagramView, mermaidBoot } from './diagram.ts';
-import { esc, hueOf, needsOf, optOf, sentenceEnds, stripTags, verdictTable, viewTabs, wrapId } from './html.ts';
+import { esc, hueOf, optOf, sentenceEnds, stripTags, verdictTable, viewTabs, wrapId } from './html.ts';
 import { seqView } from './seq.ts';
 import { pageCss } from './style.ts';
 
@@ -90,7 +90,6 @@ function foldHtml(rest: string): string {
   return `<details class="fold"><summary>the rest</summary>${rest}</details>`;
 }
 
-// Two sentences of the today show, the rest folds; whole when nothing would sit behind it.
 function todayHtml(today: string): string {
   const cut = sentenceEnds(today)[1];
   if (cut === undefined || today.slice(cut).trim() === '') {
@@ -102,8 +101,6 @@ function todayHtml(today: string): string {
   );
 }
 
-// The bold lead stays in view, the rest folds; no lead or nothing after it
-// renders whole.
 function noteHtml(html: string): string {
   const lead = /<b>.*?<\/b>/.exec(html);
   if (lead === null) {
@@ -143,13 +140,9 @@ function compareOf(q: Ruling, id: string): string {
   const wraps = views
     .map((view, i) => {
       const o = optOf(q, view);
-      const needs = o === undefined ? [] : needsOf(o);
       return (
         `<div class="vwrap${o ? ` ${hueOf(o.k)}` : ''}" data-view="${view}"` +
-        (o
-          ? ` data-pick="${view === 'today' ? id + o.k : view}"` +
-            (needs.length ? ` data-needs="${needs.join(' ')}"` : '')
-          : '') +
+        (o ? ` data-pick="${view === 'today' ? id + o.k : view}"` : '') +
         ` role="tabpanel" id="${wrapId(id, view)}"${i === 0 ? '' : ' hidden'}>` +
         stageOf(q, id, view) +
         '</div>'

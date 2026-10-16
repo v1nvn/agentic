@@ -195,7 +195,7 @@ describe('the emitted page', () => {
       '<div class="vwrap o-a" data-view="today" data-pick="G1a" role="tabpanel" id="view-G1-today">',
     );
     expect(html).toContain(
-      '<div class="vwrap o-a" data-view="G2a" data-pick="G2a" data-needs="G1a" role="tabpanel" id="view-G2a" hidden>',
+      '<div class="vwrap o-a" data-view="G2a" data-pick="G2a" role="tabpanel" id="view-G2a" hidden>',
     );
     expect(html).toContain(
       '<div class="vwrap" data-view="today" role="tabpanel" id="view-G2-today">',
@@ -432,31 +432,46 @@ describe('the verdict fragment warning', () => {
   });
 });
 
-// The emitted page boots its own chrome: the real script bytes run in a vm
-// over a fake DOM parsed out of the same html, so the test pins the DOM the
-// panel and the script build.
+// The real script bytes run in a vm over a fake DOM parsed out of the same
+// html, so the test pins the DOM the panel and the script build.
 function emittedChrome(html: string) {
   FakeIO.last = null;
   const body = new El('body');
   const key = /<body data-key="([^"]*)">/.exec(html);
   if (key) body.setAttribute('data-key', key[1]);
   const discs = [...html.matchAll(/<button type="button" class="lt disc ([^"]*)" data-pick="([^"]+)"/g)].map(
-    m => ({ at: m.index, cls: m[1], pick: m[2], needs: '' }),
+    m => ({ at: m.index, cls: m[1], pick: m[2] }),
   );
   const wraps = [
     ...html.matchAll(
-      /<div class="vwrap ([^"]*)" data-view="[^"]*"(?: data-pick="([^"]*)")?(?: data-needs="([^"]*)")? role="tabpanel"/g,
+      /<div class="vwrap ([^"]*)" data-view="[^"]*"(?: data-pick="([^"]*)")? role="tabpanel"/g,
     ),
-  ].map(m => ({ at: m.index, cls: m[1], pick: m[2] ?? '', needs: m[3] ?? '' }));
+  ].map(m => ({ at: m.index, cls: m[1], pick: m[2] ?? '' }));
   const cards = [...discs, ...wraps]
     .sort((a, b) => a.at - b.at)
     .map(c => {
       const el = new El('div', c.cls.split(/\s+/).filter(Boolean));
       if (c.pick !== '') el.setAttribute('data-pick', c.pick);
-      if (c.needs !== '') el.setAttribute('data-needs', c.needs);
       el.parent = body;
       return el;
     });
+  const needsRows = [
+    ...html.matchAll(
+      /<div class="vrow ([^"]*)" data-view="[^"]*"(?: data-needs="([^"]*)")?>/g,
+    ),
+  ].map(m => {
+    const el = new El('div', ['vrow', ...m[1].split(/\s+/).filter(Boolean)]);
+    const disc = new El('button', ['lt', 'disc']);
+    disc.setAttribute(
+      'data-pick',
+      /<button type="button" class="lt disc ([^"]*)" data-pick="([^"]+)"/
+        .exec(html.slice(m.index))![2],
+    );
+    el.appendChild(disc);
+    if (m[2] !== undefined) el.setAttribute('data-needs', m[2]);
+    el.parent = body;
+    return el;
+  });
   const noteIns = [
     ...html.matchAll(/<input class="onote" data-note="([^"]+)"/g),
   ].map(m => {
@@ -536,7 +551,9 @@ function emittedChrome(html: string) {
         case '[data-pick]':
           return cards;
         case '[data-needs]':
-          return cards.filter(c => c.getAttribute('data-needs') !== null);
+          return [...cards, ...needsRows].filter(
+            c => c.getAttribute('data-needs') !== null,
+          );
         case '.onote':
           return noteIns;
         case '[data-none]':
@@ -639,7 +656,7 @@ describe('the interactive chrome', () => {
     expect(tab.textContent).toBe('no picks yet');
     expect(tab.getAttribute('aria-controls')).toBe(page.barIn?.id);
     expect(count.textContent).toBe('0 of 3 ruled');
-    expect(page.sum?.innerHTML).toContain('no picks yet — click a view');
+    expect(page.sum?.innerHTML).toContain('no picks yet — pick a letter');
     expect(page.where?.getAttribute('hidden')).toBe('');
     expect(html).not.toContain('max-height: 120px');
 

@@ -368,7 +368,7 @@ describe('the shown view', () => {
     expect(h.tabToday.getAttribute('aria-selected')).toBe('false');
     expect(h.rowB.classList.contains('look')).toBe(true);
     expect(h.rowA.classList.contains('look')).toBe(false);
-    expect(h.sum.innerHTML).toContain('no picks yet — click a view');
+    expect(h.sum.innerHTML).toContain('no picks yet — pick a letter');
   });
 
   it('switches on a row-body click and never picks', () => {
@@ -376,7 +376,7 @@ describe('the shown view', () => {
     h.docClick({ target: h.vtB });
     expect(h.wrapB.getAttribute('hidden')).toBeNull();
     expect(h.tabB.getAttribute('aria-selected')).toBe('true');
-    expect(h.sum.innerHTML).toContain('no picks yet — click a view');
+    expect(h.sum.innerHTML).toContain('no picks yet — pick a letter');
   });
 
   it('picks from the shown picture and keeps the view', () => {
@@ -390,7 +390,14 @@ describe('the shown view', () => {
   it('never picks through a fold summary', () => {
     const h = harness();
     h.docClick({ target: h.foldSum });
-    expect(h.sum.innerHTML).toContain('no picks yet — click a view');
+    expect(h.sum.innerHTML).toContain('no picks yet — pick a letter');
+  });
+
+  it('never picks through a fold summary on the keyboard either', () => {
+    const h = harness();
+    h.keyDown({ key: ' ', target: h.foldSum });
+    h.keyDown({ key: 'Enter', target: h.foldSum });
+    expect(h.sum.innerHTML).toContain('no picks yet — pick a letter');
   });
 
   it('picks on the disc without moving the shown view', () => {
