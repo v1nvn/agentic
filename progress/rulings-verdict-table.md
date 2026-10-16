@@ -27,7 +27,15 @@ keep one CDP profile and delete it.
 
 ## Next step
 
-Commit U2 on its review, dispatch U3's builder with the needs note.
+Resume U2 after the model-tier usage limit resets (15:26): a successor
+builder continues from the uncommitted tree (bodies.ts, html.ts,
+page.ts, test/build.test.ts) and u2-builder.md — its shapes are decided
+(`<details class="fold">`, sentenceEnds scanner, notes fold at the bold
+lead, bodies fold today-only); it was mid-fix on the today-only seam (an
+option body with `diff: false` reaches the plain-pre path) when the limit
+killed it. It also routed a U3 finding: a fold-summary click inside a
+today wrap that carries data-pick would pick — chrome.ts's exemption
+list takes the fold summary.
 
 ## Steps
 
