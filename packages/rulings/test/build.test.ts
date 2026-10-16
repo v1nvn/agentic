@@ -16,6 +16,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { main } from '../src/cli.ts';
 import { buildPage, loadPageFile, PAGE_FILE } from '../src/page.ts';
+import { validatePage } from '../src/schema.ts';
 import { El, FakeIO, type FakeEvent } from './dom.ts';
 
 const EXAMPLE = fileURLToPath(new URL('../src/example.page.js', import.meta.url));
@@ -49,6 +50,30 @@ const RED_PAGE = `var PAGE = {
   rulings: { G1: { title: "t?", from: "abc123" } }
 };`;
 
+function fragmentPage(g: string, c = 'one more moving part', w?: string): string {
+  return `var PAGE = {
+  title: "One small ruling?",
+  sub: "What the rebuild owes.",
+  groups: [{ id: "one", label: "The only group", rulings: ["G1"] }],
+  rulings: {
+    G1: {
+      title: "Keep the plain door?",
+      stake: "About 3 rebuilds a week pay for a second path.",
+      today: "Today the builder writes one file through one door.",
+      bodies: {
+        today: { lang: "js", code: "let a = 1;\\nlet b = 2;" },
+        a: { lang: "js", code: "let a = 2;\\nlet b = 2;" },
+        b: { lang: "js", code: "let a = 1;\\nlet b = 4;" }
+      },
+      opts: [
+        { k: "a", rec: true, t: "Change a", g: ${JSON.stringify(g)}, c: ${JSON.stringify(c)}${w === undefined ? '' : `, w: ${JSON.stringify(w)}`} },
+        { k: "b", t: "Change b", g: "b is cheaper here", c: "the test doubles" }
+      ]
+    }
+  }
+};`;
+}
+
 const open: string[] = [];
 afterEach(() => {
   for (const d of open.splice(0)) rmSync(d, { recursive: true, force: true });
@@ -61,7 +86,7 @@ function pageDir(text: string): string {
 }
 
 describe('the emitted page', () => {
-  it('pins the example full HTML: sidebar, sections, views, verdict tails, notes, merged note', () => {
+  it('pins the example full HTML: sidebar, sections, table, compare, notes, merged note', () => {
     const { html, hasDiagram } = buildPage(loadPageFile(EXAMPLE));
     expect(hasDiagram).toBe(false);
     expect(html).toMatchSnapshot();
@@ -70,23 +95,96 @@ describe('the emitted page', () => {
     expect(html).toContain('id="r-G1"');
     expect(html).toContain('G3 is merged into this ruling.');
     expect(html).toContain('Not rulings: two findings are decided.');
-    expect(html).toMatch(/class="views"/);
-    expect(html).not.toMatch(/class="compare"/);
-    const viewBlocks =
-      html.match(/<section class="view[^"]*"[^>]*>[\s\S]*?<\/section>/g) ?? [];
-    expect(viewBlocks).toHaveLength(8);
-    expect(viewBlocks.filter(b => b.includes('gc gain'))).toHaveLength(6);
-    const todayBlocks = viewBlocks.filter(b => b.includes('view today'));
-    expect(todayBlocks).toHaveLength(3);
-    expect(todayBlocks[0]).toContain('gc gain');
-    expect(todayBlocks[1]).not.toContain('gc gain');
-    expect(todayBlocks[2]).not.toContain('gc gain');
-    const g2b = viewBlocks.find(b => b.includes('data-pick="G2b"'));
-    if (g2b === undefined) throw new Error('fixture: the G2b view');
-    expect(g2b.indexOf('class="stage"')).toBeLessThan(g2b.indexOf('class="how"'));
-    expect(g2b.indexOf('class="how"')).toBeLessThan(g2b.indexOf('gc gain'));
-    expect(g2b.indexOf('gc gain')).toBeLessThan(g2b.indexOf('gc cost'));
+    expect(html).toMatch(/class="vtable"/);
+    expect(html).toMatch(/class="compare"/);
+    expect(html).not.toMatch(/class="views"/);
+    const wraps = html.match(/<div class="vwrap[^"]*"/g) ?? [];
+    expect(wraps).toHaveLength(8);
+    expect(html.match(/class="vg"/g)).toHaveLength(6);
+    expect(html.match(/class="vc"/g)).toHaveLength(6);
+    expect(html.match(/class="how"/g)).toHaveLength(2);
+    expect(html).not.toContain('class="gc');
+    expect(html.indexOf('id="view-G2b"')).toBeLessThan(
+      html.indexOf('class="how"'),
+    );
+    expect(html.lastIndexOf('class="how"')).toBeGreaterThan(
+      html.indexOf('id="view-G4b"'),
+    );
     expect(html.match(/★ recommended/g)).toHaveLength(4);
+  });
+
+  it('renders the table once per ruling: one head, one row per option', () => {
+    const { html } = buildPage(loadPageFile(EXAMPLE));
+    expect(
+      html.match(
+        /<div class="vtable"><div class="vhead"><span>option<\/span><span>gain<\/span><span>cost<\/span><\/div>/g,
+      ),
+    ).toHaveLength(3);
+    expect(html.match(/<div class="vrow /g)).toHaveLength(6);
+    expect(html.match(/<span class="pmark">✓ picked<\/span>/g)).toHaveLength(6);
+    expect(
+      html.match(
+        /<input class="onote" data-note="[^"]+" placeholder="note for [^"]+" aria-label="note for [^"]+">/g,
+      ),
+    ).toHaveLength(6);
+    expect(html).toContain(
+      '<div class="vrow o-a" data-view="today"',
+    );
+    expect(html).toContain(
+      '<div class="vrow o-a" data-view="G2a" data-needs="G1a">',
+    );
+  });
+
+  it('carries the pick on the disc and the wrap, the look on row and tab', () => {
+    const { html } = buildPage(loadPageFile(EXAMPLE));
+    expect(
+      html.match(/<button type="button" class="lt disc o-[ab]" data-pick="/g),
+    ).toHaveLength(6);
+    expect(html.match(/data-pick="G/g)).toHaveLength(12);
+    expect(html).toContain(
+      '<div class="vwrap o-a" data-view="today" data-pick="G1a" role="tabpanel" id="view-G1-today">',
+    );
+    expect(html).toContain(
+      '<div class="vwrap o-a" data-view="G2a" data-pick="G2a" data-needs="G1a" role="tabpanel" id="view-G2a" hidden>',
+    );
+    expect(html).toContain(
+      '<div class="vwrap" data-view="today" role="tabpanel" id="view-G2-today">',
+    );
+    expect(html).not.toMatch(/class="vrow[^"]*" data-pick/);
+    expect(
+      html.match(/<button type="button" class="tl[^"]*" role="tab" /g),
+    ).toHaveLength(8);
+  });
+
+  it('puts every view in the DOM with exactly one visible per ruling', () => {
+    const { html } = buildPage(loadPageFile(EXAMPLE));
+    const compares = html.match(/<div class="compare">[\s\S]*?<\/section>/g) ?? [];
+    expect(compares).toHaveLength(3);
+    for (const compare of compares) {
+      expect(compare.match(/role="tabpanel" id="[^"]+">/g)).toHaveLength(1);
+    }
+    expect(html.match(/role="tabpanel" id="[^"]+" hidden>/g)).toHaveLength(5);
+  });
+
+  it('emits the tab strip with tab semantics wired to the wraps', () => {
+    const { html } = buildPage(loadPageFile(EXAMPLE));
+    expect(html.match(/role="tab"/g)).toHaveLength(8);
+    expect(
+      html.match(/role="tab" aria-selected="true"/g),
+    ).toHaveLength(3);
+    expect(
+      html.match(/role="tab" aria-selected="false"/g),
+    ).toHaveLength(5);
+    expect(html.match(/role="tabpanel"/g)).toHaveLength(8);
+    expect(html).toContain(
+      '<div class="tabs" role="tablist"><button type="button" class="tl o-a" role="tab" aria-selected="true" aria-controls="view-G1-today" data-view="today"><span class="lt">a</span><span class="tt">Keep one band per paid block, as ruled in 6.5</span><span class="asr">today</span></button>',
+    );
+    expect(html).toContain(
+      '<button type="button" class="tl" role="tab" aria-selected="true" aria-controls="view-G2-today" data-view="today"><span class="tt">today</span></button>',
+    );
+    for (const m of html.matchAll(/aria-controls="([^"]+)"/g)) {
+      expect(html).toContain(`id="${m[1]}"`);
+    }
   });
 
   it('references nothing external: the example carries no diagram, no scripts', () => {
@@ -102,7 +200,6 @@ describe('the language pass', () => {
     const { html } = buildPage(loadPageFile(EXAMPLE));
     expect(html.match(/class="star">★ recommended</g)).toHaveLength(3);
     expect(html).toContain('>accept ★ recommended</button>');
-    expect(html.match(/<span class="pmark">✓ picked<\/span>/g)).toHaveLength(6);
     expect(html).not.toContain('my pick');
   });
 
@@ -118,11 +215,11 @@ describe('the language pass', () => {
     expect(html.match(/G3 is merged into this ruling\./g)).toHaveLength(1);
   });
 
-  it('shapes every today card like an option card: vhead wrapping vtt', () => {
+  it('marks the as-today option on its row and its tab, nowhere else', () => {
     const { html } = buildPage(loadPageFile(EXAMPLE));
-    expect(html.match(/<div class="vhead">/g)).toHaveLength(8);
-    expect(html.match(/<div class="vhead"><div class="vtt">/g)).toHaveLength(2);
-    expect(html).not.toContain('<div class="vhead"><span class="vt">');
+    expect(html.match(/<span class="asr">as today<\/span>/g)).toHaveLength(1);
+    expect(html.match(/<span class="asr">today<\/span>/g)).toHaveLength(1);
+    expect(html).not.toContain('how it works now');
   });
 
   it('speaks to the reader: no engine vocabulary in captions and placeholders', () => {
@@ -150,27 +247,78 @@ describe('the language pass', () => {
     const css = html.slice(html.indexOf('<style>'), html.indexOf('</style>'));
     expect(css).not.toMatch(/\.mermaid svg/);
   });
+
+  it('keeps the view-card path deleted: no vhead chips row, no gain cost fragments on a view', () => {
+    const { html } = buildPage(loadPageFile(EXAMPLE));
+    const css = html.slice(html.indexOf('<style>'), html.indexOf('</style>'));
+    expect(css).not.toMatch(/\.views|\.vtt|\.vmeta|\.gc\b/);
+    expect(html).not.toContain('<div class="vtt">');
+  });
 });
 
-// The emitted page boots its own chrome: the real script bytes from the
-// built html run in a vm over a fake DOM parsed out of the same html, so a
-// test pins the DOM the panel and the script build, not the strings they
-// came from.
+describe('the verdict fragment warning', () => {
+  it('warns past 90 stripped characters and not at 90', () => {
+    const fit = validatePage(
+      loadPageFile(join(pageDir(fragmentPage('a'.repeat(90))), PAGE_FILE)),
+    );
+    expect(fit.errors).toEqual([]);
+    expect(fit.warnings).toEqual([]);
+    const over = validatePage(
+      loadPageFile(join(pageDir(fragmentPage('a'.repeat(91))), PAGE_FILE)),
+    );
+    expect(over.errors).toEqual([]);
+    expect(over.warnings).toEqual([
+      'G1a gain is 91 characters; a table fragment fits 90',
+    ]);
+  });
+
+  it('warns the cost by its own name', () => {
+    const r = validatePage(
+      loadPageFile(join(pageDir(fragmentPage('b is cheaper', 'c'.repeat(95))), PAGE_FILE)),
+    );
+    expect(r.warnings).toEqual([
+      'G1a cost is 95 characters; a table fragment fits 90',
+    ]);
+  });
+
+  it('leaves w alone however long it runs', () => {
+    const r = validatePage(
+      loadPageFile(
+        join(
+          pageDir(fragmentPage('b is cheaper', 'one more moving part', 'w'.repeat(200))),
+          PAGE_FILE,
+        ),
+      ),
+    );
+    expect(r.warnings).toEqual([]);
+  });
+});
+
+// The emitted page boots its own chrome: the real script bytes run in a vm
+// over a fake DOM parsed out of the same html, so the test pins the DOM the
+// panel and the script build.
 function emittedChrome(html: string) {
   FakeIO.last = null;
   const body = new El('body');
   const key = /<body data-key="([^"]*)">/.exec(html);
   if (key) body.setAttribute('data-key', key[1]);
-  const cards = [
-    ...html.matchAll(/<section class="([^"]*)" data-pick="([^"]+)"([^>]*)>/g),
-  ].map(m => {
-    const el = new El('section', m[1].split(/\s+/).filter(Boolean));
-    el.setAttribute('data-pick', m[2]);
-    el.parent = body;
-    const needs = /data-needs="([^"]*)"/.exec(m[3]);
-    if (needs) el.setAttribute('data-needs', needs[1]);
-    return el;
-  });
+  const discs = [...html.matchAll(/<button type="button" class="lt disc ([^"]*)" data-pick="([^"]+)"/g)].map(
+    m => ({ at: m.index, cls: m[1], pick: m[2], needs: '' }),
+  );
+  const wraps = [
+    ...html.matchAll(
+      /<div class="vwrap ([^"]*)" data-view="[^"]*"(?: data-pick="([^"]*)")?(?: data-needs="([^"]*)")? role="tabpanel"/g,
+    ),
+  ].map(m => ({ at: m.index, cls: m[1], pick: m[2] ?? '', needs: m[3] ?? '' }));
+  const cards = [...discs, ...wraps]
+    .sort((a, b) => a.at - b.at)
+    .map(c => {
+      const el = new El('div', c.cls.split(/\s+/).filter(Boolean));
+      if (c.pick !== '') el.setAttribute('data-pick', c.pick);
+      if (c.needs !== '') el.setAttribute('data-needs', c.needs);
+      el.parent = body;
+      return el;
+    });
   const noteIns = [
     ...html.matchAll(/<input class="onote" data-note="([^"]+)"/g),
   ].map(m => {

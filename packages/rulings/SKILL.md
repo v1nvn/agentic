@@ -92,7 +92,7 @@ The build cannot parse mermaid text — a broken diagram is checked only when th
 - **Picture** with a view for **every** option, a one-line caption that opens with its conclusion,
   and `today: true` on the option that leaves things as they are.
 - **Options**: two to four, lettered. Each has a title, a **gain** and a **cost** the owner can
-  check on its picture. Exactly one is recommended.
+  check on its picture — one fragment each, 90 characters at most. Exactly one is recommended.
 
 Rules for options: they differ on **one axis**. Before an option adds a mechanism, name the
 existing thing that does the job; if it exists the option is "use that". A letter never
@@ -104,7 +104,7 @@ one word per meaning across the whole page: call a thing by the same name in eve
 Technical names stay. Keep the owner's or the official vocabulary; never coin one.
 
 **Gate:** read each option as "pick this and you get ⟨gain⟩, you pay ⟨cost⟩". If either half
-is vague or cannot be seen on the picture, rewrite it.
+is vague, runs past 90 characters, or cannot be seen on the picture, rewrite it.
 
 ## Step 5 — Build
 
@@ -194,7 +194,8 @@ A ruling: `title` (a question), `stake`, `today`, one of `seq`, `bodies` or `dia
 `changed`).
 
 An option: `k` (one lowercase letter, not `n`), `t`, `rec` (on exactly one), `today` (on at most
-one), `w` (how it works), `g` and `c` (gain and cost, checkable on the picture), `needs`. Each
+one), `w` (how it works), `g` and `c` (gain and cost — one fragment each, 90 characters at
+most, checkable on the picture), `needs`. Each
 live option needs a picture: a `seq` view, a `bodies` entry under its letter, or a diagram view.
 
 ### The sequence diagram

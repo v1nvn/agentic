@@ -1,6 +1,6 @@
 import type { Overlay, Ruling, Seq, Step } from './schema.ts';
 
-import { esc, stripTags, verdictFor, viewHeadFor } from './html.ts';
+import { esc, optOf, stripTags } from './html.ts';
 import { KINDS } from './schema.ts';
 
 const KIND_TEXT: Record<(typeof KINDS)[number], string> = {
@@ -69,10 +69,9 @@ function legendHtml(d: Seq, hasDeltas: boolean): string {
   return `<div class="legend">${kinds.join('')}${sw}</div>`;
 }
 
-// One view on the shared geometry: lanes, ledger heads and the start row are
-// common to every view of the chain. The ledger runs silently through all the
-// steps that happen in the view — drawn or not — so a drawn row shows the
-// true balance at its true chain number; no end-balance footer.
+// The ledger runs silently through every step that happens in the view —
+// drawn or not — so a drawn row shows the true balance at its true chain
+// number; no end-balance footer.
 function seqSvg(d: Seq, owner: string, view: string, cap: string): string {
   const drawn = d.steps
     .map((st, i) => ({ st, n: i + 1 }))
@@ -232,27 +231,20 @@ function seqSvg(d: Seq, owner: string, view: string, cap: string): string {
   return out + '</svg>';
 }
 
-export function seqView(
-  q: Ruling,
-  id: string,
-  view: string,
-  attrs = '',
-): string {
+export function seqView(q: Ruling, id: string, view: string): string {
   const d = q.seq;
   if (d === undefined) {
     return '';
   }
-  const { head, hue } = viewHeadFor(q, view);
   const capKey = Object.keys(d.caps ?? {}).find(k => full(k, id) === view);
   const cap = capKey === undefined ? d.cap : d.caps?.[capKey];
   const hasDeltas =
     view !== 'today' && d.steps.some(st => drawnIn(st, view, id));
+  const w = optOf(q, view)?.w;
   return (
-    `<section class="view${view === 'today' ? ' today' : ''}${hue ? ` ${hue}` : ''}"${attrs}>${head}` +
     `<div class="stage">${legendHtml(d, hasDeltas)}<div class="scroll">${seqSvg(d, id, view, cap ?? '')}</div>` +
     (cap ? `<p class="cap">${cap}</p>` : '') +
-    '</div>' +
-    verdictFor(q, view) +
-    '</section>'
+    (w ? `<p class="how">${w}</p>` : '') +
+    '</div>'
   );
 }

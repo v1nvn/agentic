@@ -2,12 +2,12 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import vm from 'node:vm';
 
-import type { Opt, Page, Ruling } from './schema.ts';
+import type { Page, Ruling } from './schema.ts';
 
 import { bodiesOption, bodiesToday } from './bodies.ts';
 import { chromeScript, panelHtml } from './chrome.ts';
 import { diagramView, mermaidBoot } from './diagram.ts';
-import { esc, optOf, stripTags } from './html.ts';
+import { esc, hueOf, needsOf, optOf, stripTags, verdictTable, viewTabs, wrapId } from './html.ts';
 import { seqView } from './seq.ts';
 import { pageCss } from './style.ts';
 
@@ -17,20 +17,16 @@ export const MERMAID_FILE = 'mermaid.min.js';
 // Chrome the assembly adds beyond pageCss: the pick affordances, the option
 // note inputs, and the composer bar.
 const assemblyCss = `
-.view[data-pick] { cursor: pointer; }
-.view[data-pick]:hover { border-left-color: var(--o); }
-.view[data-pick]:hover .stage { border-color: color-mix(in srgb, var(--o) 55%, var(--rule)); }
-.view[data-pick]:hover .lt { border-color: var(--o); box-shadow: 0 0 0 3px color-mix(in srgb, var(--o) 16%, transparent); }
-.view[aria-pressed="true"] { border-left-width: 5px; border-left-color: var(--o); }
-.view[aria-pressed="true"] .stage { border-color: color-mix(in srgb, var(--o) 70%, var(--rule)); background: color-mix(in srgb, var(--o) 5%, var(--sheet)); }
-.view[aria-pressed="true"] .lt { background: var(--o); color: var(--sheet); box-shadow: 0 0 0 3px color-mix(in srgb, var(--o) 22%, transparent); }
-.pmark { display: none; font: 700 var(--mono-l) var(--mono); color: var(--o); margin-left: auto; white-space: nowrap; }
-.view[aria-pressed="true"] .pmark { display: inline; }
-.view[data-needs].unmet { border-left-style: dashed; }
-.view[data-needs].unmet .pmark { display: none; }
-.dep { border: 1px dashed transparent; border-radius: 4px; padding: 0 4px; }
+.vrow:has(.disc[aria-pressed="true"]) { border-left-color: var(--o); background: color-mix(in srgb, var(--o) 12%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--o) 30%, transparent); }
+.vrow .disc[aria-pressed="true"] { background: var(--o); color: var(--sheet); border-color: var(--o); box-shadow: 0 0 0 3px color-mix(in srgb, var(--o) 22%, transparent); }
+.vrow:has(.disc[aria-pressed="true"]) .pmark { display: inline; }
+.vrow:has(.disc[aria-pressed="true"]) .onote { display: block; }
+.vrow.unmet { border-left-style: dashed; }
+.vrow.unmet .pmark { display: none; }
+.dep { border: 1px dashed transparent; border-radius: 4px; padding: 0 4px; white-space: nowrap; }
 .unmet .dep { color: var(--k-fail); font-weight: 600; border-color: var(--k-fail); }
-.onote { margin-top: 2px; font: 12.5px var(--sans); color: var(--ink); background: none; border: 0; border-bottom: 1px dashed var(--rule); padding: 5px 2px 4px; width: min(100%, 420px); }
+.vwrap[aria-pressed="true"] .stage { background: color-mix(in srgb, var(--o) 4%, var(--sheet)); }
+.onote { grid-column: 1 / -1; display: none; margin-top: 4px; font: 12.5px var(--sans); color: var(--ink); background: none; border: 0; border-bottom: 1px dashed var(--rule); padding: 5px 2px 4px; width: min(100%, 420px); }
 .onote:focus { outline: none; border-bottom-color: var(--o); }
 .onote::placeholder { color: var(--muted); opacity: 0.7; }
 .ghead .quick { font: 600 var(--mono-l) var(--mono); color: var(--ink); background: var(--sheet); border: 1px solid var(--rule); border-radius: 999px; padding: 4px 13px; cursor: pointer; }
@@ -87,72 +83,58 @@ export function loadPageFile(pageFile: string): unknown {
   return ctx.PAGE;
 }
 
-function needsOf(o: Opt): string[] {
-  return typeof o.needs === 'string' ? [o.needs] : (o.needs ?? []);
+// validatePage's green verdict already proved every group ruling exists.
+function rulingOf(P: Page, id: string): Ruling {
+  return P.rulings[id];
 }
 
-// The pick wiring a live option's view carries: its pick id, keyboard reach,
-// and the needs the composer checks against the current picks.
-function viewAttrs(q: Ruling, id: string, view: string): string {
-  const o = optOf(q, view);
-  if (o === undefined) {
-    return '';
-  }
-  const needs = needsOf(o).join(' ');
-  return (
-    ` data-pick="${id}${o.k}" role="button" tabindex="0"` +
-    (needs ? ` data-needs="${needs}"` : '')
-  );
-}
-
-// Today once, then each live non-today option in letter order. Bodies rulings
-// split the today block from the option diffs; seq and diagram views differ
-// per view, so they keep one view each.
-function viewsOf(q: Ruling, id: string): string {
-  const isBodies = q.bodies !== undefined;
+// Today once when the ruling has a base picture, then each live non-today
+// option in letter order — the today-marked option's view is the today view.
+function viewsOf(q: Ruling, id: string): string[] {
   const hasBase =
     q.seq !== undefined ||
     (q.bodies !== undefined && 'today' in q.bodies) ||
     (q.diagram !== undefined && 'today' in q.diagram.views);
-  const out: string[] = [];
-  if (hasBase) {
-    const todayAttrs = viewAttrs(q, id, 'today');
-    const todayLetter = (q.opts ?? []).find(o => o.today === true)?.k;
-    out.push(
-      (isBodies
-        ? bodiesToday(q, todayAttrs)
-        : viewHtml(q, id, 'today', todayAttrs)) +
-        (todayLetter !== undefined
-          ? `<input class="onote" data-note="${id}${todayLetter}" ` +
-            `placeholder="note for ${id}${todayLetter}" aria-label="note for ${id}${todayLetter}">`
-          : ''),
-    );
-  }
+  const out: string[] = hasBase ? ['today'] : [];
   for (const o of q.opts ?? []) {
-    if (o.today === true) {
-      continue;
+    if (o.today !== true) {
+      out.push(id + o.k);
     }
-    const view = id + o.k;
-    const attrs = viewAttrs(q, id, view);
-    out.push(
-      (isBodies ? bodiesOption(q, view, attrs) : viewHtml(q, id, view, attrs)) +
-        `<input class="onote" data-note="${view}" ` +
-        `placeholder="note for ${view}" aria-label="note for ${view}">`,
-    );
   }
-  return out.join('');
+  return out;
 }
 
-function viewHtml(q: Ruling, id: string, view: string, attrs: string): string {
+function stageOf(q: Ruling, id: string, view: string): string {
+  if (q.bodies !== undefined) {
+    return view === 'today' ? bodiesToday(q) : bodiesOption(q, view);
+  }
   if (q.seq !== undefined) {
-    return seqView(q, id, view, attrs);
+    return seqView(q, id, view);
   }
-  return diagramView(q, view, attrs);
+  return diagramView(q, view);
 }
 
-// validatePage's green verdict already proved every group ruling exists.
-function rulingOf(P: Page, id: string): Ruling {
-  return P.rulings[id];
+// One compare region: the tab strip, then every view in the DOM, all but the
+// first hidden; the wrap carries the hue and the pick — the shown picture picks.
+function compareOf(q: Ruling, id: string): string {
+  const views = viewsOf(q, id);
+  const wraps = views
+    .map((view, i) => {
+      const o = optOf(q, view);
+      const needs = o === undefined ? [] : needsOf(o);
+      return (
+        `<div class="vwrap${o ? ` ${hueOf(o.k)}` : ''}" data-view="${view}"` +
+        (o
+          ? ` data-pick="${view === 'today' ? id + o.k : view}"` +
+            (needs.length ? ` data-needs="${needs.join(' ')}"` : '')
+          : '') +
+        ` role="tabpanel" id="${wrapId(id, view)}"${i === 0 ? '' : ' hidden'}>` +
+        stageOf(q, id, view) +
+        '</div>'
+      );
+    })
+    .join('');
+  return `<div class="compare">${viewTabs(q, id, views)}${wraps}</div>`;
 }
 
 function rulingSection(P: Page, id: string): string {
@@ -178,7 +160,8 @@ function rulingSection(P: Page, id: string): string {
     mergedInto +
     `<p class="stake">${q.stake ?? ''}</p>` +
     `<p class="today">${q.today ?? ''}</p>` +
-    `<div class="views">${viewsOf(q, id)}</div>` +
+    verdictTable(q, id) +
+    compareOf(q, id) +
     '</section>'
   );
 }

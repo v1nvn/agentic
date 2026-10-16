@@ -2,6 +2,7 @@ import { diffLines } from 'diff';
 import { z } from 'zod';
 
 const LONG_LINE = 76;
+const FRAGMENT = 90;
 export const KINDS = ['call', 'money', 'store', 'check', 'fail'] as const;
 const LANGS = ['ts', 'js', 'json', 'bash', 'markup', 'css'] as const;
 const VAGUE =
@@ -458,6 +459,12 @@ export function validatePage(input: unknown): Verdict {
         if (hit) {
           warnings.push(
             `${nm} ${kind} uses a word the owner cannot check ("${hit[0]}")`,
+          );
+        }
+        const len = stripTags(text ?? '').length;
+        if (len > FRAGMENT) {
+          warnings.push(
+            `${nm} ${kind} is ${len} characters; a table fragment fits ${FRAGMENT}`,
           );
         }
       }

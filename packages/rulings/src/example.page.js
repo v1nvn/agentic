@@ -65,8 +65,8 @@ var PAGE = {
         }
       },
       opts: [
-        { k: "a", rec: true, needs: "G1a", t: "Drop the clobbering exitOverride() call", g: "The caller’s override fires again. Subcommand help prints subcommand help; three red tests go green.", c: "Any caller relying on the silent default override loses it; none exists today, checked across the six parseQuietly callers." },
-        { k: "b", t: "Keep the clobber; classify the error in recover", w: "recover already maps commander error codes to ink replies; this adds one arm — helpDisplayed re-renders the failing command’s own usage instead of the root usage.", g: "No shared-code change; statusline’s recover learns commander’s helpDisplayed code on its own.", c: "The trap stays set for the next caller that installs an override. Every future CLI re-learns it." }
+        { k: "a", rec: true, needs: "G1a", t: "Drop the clobbering exitOverride() call", g: "The caller’s override fires again; subcommand help prints itself; three red tests pass.", c: "The silent default override goes; none of the six parseQuietly callers relies on it." },
+        { k: "b", t: "Keep the clobber; classify the error in recover", w: "recover already maps commander error codes to ink replies; this adds one arm — helpDisplayed re-renders the failing command’s own usage instead of the root usage.", g: "No shared-code change; statusline’s recover learns the helpDisplayed code on its own.", c: "The trap stays set; every future CLI that installs an override re-learns it." }
       ]
     },
 
@@ -97,7 +97,7 @@ var PAGE = {
         caps: { a: "<b>Option a: the daemon re-arms its windows from Postgres on start.</b> No void window.", b: "<b>Option b: the read re-arms the window before paying.</b> One extra write per read." }
       },
       opts: [
-        { k: "a", rec: true, t: "The daemon re-arms its windows from Postgres on start", g: "A restart becomes a non-event: the window survives, reads never pay into the void, no human in the loop.", c: "One more table the daemon owns and migrates; the start sequence grows a step." },
+        { k: "a", rec: true, t: "The daemon re-arms its windows from Postgres on start", g: "The window survives a restart; reads never pay into the void and no human is in the loop.", c: "One more table the daemon owns and migrates; the start sequence grows a step." },
         { k: "b", t: "The read re-arms the window before paying", w: "The read already opens a transaction on the leaf rows; arming the window there is one more write on the same connection, with no new owner of state.", g: "The protocol fixes itself; no daemon change at all.", c: "Every read pays one extra write — about 40 a day at current traffic." }
       ]
     }

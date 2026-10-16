@@ -21,27 +21,31 @@ function example(): Page {
 }
 
 describe('the example page', () => {
-  it('validates green with two seq rulings and a bodies ruling, no diagram', () => {
+  it('validates green with two seq rulings and a bodies ruling, no diagram, no warnings', () => {
     const P = example();
     expect(P.rulings.G1.seq).toBeTruthy();
     expect(P.rulings.G2.bodies).toBeTruthy();
     expect(P.rulings.G4.seq).toBeTruthy();
     expect(P.rulings.G4.diagram).toBeFalsy();
-    expect(validatePage(P).errors).toEqual([]);
+    const r = validatePage(P);
+    expect(r.errors).toEqual([]);
+    expect(r.warnings).toEqual([]);
   });
 });
 
 describe('seq view', () => {
-  it('pins the today view: lanes, ledger, start row, legend, no tags', () => {
+  it('pins the today stage: lanes, ledger, start row, legend, no tags, no verdict', () => {
     const P = example();
     const html = seqView(P.rulings.G1, 'G1', 'today');
     expect(html).toMatchSnapshot();
     expect(html).toContain('class="balh"');
     expect(html).toContain('>start</text>');
     expect(html).not.toContain('tg-');
+    expect(html).not.toContain('data-pick');
+    expect(html).not.toContain('class="vg"');
   });
 
-  it('pins the option view: overlay expansion, changed tag, band, per-view cap', () => {
+  it('pins the option stage: overlay expansion, changed tag, band, per-view cap', () => {
     const P = example();
     const html = seqView(P.rulings.G1, 'G1', 'G1b');
     expect(html).toMatchSnapshot();
@@ -125,17 +129,31 @@ describe('seq view', () => {
     expect(html).toContain('class="gone"');
     expect(html).toContain('class="strike"');
   });
+
+  it('renders the option’s w once, muted, under its caption', () => {
+    const P = example();
+    const html = seqView(P.rulings.G4, 'G4', 'G4b');
+    const cap = html.indexOf('class="cap"');
+    const how = html.indexOf('class="how"');
+    expect(cap).toBeGreaterThan(-1);
+    expect(how).toBeGreaterThan(cap);
+    expect(html.slice(how)).toContain(
+      'The read already opens a transaction on the leaf rows',
+    );
+    expect(seqView(P.rulings.G4, 'G4', 'today')).not.toContain('class="how"');
+  });
 });
 
 describe('bodies view', () => {
-  it('pins the today block: shown once, what label, cap cites the real quiet, no diff', () => {
+  it('pins the today stage: shown once, what label, cap cites the real quiet, no diff', () => {
     const P = example();
     const html = bodiesToday(P.rulings.G2);
     expect(html).toMatchSnapshot();
     expect(html).toContain('The quiet walk core runs on every command, today.');
     expect(html).toContain('<code>core/src/cli.ts:139-189</code>');
     expect(html).not.toContain('diff vs today');
-    expect(html).toContain('class="view today"');
+    expect(html).toContain('<div class="body is-today">');
+    expect(html).not.toContain('data-pick');
   });
 
   it('pins the option diff: its own body only, prism tokens, needs chip, collapsed runs', () => {
@@ -145,7 +163,6 @@ describe('bodies view', () => {
     expect(html).toContain('token keyword');
     expect(html).toContain('diff vs today');
     expect(html).toContain('⋯ 33 unchanged lines');
-    expect(html).toContain('needs G1a');
     expect(html).not.toContain('The quiet walk core runs on every command');
   });
 
@@ -155,6 +172,8 @@ describe('bodies view', () => {
     expect(html).toMatchSnapshot();
     expect(html).toContain('sketch — feasibility not checked');
     expect(html).not.toContain('diff vs today');
+    expect(html).toContain('class="how"');
+    expect(html).toContain('recover already maps commander error codes');
   });
 
   it('collapses unchanged runs at seven lines, not six', () => {
@@ -200,7 +219,7 @@ function diagramRuling(): Ruling {
 }
 
 describe('diagram view', () => {
-  it('pins the today view and an option view: container, escaped text, cap, head', () => {
+  it('pins the today stage and an option stage: container, escaped text, cap', () => {
     const q = diagramRuling();
     expect(diagramView(q, 'today')).toMatchSnapshot();
     const a = diagramView(q, 'G4a');
@@ -208,6 +227,7 @@ describe('diagram view', () => {
     expect(a).toContain('class="mermaid"');
     expect(a).toContain('--&gt;');
     expect(a).toContain('Option a: the daemon re-arms from Postgres.');
+    expect(a).not.toContain('data-pick');
   });
 
   it('emits exactly one mermaid container per view', () => {
@@ -265,8 +285,7 @@ describe('the mermaid boot', () => {
   }
 
   // The boot ships as static script text, so its behavior is tested by
-  // running the real bytes in a vm: a fake matchMedia, a fake mermaid that
-  // stamps each container as processed, and the containers it renders.
+  // running the real bytes in a vm over fakes for matchMedia and mermaid.
   function bootedOn(dark: boolean) {
     const authored = ['flowchart TD\n  A --> B', 'flowchart TD\n  C --> D'];
     const nodes = authored.map(src => {
@@ -368,6 +387,13 @@ describe('page styles and theme door', () => {
   it('dark mode is the media query alone: no param door, no override block', () => {
     expect(pageCss).toContain('prefers-color-scheme: dark');
     expect(pageCss).not.toContain('data-theme');
+  });
+
+  it('styles the table and the tabs, not the old view cards', () => {
+    expect(pageCss).toMatch(/\.vtable \{[^}]*border: 1px solid var\(--rule\)/);
+    expect(pageCss).toMatch(/\.compare \.stage \{ border: 0/);
+    expect(pageCss).toMatch(/\.tabs \.tl\[aria-selected="true"\]/);
+    expect(pageCss).not.toMatch(/\.views|\.vtt|\.vmeta|\.gc \./);
   });
 });
 
