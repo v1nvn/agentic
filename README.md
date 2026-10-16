@@ -18,7 +18,7 @@ manifest + skills, `notify` a hooks module.
 | **statusline**  | Pick a theme for the status line + agent panel, or revert the setup.                                                                   | `/statusline:lab`                                                |
 | **todo**        | Work tracking — the rules plus seven verbs over `TODO.md`, `progress/`, `references/`, `archive/`. Every repo carries data only.         | `/todo:run <plan>`, or a what's-next ask              |
 | **rulings**     | Put decisions the owner must make on one local HTML page — each ruling self-contained, its options pictured and lettered.                | `/rulings:consult`, or "consult me"                   |
-| **notify**      | Native macOS banners on permission prompts and true-done turns — the repo, the session, the message itself.                             | automatic — fires on its own                          |
+| **notify**      | Native macOS banners on permission prompts and true-done turns — the repo, the session's own title, the message itself.                             | automatic — fires on its own                          |
 
 `rm`, `md`, `zai`, `tokens` and `notify` are zero-token the mod way — a function-hook module serves a surface the model never reads.
 

@@ -33,6 +33,63 @@ test('a permission prompt posts the message, named by repo and session', async (
   expect(scriptOf(world)).toContain('sound name "Funk"');
 });
 
+test('the registry entry names the session in the subtitle', async ($, on) => {
+  const world = stubEngine(on, { exitCode: 0 }, [
+    {
+      file: '9404.key',
+      mtimeMs: 90,
+      sessionId: SESSION,
+      name: 'a key file is not an entry',
+    },
+    {
+      file: '9404.json',
+      mtimeMs: 10,
+      sessionId: SESSION,
+      name: 'Rulings page UX',
+    },
+  ]);
+
+  await $.classic.Stop({
+    cwd: HERE,
+    last_assistant_message: 'Survey done.',
+    session_id: SESSION,
+    stop_hook_active: false,
+  });
+
+  expect(scriptOf(world)).toContain('subtitle "Rulings page UX"');
+});
+
+test('two entries for one session, the fresher name wins', async ($, on) => {
+  const world = stubEngine(on, { exitCode: 0 }, [
+    { file: '101.json', mtimeMs: 5, sessionId: SESSION, name: 'old title' },
+    { file: '202.json', mtimeMs: 50, sessionId: SESSION, name: 'new title' },
+  ]);
+
+  await $.classic.Stop({
+    cwd: HERE,
+    last_assistant_message: 'Done.',
+    session_id: SESSION,
+    stop_hook_active: false,
+  });
+
+  expect(scriptOf(world)).toContain('subtitle "new title"');
+});
+
+test('an entry with no name falls back to the short id', async ($, on) => {
+  const world = stubEngine(on, { exitCode: 0 }, [
+    { file: '101.json', mtimeMs: 5, sessionId: SESSION },
+  ]);
+
+  await $.classic.Stop({
+    cwd: HERE,
+    last_assistant_message: 'Done.',
+    session_id: SESSION,
+    stop_hook_active: false,
+  });
+
+  expect(scriptOf(world)).toContain('subtitle "session 3e4481"');
+});
+
 test('a notification of another type posts nothing', async ($, on) => {
   const world = stubEngine(on);
 

@@ -45,6 +45,58 @@ interface BannerFacts {
   readonly session_id: string;
 }
 
+/** The registry entry's name when it is this session's, a non-empty string. */
+function registryName(text: string, sessionId: string): string | undefined {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    return undefined;
+  }
+  if (typeof parsed !== 'object' || parsed === null) {
+    return undefined;
+  }
+  const { sessionId: id, name } = parsed as {
+    name?: unknown;
+    sessionId?: unknown;
+  };
+  return id === sessionId && typeof name === 'string' && name !== ''
+    ? name
+    : undefined;
+}
+
+/**
+ * The session's title — the one the engine itself shows — from its live
+ * registry, `~/.claude/sessions/<pid>.json`, freshest entry first; the short
+ * id when no entry names it.
+ */
+async function sessionTitle(
+  $: EngineInterface,
+  sessionId: string,
+): Promise<string> {
+  const fallback = `session ${sessionId.slice(0, 6)}`;
+  const home = await $.env.get('HOME');
+  if (home === undefined) {
+    return fallback;
+  }
+  const dir = `${home}/.claude/sessions`;
+  const entries = await $.fs.list(dir).catch(() => undefined);
+  const files = [...(entries ?? [])]
+    .filter(entry => entry.kind === 'file' && entry.name.endsWith('.json'))
+    .sort((a, b) => b.mtimeMs - a.mtimeMs);
+  for (const file of files) {
+    const text = await $.fs.read(`${dir}/${file.name}`).catch(() => undefined);
+    if (text === undefined) {
+      continue;
+    }
+    const name = registryName(text, sessionId);
+    if (name !== undefined) {
+      return name;
+    }
+  }
+  return fallback;
+}
+
 async function post(
   $: EngineInterface,
   e: BannerFacts,
@@ -56,7 +108,7 @@ async function post(
     banner(
       kind,
       `${repo} · ${kind}`,
-      `session ${e.session_id.slice(0, 6)}`,
+      await sessionTitle($, e.session_id),
       message,
     ),
   );

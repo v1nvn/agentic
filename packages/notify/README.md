@@ -20,10 +20,15 @@ run, the banners fire on the two events.
 
 ## The banner
 
-| Event | Title | Body | Sound |
-| --- | --- | --- | --- |
-| permission prompt | `<repo> · permission` | the engine's message ("Claude needs your permission to use Bash") | Funk |
-| turn done | `<repo> · done` | the reply's first non-empty line, capped at 120 chars | Glass |
+| Event | Title | Subtitle | Body | Sound |
+| --- | --- | --- | --- | --- |
+| permission prompt | `<repo> · permission` | the session's title | the engine's message ("Claude needs your permission to use Bash") | Funk |
+| turn done | `<repo> · done` | the session's title | the reply's first non-empty line, capped at 120 chars | Glass |
+
+The subtitle is the title the engine itself shows — read live from its session
+registry (`~/.claude/sessions/`, freshest entry for the session). No entry or
+no name yet: `session <first 6 of the id>`. The registry is the engine's own
+layout, not a published door — it moves, the subtitle falls back.
 
 A stop with background work or a scheduled wakeup in flight is a pause, not a
 finish — nothing posts.
