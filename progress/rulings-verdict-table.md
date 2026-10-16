@@ -13,22 +13,27 @@ pages and the exemplar rebuilt on it.
 
 ## Current state
 
-Direction ruled by the owner this sitting (candidate A of the
-`rulings-wall` mocks): verdict table first, picture below with tabs,
-aggressive cleanup sanctioned. Nothing built yet. The exemplar
-`~/.claude/rulings/agentic-open-surfaces/` was rebuilt from the branch
-engine and measures the baseline: 8671px at 1440, rulings 1533–2643px.
-Mock-measured target: rulings ≤900px, page ~3600px.
+U1 landed (`cd4696d`) and closed on its blind review — every close
+criterion PASS on the reviewer's own probes, no blocking finding; the
+needs-carrier call confirmed live (answer text and storage byte-exact).
+Live at 1440: page 3818px (baseline 8671), G1 845 / G4 738; G2 at 1556
+waits on U2's today-code fold. Queued nits: (1) the fragment-warning
+fixtures are all plain text, so raw-length and stripped-length coincide —
+a tagged 95-raw/88-stripped gain fixture must pin the seam; (2)
+`.vhead` rescoped to the table's column header leaves `v-` meaning
+verdict in vtable/vrow/vhead but view in vwrap — accounted, rename only
+if the sweep touches it. U2 in flight. Disk tight (~1.1Gi) — builders
+keep one CDP profile and delete it.
 
 ## Next step
 
-Branch `rulings-verdict-table` off `rulings-fix-pass`, build U1.
+Commit U2 on its review, dispatch U3's builder with the needs note.
 
 ## Steps
 
 | id | unit | model | review | consult | close criteria |
 | --- | --- | --- | --- | ------- | -------------- |
-| U1 | one home per ruling — verdict table + one stage | sonnet | role | design | table renders g/c once per option as fragments; per-view heads, verdict tails and per-view note inputs deleted; all views in DOM, one visible; `yarn workspace @v1nvn/rulings run test` green with moved pins; example's g/c pass the fragment warning |
+| U1 | one home per ruling — verdict table + one stage | sonnet | role | design | landed: `cd4696d`, closed on the blind review (all criteria PASS, needs carrier confirmed) |
 | U2 | the folds — today, notes, long today-code | sonnet | role | | today renders two sentences then a fold; the notes block folds on its bold lead; a bodies today block over 20 lines folds with a count-labelled expander; >3-sentence today warns; SKILL Step 2 moves in the same change |
 | U3 | the gestures — look vs pick | sonnet | role | | tab or row body switches the shown view; letter disc and the shown picture pick; a stored pick restores its view on load; needs chips and unmet marks live on rows; answer text and storage shape byte-identical (contract tests unchanged); SKILL Step 6 moves in the same change |
 | U4 | example and docs to the new authoring | sonnet | role | | example.page.js demonstrates 2-sentence todays, fragment g/c, one-line w; SKILL Steps 2–4 swept; README's surface description matches the page |
@@ -60,7 +65,9 @@ Branch `rulings-verdict-table` off `rulings-fix-pass`, build U1.
   `aria-controls`, wraps `role="tabpanel"` + `id`, and U3 maintains both on
   switch. The proven shape: `progress/.scratch/rulings-wall/mock-a.html`
   and its generator `gen2.mjs` (faked gestures — the wiring above, not the
-  mock's, is law). U2: `page.ts` or `html.ts` (the
+  mock's, is law). U3: chrome.ts builds its needs→chip map per data-pick
+  element with last-write-wins (chrome.ts:44) — rewire CARD to the rows
+  and drop `data-needs` from the wraps in the same change. U2: `page.ts` or `html.ts` (the
   deterministic sentence split), `bodies.ts` (line-count fold), `schema.ts`
   (today sentence warning), SKILL Step 2. U3: `chrome.ts` (show/look/pick
   wiring, restore-on-load, row states), `test/chrome.test.ts`, SKILL Step 6.
