@@ -1,7 +1,7 @@
 {
   "name": "rulings",
   "description": "Put decisions the owner must make on one local HTML page — each ruling self-contained, its options pictured and lettered — the rulings CLI builds the page",
-  "version": "0.50.0",
+  "version": "0.50.1",
   "author": {
     "name": "v1nvn",
     "email": "v1n@outlook.com"

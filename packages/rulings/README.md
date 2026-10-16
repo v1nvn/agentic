@@ -11,14 +11,14 @@ Install as a Claude Code plugin: `claude plugin install rulings@agentic`.
 
 ## Build
 
-    npx -y @v1nvn/rulings@0.50.0 <page-dir>        # rebuild the page from page.js
-    npx -y @v1nvn/rulings@0.50.0 <page-dir> --new  # seed page.js from the example
+    npx -y @v1nvn/rulings@0.50.1 <page-dir>        # rebuild the page from page.js
+    npx -y @v1nvn/rulings@0.50.1 <page-dir> --new  # seed page.js from the example
 
 Pages live in `~/.claude/rulings/<topic>/` — never `/tmp`, never published.
 A rebuild prints the schema's errors and warnings and exits red on any error.
-The skill's one exec is the pinned `npx -y @v1nvn/rulings@0.50.0 <page-dir>`
+The skill's one exec is the pinned `npx -y @v1nvn/rulings@0.50.1 <page-dir>`
 line above, run through the session's Bash tool; the one allow rule it needs is
-`Bash(npx -y @v1nvn/rulings@0.50.0:*)`; the first run asks for it once, then it
+`Bash(npx -y @v1nvn/rulings@0.50.1:*)`; the first run asks for it once, then it
 is remembered.
 
 ## Skill
