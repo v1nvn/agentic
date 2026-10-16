@@ -36,8 +36,9 @@ interface Row {
   t: string;
 }
 
-// An unchanged run of seven or more lines collapses to its first and last
-// line; diff:false on the body keeps the plain snapshot instead.
+const RUN = 7;
+const TODAY_FOLD = 20;
+
 function diffHtml(
   before: string,
   after: string,
@@ -60,7 +61,7 @@ function diffHtml(
       while (j < rows.length && rows[j].s === 'ctx') {
         j++;
       }
-      if (j - i >= 7) {
+      if (j - i >= RUN) {
         out.push(
           rows[i],
           { s: 'ell', t: `⋯ ${j - i - 2} unchanged lines` },
@@ -89,6 +90,19 @@ function diffHtml(
     .join('');
 }
 
+// The today code alone folds past 20 lines; option bodies render whole.
+function todayPre(code: string, lang: string | undefined): string {
+  const lines = code.split('\n');
+  if (lines.length <= TODAY_FOLD) {
+    return `<pre>${hlBlock(code, lang)}</pre>`;
+  }
+  return (
+    `<pre>${hlBlock(lines.slice(0, TODAY_FOLD).join('\n'), lang)}</pre>` +
+    `<details class="fold"><summary>show all ${lines.length} lines</summary>` +
+    `<pre>${hlBlock(lines.slice(TODAY_FOLD).join('\n'), lang)}</pre></details>`
+  );
+}
+
 function bodyHtml(
   b: Body,
   letter: string,
@@ -96,9 +110,6 @@ function bodyHtml(
   todayCode?: string,
 ): string {
   const asDiff = !isToday && todayCode !== undefined && b.diff !== false;
-  const inner = asDiff
-    ? diffHtml(todayCode, b.code ?? '', b.lang)
-    : hlBlock(b.code ?? '', b.lang);
   const state =
     b.state === 'sketch'
       ? '<span class="state-chip">sketch — feasibility not checked</span>'
@@ -109,7 +120,12 @@ function bodyHtml(
     state +
     (asDiff ? '<span class="dleg">diff vs today</span>' : '') +
     (b.what ? `<b>${b.what}</b>` : '') +
-    `</div><pre${asDiff ? ' class="diff"' : ''}>${inner}</pre>` +
+    '</div>' +
+    (isToday
+      ? todayPre(b.code ?? '', b.lang)
+      : asDiff
+        ? `<pre class="diff">${diffHtml(todayCode ?? '', b.code ?? '', b.lang)}</pre>`
+        : `<pre>${hlBlock(b.code ?? '', b.lang)}</pre>`) +
     (b.cap ? `<p class="bcap">${b.cap}</p>` : '') +
     '</div>'
   );

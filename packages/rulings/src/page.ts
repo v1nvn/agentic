@@ -7,15 +7,13 @@ import type { Page, Ruling } from './schema.ts';
 import { bodiesOption, bodiesToday } from './bodies.ts';
 import { chromeScript, panelHtml } from './chrome.ts';
 import { diagramView, mermaidBoot } from './diagram.ts';
-import { esc, hueOf, needsOf, optOf, stripTags, verdictTable, viewTabs, wrapId } from './html.ts';
+import { esc, hueOf, needsOf, optOf, sentenceEnds, stripTags, verdictTable, viewTabs, wrapId } from './html.ts';
 import { seqView } from './seq.ts';
 import { pageCss } from './style.ts';
 
 export const PAGE_FILE = 'page.js';
 export const MERMAID_FILE = 'mermaid.min.js';
 
-// Chrome the assembly adds beyond pageCss: the pick affordances, the option
-// note inputs, and the composer bar.
 const assemblyCss = `
 .vrow:has(.disc[aria-pressed="true"]) { border-left-color: var(--o); background: color-mix(in srgb, var(--o) 12%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--o) 30%, transparent); }
 .vrow .disc[aria-pressed="true"] { background: var(--o); color: var(--sheet); border-color: var(--o); box-shadow: 0 0 0 3px color-mix(in srgb, var(--o) 22%, transparent); }
@@ -88,8 +86,34 @@ function rulingOf(P: Page, id: string): Ruling {
   return P.rulings[id];
 }
 
-// Today once when the ruling has a base picture, then each live non-today
-// option in letter order — the today-marked option's view is the today view.
+function foldHtml(rest: string): string {
+  return `<details class="fold"><summary>the rest</summary>${rest}</details>`;
+}
+
+// Two sentences of the today show, the rest folds; whole when nothing would sit behind it.
+function todayHtml(today: string): string {
+  const cut = sentenceEnds(today)[1];
+  if (cut === undefined || today.slice(cut).trim() === '') {
+    return `<p class="today">${today}</p>`;
+  }
+  return (
+    `<p class="today">${today.slice(0, cut)}</p>` +
+    foldHtml(`<p class="today">${today.slice(cut).trim()}</p>`)
+  );
+}
+
+// The bold lead stays in view, the rest folds; no lead or nothing after it
+// renders whole.
+function noteHtml(html: string): string {
+  const lead = /<b>.*?<\/b>/.exec(html);
+  if (lead === null) {
+    return html;
+  }
+  const cut = lead.index + lead[0].length;
+  const rest = html.slice(cut);
+  return rest.trim() === '' ? html : `${html.slice(0, cut)} ${foldHtml(rest)}`;
+}
+
 function viewsOf(q: Ruling, id: string): string[] {
   const hasBase =
     q.seq !== undefined ||
@@ -114,8 +138,6 @@ function stageOf(q: Ruling, id: string, view: string): string {
   return diagramView(q, view);
 }
 
-// One compare region: the tab strip, then every view in the DOM, all but the
-// first hidden; the wrap carries the hue and the pick — the shown picture picks.
 function compareOf(q: Ruling, id: string): string {
   const views = viewsOf(q, id);
   const wraps = views
@@ -159,7 +181,7 @@ function rulingSection(P: Page, id: string): string {
     `<button type="button" class="none-btn" data-none="${id}">none of these fit</button></div></div>` +
     mergedInto +
     `<p class="stake">${q.stake ?? ''}</p>` +
-    `<p class="today">${q.today ?? ''}</p>` +
+    todayHtml(q.today ?? '') +
     verdictTable(q, id) +
     compareOf(q, id) +
     '</section>'
@@ -204,7 +226,7 @@ export function buildPage(input: unknown): BuiltPage {
     q => q.diagram !== undefined,
   );
   const notes = (P.notes ?? [])
-    .map(n => `<div class="note">${n.html ?? ''}</div>`)
+    .map(n => `<div class="note">${noteHtml(n.html ?? '')}</div>`)
     .join('');
   const groups = P.groups
     .map(g => {
