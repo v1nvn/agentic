@@ -1,7 +1,5 @@
-// The interactive chrome: the pick composer bar and the one script that
-// drives it. Both are static text — every page emits the same bytes, the
-// storage key rides on <body data-key="…">, and all mutable state lives in
-// localStorage under that key, never in the file.
+// The interactive chrome: the composer bar and the one script that drives it.
+// Static text — mutable state lives in localStorage under the body's data-key, never in the file.
 export function panelHtml(): string {
   return `<footer class="bar" id="rulings-bar">
 <div class="bar-in" id="rulings-bar-in">
@@ -21,6 +19,9 @@ export function chromeScript(): string {
   var REF = /^(G\\d+)([a-z])$/;
   var cards = Array.prototype.slice.call(document.querySelectorAll('[data-pick]'));
   var tracked = Array.prototype.slice.call(document.querySelectorAll('[data-needs]'));
+  var vtabs = Array.prototype.slice.call(document.querySelectorAll('.tl'));
+  var vwraps = Array.prototype.slice.call(document.querySelectorAll('.vwrap'));
+  var vrows = Array.prototype.slice.call(document.querySelectorAll('.vrow'));
   var noteIns = Array.prototype.slice.call(document.querySelectorAll('.onote'));
   var sum = document.getElementById('picks');
   var notesIn = document.getElementById('rulings-notes');
@@ -41,8 +42,53 @@ export function chromeScript(): string {
     if (!m) return;
     if (!LIVE[m[1]]) { LIVE[m[1]] = { n: true }; ORDER.push(m[1]); }
     LIVE[m[1]][m[2]] = true;
-    CARD[m[0]] = (c.getAttribute('data-needs') || '').split(/\\s+/).filter(Boolean);
   });
+  tracked.forEach(function (el) {
+    var d = el.getAttribute('data-pick') ? el : el.querySelector('.disc');
+    var m = d && REF.exec(d.getAttribute('data-pick'));
+    if (m) CARD[m[0]] = (el.getAttribute('data-needs') || '').split(/\\s+/).filter(Boolean);
+  });
+
+  var views = {};
+  function rulingViews(el) {
+    var sec = el.closest('section');
+    var id = sec && sec.getAttribute('id');
+    if (!id) return null;
+    if (!views[id]) views[id] = { t: [], w: [], r: [] };
+    return views[id];
+  }
+  vtabs.forEach(function (t) { var u = rulingViews(t); if (u) u.t.push(t); });
+  vwraps.forEach(function (w) { var u = rulingViews(w); if (u) u.w.push(w); });
+  vrows.forEach(function (r) { var u = rulingViews(r); if (u) u.r.push(r); });
+
+  function show(id, view) {
+    var u = views[id];
+    if (!u || !view) return;
+    u.w.forEach(function (w) {
+      if (w.getAttribute('data-view') === view) w.removeAttribute('hidden');
+      else w.setAttribute('hidden', '');
+    });
+    u.t.forEach(function (t) {
+      t.setAttribute('aria-selected', t.getAttribute('data-view') === view ? 'true' : 'false');
+    });
+    u.r.forEach(function (r) {
+      r.classList.toggle('look', r.getAttribute('data-view') === view);
+    });
+  }
+  function restoreViews() {
+    for (var id in views) {
+      var u = views[id];
+      var rid = id.slice(2);
+      var p = pick[rid];
+      var view = null;
+      if (p && p !== 'n' && LIVE[rid] && LIVE[rid][p]) {
+        u.w.forEach(function (w) {
+          if (w.getAttribute('data-pick') === rid + p) view = w.getAttribute('data-view');
+        });
+      }
+      show(id, view || (u.w[0] && u.w[0].getAttribute('data-view')) || null);
+    }
+  }
 
   function load() {
     if (!KEY) return;
@@ -132,7 +178,7 @@ export function chromeScript(): string {
       commit();
       return;
     }
-    if (e.target.closest('.onote, a, textarea')) return;
+    if (e.target.closest('.onote, a, textarea, summary')) return;
     var card = e.target.closest('[data-pick]');
     if (card) {
       var sel = window.getSelection ? window.getSelection() : null;
@@ -158,6 +204,12 @@ export function chromeScript(): string {
         if (q) pick[q[1]] = q[2];
       });
       commit();
+    }
+    var look = e.target.closest('[data-view]');
+    if (look) {
+      var sec = look.closest('section');
+      var sid = sec && sec.getAttribute('id');
+      if (sid) show(sid, look.getAttribute('data-view'));
     }
   });
   document.addEventListener('keydown', function (e) {
@@ -270,6 +322,7 @@ export function chromeScript(): string {
   });
 
   load();
+  restoreViews();
   if (notesIn) { notesIn.value = note; sizeNote(); }
   noteIns.forEach(function (inp) { inp.value = onotes[inp.getAttribute('data-note')] || ''; });
   render();

@@ -1,7 +1,5 @@
 // The page stylesheet. System fonts only: nothing fetches on open.
-// Voice: a decision ledger — mono carries structure (ids, letters, labels),
-// the serif carries ruling titles, the sans carries prose. The pick letter is
-// the protagonist; everything else stays quiet.
+// Voice: a decision ledger — mono carries structure, the serif titles, the sans prose.
 export const pageCss = `
 :root {
   --paper: #eceee9; --sheet: #fbfbf9; --ink: #1b2130; --muted: #5d6573; --rule: #d7dad1; --code: #f1f2ee;
@@ -88,6 +86,10 @@ section[id^="r-"] { scroll-margin-top: 14px; }
 .stake { font: 600 16.5px/1.45 var(--serif); max-width: 62ch; margin-top: 10px; }
 p.today { font: 14.5px/1.55 var(--sans); max-width: 68ch; color: var(--muted); margin-top: 8px; }
 p.today b { color: var(--ink); }
+/* Folds: a muted mono label on a dashed underline, no disclosure marker */
+.fold > summary { display: inline-block; font: 600 var(--mono-s) var(--mono); color: var(--muted); background: none; border: 0; border-bottom: 1px dashed var(--rule); padding: 0 0 1px; cursor: pointer; list-style: none; }
+.fold > summary::-webkit-details-marker { display: none; }
+.fold > summary:hover { color: var(--ink); border-bottom-color: var(--ink); }
 .changed { border: 1px solid var(--rule); background: var(--sheet); padding: 10px 14px; max-width: 78ch; font-size: 13.5px; border-radius: 8px; margin-top: 10px; }
 .meta-line { font: var(--mono-l) var(--mono); color: var(--muted); margin-top: 3px; }
 
@@ -99,6 +101,7 @@ p.today b { color: var(--ink); }
 .vrow { align-items: baseline; cursor: pointer; border-left: 3px solid transparent; }
 .vrow + .vrow { border-top: 1px dashed color-mix(in srgb, var(--rule) 60%, transparent); }
 .vrow:hover { background: color-mix(in srgb, var(--ink) 4%, transparent); }
+.vrow.look { background: color-mix(in srgb, var(--o) 6%, transparent); border-left-color: color-mix(in srgb, var(--o) 45%, var(--rule)); }
 .lt { width: 27px; height: 27px; flex: none; border-radius: 50%; display: inline-grid; place-items: center; font: 700 var(--mono-l) var(--mono); color: var(--o); border: 1.5px solid var(--o); background: var(--sheet); }
 .vrow .disc { width: 26px; height: 26px; padding: 0; align-self: center; cursor: pointer; }
 .vrow .vt { font: 600 13.5px/1.4 var(--sans); color: var(--ink); padding-left: 38px; text-indent: -38px; }

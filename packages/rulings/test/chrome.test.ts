@@ -4,13 +4,24 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { chromeScript } from '../src/chrome.ts';
 import { El, FakeIO, type FakeEvent } from './dom.ts';
 
-// The chrome ships as static script text, so its behavior is tested by
-// running the real bytes in a vm against a small fake DOM.
+// The chrome ships as static script text: its behavior is tested by running the real bytes in a vm against a small fake DOM.
 
 interface Harness {
   cardA: El;
   cardB: El;
   card2: El;
+  secG1: El;
+  rowA: El;
+  discA: El;
+  rowB: El;
+  discB: El;
+  vtB: El;
+  tabToday: El;
+  tabB: El;
+  wrapToday: El;
+  stage: El;
+  foldSum: El;
+  wrapB: El;
   sum: El;
   notesIn: El;
   copyBtn: El;
@@ -48,6 +59,53 @@ function harness(
   const card2 = new El('section', ['view', 'o-a']);
   card2.setAttribute('data-pick', 'G2a');
   card2.parent = body;
+  const secG1 = new El('section');
+  secG1.setAttribute('id', 'r-G1');
+  secG1.parent = body;
+  const rowA = new El('div', ['vrow', 'o-a']);
+  rowA.setAttribute('data-view', 'today');
+  rowA.setAttribute('data-needs', 'G2a');
+  rowA.parent = secG1;
+  const discA = new El('button', ['lt', 'disc', 'o-a']);
+  discA.setAttribute('data-pick', 'G1a');
+  discA.parent = rowA;
+  const rowB = new El('div', ['vrow', 'o-b']);
+  rowB.setAttribute('data-view', 'G1b');
+  rowB.parent = secG1;
+  const discB = new El('button', ['lt', 'disc', 'o-b']);
+  discB.setAttribute('data-pick', 'G1b');
+  discB.parent = rowB;
+  const vtB = new El('span', ['vt']);
+  vtB.parent = rowB;
+  const tabToday = new El('button', ['tl', 'o-a']);
+  tabToday.setAttribute('role', 'tab');
+  tabToday.setAttribute('aria-selected', 'true');
+  tabToday.setAttribute('aria-controls', 'view-G1-today');
+  tabToday.setAttribute('data-view', 'today');
+  tabToday.parent = secG1;
+  const tabB = new El('button', ['tl', 'o-b']);
+  tabB.setAttribute('role', 'tab');
+  tabB.setAttribute('aria-selected', 'false');
+  tabB.setAttribute('aria-controls', 'view-G1b');
+  tabB.setAttribute('data-view', 'G1b');
+  tabB.parent = secG1;
+  const wrapToday = new El('div', ['vwrap', 'o-a']);
+  wrapToday.setAttribute('data-view', 'today');
+  wrapToday.setAttribute('data-pick', 'G1a');
+  wrapToday.setAttribute('role', 'tabpanel');
+  wrapToday.setAttribute('id', 'view-G1-today');
+  wrapToday.parent = secG1;
+  const stage = new El('div', ['stage']);
+  stage.parent = wrapToday;
+  const foldSum = new El('summary');
+  foldSum.parent = wrapToday;
+  const wrapB = new El('div', ['vwrap', 'o-b']);
+  wrapB.setAttribute('data-view', 'G1b');
+  wrapB.setAttribute('data-pick', 'G1b');
+  wrapB.setAttribute('role', 'tabpanel');
+  wrapB.setAttribute('id', 'view-G1b');
+  wrapB.setAttribute('hidden', '');
+  wrapB.parent = secG1;
   const sum = new El('div');
   sum.setAttribute('id', 'picks');
   const notesIn = new El('textarea');
@@ -94,7 +152,15 @@ function harness(
     querySelectorAll(sel: string): El[] {
       switch (sel) {
         case '[data-pick]':
-          return picks;
+          return [...picks, discA, discB];
+        case '[data-needs]':
+          return [rowA];
+        case '.tl':
+          return [tabToday, tabB];
+        case '.vwrap':
+          return [wrapToday, wrapB];
+        case '.vrow':
+          return [rowA, rowB];
         case '.side a.rl':
           return [link1, link2];
         case 'section[id]':
@@ -156,6 +222,18 @@ function harness(
     cardA,
     cardB,
     card2,
+    secG1,
+    rowA,
+    discA,
+    rowB,
+    discB,
+    vtB,
+    tabToday,
+    tabB,
+    wrapToday,
+    stage,
+    foldSum,
+    wrapB,
     sum,
     notesIn,
     copyBtn,
@@ -277,6 +355,87 @@ describe('the pick toggle', () => {
     expect(h.sum.innerHTML).toContain('G1b');
     h.keyDown({ key: ' ', target: h.cardA });
     expect(h.sum.innerHTML).toContain('G1a');
+  });
+});
+
+describe('the shown view', () => {
+  it('switches on a tab click and never picks', () => {
+    const h = harness();
+    h.docClick({ target: h.tabB });
+    expect(h.wrapB.getAttribute('hidden')).toBeNull();
+    expect(h.wrapToday.getAttribute('hidden')).toBe('');
+    expect(h.tabB.getAttribute('aria-selected')).toBe('true');
+    expect(h.tabToday.getAttribute('aria-selected')).toBe('false');
+    expect(h.rowB.classList.contains('look')).toBe(true);
+    expect(h.rowA.classList.contains('look')).toBe(false);
+    expect(h.sum.innerHTML).toContain('no picks yet — click a view');
+  });
+
+  it('switches on a row-body click and never picks', () => {
+    const h = harness();
+    h.docClick({ target: h.vtB });
+    expect(h.wrapB.getAttribute('hidden')).toBeNull();
+    expect(h.tabB.getAttribute('aria-selected')).toBe('true');
+    expect(h.sum.innerHTML).toContain('no picks yet — click a view');
+  });
+
+  it('picks from the shown picture and keeps the view', () => {
+    const h = harness();
+    h.docClick({ target: h.stage });
+    expect(h.sum.innerHTML).toContain('G1a');
+    expect(h.wrapToday.getAttribute('hidden')).toBeNull();
+    expect(h.tabToday.getAttribute('aria-selected')).toBe('true');
+  });
+
+  it('never picks through a fold summary', () => {
+    const h = harness();
+    h.docClick({ target: h.foldSum });
+    expect(h.sum.innerHTML).toContain('no picks yet — click a view');
+  });
+
+  it('picks on the disc without moving the shown view', () => {
+    const h = harness();
+    h.docClick({ target: h.discB });
+    expect(h.sum.innerHTML).toContain('G1b');
+    expect(h.wrapToday.getAttribute('hidden')).toBeNull();
+    expect(h.tabB.getAttribute('aria-selected')).toBe('false');
+    expect(h.rowB.classList.contains('look')).toBe(false);
+  });
+});
+
+describe('restore on load', () => {
+  it('reopens the stored pick’s view', () => {
+    const storage = new Map([
+      ['k', JSON.stringify({ picks: { G1: 'b' }, onotes: {}, note: '' })],
+    ]);
+    const h = harness({ storage });
+    expect(h.wrapB.getAttribute('hidden')).toBeNull();
+    expect(h.wrapToday.getAttribute('hidden')).toBe('');
+    expect(h.tabB.getAttribute('aria-selected')).toBe('true');
+    expect(h.rowB.classList.contains('look')).toBe(true);
+  });
+
+  it('opens the first view on a none pick or with nothing stored', () => {
+    const storage = new Map([
+      ['k', JSON.stringify({ picks: { G1: 'n' }, onotes: {}, note: '' })],
+    ]);
+    const a = harness({ storage });
+    expect(a.wrapToday.getAttribute('hidden')).toBeNull();
+    expect(a.tabToday.getAttribute('aria-selected')).toBe('true');
+    expect(a.rowA.classList.contains('look')).toBe(true);
+    const b = harness();
+    expect(b.wrapToday.getAttribute('hidden')).toBeNull();
+    expect(b.wrapB.getAttribute('hidden')).toBe('');
+  });
+});
+
+describe('unmet needs on the row', () => {
+  it('marks the row until its need is picked', () => {
+    const h = harness();
+    h.docClick({ target: h.discA });
+    expect(h.rowA.classList.contains('unmet')).toBe(true);
+    h.docClick({ target: h.card2 });
+    expect(h.rowA.classList.contains('unmet')).toBe(false);
   });
 });
 

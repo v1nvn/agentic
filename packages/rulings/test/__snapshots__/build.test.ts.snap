@@ -94,6 +94,10 @@ section[id^="r-"] { scroll-margin-top: 14px; }
 .stake { font: 600 16.5px/1.45 var(--serif); max-width: 62ch; margin-top: 10px; }
 p.today { font: 14.5px/1.55 var(--sans); max-width: 68ch; color: var(--muted); margin-top: 8px; }
 p.today b { color: var(--ink); }
+/* Folds: a muted mono label on a dashed underline, no disclosure marker */
+.fold > summary { display: inline-block; font: 600 var(--mono-s) var(--mono); color: var(--muted); background: none; border: 0; border-bottom: 1px dashed var(--rule); padding: 0 0 1px; cursor: pointer; list-style: none; }
+.fold > summary::-webkit-details-marker { display: none; }
+.fold > summary:hover { color: var(--ink); border-bottom-color: var(--ink); }
 .changed { border: 1px solid var(--rule); background: var(--sheet); padding: 10px 14px; max-width: 78ch; font-size: 13.5px; border-radius: 8px; margin-top: 10px; }
 .meta-line { font: var(--mono-l) var(--mono); color: var(--muted); margin-top: 3px; }
 
@@ -105,6 +109,7 @@ p.today b { color: var(--ink); }
 .vrow { align-items: baseline; cursor: pointer; border-left: 3px solid transparent; }
 .vrow + .vrow { border-top: 1px dashed color-mix(in srgb, var(--rule) 60%, transparent); }
 .vrow:hover { background: color-mix(in srgb, var(--ink) 4%, transparent); }
+.vrow.look { background: color-mix(in srgb, var(--o) 6%, transparent); border-left-color: color-mix(in srgb, var(--o) 45%, var(--rule)); }
 .lt { width: 27px; height: 27px; flex: none; border-radius: 50%; display: inline-grid; place-items: center; font: 700 var(--mono-l) var(--mono); color: var(--o); border: 1.5px solid var(--o); background: var(--sheet); }
 .vrow .disc { width: 26px; height: 26px; padding: 0; align-self: center; cursor: pointer; }
 .vrow .vt { font: 600 13.5px/1.4 var(--sans); color: var(--ink); padding-left: 38px; text-indent: -38px; }
@@ -332,6 +337,9 @@ svg text.note { font-size: 11.5px; font-weight: 600; fill: var(--o); }
   var REF = /^(G\\d+)([a-z])$/;
   var cards = Array.prototype.slice.call(document.querySelectorAll('[data-pick]'));
   var tracked = Array.prototype.slice.call(document.querySelectorAll('[data-needs]'));
+  var vtabs = Array.prototype.slice.call(document.querySelectorAll('.tl'));
+  var vwraps = Array.prototype.slice.call(document.querySelectorAll('.vwrap'));
+  var vrows = Array.prototype.slice.call(document.querySelectorAll('.vrow'));
   var noteIns = Array.prototype.slice.call(document.querySelectorAll('.onote'));
   var sum = document.getElementById('picks');
   var notesIn = document.getElementById('rulings-notes');
@@ -352,8 +360,53 @@ svg text.note { font-size: 11.5px; font-weight: 600; fill: var(--o); }
     if (!m) return;
     if (!LIVE[m[1]]) { LIVE[m[1]] = { n: true }; ORDER.push(m[1]); }
     LIVE[m[1]][m[2]] = true;
-    CARD[m[0]] = (c.getAttribute('data-needs') || '').split(/\\s+/).filter(Boolean);
   });
+  tracked.forEach(function (el) {
+    var d = el.getAttribute('data-pick') ? el : el.querySelector('.disc');
+    var m = d && REF.exec(d.getAttribute('data-pick'));
+    if (m) CARD[m[0]] = (el.getAttribute('data-needs') || '').split(/\\s+/).filter(Boolean);
+  });
+
+  var views = {};
+  function rulingViews(el) {
+    var sec = el.closest('section');
+    var id = sec && sec.getAttribute('id');
+    if (!id) return null;
+    if (!views[id]) views[id] = { t: [], w: [], r: [] };
+    return views[id];
+  }
+  vtabs.forEach(function (t) { var u = rulingViews(t); if (u) u.t.push(t); });
+  vwraps.forEach(function (w) { var u = rulingViews(w); if (u) u.w.push(w); });
+  vrows.forEach(function (r) { var u = rulingViews(r); if (u) u.r.push(r); });
+
+  function show(id, view) {
+    var u = views[id];
+    if (!u || !view) return;
+    u.w.forEach(function (w) {
+      if (w.getAttribute('data-view') === view) w.removeAttribute('hidden');
+      else w.setAttribute('hidden', '');
+    });
+    u.t.forEach(function (t) {
+      t.setAttribute('aria-selected', t.getAttribute('data-view') === view ? 'true' : 'false');
+    });
+    u.r.forEach(function (r) {
+      r.classList.toggle('look', r.getAttribute('data-view') === view);
+    });
+  }
+  function restoreViews() {
+    for (var id in views) {
+      var u = views[id];
+      var rid = id.slice(2);
+      var p = pick[rid];
+      var view = null;
+      if (p && p !== 'n' && LIVE[rid] && LIVE[rid][p]) {
+        u.w.forEach(function (w) {
+          if (w.getAttribute('data-pick') === rid + p) view = w.getAttribute('data-view');
+        });
+      }
+      show(id, view || (u.w[0] && u.w[0].getAttribute('data-view')) || null);
+    }
+  }
 
   function load() {
     if (!KEY) return;
@@ -443,7 +496,7 @@ svg text.note { font-size: 11.5px; font-weight: 600; fill: var(--o); }
       commit();
       return;
     }
-    if (e.target.closest('.onote, a, textarea')) return;
+    if (e.target.closest('.onote, a, textarea, summary')) return;
     var card = e.target.closest('[data-pick]');
     if (card) {
       var sel = window.getSelection ? window.getSelection() : null;
@@ -469,6 +522,12 @@ svg text.note { font-size: 11.5px; font-weight: 600; fill: var(--o); }
         if (q) pick[q[1]] = q[2];
       });
       commit();
+    }
+    var look = e.target.closest('[data-view]');
+    if (look) {
+      var sec = look.closest('section');
+      var sid = sec && sec.getAttribute('id');
+      if (sid) show(sid, look.getAttribute('data-view'));
     }
   });
   document.addEventListener('keydown', function (e) {
@@ -581,6 +640,7 @@ svg text.note { font-size: 11.5px; font-weight: 600; fill: var(--o); }
   });
 
   load();
+  restoreViews();
   if (notesIn) { notesIn.value = note; sizeNote(); }
   noteIns.forEach(function (inp) { inp.value = onotes[inp.getAttribute('data-note')] || ''; });
   render();
