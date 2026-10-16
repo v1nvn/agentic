@@ -79,8 +79,10 @@ Branch `rulings-verdict-table` off `rulings-fix-pass`, build U1.
   U1's builder writes `progress/.scratch/rulings-verdict-table/enforce.mjs`
   once from these: build twice and byte-diff (determinism), grep the
   emitted page for the storage shape and for `fetch(` (must be absent);
-  every later builder runs it as its last gate step. Comment-line count is
-  a checklist line — no script checks it.
+  every later builder runs it as its last gate step. Checklist: a suite value where two interpretations coincide
+  (raw vs stripped length, before vs after a split) is a seam fault — a
+  fixture pins it before the gate; comment-line count is one too — no
+  script checks it.
 - **Run mechanics.** Branch `rulings-verdict-table` off `rulings-fix-pass`;
   the PR targets main once #29 merges. Rebuild-check pages into
   `progress/.scratch/rulings-verdict-table/` with `--no-open`; live checks
