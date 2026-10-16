@@ -27,7 +27,10 @@ what it pins or add the mid-span-cut fixture; (4) `noteHtml` folds at the
 first bold anywhere, not only a bold lead — fold at lead only or accept;
 (5) `todayPre` highlights the two code halves separately, so a Prism
 token spanning line 20 tokenizes per-half — deterministic, no live case
-hits it, the expander boundary is a highlight seam. U3 in flight.
+hits it, the expander boundary is a highlight seam; (6) style.ts:89's
+fold comment restates its declarations. U3 landed on review with one
+blocking finding (the keyboard exemption hole) routed to U4's builder; U4
+in flight.
 
 ## Next step
 
@@ -41,7 +44,7 @@ chrome reads rows — U4's sweep or a flagged one-liner takes it.
 | --- | --- | --- | --- | ------- | -------------- |
 | U1 | one home per ruling — verdict table + one stage | sonnet | role | design | landed: `cd4696d`, closed on the blind review (all criteria PASS, needs carrier confirmed) |
 | U2 | the folds — today, notes, long today-code | sonnet | role | | landed: `a97d004`, closed on the blind review (all criteria PASS live, the diff:false seam pinned) |
-| U3 | the gestures — look vs pick | sonnet | role | | tab or row body switches the shown view; letter disc and the shown picture pick; a stored pick restores its view on load; needs chips and unmet marks live on rows; answer text and storage shape byte-identical (contract tests unchanged); SKILL Step 6 moves in the same change |
+| U3 | the gestures — look vs pick | sonnet | role | | landed: `61b7ce6`; one blocking finding open — keydown lacks the click path's exemption list (Enter/Space on a fold summary or link inside a data-pick wrap picks) — routed to U4's live builder, closes on the fix's green gate |
 | U4 | example and docs to the new authoring | sonnet | role | | example.page.js demonstrates 2-sentence todays, fragment g/c, one-line w; SKILL Steps 2–4 swept; README's surface description matches the page |
 | U5 | audit, release, rebuilds | sonnet | none | | surface audit green on dark/light/979/390/empty/loaded/keyboard; blind contract review passes; minor release published and resolving; five live pages + the exemplar rebuilt on it |
 
