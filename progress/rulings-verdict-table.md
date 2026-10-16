@@ -106,7 +106,7 @@ and the chrome.ts:312 copy line, then U5 (audit, release, rebuilds).
 | U1 | one home per ruling — verdict table + one stage | sonnet | role | design | landed: `cd4696d`, closed on the blind review (all criteria PASS, needs carrier confirmed) |
 | U2 | the folds — today, notes, long today-code | sonnet | role | | landed: `a97d004`, closed on the blind review (all criteria PASS live, the diff:false seam pinned) |
 | U3 | the gestures — look vs pick | sonnet | role | | landed: `61b7ce6`, closed on the blind review; its one blocking finding (the keyboard exemption hole) fixed inside U4's `a80db17` on a green gate, pinned by a watched-red test |
-| U4 | example and docs to the new authoring | sonnet | role | | landed: `a80db17` (the U3 keyboard fix rode it, so U3 closes with it); the example's diagram ruling (G5) stopped on a U1 regression — mermaidBoot draws hidden wraps broken — recorded with its fix shape, lands as its own fix commit |
+| U4 | example and docs to the new authoring | sonnet | role | | landed: `a80db17` (the U3 keyboard fix rode it, so U3 closes with it); review PASS except one blocking test pin — the keyboard test asserts only after Space+Enter so it cannot fail — routed with the selector nit to the live mermaid fix builder; the example's diagram ruling (G5) stopped on a U1 regression, mermaidBoot draws hidden wraps broken, lands as its own fix commit |
 | U5 | audit, release, rebuilds | sonnet | none | | surface audit green on dark/light/979/390/empty/loaded/keyboard; blind contract review passes; minor release published and resolving; five live pages + the exemplar rebuilt on it |
 
 ## Plan
