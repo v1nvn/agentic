@@ -36,30 +36,51 @@ Branch `rulings-verdict-table` off `rulings-fix-pass`, build U1.
 
 ## Plan
 
-- **Tactical map.** U1: `html.ts` (delete `viewHeadFor`/`verdictFor`; add
-  the table and tab renderers; `optOf` stays), `page.ts` (`viewsOf` becomes
-  one compare region — tab strip plus every view in the DOM with all but
-  the first hidden; `rulingSection` orders rhead → stake → today → table →
-  compare; note inputs move into table rows), `seq.ts`/`bodies.ts`/
-  `diagram.ts` (emit the stage only — heads and verdict tails deleted),
-  `style.ts` (delete the view-card block; add table/tabs/compare rules),
-  `schema.ts` (fragment warning on g/c over ~90 chars stripped),
-  `example.page.js` (trim g/c to fragments), `test/build.test.ts` pins,
-  SKILL.md Step 4 gate + field table. U2: `page.ts` or `html.ts` (the
+- **Tactical map.** U1 (consult rulings folded): `html.ts` (delete
+  `viewHeadFor`/`verdictFor`; add the table and tab renderers; `optOf`
+  stays), `page.ts` (`viewsOf` becomes one compare region — tab strip plus
+  every view in the DOM with all but the first hidden; `rulingSection`
+  orders rhead → stake → today → `.vtable` → `.compare` as two bordered
+  boxes, `.compare .stage` drops its own border, and the merged-ruling
+  early return stays ahead of both; note inputs move into table rows with
+  `data-note` byte-identical; the assemblyCss view-card rules die with the
+  section), `seq.ts`/`bodies.ts`/`diagram.ts` (emit the stage only — heads
+  and verdict tails deleted; `w` renders as one muted line under the
+  caption/bcap), `style.ts` (delete the view-card block; add
+  table/tabs/compare rules), `schema.ts` (fragment warning inside the
+  gain/cost VAGUE loop — `stripTags(text).length > 90` against a named
+  const beside `LONG_LINE`; not on `w`), `example.page.js` (trim g/c to
+  fragments), `test/build.test.ts` and `test/pictures.test.ts` (pins move;
+  pictures rewritten to the stage-only renderers), SKILL.md Step 4 gate +
+  field table. Pick wiring: the letter disc (a real `<button>`) and each
+  view wrap carry `data-pick`; rows and tabs carry `data-view` only, the
+  row keeps `data-needs` and every row, disc and wrap carries its `o-<k>`
+  hue; the tab strip iterates views, not rows — a letter-less today tab
+  highlights no row; tabs emit `role="tab"` + `aria-selected` +
+  `aria-controls`, wraps `role="tabpanel"` + `id`, and U3 maintains both on
+  switch. The proven shape: `progress/.scratch/rulings-wall/mock-a.html`
+  and its generator `gen2.mjs` (faked gestures — the wiring above, not the
+  mock's, is law). U2: `page.ts` or `html.ts` (the
   deterministic sentence split), `bodies.ts` (line-count fold), `schema.ts`
   (today sentence warning), SKILL Step 2. U3: `chrome.ts` (show/look/pick
   wiring, restore-on-load, row states), `test/chrome.test.ts`, SKILL Step 6.
   U4: `example.page.js`, SKILL.md, README.md. Scoped gate
   `yarn workspace @v1nvn/rulings run test`; workspace gates `yarn test`
-  then `yarn typecheck` at the repo root, ceiling 1 min.
+  then `yarn typecheck` at the repo root, ceiling 2 min (pre-flight
+  measured 1m13s).
 - **Small rows:** U5 — mechanics only, no code changes; review is none
   because it changes no code, with the audit list guarding the surface.
 - **Enforcement inventory.** Determinism byte-identical (no clock, paths,
   randomness); the storage shape `{picks, onotes, note}` untouched; the
   answer text format (`G2a — its note, G3b (needs G3a) — its note`, blank
   line, page note) byte-identical — its tests survive unchanged; no fetch
-  on open; build warnings are faults; files touched come out with fewer
-  comment lines; the old view-card path is deleted, not shimmed.
+  on fetch on open; build warnings are faults; files touched come out with
+  fewer comment lines; the old view-card path is deleted, not shimmed.
+  U1's builder writes `progress/.scratch/rulings-verdict-table/enforce.mjs`
+  once from these: build twice and byte-diff (determinism), grep the
+  emitted page for the storage shape and for `fetch(` (must be absent);
+  every later builder runs it as its last gate step. Comment-line count is
+  a checklist line — no script checks it.
 - **Run mechanics.** Branch `rulings-verdict-table` off `rulings-fix-pass`;
   the PR targets main once #29 merges. Rebuild-check pages into
   `progress/.scratch/rulings-verdict-table/` with `--no-open`; live checks
