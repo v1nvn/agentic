@@ -77,7 +77,7 @@ list takes the fold summary.
   element with last-write-wins (chrome.ts:44) — rewire CARD to the rows
   and drop `data-needs` from the wraps in the same change. U2: `page.ts` or `html.ts` (the
   deterministic sentence split), `bodies.ts` (line-count fold), `schema.ts`
-  (today sentence warning), SKILL Step 2. U3: `chrome.ts` (show/look/pick
+  (today sentence warning), SKILL Step 2. U3: `chrome.ts` (show/look/pick, the CARD rewire to rows, the fold-summary click exemption), `style.ts` (the row look/picked states and the `.fold` affordance — muted mono, dashed underline, per the mock; U2 left browser-default disclosure styling)
   wiring, restore-on-load, row states), `test/chrome.test.ts`, SKILL Step 6.
   U4: `example.page.js`, SKILL.md, README.md. Scoped gate
   `yarn workspace @v1nvn/rulings run test`; workspace gates `yarn test`
