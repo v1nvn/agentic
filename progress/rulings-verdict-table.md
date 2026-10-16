@@ -35,11 +35,16 @@ container on first visibility from its src snapshot (a scheme flip
 repaints only drawn-and-visible containers, a drawn hidden one repaints
 on show), the vendored mermaid's startOnLoad is off (a second live bug
 the fix caught), G5 stands in the example, and the routed U4 pin fault
-and selector nit landed with it. Remaining for the sweep: nits 1–6.
+and selector nit landed with it. The sweep landed all six queued nits (stripTags seam fixture, vwrap →
+stage-wrap rename, the mid-span anchor fixture, the bold-lead fold, the
+single-highlight bodies fold, the restating comment deleted).
 
 ## Next step
 
-Nit sweep (nits 1–6), then U5 (audit, release, rebuilds).
+Close the sweep on its review, run U5 (audit, contract check); the
+release and the six rebuilds fire on the owner's merge — the branch
+carries the open fix-pass PR, so publishing before it merges ships both
+changesets unreviewed.
 
 ## Steps
 
@@ -85,11 +90,16 @@ container on first visibility from its src snapshot (a scheme flip
 repaints only drawn-and-visible containers, a drawn hidden one repaints
 on show), the vendored mermaid's startOnLoad is off (a second live bug
 the fix caught), G5 stands in the example, and the routed U4 pin fault
-and selector nit landed with it. Remaining for the sweep: nits 1–6.
+and selector nit landed with it. The sweep landed all six queued nits (stripTags seam fixture, vwrap →
+stage-wrap rename, the mid-span anchor fixture, the bold-lead fold, the
+single-highlight bodies fold, the restating comment deleted).
 
 ## Next step
 
-Nit sweep (nits 1–6), then U5 (audit, release, rebuilds).
+Close the sweep on its review, run U5 (audit, contract check); the
+release and the six rebuilds fire on the owner's merge — the branch
+carries the open fix-pass PR, so publishing before it merges ships both
+changesets unreviewed.
 
 ## Steps
 
