@@ -185,6 +185,18 @@ describe('the emitted page', () => {
     );
   });
 
+  it('stacks the narrow table: chips wrap under the title, gain and cost below, no head', () => {
+    const { html } = buildPage(loadPageFile(EXAMPLE));
+    const css = html.slice(html.indexOf('<style>'), html.indexOf('</style>'));
+    const at = css.indexOf('@media (max-width: 640px)');
+    const narrow = css.slice(at, css.indexOf('@media', at + 6));
+    expect(narrow).toContain('.vhead { display: none; }');
+    expect(narrow).toContain('grid-template-columns: 26px minmax(0, 1fr)');
+    expect(narrow).toContain('.vrow .vt, .vrow .vg, .vrow .vc { grid-column: 2; min-width: 0; }');
+    expect(narrow).toContain('.vchips { display: flex; flex-wrap: wrap; gap: 3px 8px; }');
+    expect(html.match(/<span class="vchips">/g)).toHaveLength(5);
+  });
+
   it('carries the pick on the disc and the wrap, the look on row and tab', () => {
     const { html } = buildPage(loadPageFile(EXAMPLE));
     expect(

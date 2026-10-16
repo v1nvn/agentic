@@ -75,7 +75,7 @@ export function verdictTable(q: Ruling, id: string): string {
         (needs.length ? ` data-needs="${needs.join(' ')}"` : '') +
         '>' +
         `<button type="button" class="lt disc ${hueOf(o.k)}" data-pick="${pick}" aria-label="pick ${pick}">${o.k}</button>` +
-        `<span class="vt">${o.t ?? ''}${chips ? ` ${chips}` : ''}<span class="pmark">✓ picked</span></span>` +
+        `<span class="vt">${o.t ?? ''}${chips ? `<span class="vchips"> ${chips}</span>` : ''}<span class="pmark">✓ picked</span></span>` +
         `<span class="vg">${o.g ?? ''}</span>` +
         `<span class="vc">${o.c ?? ''}</span>` +
         `<input class="onote" data-note="${pick}" placeholder="note for ${pick}" aria-label="note for ${pick}">` +
@@ -88,7 +88,6 @@ export function verdictTable(q: Ruling, id: string): string {
   );
 }
 
-// The strip iterates views, not rows: a letter-less today tab highlights no row.
 export function viewTabs(q: Ruling, id: string, views: string[]): string {
   const tabs = views
     .map((view, i) => {
