@@ -3,13 +3,15 @@
 ## Next
 
 1. **Rulings — the page's fix pass** · HIGH · [packages/rulings] → progress/rulings-page-ux.md
-2. **Rules plugin — catalogue · config · per-session render** · HIGH · [packages] → progress/rules-plugin.md
-3. **Mods port — live-verify from a fresh install** · HIGH · [packages]
+2. **Rulings — the verdict-table layout** · HIGH · [packages/rulings] → progress/rulings-verdict-table.md
+3. **Rules plugin — catalogue · config · per-session render** · HIGH · [packages] → progress/rules-plugin.md
+4. **Mods port — live-verify from a fresh install** · HIGH · [packages]
    Verify `/rm-send`, `/md-edit`, `/md-view`, `/zai-usage` and the tokens pane `/tokens-usage` from a fresh install — records: archive/mods-port.md, archive/zai-pane.md.
-4. **Timestamps — promote the mod into the marketplace** · MEDIUM · [packages] → progress/timestamps-plugin.md
+5. **Timestamps — promote the mod into the marketplace** · MEDIUM · [packages] → progress/timestamps-plugin.md
 
 ## rulings
 
+- **Rulings — skill pass: authoring friction and the quick bridge** · MEDIUM · [packages/rulings] → progress/rulings-skill-pass.md
 - **Rulings — review nits** · LOW · [packages/rulings]
   Nits from the port and the interactive reversion: dead expected-substrings in mutation tuples, a duplicated chip assembly, restating comments, a mermaid-boots-for-merged-rulings seam, a stale layout tree, a `$D` that dies between Bash calls, a no-op accept button on a zero-rec quick group, and unpinned key/quick asymmetries. Recorded in archive/rulings-port.md and archive/rulings-interactive.md.
 
