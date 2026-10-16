@@ -7,7 +7,7 @@ import 'prismjs/components/prism-typescript.js';
 
 import type { Body, Ruling } from './schema.ts';
 
-import { esc, verdictFor, viewHeadFor } from './html.ts';
+import { esc, optOf } from './html.ts';
 
 const LANG_ALIAS: Record<string, string> = {
   bash: 'bash',
@@ -115,38 +115,34 @@ function bodyHtml(
   );
 }
 
-// The today block: shown once per ruling, full bodies, no diff.
-export function bodiesToday(q: Ruling, attrs = ''): string {
+export function bodiesToday(q: Ruling): string {
   const B = q.bodies;
   if (B === undefined || !('today' in B)) {
     return '';
   }
-  const { head } = viewHeadFor(q, 'today');
   const todayLetter = (q.opts ?? []).find(o => o.today === true)?.k ?? '';
+  const w = optOf(q, 'today')?.w;
   return (
-    `<section class="view today"${attrs}>${head}` +
-    `<div class="stage"><div class="bodies">${bodyHtml(B.today, todayLetter, true)}</div></div>` +
-    verdictFor(q, 'today') +
-    '</section>'
+    `<div class="stage"><div class="bodies">${bodyHtml(B.today, todayLetter, true)}</div>` +
+    (w ? `<p class="how">${w}</p>` : '') +
+    '</div>'
   );
 }
 
-// One option's view: only its own body, diffed against today's code.
-export function bodiesOption(q: Ruling, view: string, attrs = ''): string {
+export function bodiesOption(q: Ruling, view: string): string {
   const B = q.bodies;
   if (B === undefined) {
     return '';
   }
-  const { head, hue } = viewHeadFor(q, view);
   const letter = view.slice(-1);
   if (!(letter in B)) {
     return '';
   }
   const todayCode = 'today' in B ? B.today.code : undefined;
+  const w = optOf(q, view)?.w;
   return (
-    `<section class="view${hue ? ` ${hue}` : ''}"${attrs}>${head}` +
-    `<div class="stage"><div class="bodies">${bodyHtml(B[letter], letter, false, todayCode)}</div></div>` +
-    verdictFor(q, view) +
-    '</section>'
+    `<div class="stage"><div class="bodies">${bodyHtml(B[letter], letter, false, todayCode)}</div>` +
+    (w ? `<p class="how">${w}</p>` : '') +
+    '</div>'
   );
 }

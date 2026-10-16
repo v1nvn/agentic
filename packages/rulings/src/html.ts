@@ -25,52 +25,62 @@ export function optOf(q: Ruling, view: string): Opt | undefined {
   return letter === undefined ? undefined : opts.find(x => x.k === letter);
 }
 
-// One view card head: letter disc, title, chips (recommended, as today,
-// needs), the picked marker the chrome toggles via aria-pressed.
-export function viewHeadFor(
-  q: Ruling,
-  view: string,
-): {
-  head: string;
-  hue: string;
-} {
-  const o = optOf(q, view);
-  if (o === undefined) {
-    return {
-      head:
-        '<div class="vhead"><div class="vtt"><span class="vt">Today</span>' +
-        '<span class="vmeta">how it works now</span></div></div>',
-      hue: '',
-    };
-  }
-  const needs = typeof o.needs === 'string' ? [o.needs] : (o.needs ?? []);
-  const chips = [
-    o.rec === true ? '<span class="star">★ recommended</span>' : '',
-    o.today === true ? '<span>as today</span>' : '',
-    ...needs.map(n => `<span class="dep">needs ${n}</span>`),
-  ]
-    .filter(c => c !== '')
-    .join(' · ');
-  return {
-    hue: hueOf(o.k),
-    head:
-      `<div class="vhead"><span class="lt">${o.k}</span><div class="vtt">` +
-      `<span class="vt">${o.t ?? ''}</span>` +
-      (chips ? `<span class="vmeta">${chips}</span>` : '') +
-      '</div><span class="pmark">✓ picked</span></div>',
-  };
+export function needsOf(o: Opt): string[] {
+  return typeof o.needs === 'string' ? [o.needs] : (o.needs ?? []);
 }
 
-// The verdict tail: each option's `w` how-paragraph, gain and cost render
-// exactly once, on its own view card.
-export function verdictFor(q: Ruling, view: string): string {
-  const o = optOf(q, view);
-  if (o === undefined) {
-    return '';
-  }
+// The today key alone would collide across rulings, so it rides the ruling id.
+export function wrapId(id: string, view: string): string {
+  return `view-${view === 'today' ? `${id}-today` : view}`;
+}
+
+// The verdict table is the option's one home: the disc picks, the row looks.
+export function verdictTable(q: Ruling, id: string): string {
+  const rows = (q.opts ?? [])
+    .map(o => {
+      const pick = id + o.k;
+      const needs = needsOf(o);
+      const chips = [
+        o.rec === true ? '<span class="star">★ recommended</span>' : '',
+        o.today === true ? '<span class="asr">as today</span>' : '',
+        ...needs.map(n => `<span class="dep">needs ${n}</span>`),
+      ]
+        .filter(c => c !== '')
+        .join(' ');
+      return (
+        `<div class="vrow ${hueOf(o.k)}" data-view="${o.today === true ? 'today' : pick}"` +
+        (needs.length ? ` data-needs="${needs.join(' ')}"` : '') +
+        '>' +
+        `<button type="button" class="lt disc ${hueOf(o.k)}" data-pick="${pick}" aria-label="pick ${pick}">${o.k}</button>` +
+        `<span class="vt">${o.t ?? ''}${chips ? ` ${chips}` : ''}<span class="pmark">✓ picked</span></span>` +
+        `<span class="vg">${o.g ?? ''}</span>` +
+        `<span class="vc">${o.c ?? ''}</span>` +
+        `<input class="onote" data-note="${pick}" placeholder="note for ${pick}" aria-label="note for ${pick}">` +
+        '</div>'
+      );
+    })
+    .join('');
   return (
-    (o.w !== undefined ? `<p class="how">${o.w}</p>` : '') +
-    `<div class="gc gain"><span class="sign">+</span><span>${o.g ?? ''}</span></div>` +
-    `<div class="gc cost"><span class="sign">−</span><span>${o.c ?? ''}</span></div>`
+    `<div class="vtable"><div class="vhead"><span>option</span><span>gain</span><span>cost</span></div>${rows}</div>`
   );
+}
+
+// The strip iterates views, not rows: a letter-less today tab highlights no row.
+export function viewTabs(q: Ruling, id: string, views: string[]): string {
+  const tabs = views
+    .map((view, i) => {
+      const o = optOf(q, view);
+      const label =
+        o === undefined
+          ? '<span class="tt">today</span>'
+          : `<span class="lt">${o.k}</span><span class="tt">${o.t ?? ''}</span>` +
+            (o.today === true ? '<span class="asr">today</span>' : '');
+      return (
+        `<button type="button" class="tl${o ? ` ${hueOf(o.k)}` : ''}" role="tab"` +
+        ` aria-selected="${i === 0 ? 'true' : 'false'}" aria-controls="${wrapId(id, view)}"` +
+        ` data-view="${view}">${label}</button>`
+      );
+    })
+    .join('');
+  return `<div class="tabs" role="tablist">${tabs}</div>`;
 }
