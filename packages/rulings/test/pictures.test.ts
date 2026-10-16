@@ -21,12 +21,13 @@ function example(): Page {
 }
 
 describe('the example page', () => {
-  it('validates green with two seq rulings and a bodies ruling, no diagram, no warnings', () => {
+  it('validates green with two seq rulings, a bodies ruling and a diagram ruling, no warnings', () => {
     const P = example();
     expect(P.rulings.G1.seq).toBeTruthy();
     expect(P.rulings.G2.bodies).toBeTruthy();
     expect(P.rulings.G4.seq).toBeTruthy();
     expect(P.rulings.G4.diagram).toBeFalsy();
+    expect(P.rulings.G5.diagram).toBeTruthy();
     const r = validatePage(P);
     expect(r.errors).toEqual([]);
     expect(r.warnings).toEqual([]);
@@ -279,16 +280,42 @@ describe('the picture surfaces', () => {
 
 describe('the mermaid boot', () => {
   interface Draw {
-    sel: string;
+    nodes: FakeNode[];
     seen: string[];
     hadProcessed: boolean[];
   }
 
-  // The boot ships as static script text, so its behavior is tested by
-  // running the real bytes in a vm over fakes for matchMedia and mermaid.
-  function bootedOn(dark: boolean) {
+  interface FakeNode {
+    attrs: Record<string, string>;
+    textContent: string;
+    setAttribute(n: string, v: string): void;
+    removeAttribute(n: string): void;
+  }
+
+  class SpyIO {
+    static last: SpyIO | null = null;
+    cb: (ents: { target: unknown; isIntersecting: boolean }[]) => void;
+    observed: unknown[] = [];
+    constructor(cb: SpyIO['cb']) {
+      this.cb = cb;
+      SpyIO.last = this;
+    }
+    observe(n: unknown): void {
+      this.observed.push(n);
+    }
+    unobserve(n: unknown): void {
+      this.observed = this.observed.filter(o => o !== n);
+    }
+    fire(target: unknown, isIntersecting: boolean): void {
+      this.cb([{ target, isIntersecting }]);
+    }
+  }
+
+  // The boot ships as static script text: its behavior runs in a vm over fakes.
+  function bootedOn(dark: boolean, withIO = true) {
+    SpyIO.last = null;
     const authored = ['flowchart TD\n  A --> B', 'flowchart TD\n  C --> D'];
-    const nodes = authored.map(src => {
+    const nodes: FakeNode[] = authored.map(src => {
       const attrs: Record<string, string> = {};
       return {
         attrs,
@@ -303,77 +330,138 @@ describe('the mermaid boot', () => {
     });
     const inits: unknown[] = [];
     const draws: Draw[] = [];
-    let flip: ((e: { matches: boolean }) => void) | null = null;
+    let flip: (() => void) | null = null;
     const mq = {
       matches: dark,
-      addEventListener(_t: string, fn: (e: { matches: boolean }) => void) {
+      addEventListener(_t: string, fn: () => void) {
         flip = fn;
       },
     };
     const queries: string[] = [];
-    const sandbox = {
-      document: { querySelectorAll: (sel: string) => sel === '.mermaid' ? nodes : [] },
-      window: {
-        matchMedia(q: string): typeof mq {
-          queries.push(q);
-          return mq;
+    const win: Record<string, unknown> = {
+      matchMedia(q: string): typeof mq {
+        queries.push(q);
+        return mq;
+      },
+      mermaid: {
+        initialize(cfg: unknown): void {
+          inits.push(cfg);
         },
-        mermaid: {
-          initialize(cfg: unknown): void {
-            inits.push(cfg);
-          },
-          run({ querySelector }: { querySelector: string }): void {
-            draws.push({
-              sel: querySelector,
-              seen: nodes.map(n => n.textContent),
-              hadProcessed: nodes.map(n => 'data-processed' in n.attrs),
-            });
-            nodes.forEach(n => {
-              n.setAttribute('data-processed', 'yes');
-              n.textContent = '<svg>rendered</svg>';
-            });
-          },
+        run({ nodes: passed }: { nodes: FakeNode[] }): void {
+          draws.push({
+            nodes: passed,
+            seen: nodes.map(n => n.textContent),
+            hadProcessed: nodes.map(n => 'data-processed' in n.attrs),
+          });
+          passed.forEach(n => {
+            n.setAttribute('data-processed', 'yes');
+            n.textContent = '<svg>rendered</svg>';
+          });
         },
       },
     };
+    if (withIO) win.IntersectionObserver = SpyIO;
+    const sandbox: Record<string, unknown> = {
+      document: { querySelectorAll: (sel: string) => sel === '.mermaid' ? nodes : [] },
+      window: win,
+    };
+    if (withIO) sandbox.IntersectionObserver = SpyIO;
     const code = mermaidBoot()
       .replace(/^<script>\n/, '')
       .replace(/<\/script>$/, '');
     vm.runInNewContext(code, sandbox);
     return {
+      authored,
       draws,
       inits,
+      io: SpyIO.last as SpyIO | null,
+      nodes,
       queries,
       flipTo(d: boolean): void {
         mq.matches = d;
-        flip?.({ matches: d });
+        flip?.();
       },
     };
   }
 
-  it('boots every container under the system theme alone', () => {
+  it('paints a visible container on first sight, under the system theme alone', () => {
     const m = bootedOn(false);
     expect(m.queries).toEqual(['(prefers-color-scheme: dark)']);
-    expect(m.inits).toEqual([{ startOnLoad: false, theme: 'default' }]);
+    expect(m.inits).toEqual([{ startOnLoad: false }]);
+    expect(m.draws).toHaveLength(0);
+    const io = m.io;
+    if (io === null) throw new Error('fixture: spy observer');
+    expect(io.observed).toEqual(m.nodes);
+    io.fire(m.nodes[0], true);
+    expect(m.inits[1]).toEqual({ startOnLoad: false, theme: 'default' });
     expect(m.draws).toHaveLength(1);
-    expect(m.draws[0].sel).toBe('.mermaid');
-    expect(m.draws[0].seen).toEqual([
-      'flowchart TD\n  A --> B',
-      'flowchart TD\n  C --> D',
-    ]);
-    expect(bootedOn(true).inits).toEqual([{ startOnLoad: false, theme: 'dark' }]);
+    expect(m.draws[0].nodes).toEqual([m.nodes[0]]);
+    expect(m.draws[0].seen[0]).toBe('flowchart TD\n  A --> B');
+    expect(m.draws[0].hadProcessed).toEqual([false, false]);
+    const d = bootedOn(true);
+    expect(d.inits).toEqual([{ startOnLoad: false }]);
+    d.io?.fire(d.nodes[1], true);
+    expect(d.inits[1]).toEqual({ startOnLoad: false, theme: 'dark' });
   });
 
-  it('re-renders from the authored source when the scheme flips, without reload', () => {
+  it('leaves a hidden container raw until it turns visible, then paints its authored source', () => {
+    const m = bootedOn(false);
+    m.io?.fire(m.nodes[1], false);
+    expect(m.draws).toHaveLength(0);
+    m.io?.fire(m.nodes[1], true);
+    expect(m.draws[0].nodes).toEqual([m.nodes[1]]);
+    expect(m.draws[0].seen[1]).toBe('flowchart TD\n  C --> D');
+    expect(m.nodes[0].textContent).toBe(m.authored[0]);
+  });
+
+  it('repaints a drawn visible container from the authored source when the scheme flips', () => {
+    const m = bootedOn(false);
+    m.io?.fire(m.nodes[0], true);
+    m.flipTo(true);
+    expect(m.inits[2]).toEqual({ startOnLoad: false, theme: 'dark' });
+    expect(m.draws).toHaveLength(2);
+    expect(m.draws[1].nodes).toEqual([m.nodes[0]]);
+    expect(m.draws[1].seen[0]).toBe('flowchart TD\n  A --> B');
+    expect(m.draws[1].hadProcessed).toEqual([false, false]);
+  });
+
+  it('skips a drawn hidden container on a flip and repaints it when it turns visible', () => {
+    const m = bootedOn(false);
+    m.io?.fire(m.nodes[0], true);
+    m.io?.fire(m.nodes[1], true);
+    m.io?.fire(m.nodes[1], false);
+    m.flipTo(true);
+    expect(m.draws).toHaveLength(3);
+    expect(m.draws[2].nodes).toEqual([m.nodes[0]]);
+    expect(m.nodes[1].textContent).toBe('<svg>rendered</svg>');
+    m.io?.fire(m.nodes[1], true);
+    expect(m.draws).toHaveLength(4);
+    expect(m.draws[3].nodes).toEqual([m.nodes[1]]);
+    expect(m.draws[3].seen[1]).toBe('flowchart TD\n  C --> D');
+    expect(m.draws[3].hadProcessed[1]).toBe(false);
+    expect(m.inits[4]).toEqual({ startOnLoad: false, theme: 'dark' });
+  });
+
+  it('flips nothing while nothing has drawn', () => {
     const m = bootedOn(false);
     m.flipTo(true);
-    expect(m.inits[1]).toEqual({ startOnLoad: false, theme: 'dark' });
+    expect(m.draws).toHaveLength(0);
+    expect(m.inits).toEqual([{ startOnLoad: false }]);
+  });
+
+  it('paints every container at boot when IntersectionObserver is missing', () => {
+    const m = bootedOn(false, false);
+    expect(m.inits[1]).toEqual({ startOnLoad: false, theme: 'default' });
     expect(m.draws).toHaveLength(2);
-    expect(m.draws[1].seen).toEqual([
-      'flowchart TD\n  A --> B',
-      'flowchart TD\n  C --> D',
-    ]);
-    expect(m.draws[1].hadProcessed).toEqual([false, false]);
+    expect(m.draws[0].nodes).toEqual([m.nodes[0]]);
+    expect(m.draws[1].seen[1]).toBe(m.authored[1]);
+    m.flipTo(true);
+    expect(m.inits[m.inits.length - 1]).toEqual({
+      startOnLoad: false,
+      theme: 'dark',
+    });
+    expect(m.draws).toHaveLength(4);
+    expect(m.draws[3].nodes).toEqual([m.nodes[1]]);
   });
 });
 

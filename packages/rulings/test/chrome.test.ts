@@ -4,8 +4,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { chromeScript } from '../src/chrome.ts';
 import { El, FakeIO, type FakeEvent } from './dom.ts';
 
-// The chrome ships as static script text: its behavior is tested by running the real bytes in a vm against a small fake DOM.
-
 interface Harness {
   cardA: El;
   cardB: El;
@@ -396,8 +394,11 @@ describe('the shown view', () => {
   it('never picks through a fold summary on the keyboard either', () => {
     const h = harness();
     h.keyDown({ key: ' ', target: h.foldSum });
+    expect(h.sum.innerHTML).toContain('no picks yet — pick a letter');
+    expect(h.storage.size).toBe(0);
     h.keyDown({ key: 'Enter', target: h.foldSum });
     expect(h.sum.innerHTML).toContain('no picks yet — pick a letter');
+    expect(h.storage.size).toBe(0);
   });
 
   it('picks on the disc without moving the shown view', () => {

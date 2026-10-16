@@ -11,7 +11,8 @@ var PAGE = {
   groups: [
     { id: "money", label: "What a buyer is owed", quick: true, rulings: ["G1", "G3"] },
     { id: "code", label: "A code change", rulings: ["G2"] },
-    { id: "ops", label: "What a restart does", rulings: ["G4"] }
+    { id: "ops", label: "What a restart does", rulings: ["G4"] },
+    { id: "serving", label: "What a start refuses", rulings: ["G5"] }
   ],
 
   rulings: {
@@ -99,6 +100,28 @@ var PAGE = {
       opts: [
         { k: "a", rec: true, t: "The daemon re-arms its windows from Postgres on start", g: "The window survives a restart; reads never pay into the void and no human is in the loop.", c: "One more table the daemon owns and migrates; the start sequence grows a step." },
         { k: "b", t: "The read re-arms the window before paying", w: "The read already opens a transaction on the leaf rows; arming the window there is one more write on the same connection, with no new owner of state.", g: "The protocol fixes itself; no daemon change at all.", c: "Every read pays one extra write — about 40 a day at current traffic." }
+      ]
+    },
+
+    G5: {
+      title: "Should the daemon refuse to serve when its start check fails?",
+      stake: "<b>Every daemon start runs 1 ledger check whose failure stops nothing: readers pay into a ledger the daemon itself doubted, and a log line is the only sign.</b>",
+      today: "At start the daemon checks its ledger once and logs a line when the check fails. It serves either way; the check decides nothing.",
+      diagram: {
+        cap: "<b>Today a failed check is a log line; the daemon serves anyway.</b>",
+        views: {
+          today: {
+            text: 'flowchart TD\n  S[start] --> C{ledger check passes?}\n  C -- yes --> V[serve reads]\n  C -- no --> L[log a line] --> V'
+          },
+          a: {
+            cap: "<b>Option a: a failed check stops the daemon before its first read.</b> The on-call sees the exit, not a log line.",
+            text: 'flowchart TD\n  S[start] --> C{ledger check passes?}\n  C -- yes --> V[serve reads]\n  C -- no --> X[exit non-zero]'
+          }
+        }
+      },
+      opts: [
+        { k: "a", rec: true, t: "Refuse to serve when the check fails", g: "The on-call sees a dead daemon with a reason, not a log line to find.", c: "One flaky check now stops every read until a human restarts the daemon." },
+        { k: "b", today: true, t: "Keep serving on a failed check", g: "Reads continue; a flaky check cannot take the daemon down.", c: "The only sign of a doubted ledger is a log line nobody is tailing." }
       ]
     }
   }

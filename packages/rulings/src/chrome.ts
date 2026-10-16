@@ -313,7 +313,7 @@ export function chromeScript(): string {
       setTimeout(function () { copyBtn.textContent = 'Copy answer'; }, 1800);
     };
     if (entries().length === 0) {
-      copyBtn.textContent = 'No picks yet — click a view first';
+      copyBtn.textContent = 'No picks yet — pick a letter first';
       setTimeout(function () { copyBtn.textContent = 'Copy answer'; }, 1800);
       return;
     }
