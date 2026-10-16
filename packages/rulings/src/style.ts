@@ -34,7 +34,6 @@ h2 { margin: 0; font: 600 var(--mono-s) var(--mono); letter-spacing: 0.08em; col
 p { margin: 0; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } html { scroll-behavior: auto; } }
 
-/* Layout: fixed sidebar left, one content column. */
 .side { position: fixed; top: 0; bottom: 0; left: 0; width: 228px; padding: 22px 14px 90px; border-right: 1px solid var(--rule); background: var(--paper); overflow-y: auto; overscroll-behavior: contain; }
 .doc { margin-left: 228px; }
 .col-in { max-width: 880px; margin: 0 auto; padding: 0 34px 110px; }
@@ -59,8 +58,7 @@ section[id^="r-"] { scroll-margin-top: 14px; }
 .side a.rl.ruled .gid { color: var(--ink); }
 .side a.rl.ruled::after { content: "✓"; margin-left: auto; flex: none; font: 700 var(--mono-s) var(--mono); color: var(--add); }
 
-/* reachable below the sidebar's own cut */
-.where { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); z-index: 9; display: none; max-width: calc(100vw - 24px); padding: 6px 14px; border-radius: 999px; background: var(--sheet); border: 1px solid var(--rule); box-shadow: 0 4px 16px color-mix(in srgb, var(--ink) 12%, transparent); text-decoration: none; color: var(--ink); font: 12.5px var(--sans); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.where { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); z-index: 9; display: none; max-width: calc(100vw - 24px); padding: 6px 14px; border-radius: 999px; background: var(--sheet); border: 1px solid var(--rule); box-shadow: 0 8px 28px color-mix(in srgb, var(--ink) 14%, transparent); text-decoration: none; color: var(--ink); font: 12.5px var(--sans); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .where:hover { border-color: var(--ink); }
 @media (max-width: 979px) {
   .where:not([hidden]) { display: block; }
@@ -83,7 +81,7 @@ section[id^="r-"] { scroll-margin-top: 14px; }
 .rhead .none-btn { margin-left: auto; font: 600 var(--mono-s) var(--mono); color: var(--muted); background: none; border: 1px dashed var(--rule); border-radius: 6px; padding: 3px 10px; cursor: pointer; }
 .rhead .none-btn:hover { color: var(--ink); border-color: var(--ink); }
 .rhead .none-btn.on { color: var(--sheet); background: var(--muted); border-style: solid; border-color: var(--muted); }
-.stake { font: 600 16.5px/1.45 var(--serif); max-width: 62ch; margin-top: 10px; }
+.stake { font: 600 16.5px/1.45 var(--serif); max-width: 62ch; margin-top: 10px; text-wrap: pretty; }
 p.today { font: 14.5px/1.55 var(--sans); max-width: 68ch; color: var(--muted); margin-top: 8px; }
 p.today b { color: var(--ink); }
 .fold > summary { display: inline-block; font: 600 var(--mono-s) var(--mono); color: var(--muted); background: none; border: 0; border-bottom: 1px dashed var(--rule); padding: 0 0 1px; cursor: pointer; list-style: none; }
@@ -92,7 +90,6 @@ p.today b { color: var(--ink); }
 .changed { border: 1px solid var(--rule); background: var(--sheet); padding: 10px 14px; max-width: 78ch; font-size: 13.5px; border-radius: 8px; margin-top: 10px; }
 .meta-line { font: var(--mono-l) var(--mono); color: var(--muted); margin-top: 3px; }
 
-/* Verdict table: one row per option — the option's one home */
 .vtable { margin-top: 16px; border: 1px solid var(--rule); border-radius: 10px; background: var(--sheet); overflow: hidden; }
 .vhead, .vrow { display: grid; grid-template-columns: 26px minmax(0, 37%) minmax(0, 31%) minmax(0, 32%); gap: 0 12px; padding: 8px 14px; }
 .vhead { font: 600 var(--mono-s) var(--mono); letter-spacing: 0.06em; color: var(--muted); border-bottom: 1px solid var(--rule); padding-block: 7px; }
@@ -112,8 +109,15 @@ p.today b { color: var(--ink); }
 .vrow .vg::before { content: "+ "; color: var(--add); font-weight: 700; }
 .vrow .vc { color: var(--muted); }
 .vrow .vc::before { content: "− "; font-weight: 700; }
+@media (max-width: 640px) {
+  /* no head: the +/− prefixes carry gain and cost */
+  .vhead { display: none; }
+  .vrow { grid-template-columns: 26px minmax(0, 1fr); row-gap: 7px; }
+  .vrow .vt, .vrow .vg, .vrow .vc { grid-column: 2; min-width: 0; }
+  .vrow .vt { padding-left: 0; text-indent: 0; }
+  .vrow .vchips { display: flex; flex-wrap: wrap; gap: 3px 8px; }
+}
 
-/* One picture region: letter tabs over the shown view */
 .compare { margin-top: 14px; background: var(--sheet); border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; }
 .compare .stage { border: 0; border-radius: 0; }
 .tabs { display: flex; gap: 4px; align-items: stretch; padding: 8px 10px 0; border-bottom: 1px solid var(--rule); flex-wrap: wrap; }
