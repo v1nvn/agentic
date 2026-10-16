@@ -41,17 +41,19 @@ single-highlight bodies fold, the restating comment deleted) and closed
 on its review — watched-red proofs on every pin, the emitted example
 byte-identical modulo the rename and the deleted comment. The contract
 review passed all six points live (answer path byte-diff identical;
-both its nits are the fix-pass's already-landed changes, declared).
+both its nits are the fix-pass's already-landed changes, declared). U5's
+audit: 74/74 programmatic across the seven states, the vision round
+clean after its fix commit, painted page 4354px at 1440 (baseline 8671;
+G1 845 / G2 984 / G4 738 / G5 1030, G3 merged 131) — paint-time heights
+are the real measure, pre-paint undercounts diagrams by their unpainted
+line.
 
 ## Next step
 
-U5's audit run reports (the contract half is green); on its green plus
-the orchestrator's vision round: archive, open the PR against main, final
-report — the release and the six rebuilds fire on the owner's merge (the
-branch carries the open fix-pass PR; publishing before it merges ships
-both changesets unreviewed). One nit for the final report only: chrome's
-vtabs/vrows locals keep the v- split meaning (defensible, tab-name
-collision); scratch probe.mjs predates the rename and G5.
+On the owner's merges (#29 then this PR): retarget the PR base if needed,
+dispatch the minor release per references/npm-publishing.md, wait for the
+registry, rebuild the five live pages and the exemplar on the published
+version, live-check one, close the thread (archive + index delete).
 
 ## Steps
 
@@ -103,17 +105,19 @@ single-highlight bodies fold, the restating comment deleted) and closed
 on its review — watched-red proofs on every pin, the emitted example
 byte-identical modulo the rename and the deleted comment. The contract
 review passed all six points live (answer path byte-diff identical;
-both its nits are the fix-pass's already-landed changes, declared).
+both its nits are the fix-pass's already-landed changes, declared). U5's
+audit: 74/74 programmatic across the seven states, the vision round
+clean after its fix commit, painted page 4354px at 1440 (baseline 8671;
+G1 845 / G2 984 / G4 738 / G5 1030, G3 merged 131) — paint-time heights
+are the real measure, pre-paint undercounts diagrams by their unpainted
+line.
 
 ## Next step
 
-U5's audit run reports (the contract half is green); on its green plus
-the orchestrator's vision round: archive, open the PR against main, final
-report — the release and the six rebuilds fire on the owner's merge (the
-branch carries the open fix-pass PR; publishing before it merges ships
-both changesets unreviewed). One nit for the final report only: chrome's
-vtabs/vrows locals keep the v- split meaning (defensible, tab-name
-collision); scratch probe.mjs predates the rename and G5.
+On the owner's merges (#29 then this PR): retarget the PR base if needed,
+dispatch the minor release per references/npm-publishing.md, wait for the
+registry, rebuild the five live pages and the exemplar on the published
+version, live-check one, close the thread (archive + index delete).
 
 ## Steps
 
@@ -123,7 +127,7 @@ collision); scratch probe.mjs predates the rename and G5.
 | U2 | the folds — today, notes, long today-code | sonnet | role | | landed: `a97d004`, closed on the blind review (all criteria PASS live, the diff:false seam pinned) |
 | U3 | the gestures — look vs pick | sonnet | role | | landed: `61b7ce6`, closed on the blind review; its one blocking finding (the keyboard exemption hole) fixed inside U4's `a80db17` on a green gate, pinned by a watched-red test |
 | U4 | example and docs to the new authoring | sonnet | role | | landed: `a80db17` and closed — its routed pin fault and selector nit fixed in the mermaid fix commit, G5 reinstated with it |
-| U5 | audit, release, rebuilds | sonnet | none | | surface audit green on dark/light/979/390/empty/loaded/keyboard; blind contract review passes; minor release published and resolving; five live pages + the exemplar rebuilt on it |
+| U5 | audit, release, rebuilds | sonnet | none | | audit half landed: programmatic 74/74 over dark/light/979/390/empty/loaded/keyboard, the blind contract review all-PASS, the vision round's findings fixed (`HEAD` — 390 table stacks, stake widow, pill shadow; dashed disc and header band verified non-faults). Open: the minor release and the six rebuilds, held for the owner's merges |
 
 ## Plan
 
@@ -203,7 +207,7 @@ collision); scratch probe.mjs predates the rename and G5.
 - The ledger voice, the sidebar with ruled marks and N of M, the resting
   composer bar and the copy contract survive untouched.
  the example's diagram ruling (G5) stopped on a U1 regression — mermaidBoot draws hidden wraps broken — recorded with its fix shape, lands as its own fix commit |
-| U5 | audit, release, rebuilds | sonnet | none | | surface audit green on dark/light/979/390/empty/loaded/keyboard; blind contract review passes; minor release published and resolving; five live pages + the exemplar rebuilt on it |
+| U5 | audit, release, rebuilds | sonnet | none | | audit half landed: programmatic 74/74 over dark/light/979/390/empty/loaded/keyboard, the blind contract review all-PASS, the vision round's findings fixed (`HEAD` — 390 table stacks, stake widow, pill shadow; dashed disc and header band verified non-faults). Open: the minor release and the six rebuilds, held for the owner's merges |
 
 ## Plan
 
