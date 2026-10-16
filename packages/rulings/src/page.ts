@@ -23,7 +23,7 @@ const assemblyCss = `
 .vrow.unmet .pmark { display: none; }
 .dep { border: 1px dashed transparent; border-radius: 4px; padding: 0 4px; white-space: nowrap; }
 .unmet .dep { color: var(--k-fail); font-weight: 600; border-color: var(--k-fail); }
-.vwrap[aria-pressed="true"] .stage { background: color-mix(in srgb, var(--o) 4%, var(--sheet)); }
+.stage-wrap[aria-pressed="true"] .stage { background: color-mix(in srgb, var(--o) 4%, var(--sheet)); }
 .onote { grid-column: 1 / -1; display: none; margin-top: 4px; font: 12.5px var(--sans); color: var(--ink); background: none; border: 0; border-bottom: 1px dashed var(--rule); padding: 5px 2px 4px; width: min(100%, 420px); }
 .onote:focus { outline: none; border-bottom-color: var(--o); }
 .onote::placeholder { color: var(--muted); opacity: 0.7; }
@@ -102,13 +102,12 @@ function todayHtml(today: string): string {
 }
 
 function noteHtml(html: string): string {
-  const lead = /<b>.*?<\/b>/.exec(html);
+  const lead = /^\s*<b>.*?<\/b>/.exec(html);
   if (lead === null) {
     return html;
   }
-  const cut = lead.index + lead[0].length;
-  const rest = html.slice(cut);
-  return rest.trim() === '' ? html : `${html.slice(0, cut)} ${foldHtml(rest)}`;
+  const rest = html.slice(lead[0].length);
+  return rest.trim() === '' ? html : `${lead[0]} ${foldHtml(rest)}`;
 }
 
 function viewsOf(q: Ruling, id: string): string[] {
@@ -141,7 +140,7 @@ function compareOf(q: Ruling, id: string): string {
     .map((view, i) => {
       const o = optOf(q, view);
       return (
-        `<div class="vwrap${o ? ` ${hueOf(o.k)}` : ''}" data-view="${view}"` +
+        `<div class="stage-wrap${o ? ` ${hueOf(o.k)}` : ''}" data-view="${view}"` +
         (o ? ` data-pick="${view === 'today' ? id + o.k : view}"` : '') +
         ` role="tabpanel" id="${wrapId(id, view)}"${i === 0 ? '' : ' hidden'}>` +
         stageOf(q, id, view) +

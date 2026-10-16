@@ -148,7 +148,7 @@ describe('the emitted page', () => {
     expect(html).toMatch(/class="vtable"/);
     expect(html).toMatch(/class="compare"/);
     expect(html).not.toMatch(/class="views"/);
-    const wraps = html.match(/<div class="vwrap[^"]*"/g) ?? [];
+    const wraps = html.match(/<div class="stage-wrap[^"]*"/g) ?? [];
     expect(wraps).toHaveLength(10);
     expect(html.match(/class="vg"/g)).toHaveLength(8);
     expect(html.match(/class="vc"/g)).toHaveLength(8);
@@ -192,13 +192,13 @@ describe('the emitted page', () => {
     ).toHaveLength(8);
     expect(html.match(/data-pick="G/g)).toHaveLength(16);
     expect(html).toContain(
-      '<div class="vwrap o-a" data-view="today" data-pick="G1a" role="tabpanel" id="view-G1-today">',
+      '<div class="stage-wrap o-a" data-view="today" data-pick="G1a" role="tabpanel" id="view-G1-today">',
     );
     expect(html).toContain(
-      '<div class="vwrap o-a" data-view="G2a" data-pick="G2a" role="tabpanel" id="view-G2a" hidden>',
+      '<div class="stage-wrap o-a" data-view="G2a" data-pick="G2a" role="tabpanel" id="view-G2a" hidden>',
     );
     expect(html).toContain(
-      '<div class="vwrap" data-view="today" role="tabpanel" id="view-G2-today">',
+      '<div class="stage-wrap" data-view="today" role="tabpanel" id="view-G2-today">',
     );
     expect(html).not.toMatch(/class="vrow[^"]*" data-pick/);
     expect(
@@ -271,12 +271,12 @@ describe('the folds', () => {
   it('splits on prose sentences, never inside a code span or an anchor', () => {
     const dir = pageDir(
       sentencePage(
-        'First the quiet walk mutes both streams (<code>a. b</code> is one string) and exits one. Second sentence names the window where it breaks. Third sentence pays the fee.',
+        'First sentence ends here. Second walks a span (<code>a. b</code> is one string) and a link (<a href="#r-G1. a">the ruling</a>). Third sentence pays the fee.',
       ),
     );
     const { html } = buildPage(loadPageFile(join(dir, PAGE_FILE)));
     expect(html).toContain(
-      '<p class="today">First the quiet walk mutes both streams (<code>a. b</code> is one string) and exits one. Second sentence names the window where it breaks.</p>',
+      '<p class="today">First sentence ends here. Second walks a span (<code>a. b</code> is one string) and a link (<a href="#r-G1. a">the ruling</a>).</p>',
     );
     expect(html).toContain(
       '<details class="fold"><summary>the rest</summary><p class="today">Third sentence pays the fee.</p></details>',
@@ -288,6 +288,20 @@ describe('the folds', () => {
     expect(html).toContain(
       '<div class="note"><b>Not rulings: two findings are decided.</b> <details class="fold"><summary>the rest</summary> Finding 1 is false:',
     );
+  });
+
+  it('renders a note whole when its bold is not the lead', () => {
+    const dir = pageDir(
+      PLAIN_PAGE.replace(
+        '  groups:',
+        '  notes: [{ html: "Plain words, then a <b>bold middle</b>, then more plain words." }],\n  groups:',
+      ),
+    );
+    const { html } = buildPage(loadPageFile(join(dir, PAGE_FILE)));
+    expect(html).toContain(
+      '<div class="note">Plain words, then a <b>bold middle</b>, then more plain words.</div>',
+    );
+    expect(html).not.toContain('<details class="fold"');
   });
 
   it('folds a today body past 20 lines behind its count, once, never an option body', () => {
@@ -313,6 +327,42 @@ describe('the folds', () => {
       '<summary>show all 21 lines</summary><pre>let v20 = 20;</pre>',
     );
     expect(over.html.match(/show all/g)).toHaveLength(1);
+  });
+
+  it('keeps a token that spans the fold line whole on both sides of the fold', () => {
+    const code = [
+      ...Array.from({ length: 19 }, (_, i) => `let v${i} = ${i};`),
+      '/* one comment starts here',
+      '   and only ends here */',
+      'let done = 1;',
+    ].join('\\n');
+    const dir = pageDir(`var PAGE = {
+  title: "One small ruling?",
+  sub: "What the rebuild owes.",
+  groups: [{ id: "one", label: "The only group", rulings: ["G1"] }],
+  rulings: {
+    G1: {
+      title: "Keep the plain door?",
+      stake: "About 3 rebuilds a week pay for a second path.",
+      today: "Today the builder writes one file through one door.",
+      bodies: {
+        today: { lang: "ts", code: "${code}" },
+        a: { diff: false, code: "let a = 1;\\nlet b = 2;" },
+        b: { code: "let a = 1;\\nlet b = 4;" }
+      },
+      opts: [
+        { k: "a", rec: true, t: "Change a", g: "a is right more often", c: "one more moving part" },
+        { k: "b", t: "Change b", g: "b is cheaper here", c: "the test doubles" }
+      ]
+    }
+  }
+};`);
+    const { html } = buildPage(loadPageFile(join(dir, PAGE_FILE)));
+    expect(html).toContain(
+      '<span class="token comment">/* one comment starts here</span></pre>' +
+        '<details class="fold"><summary>show all 22 lines</summary>' +
+        '<pre><span class="token comment">   and only ends here */</span>',
+    );
   });
 });
 
@@ -410,6 +460,21 @@ describe('the verdict fragment warning', () => {
     ]);
   });
 
+  it('measures the fragment stripped of its tags, not raw', () => {
+    const fit = validatePage(
+      loadPageFile(join(pageDir(fragmentPage(`<b>${'a'.repeat(88)}</b>`)), PAGE_FILE)),
+    );
+    expect(fit.errors).toEqual([]);
+    expect(fit.warnings).toEqual([]);
+    const over = validatePage(
+      loadPageFile(join(pageDir(fragmentPage(`<b>${'a'.repeat(91)}</b>`)), PAGE_FILE)),
+    );
+    expect(over.errors).toEqual([]);
+    expect(over.warnings).toEqual([
+      'G1a gain is 91 characters; a table fragment fits 90',
+    ]);
+  });
+
   it('warns the cost by its own name', () => {
     const r = validatePage(
       loadPageFile(join(pageDir(fragmentPage('b is cheaper', 'c'.repeat(95))), PAGE_FILE)),
@@ -443,7 +508,7 @@ function emittedChrome(html: string) {
   );
   const wraps = [
     ...html.matchAll(
-      /<div class="vwrap ([^"]*)" data-view="[^"]*"(?: data-pick="([^"]*)")? role="tabpanel"/g,
+      /<div class="stage-wrap ([^"]*)" data-view="[^"]*"(?: data-pick="([^"]*)")? role="tabpanel"/g,
     ),
   ].map(m => ({ at: m.index, cls: m[1], pick: m[2] ?? '' }));
   const cards = [...discs, ...wraps]

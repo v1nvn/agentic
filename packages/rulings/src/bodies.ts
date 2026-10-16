@@ -91,15 +91,35 @@ function diffHtml(
 }
 
 // The today code alone folds past 20 lines; option bodies render whole.
+function splitAtLine(highlighted: string, line: number): [string, string] {
+  let cut = highlighted.indexOf('\n');
+  for (let seen = 1; seen < line && cut !== -1; seen++) {
+    cut = highlighted.indexOf('\n', cut + 1);
+  }
+  const opens: string[] = [];
+  for (const tag of highlighted.slice(0, cut).matchAll(/<span [^>]*>|<\/span>/g)) {
+    if (tag[0] === '</span>') {
+      opens.pop();
+    } else {
+      opens.push(tag[0]);
+    }
+  }
+  return [
+    highlighted.slice(0, cut) + '</span>'.repeat(opens.length),
+    opens.join('') + highlighted.slice(cut + 1),
+  ];
+}
+
 function todayPre(code: string, lang: string | undefined): string {
   const lines = code.split('\n');
   if (lines.length <= TODAY_FOLD) {
     return `<pre>${hlBlock(code, lang)}</pre>`;
   }
+  const [head, tail] = splitAtLine(hlBlock(code, lang), TODAY_FOLD);
   return (
-    `<pre>${hlBlock(lines.slice(0, TODAY_FOLD).join('\n'), lang)}</pre>` +
+    `<pre>${head}</pre>` +
     `<details class="fold"><summary>show all ${lines.length} lines</summary>` +
-    `<pre>${hlBlock(lines.slice(TODAY_FOLD).join('\n'), lang)}</pre></details>`
+    `<pre>${tail}</pre></details>`
   );
 }
 
