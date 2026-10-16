@@ -37,14 +37,21 @@ on show), the vendored mermaid's startOnLoad is off (a second live bug
 the fix caught), G5 stands in the example, and the routed U4 pin fault
 and selector nit landed with it. The sweep landed all six queued nits (stripTags seam fixture, vwrap →
 stage-wrap rename, the mid-span anchor fixture, the bold-lead fold, the
-single-highlight bodies fold, the restating comment deleted).
+single-highlight bodies fold, the restating comment deleted) and closed
+on its review — watched-red proofs on every pin, the emitted example
+byte-identical modulo the rename and the deleted comment. The contract
+review passed all six points live (answer path byte-diff identical;
+both its nits are the fix-pass's already-landed changes, declared).
 
 ## Next step
 
-Close the sweep on its review, run U5 (audit, contract check); the
-release and the six rebuilds fire on the owner's merge — the branch
-carries the open fix-pass PR, so publishing before it merges ships both
-changesets unreviewed.
+U5's audit run reports (the contract half is green); on its green plus
+the orchestrator's vision round: archive, open the PR against main, final
+report — the release and the six rebuilds fire on the owner's merge (the
+branch carries the open fix-pass PR; publishing before it merges ships
+both changesets unreviewed). One nit for the final report only: chrome's
+vtabs/vrows locals keep the v- split meaning (defensible, tab-name
+collision); scratch probe.mjs predates the rename and G5.
 
 ## Steps
 
@@ -92,14 +99,21 @@ on show), the vendored mermaid's startOnLoad is off (a second live bug
 the fix caught), G5 stands in the example, and the routed U4 pin fault
 and selector nit landed with it. The sweep landed all six queued nits (stripTags seam fixture, vwrap →
 stage-wrap rename, the mid-span anchor fixture, the bold-lead fold, the
-single-highlight bodies fold, the restating comment deleted).
+single-highlight bodies fold, the restating comment deleted) and closed
+on its review — watched-red proofs on every pin, the emitted example
+byte-identical modulo the rename and the deleted comment. The contract
+review passed all six points live (answer path byte-diff identical;
+both its nits are the fix-pass's already-landed changes, declared).
 
 ## Next step
 
-Close the sweep on its review, run U5 (audit, contract check); the
-release and the six rebuilds fire on the owner's merge — the branch
-carries the open fix-pass PR, so publishing before it merges ships both
-changesets unreviewed.
+U5's audit run reports (the contract half is green); on its green plus
+the orchestrator's vision round: archive, open the PR against main, final
+report — the release and the six rebuilds fire on the owner's merge (the
+branch carries the open fix-pass PR; publishing before it merges ships
+both changesets unreviewed). One nit for the final report only: chrome's
+vtabs/vrows locals keep the v- split meaning (defensible, tab-name
+collision); scratch probe.mjs predates the rename and G5.
 
 ## Steps
 
