@@ -12,9 +12,9 @@ a real case. Nothing is written to the repo until the owner has ruled.
 Pictures first. Every option is argued as hard as the recommended one: its own picture, a gain
 and a cost of the same weight. An option not worth that goes in the notes.
 
-The page renders on its own — every view, with its gain and cost, needs no server — and a composer
-bar turns the owner's clicks into an answer to paste in chat. The page assists; chat remains the
-channel the answer comes back on.
+The page renders on its own — every verdict table, fold and picture view needs no server — and a
+composer bar turns the owner's picks into an answer to paste in chat. The page assists; chat remains
+the channel the answer comes back on.
 
 ## Step 0 — Decide whether this is a page
 
@@ -49,8 +49,9 @@ past ten the owner stops reading, and the build warns.
 2. Pick a real case for each ruling (a simple one and a complex one across the page). Use real
    values; say what is built and what is planned.
 3. For each ruling write its **today**: how the part this ruling touches works, for someone
-   who has never seen the system. Write it in three sentences: the page shows two and folds
-   the rest, and the build warns past three. Adapt it to the ruling: only the parties, steps
+   who has never seen the system. Two sentences show and the rest folds behind `the rest`;
+   write at most three — the build warns past three — and make the shown two stand alone.
+   Adapt it to the ruling: only the parties, steps
    and terms this ruling needs. Never paste one shared description into every ruling; the build
    warns when two `today` texts say the same thing.
 
@@ -85,15 +86,19 @@ The build cannot parse mermaid text — a broken diagram is checked only when th
 - **Title**: the decision as a question ("Who owns a leaf block inside its reader's window?"). It
   is the only name: the answer table shows it.
 - **Stake**: one bold sentence. Who loses what, how often, who would notice, on a real value.
-- **Today**: how this part works now, in plain words, up to the point where it breaks. No case
-  values: the picture carries those. Each new term gets one plain line here.
+- **Today**: how this part works now, in plain words, up to the point where it breaks. Two
+  sentences show before the fold; no case values: the picture carries those. Each new term gets
+  one plain line here.
 - Say each fact once, in the block that owns it: the stake owns the loss, `today` owns the
   mechanism, the picture owns the numbers, the options own code and test consequences. Keep it
   short without losing what the owner needs to decide; there is no length cap.
 - **Picture** with a view for **every** option, a one-line caption that opens with its conclusion,
   and `today: true` on the option that leaves things as they are.
-- **Options**: two to four, lettered. Each has a title, a **gain** and a **cost** the owner can
-  check on its picture — one fragment each, 90 characters at most. Exactly one is recommended.
+- **Options**: two to four, lettered. The verdict table is each option's one home: its letter
+  disc, title, `★ recommended` / `as today` / `needs` chips, its **gain** and **cost** as aligned
+  fragments — 90 characters at most, each checkable on the option's picture — and the note input,
+  which shows on the picked row only. Nothing an option says renders twice. Exactly one option is
+  recommended.
 
 Rules for options: they differ on **one axis**. Before an option adds a mechanism, name the
 existing thing that does the job; if it exists the option is "use that". A letter never
@@ -188,7 +193,7 @@ Then: `Written: <G1a, G2c>. Nothing is committed. <file>: <what changed>. One th
 |---|---|---|
 | `eyebrow`, `title`, `sub` | title, sub | Repo and thread; two or three words; one sentence ending "Nothing is written until you rule." |
 | `key` | no | a stable slug for the topic; the composer's picks and notes persist in the browser under it. |
-| `notes` | no | `[{ html }]`: "Not rulings" and what you decided. |
+| `notes` | no | `[{ html }]`: a bold lead, then "Not rulings" and what you decided — the lead stays in view, the rest folds. |
 | `groups` | yes | `[{ id, label, quick, rulings: ["G1"] }]`: the label heads the group; `quick: true` gives the group's rulings an accept-recommended button. |
 | `rulings` | yes | One entry per id. |
 
@@ -197,7 +202,8 @@ A ruling: `title` (a question), `stake`, `today`, one of `seq`, `bodies` or `dia
 `changed`).
 
 An option: `k` (one lowercase letter, not `n`), `t`, `rec` (on exactly one), `today` (on at most
-one), `w` (how it works), `g` and `c` (gain and cost — one fragment each, 90 characters at
+one), `w` (how it works — one muted line under the picture's caption), `g` and `c` (gain and cost —
+one fragment each, 90 characters at
 most, checkable on the picture), `needs`. Each
 live option needs a picture: a `seq` view, a `bodies` entry under its letter, or a diagram view.
 
@@ -231,8 +237,9 @@ option view.
 `bodies: { today: { state, code, cap, what, lang }, b: {…} }`. `state` is "built today",
 "plan as written" or "sketch" (feasibility not checked). `lang`: `ts`, `js`, `json`, `bash`,
 `markup`, `css`. Write an option's after-code **in full**; the builder diffs it against today
-(added lines green, removed red, long unchanged runs collapsed). `diff: false` shows side-by-side
-snapshots when the pair is not the same code. A today body past 20 lines folds behind a
+(added lines green, removed red, long unchanged runs collapsed). `diff: false` shows the option's
+body whole and unmarked — use it when the body is not the same code as today's. A today body past
+20 lines folds behind a
 `show all N lines` expander; option bodies render whole. `cap` names a cut body's source;
 `what` labels the body above it. A body line fits 76 characters.
 

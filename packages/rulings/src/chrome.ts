@@ -1,4 +1,3 @@
-// The interactive chrome: the composer bar and the one script that drives it.
 // Static text — mutable state lives in localStorage under the body's data-key, never in the file.
 export function panelHtml(): string {
   return `<footer class="bar" id="rulings-bar">
@@ -156,7 +155,7 @@ export function chromeScript(): string {
     }
     for (var rk in links) links[rk].classList.toggle('ruled', !!pick[rk.slice(2)]);
     if (es.length === 0) {
-      sum.innerHTML = '<span class="empty">no picks yet — click a view</span>';
+      sum.innerHTML = '<span class="empty">no picks yet — pick a letter</span>';
       return;
     }
     sum.innerHTML = es.map(function (e) {
@@ -170,6 +169,10 @@ export function chromeScript(): string {
   }
   function commit() { render(); save(); }
 
+  function exempt(t) {
+    return t.closest('.onote, a, textarea, summary');
+  }
+
   document.addEventListener('click', function (e) {
     var x = e.target.closest('[data-unpick]');
     if (x) {
@@ -178,7 +181,7 @@ export function chromeScript(): string {
       commit();
       return;
     }
-    if (e.target.closest('.onote, a, textarea, summary')) return;
+    if (exempt(e.target)) return;
     var card = e.target.closest('[data-pick]');
     if (card) {
       var sel = window.getSelection ? window.getSelection() : null;
@@ -214,6 +217,7 @@ export function chromeScript(): string {
   });
   document.addEventListener('keydown', function (e) {
     if (e.key !== 'Enter' && e.key !== ' ') return;
+    if (exempt(e.target)) return;
     var card = e.target.closest('[data-pick]');
     if (card) { e.preventDefault(); card.click(); }
   });
