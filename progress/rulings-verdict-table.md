@@ -17,32 +17,30 @@ U1 landed (`cd4696d`) and closed on its blind review — every close
 criterion PASS on the reviewer's own probes, no blocking finding; the
 needs-carrier call confirmed live (answer text and storage byte-exact).
 Live at 1440: page 3818px (baseline 8671), G1 845 / G4 738; G2 at 1556
-waits on U2's today-code fold. Queued nits: (1) the fragment-warning
-fixtures are all plain text, so raw-length and stripped-length coincide —
-a tagged 95-raw/88-stripped gain fixture must pin the seam; (2)
-`.vhead` rescoped to the table's column header leaves `v-` meaning
-verdict in vtable/vrow/vhead but view in vwrap — accounted, rename only
-if the sweep touches it. U2 in flight. Disk tight (~1.1Gi) — builders
-keep one CDP profile and delete it.
+folds render folded (G2's 51-line code body behind `show all 51 lines`).
+Queued nits: (1) a tagged 95-raw/88-stripped gain fixture must pin the
+stripTags seam; (2) `.vhead` rescoped to the table header leaves `v-`
+meaning verdict in vtable/vrow/vhead but view in vwrap — rename only if
+the sweep touches it; (3) the sentence-split test name promises an anchor
+fixture it lacks, and its code-span dot is the first boundary — rename to
+what it pins or add the mid-span-cut fixture; (4) `noteHtml` folds at the
+first bold anywhere, not only a bold lead — fold at lead only or accept;
+(5) `todayPre` highlights the two code halves separately, so a Prism
+token spanning line 20 tokenizes per-half — deterministic, no live case
+hits it, the expander boundary is a highlight seam. U3 in flight.
 
 ## Next step
 
-Resume U2 after the model-tier usage limit resets (15:26): a successor
-builder continues from the uncommitted tree (bodies.ts, html.ts,
-page.ts, test/build.test.ts) and u2-builder.md — its shapes are decided
-(`<details class="fold">`, sentenceEnds scanner, notes fold at the bold
-lead, bodies fold today-only); it was mid-fix on the today-only seam (an
-option body with `diff: false` reaches the plain-pre path) when the limit
-killed it. It also routed a U3 finding: a fold-summary click inside a
-today wrap that carries data-pick would pick — chrome.ts's exemption
-list takes the fold summary.
+Commit U3 on its review, dispatch U4 (example and docs) with the queued
+wrap-emission note: page.ts still emits data-needs on wraps now that
+chrome reads rows — U4's sweep or a flagged one-liner takes it.
 
 ## Steps
 
 | id | unit | model | review | consult | close criteria |
 | --- | --- | --- | --- | ------- | -------------- |
 | U1 | one home per ruling — verdict table + one stage | sonnet | role | design | landed: `cd4696d`, closed on the blind review (all criteria PASS, needs carrier confirmed) |
-| U2 | the folds — today, notes, long today-code | sonnet | role | | today renders two sentences then a fold; the notes block folds on its bold lead; a bodies today block over 20 lines folds with a count-labelled expander; >3-sentence today warns; SKILL Step 2 moves in the same change |
+| U2 | the folds — today, notes, long today-code | sonnet | role | | landed: `a97d004`, closed on the blind review (all criteria PASS live, the diff:false seam pinned) |
 | U3 | the gestures — look vs pick | sonnet | role | | tab or row body switches the shown view; letter disc and the shown picture pick; a stored pick restores its view on load; needs chips and unmet marks live on rows; answer text and storage shape byte-identical (contract tests unchanged); SKILL Step 6 moves in the same change |
 | U4 | example and docs to the new authoring | sonnet | role | | example.page.js demonstrates 2-sentence todays, fragment g/c, one-line w; SKILL Steps 2–4 swept; README's surface description matches the page |
 | U5 | audit, release, rebuilds | sonnet | none | | surface audit green on dark/light/979/390/empty/loaded/keyboard; blind contract review passes; minor release published and resolving; five live pages + the exemplar rebuilt on it |
