@@ -86,7 +86,6 @@ section[id^="r-"] { scroll-margin-top: 14px; }
 .stake { font: 600 16.5px/1.45 var(--serif); max-width: 62ch; margin-top: 10px; }
 p.today { font: 14.5px/1.55 var(--sans); max-width: 68ch; color: var(--muted); margin-top: 8px; }
 p.today b { color: var(--ink); }
-/* Folds: a muted mono label on a dashed underline, no disclosure marker */
 .fold > summary { display: inline-block; font: 600 var(--mono-s) var(--mono); color: var(--muted); background: none; border: 0; border-bottom: 1px dashed var(--rule); padding: 0 0 1px; cursor: pointer; list-style: none; }
 .fold > summary::-webkit-details-marker { display: none; }
 .fold > summary:hover { color: var(--ink); border-bottom-color: var(--ink); }

@@ -19,7 +19,7 @@ export function chromeScript(): string {
   var cards = Array.prototype.slice.call(document.querySelectorAll('[data-pick]'));
   var tracked = Array.prototype.slice.call(document.querySelectorAll('[data-needs]'));
   var vtabs = Array.prototype.slice.call(document.querySelectorAll('.tl'));
-  var vwraps = Array.prototype.slice.call(document.querySelectorAll('.vwrap'));
+  var wraps = Array.prototype.slice.call(document.querySelectorAll('.stage-wrap'));
   var vrows = Array.prototype.slice.call(document.querySelectorAll('.vrow'));
   var noteIns = Array.prototype.slice.call(document.querySelectorAll('.onote'));
   var sum = document.getElementById('picks');
@@ -57,7 +57,7 @@ export function chromeScript(): string {
     return views[id];
   }
   vtabs.forEach(function (t) { var u = rulingViews(t); if (u) u.t.push(t); });
-  vwraps.forEach(function (w) { var u = rulingViews(w); if (u) u.w.push(w); });
+  wraps.forEach(function (w) { var u = rulingViews(w); if (u) u.w.push(w); });
   vrows.forEach(function (r) { var u = rulingViews(r); if (u) u.r.push(r); });
 
   function show(id, view) {

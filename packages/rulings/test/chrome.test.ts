@@ -87,7 +87,7 @@ function harness(
   tabB.setAttribute('aria-controls', 'view-G1b');
   tabB.setAttribute('data-view', 'G1b');
   tabB.parent = secG1;
-  const wrapToday = new El('div', ['vwrap', 'o-a']);
+  const wrapToday = new El('div', ['stage-wrap', 'o-a']);
   wrapToday.setAttribute('data-view', 'today');
   wrapToday.setAttribute('data-pick', 'G1a');
   wrapToday.setAttribute('role', 'tabpanel');
@@ -97,7 +97,7 @@ function harness(
   stage.parent = wrapToday;
   const foldSum = new El('summary');
   foldSum.parent = wrapToday;
-  const wrapB = new El('div', ['vwrap', 'o-b']);
+  const wrapB = new El('div', ['stage-wrap', 'o-b']);
   wrapB.setAttribute('data-view', 'G1b');
   wrapB.setAttribute('data-pick', 'G1b');
   wrapB.setAttribute('role', 'tabpanel');
@@ -155,7 +155,7 @@ function harness(
           return [rowA];
         case '.tl':
           return [tabToday, tabB];
-        case '.vwrap':
+        case '.stage-wrap':
           return [wrapToday, wrapB];
         case '.vrow':
           return [rowA, rowB];
