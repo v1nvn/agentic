@@ -30,20 +30,16 @@ token spanning line 20 tokenizes per-half — deterministic, no live case
 hits it, the expander boundary is a highlight seam; (6) style.ts:89's
 fold comment restates its declarations; (7) chrome.ts:312's zero-picks
 refusal still says "click a view" — the gesture rename applies, rides the
-diagram fix. Open blocking finding against U1, discovered by U4's G5:
-mermaidBoot draws every .mermaid container at load, but since U1 all
-views but the shown one sit hidden — hidden containers render broken
-(0×0 plus mermaid's syntax-error graph) and never redraw on view switch.
-Fix shape (U4 recorded it in u4-builder.md): draw on first visibility
-from the boot's src snapshot (IO or MutationObserver on the wraps'
-hidden attr); a theme flip redraws only already-drawn containers. G5's
-full text, group line and pins are recorded there for the fix builder.
-U4 landed `a80db17`; the fix dispatch and U5 remain.
+diagram fix. The U1 mermaidBoot finding is fixed and landed: the boot paints each
+container on first visibility from its src snapshot (a scheme flip
+repaints only drawn-and-visible containers, a drawn hidden one repaints
+on show), the vendored mermaid's startOnLoad is off (a second live bug
+the fix caught), G5 stands in the example, and the routed U4 pin fault
+and selector nit landed with it. Remaining for the sweep: nits 1–6.
 
 ## Next step
 
-Land the mermaidBoot fix (draw on first visibility) with G5 reinstated
-and the chrome.ts:312 copy line, then U5 (audit, release, rebuilds).
+Nit sweep (nits 1–6), then U5 (audit, release, rebuilds).
 
 ## Steps
 
@@ -84,20 +80,16 @@ token spanning line 20 tokenizes per-half — deterministic, no live case
 hits it, the expander boundary is a highlight seam; (6) style.ts:89's
 fold comment restates its declarations; (7) chrome.ts:312's zero-picks
 refusal still says "click a view" — the gesture rename applies, rides the
-diagram fix. Open blocking finding against U1, discovered by U4's G5:
-mermaidBoot draws every .mermaid container at load, but since U1 all
-views but the shown one sit hidden — hidden containers render broken
-(0×0 plus mermaid's syntax-error graph) and never redraw on view switch.
-Fix shape (U4 recorded it in u4-builder.md): draw on first visibility
-from the boot's src snapshot (IO or MutationObserver on the wraps'
-hidden attr); a theme flip redraws only already-drawn containers. G5's
-full text, group line and pins are recorded there for the fix builder.
-U4 landed `a80db17`; the fix dispatch and U5 remain.
+diagram fix. The U1 mermaidBoot finding is fixed and landed: the boot paints each
+container on first visibility from its src snapshot (a scheme flip
+repaints only drawn-and-visible containers, a drawn hidden one repaints
+on show), the vendored mermaid's startOnLoad is off (a second live bug
+the fix caught), G5 stands in the example, and the routed U4 pin fault
+and selector nit landed with it. Remaining for the sweep: nits 1–6.
 
 ## Next step
 
-Land the mermaidBoot fix (draw on first visibility) with G5 reinstated
-and the chrome.ts:312 copy line, then U5 (audit, release, rebuilds).
+Nit sweep (nits 1–6), then U5 (audit, release, rebuilds).
 
 ## Steps
 
@@ -106,7 +98,7 @@ and the chrome.ts:312 copy line, then U5 (audit, release, rebuilds).
 | U1 | one home per ruling — verdict table + one stage | sonnet | role | design | landed: `cd4696d`, closed on the blind review (all criteria PASS, needs carrier confirmed) |
 | U2 | the folds — today, notes, long today-code | sonnet | role | | landed: `a97d004`, closed on the blind review (all criteria PASS live, the diff:false seam pinned) |
 | U3 | the gestures — look vs pick | sonnet | role | | landed: `61b7ce6`, closed on the blind review; its one blocking finding (the keyboard exemption hole) fixed inside U4's `a80db17` on a green gate, pinned by a watched-red test |
-| U4 | example and docs to the new authoring | sonnet | role | | landed: `a80db17` (the U3 keyboard fix rode it, so U3 closes with it); review PASS except one blocking test pin — the keyboard test asserts only after Space+Enter so it cannot fail — routed with the selector nit to the live mermaid fix builder; the example's diagram ruling (G5) stopped on a U1 regression, mermaidBoot draws hidden wraps broken, lands as its own fix commit |
+| U4 | example and docs to the new authoring | sonnet | role | | landed: `a80db17` and closed — its routed pin fault and selector nit fixed in the mermaid fix commit, G5 reinstated with it |
 | U5 | audit, release, rebuilds | sonnet | none | | surface audit green on dark/light/979/390/empty/loaded/keyboard; blind contract review passes; minor release published and resolving; five live pages + the exemplar rebuilt on it |
 
 ## Plan
