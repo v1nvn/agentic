@@ -18,7 +18,7 @@ var PAGE = {
     G1: {
       title: "Who owns a leaf block inside its reader’s window?",
       stake: "<b>In every tree, a read of 10 blocks Paul paid for pays no owner, and no surface shows it.</b>",
-      today: "Paul buys a reader on a leaf. The daemon records an owner for each block it builds, called a <b>band</b>. A read pays half its fee to the band. The leaf’s band stops where the reader’s window starts.",
+      today: "Paul buys a reader on a leaf. The daemon records an owner for each block it builds, called a <b>band</b>. A read pays half its fee to the band, which stops where the reader’s window starts.",
       seq: {
         lanes: ["Paul", "Daemon", "Postgres", "Vineet"],
         ledger: ["Leaf blocks\nPaul owns", "Leaf blocks\nnobody owns", "Paul earns\nfrom the read"],

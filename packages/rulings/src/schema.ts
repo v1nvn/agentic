@@ -1,8 +1,11 @@
 import { diffLines } from 'diff';
 import { z } from 'zod';
 
+import { sentenceEnds } from './html.ts';
+
 const LONG_LINE = 76;
 const FRAGMENT = 90;
+const TODAY_SENTENCES = 3;
 export const KINDS = ['call', 'money', 'store', 'check', 'fail'] as const;
 const LANGS = ['ts', 'js', 'json', 'bash', 'markup', 'css'] as const;
 const VAGUE =
@@ -323,6 +326,12 @@ export function validatePage(input: unknown): Verdict {
       q.today,
       `${id}.today (how this part works today, in plain words, up to where it breaks)`,
     );
+    const sentences = sentenceEnds((q.today ?? '').trim()).length + 1;
+    if (sentences > TODAY_SENTENCES) {
+      warnings.push(
+        `${id}.today is ${sentences} sentences; two show before the fold — write it in three`,
+      );
+    }
     if (!blank(q.stake) && !/\d/.test(stripTags(q.stake ?? ''))) {
       warnings.push(
         `${id}.stake has no number; name a real value from the case`,

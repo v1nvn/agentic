@@ -12,12 +12,36 @@ export function stripTags(s: string): string {
   return s.replace(/<[^>]*>/g, '');
 }
 
+// A `.!?` ends a sentence only in prose — never in a tag or a code span — and only before whitespace.
+export function sentenceEnds(html: string): number[] {
+  const ends: number[] = [];
+  let i = 0;
+  while (i < html.length) {
+    if (html[i] !== '<') {
+      if ('.!?'.includes(html[i]) && /\s/.test(html[i + 1] ?? '')) {
+        ends.push(i + 1);
+      }
+      i++;
+      continue;
+    }
+    const close = html.indexOf('>', i);
+    if (close === -1) {
+      break;
+    }
+    const tag = html.slice(i, close + 1);
+    i = close + 1;
+    if (/^<code[\s>]/.test(tag)) {
+      const end = html.indexOf('</code>', i);
+      i = end === -1 ? html.length : end + '</code>'.length;
+    }
+  }
+  return ends;
+}
+
 export function hueOf(k: string): string {
   return 'o-' + 'abcd'.charAt('abcdefghijklmnopqrstuvwxyz'.indexOf(k) % 4);
 }
 
-// A today view names the today-marked option; any other view its trailing
-// letter.
 export function optOf(q: Ruling, view: string): Opt | undefined {
   const opts = q.opts ?? [];
   const letter =
@@ -34,7 +58,6 @@ export function wrapId(id: string, view: string): string {
   return `view-${view === 'today' ? `${id}-today` : view}`;
 }
 
-// The verdict table is the option's one home: the disc picks, the row looks.
 export function verdictTable(q: Ruling, id: string): string {
   const rows = (q.opts ?? [])
     .map(o => {

@@ -50,6 +50,56 @@ const RED_PAGE = `var PAGE = {
   rulings: { G1: { title: "t?", from: "abc123" } }
 };`;
 
+function sentencePage(today: string): string {
+  return `var PAGE = {
+  title: "One small ruling?",
+  sub: "What the rebuild owes.",
+  groups: [{ id: "one", label: "The only group", rulings: ["G1"] }],
+  rulings: {
+    G1: {
+      title: "Keep the plain door?",
+      stake: "About 3 rebuilds a week pay for a second path.",
+      today: ${JSON.stringify(today)},
+      bodies: {
+        today: { lang: "js", code: "let a = 1;\\nlet b = 2;" },
+        a: { lang: "js", code: "let a = 2;\\nlet b = 2;" },
+        b: { lang: "js", code: "let a = 1;\\nlet b = 4;" }
+      },
+      opts: [
+        { k: "a", rec: true, t: "Change a", g: "a is right more often", c: "one more moving part" },
+        { k: "b", t: "Change b", g: "b is cheaper here", c: "the test doubles" }
+      ]
+    }
+  }
+};`;
+}
+
+function foldPage(lines: number): string {
+  const code = (n: number): string =>
+    Array.from({ length: n }, (_, i) => `let v${i} = ${i};`).join('\\n');
+  return `var PAGE = {
+  title: "One small ruling?",
+  sub: "What the rebuild owes.",
+  groups: [{ id: "one", label: "The only group", rulings: ["G1"] }],
+  rulings: {
+    G1: {
+      title: "Keep the plain door?",
+      stake: "About 3 rebuilds a week pay for a second path.",
+      today: "Today the builder writes one file through one door.",
+      bodies: {
+        today: { code: "${code(lines)}" },
+        a: { diff: false, code: "${code(25)}" },
+        b: { code: "let a = 1;\\nlet b = 4;" }
+      },
+      opts: [
+        { k: "a", rec: true, t: "Change a", g: "a is right more often", c: "one more moving part" },
+        { k: "b", t: "Change b", g: "b is cheaper here", c: "the test doubles" }
+      ]
+    }
+  }
+};`;
+}
+
 function fragmentPage(g: string, c = 'one more moving part', w?: string): string {
   return `var PAGE = {
   title: "One small ruling?",
@@ -192,6 +242,94 @@ describe('the emitted page', () => {
     expect(html).not.toContain('<script src=');
     expect(html).not.toContain('window.mermaid');
     expect(html).not.toMatch(/https?:\/\/|src="\/|href="\//);
+  });
+});
+
+describe('the folds', () => {
+  it('shows two sentences of a three-sentence today and folds the rest', () => {
+    const { html } = buildPage(loadPageFile(EXAMPLE));
+    expect(html.match(/<p class="today">/g)).toHaveLength(5);
+    expect(html).toContain(
+      '<p class="today">Paul buys a reader on a leaf. The daemon records an owner for each block it builds, called a <b>band</b>.</p>' +
+        '<details class="fold"><summary>the rest</summary><p class="today">A read pays half its fee to the band, which stops where the reader’s window starts.</p></details>',
+    );
+    expect(html).toContain(
+      '<p class="today">Every command first runs through core’s <code>parseQuietly</code>, so a bad flag prints no stack trace. It mutes output and calls <code>exitOverride()</code> on each command.</p>',
+    );
+    expect(
+      html.match(/<details class="fold"><summary>the rest<\/summary>/g),
+    ).toHaveLength(3);
+  });
+
+  it('renders a two-sentence today whole, without a fold', () => {
+    const { html } = buildPage(loadPageFile(EXAMPLE));
+    expect(html).toContain(
+      '<p class="today">The window lives only in the daemon’s memory. After a crash the console shows the reader with no window; whoever is on call reads the ledger, rebuilds the range by hand, and the next read pays the band again.</p>',
+    );
+  });
+
+  it('splits on prose sentences, never inside a code span or an anchor', () => {
+    const dir = pageDir(
+      sentencePage(
+        'First the quiet walk mutes both streams (<code>a. b</code> is one string) and exits one. Second sentence names the window where it breaks. Third sentence pays the fee.',
+      ),
+    );
+    const { html } = buildPage(loadPageFile(join(dir, PAGE_FILE)));
+    expect(html).toContain(
+      '<p class="today">First the quiet walk mutes both streams (<code>a. b</code> is one string) and exits one. Second sentence names the window where it breaks.</p>',
+    );
+    expect(html).toContain(
+      '<details class="fold"><summary>the rest</summary><p class="today">Third sentence pays the fee.</p></details>',
+    );
+  });
+
+  it('folds the notes block on its bold lead', () => {
+    const { html } = buildPage(loadPageFile(EXAMPLE));
+    expect(html).toContain(
+      '<div class="note"><b>Not rulings: two findings are decided.</b> <details class="fold"><summary>the rest</summary> Finding 1 is false:',
+    );
+  });
+
+  it('folds a today body past 20 lines behind its count, once, never an option body', () => {
+    const { html } = buildPage(loadPageFile(EXAMPLE));
+    expect(html).toContain(
+      '<details class="fold"><summary>show all 51 lines</summary><pre>',
+    );
+    expect(
+      html.match(/<details class="fold"><summary>show all /g),
+    ).toHaveLength(1);
+    expect(html.match(/<pre class="diff">/g)).toHaveLength(1);
+  });
+
+  it('folds past 20 lines and not at 20, and the 25-line snapshot option never folds', () => {
+    const at = buildPage(loadPageFile(join(pageDir(foldPage(20)), PAGE_FILE)));
+    expect(at.html).not.toContain('show all');
+    expect(at.html).not.toContain('<details class="fold"');
+    expect(at.html).toContain('<pre>let v0 = 0;');
+    expect(at.html).toContain('let v24 = 24;</pre>');
+    const over = buildPage(loadPageFile(join(pageDir(foldPage(21)), PAGE_FILE)));
+    expect(over.html).toContain('let v19 = 19;</pre><details class="fold"><summary>');
+    expect(over.html).toContain(
+      '<summary>show all 21 lines</summary><pre>let v20 = 20;</pre>',
+    );
+    expect(over.html.match(/show all/g)).toHaveLength(1);
+  });
+});
+
+describe('the today sentence warning', () => {
+  it('warns past three sentences and not at three', () => {
+    const three = validatePage(
+      loadPageFile(join(pageDir(sentencePage('A. B. C.')), PAGE_FILE)),
+    );
+    expect(three.errors).toEqual([]);
+    expect(three.warnings).toEqual([]);
+    const four = validatePage(
+      loadPageFile(join(pageDir(sentencePage('A. B. C. D.')), PAGE_FILE)),
+    );
+    expect(four.errors).toEqual([]);
+    expect(four.warnings).toEqual([
+      'G1.today is 4 sentences; two show before the fold — write it in three',
+    ]);
   });
 });
 
@@ -443,8 +581,7 @@ function emittedChrome(html: string) {
     html.lastIndexOf('</script>'),
   );
   vm.runInNewContext(code, sandbox);
-  // The vm script constructs the FakeIO; the cast undoes the null narrowing
-  // from the reset above, which cannot see that assignment.
+  // The vm script constructs the FakeIO; the cast undoes the reset's null narrowing.
   const io = FakeIO.last as FakeIO | null;
   return {
     bar,

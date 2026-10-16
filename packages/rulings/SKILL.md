@@ -49,9 +49,10 @@ past ten the owner stops reading, and the build warns.
 2. Pick a real case for each ruling (a simple one and a complex one across the page). Use real
    values; say what is built and what is planned.
 3. For each ruling write its **today**: how the part this ruling touches works, for someone
-   who has never seen the system. Adapt it to the ruling: only the parties, steps and terms this
-   ruling needs. Never paste one shared description into every ruling; the build warns when two
-   `today` texts say the same thing.
+   who has never seen the system. Write it in three sentences: the page shows two and folds
+   the rest, and the build warns past three. Adapt it to the ruling: only the parties, steps
+   and terms this ruling needs. Never paste one shared description into every ruling; the build
+   warns when two `today` texts say the same thing.
 
 Never invent a value that exists in the repo. A value nobody measured is a placeholder in
 angle brackets, `<pools>`. A computed number shows its arithmetic. One quantity, one number,
@@ -229,8 +230,9 @@ option view.
 "plan as written" or "sketch" (feasibility not checked). `lang`: `ts`, `js`, `json`, `bash`,
 `markup`, `css`. Write an option's after-code **in full**; the builder diffs it against today
 (added lines green, removed red, long unchanged runs collapsed). `diff: false` shows side-by-side
-snapshots when the pair is not the same code. `cap` names a cut body's source; `what` labels the
-body above it. A body line fits 76 characters.
+snapshots when the pair is not the same code. A today body past 20 lines folds behind a
+`show all N lines` expander; option bodies render whole. `cap` names a cut body's source;
+`what` labels the body above it. A body line fits 76 characters.
 
 ### Diagram
 
