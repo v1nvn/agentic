@@ -60,10 +60,8 @@ wrap-id dead surface is routed to U7.
 
 ## Next step
 
-Build U8 (the owner's ruling from the live sample: clicking an option must
-pick it — the U3/U6 look-vs-pick split retires; a ruling holds one pick,
-so row flips move it), re-run the audit's row probes, rebuild both sample
-pages for the owner. Then, on the owner's merges (#29 then this PR):
+Land the final micro-sweep (flip helper, look→shown), rebuild both sample
+pages once more. Then, on the owner's merges (#29 then this PR):
 owner's merges (#29 then this PR): retarget the PR base if needed,
 dispatch the minor release per references/npm-publishing.md, wait for the
 registry, rebuild the five live pages and the exemplar on the published
@@ -79,7 +77,7 @@ version, live-check one, close the thread (archive + index delete).
 | U4 | example and docs to the new authoring | sonnet | role | | landed: `a80db17` and closed — its routed pin fault and selector nit fixed in the mermaid fix commit, G5 reinstated with it |
 | U6 | one listing — the tab strip dies, rows switch views | sonnet | role | | landed: `b14fc34`, closed on the blind review (all seven criteria PASS; wrap-id dead surface routed to U7) |
 | U7 | none joins the table, the note joins the ruling | sonnet | role | | landed: `86914d3` + the harness-fix commit (the emitted harness sees the 8 wrap picks again, watched red); closed on the blind review — every criterion PASS live, onotes keys move to ruling ids with load validation, stale keys drop. Original cell: "none of these fit" is the verdict table's last row (dashed n disc, picks n, the rhead button dies), one note input per ruling sits directly under the table (always present, rides the ruling's pick in the answer), per-option note inputs and their CSS die, onotes keys change pick-id → ruling-id (old stored notes drop — break clean), the answer format string stays byte-identical, the dead wrap ids die, SKILL Step 6's note law and README move in the same change |
-| U8 | a row click picks — look dies as a separate gesture | sonnet | role | | clicking an option's row (or its disc, Enter/Space) picks it AND shows its view; a second click unpicks; row-to-row flips move the ruling's single pick; the none row already behaves so and stays; the hint line dies (pick-implies-show is self-evident); the shown picture keeps picking; aria-current rides the shown view's row; SKILL Step 6, README and the audit's row probes move in the same change |
+| U8 | a row click picks — look dies as a separate gesture | sonnet | role | | landed: `1bf2f3a`, closed on the blind review (all criteria hold live, no blocking; its two code nits — the flip helper, look→shown — in the final micro-sweep). Original cell: clicking an option's row (or its disc, Enter/Space) picks it AND shows its view; a second click unpicks; row-to-row flips move the ruling's single pick; the none row already behaves so and stays; the hint line dies (pick-implies-show is self-evident); the shown picture keeps picking; aria-current rides the shown view's row; SKILL Step 6, README and the audit's row probes move in the same change |
 | U5 | audit, release, rebuilds | sonnet | none | | audit half landed: programmatic 74/74 over the seven states (re-run at 76 after U6), the blind contract review all-PASS, the vision round's findings fixed (`909fbe4`). Re-audit after U7; open: the minor release and the six rebuilds, held for the owner's merges |
 
 ## Plan
@@ -135,8 +133,10 @@ version, live-check one, close the thread (archive + index delete).
   per-option notes.
 - `w` keeps its field and renders as one muted line inside the stage; a
   caption opens on its conclusion, never the option's name.
-- Gestures: row body is look (click and keyboard); the letter disc and
-  the shown picture pick. Flipping views never picks.
+- Gestures: a row click (body, disc, Enter, Space) picks the option and
+  shows its view; a second click unpicks, the view stays; row flips move
+  the ruling's single pick. The none row and the shown picture pick the
+  same way.
 - Folds are deterministic: today splits at the second sentence boundary;
   a bodies today block folds past 20 lines with its count in the label.
 - The ledger voice, the sidebar with ruled marks and N of M, and the
