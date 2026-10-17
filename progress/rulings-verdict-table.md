@@ -6,56 +6,46 @@
 
 A ruling reads as one decision on one screen: question, one-line stake, two
 sentences of today, a verdict table (one row per option — letter, title,
-gain, cost fragment) and one picture region whose letter tabs switch views.
-The pick → chip → Copy contract, persistence, needs tracking and the ledger
-voice are byte-unchanged. Shipped as a minor release with the five live
-pages and the exemplar rebuilt on it.
+gain, cost fragment; "none of these fit" as its last row) and one picture
+region below it. The option is listed exactly once. The pick → chip → Copy
+answer format, persistence, needs tracking and the ledger voice are
+byte-unchanged. Shipped as a minor release with the five live pages and
+the exemplar rebuilt on it.
 
 ## Current state
 
-U1 landed (`cd4696d`) and closed on its blind review — every close
-criterion PASS on the reviewer's own probes, no blocking finding; the
-needs-carrier call confirmed live (answer text and storage byte-exact).
-Live at 1440: page 3818px (baseline 8671), G1 845 / G4 738; G2 at 1556
-folds render folded (G2's 51-line code body behind `show all 51 lines`).
-Queued nits: (1) a tagged 95-raw/88-stripped gain fixture must pin the
-stripTags seam; (2) `.vhead` rescoped to the table header leaves `v-`
-meaning verdict in vtable/vrow/vhead but view in vwrap — rename only if
-the sweep touches it; (3) the sentence-split test name promises an anchor
-fixture it lacks, and its code-span dot is the first boundary — rename to
-what it pins or add the mid-span-cut fixture; (4) `noteHtml` folds at the
-first bold anywhere, not only a bold lead — fold at lead only or accept;
-(5) `todayPre` highlights the two code halves separately, so a Prism
-token spanning line 20 tokenizes per-half — deterministic, no live case
-hits it, the expander boundary is a highlight seam; (6) style.ts:89's
-fold comment restates its declarations; (7) chrome.ts:312's zero-picks
-refusal still says "click a view" — the gesture rename applies, rides the
-diagram fix. The U1 mermaidBoot finding is fixed and landed: the boot paints each
-container on first visibility from its src snapshot (a scheme flip
-repaints only drawn-and-visible containers, a drawn hidden one repaints
-on show), the vendored mermaid's startOnLoad is off (a second live bug
-the fix caught), G5 stands in the example, and the routed U4 pin fault
-and selector nit landed with it. The sweep landed all six queued nits (stripTags seam fixture, vwrap →
-stage-wrap rename, the mid-span anchor fixture, the bold-lead fold, the
-single-highlight bodies fold, the restating comment deleted) and closed
-on its review — watched-red proofs on every pin, the emitted example
-byte-identical modulo the rename and the deleted comment. The contract
-review passed all six points live (answer path byte-diff identical;
-both its nits are the fix-pass's already-landed changes, declared). U5's
-audit: 74/74 programmatic across the seven states, the vision round
-clean after its fix commit, painted page 4354px at 1440 (baseline 8671;
-G1 845 / G2 984 / G4 738 / G5 1030, G3 merged 131) — paint-time heights
-are the real measure, pre-paint undercounts diagrams by their unpainted
-line.
+U1–U4, the nit sweep and U6 landed; U7 in flight. Live at 1440 painted:
+page 4354px (baseline 8671), rulings 738–1030px (baseline 1533–2643;
+paint-time is the real measure — pre-paint undercounts diagrams).
+
+Landed, with evidence: U1 `cd4696d` (verdict table + one stage, consult
+rulings folded), U2 `a97d004` (the three folds + three-sentence warning),
+U3 `61b7ce6` (look vs pick; its keyboard-exemption hole fixed inside
+U4's `a80db17`, watched red), U4 `a80db17` (example + docs; its pin fault
+and selector nit fixed in the mermaid fix), the mermaid fix `909fbe4`'s
+parent (draw-on-first-visibility boot, `startOnLoad` off, G5 reinstated),
+the nit sweep `f64a2ac` (six nits, watched-red proofs), the audit fixes
+`909fbe4` (390 table stacks, stake widow, pill shadow; dashed disc and
+header band verified non-faults), U6 `b14fc34` (one listing per option —
+tab strip dead, rows switch views, stage tags letterless; closed on
+review, no blocking).
+
+U5's audit half: 74→76/74 programmatic across dark/light/979/390/
+empty/loaded/keyboard, the blind contract review all six points PASS
+(answer path byte-diff identical; its two nits are the fix-pass's
+already-landed changes, declared), the vision round clean after `909fbe4`.
+U6 and U7 change the surface the audit walked — the audit re-runs (the
+touched probes at minimum) before the release.
+
+Final-report nits: pictures.test.ts's option-diff test name still
+promises a "needs chip" its snapshot lacks (pre-existing). U6's
+wrap-id dead surface is routed to U7.
 
 ## Next step
 
-U6 in flight (one listing per option). On its commit: dispatch U7 — the
-owner's second pushback: "none of these fit" sits weirdly far from the
-options (it becomes the table's last row, the rhead button dies) and
-per-option notes are unwanted (one note per ruling, after the options,
-riding the pick) — then re-run the audit's touched probes, then the
-release on the owner's merges (#29 then this PR): retarget the PR base if needed,
+On U7's green report: commit, dispatch its blind reviewer, rebuild the
+example and the exemplar, open both for the owner's look. Then, on the
+owner's merges (#29 then this PR): retarget the PR base if needed,
 dispatch the minor release per references/npm-publishing.md, wait for the
 registry, rebuild the five live pages and the exemplar on the published
 version, live-check one, close the thread (archive + index delete).
@@ -66,237 +56,68 @@ version, live-check one, close the thread (archive + index delete).
 | --- | --- | --- | --- | ------- | -------------- |
 | U1 | one home per ruling — verdict table + one stage | sonnet | role | design | landed: `cd4696d`, closed on the blind review (all criteria PASS, needs carrier confirmed) |
 | U2 | the folds — today, notes, long today-code | sonnet | role | | landed: `a97d004`, closed on the blind review (all criteria PASS live, the diff:false seam pinned) |
-| U3 | the gestures — look vs pick | sonnet | role | | landed: `61b7ce6`, closed on the blind review; its one blocking finding (the keyboard exemption hole) fixed inside U4's `a80db17` on a green gate, pinned by a watched-red test |
-| U4 | example and docs to the new authoring | sonnet | role | | # Rulings — the verdict-table layout
-
-**Run:** one commit per unit, one PR per thread
-
-## Goal
-
-A ruling reads as one decision on one screen: question, one-line stake, two
-sentences of today, a verdict table (one row per option — letter, title,
-gain, cost fragment) and one picture region whose letter tabs switch views.
-The pick → chip → Copy contract, persistence, needs tracking and the ledger
-voice are byte-unchanged. Shipped as a minor release with the five live
-pages and the exemplar rebuilt on it.
-
-## Current state
-
-U1 landed (`cd4696d`) and closed on its blind review — every close
-criterion PASS on the reviewer's own probes, no blocking finding; the
-needs-carrier call confirmed live (answer text and storage byte-exact).
-Live at 1440: page 3818px (baseline 8671), G1 845 / G4 738; G2 at 1556
-folds render folded (G2's 51-line code body behind `show all 51 lines`).
-Queued nits: (1) a tagged 95-raw/88-stripped gain fixture must pin the
-stripTags seam; (2) `.vhead` rescoped to the table header leaves `v-`
-meaning verdict in vtable/vrow/vhead but view in vwrap — rename only if
-the sweep touches it; (3) the sentence-split test name promises an anchor
-fixture it lacks, and its code-span dot is the first boundary — rename to
-what it pins or add the mid-span-cut fixture; (4) `noteHtml` folds at the
-first bold anywhere, not only a bold lead — fold at lead only or accept;
-(5) `todayPre` highlights the two code halves separately, so a Prism
-token spanning line 20 tokenizes per-half — deterministic, no live case
-hits it, the expander boundary is a highlight seam; (6) style.ts:89's
-fold comment restates its declarations; (7) chrome.ts:312's zero-picks
-refusal still says "click a view" — the gesture rename applies, rides the
-diagram fix. The U1 mermaidBoot finding is fixed and landed: the boot paints each
-container on first visibility from its src snapshot (a scheme flip
-repaints only drawn-and-visible containers, a drawn hidden one repaints
-on show), the vendored mermaid's startOnLoad is off (a second live bug
-the fix caught), G5 stands in the example, and the routed U4 pin fault
-and selector nit landed with it. The sweep landed all six queued nits (stripTags seam fixture, vwrap →
-stage-wrap rename, the mid-span anchor fixture, the bold-lead fold, the
-single-highlight bodies fold, the restating comment deleted) and closed
-on its review — watched-red proofs on every pin, the emitted example
-byte-identical modulo the rename and the deleted comment. The contract
-review passed all six points live (answer path byte-diff identical;
-both its nits are the fix-pass's already-landed changes, declared). U5's
-audit: 74/74 programmatic across the seven states, the vision round
-clean after its fix commit, painted page 4354px at 1440 (baseline 8671;
-G1 845 / G2 984 / G4 738 / G5 1030, G3 merged 131) — paint-time heights
-are the real measure, pre-paint undercounts diagrams by their unpainted
-line.
-
-## Next step
-
-U6 in flight (one listing per option). On its commit: dispatch U7 — the
-owner's second pushback: "none of these fit" sits weirdly far from the
-options (it becomes the table's last row, the rhead button dies) and
-per-option notes are unwanted (one note per ruling, after the options,
-riding the pick) — then re-run the audit's touched probes, then the
-release on the owner's merges (#29 then this PR): retarget the PR base if needed,
-dispatch the minor release per references/npm-publishing.md, wait for the
-registry, rebuild the five live pages and the exemplar on the published
-version, live-check one, close the thread (archive + index delete).
-
-## Steps
-
-| id | unit | model | review | consult | close criteria |
-| --- | --- | --- | --- | ------- | -------------- |
-| U1 | one home per ruling — verdict table + one stage | sonnet | role | design | landed: `cd4696d`, closed on the blind review (all criteria PASS, needs carrier confirmed) |
-| U2 | the folds — today, notes, long today-code | sonnet | role | | landed: `a97d004`, closed on the blind review (all criteria PASS live, the diff:false seam pinned) |
-| U3 | the gestures — look vs pick | sonnet | role | | landed: `61b7ce6`, closed on the blind review; its one blocking finding (the keyboard exemption hole) fixed inside U4's `a80db17` on a green gate, pinned by a watched-red test |
+| U3 | the gestures — look vs pick | sonnet | role | | landed: `61b7ce6`, closed on the blind review; its one blocking finding fixed inside U4's `a80db17` on a green gate, pinned by a watched-red test |
 | U4 | example and docs to the new authoring | sonnet | role | | landed: `a80db17` and closed — its routed pin fault and selector nit fixed in the mermaid fix commit, G5 reinstated with it |
-| U6 | one listing — the tab strip dies, rows switch views | sonnet | role | | no element repeats an option's identity: the tab strip is deleted (row body look + disc pick are the only gestures), bodies stage tags carry state and label but no letter, the wrap keeps keyboard-reachable look (row tabindex + Enter/Space), aria-current marks the looked row, SKILL Step 6 and README carry no tab references, captions open on their conclusion (SKILL note); scoped + workspace gates green, enforce green, the audit's keyboard and look probes re-run green |
-| U7 | none joins the table, the note joins the ruling | sonnet | role | | "none of these fit" is the verdict table's last row (dashed n disc, picks n, the rhead button dies), one note input per ruling sits directly under the table (always present, rides the ruling's pick in the answer), per-option note inputs and their CSS die, onotes keys change pick-id → ruling-id (old stored notes drop — break clean), the answer format string stays byte-identical, SKILL Step 6's note law and README move in the same change |
-| U5 | audit, release, rebuilds | sonnet | none | | audit half landed: programmatic 74/74 over dark/light/979/390/empty/loaded/keyboard, the blind contract review all-PASS, the vision round's findings fixed (`909fbe4` — 390 table stacks, stake widow, pill shadow; dashed disc and header band verified non-faults). Open: the minor release and the six rebuilds, held for the owner's merges |
+| U6 | one listing — the tab strip dies, rows switch views | sonnet | role | | landed: `b14fc34`, closed on the blind review (all seven criteria PASS; wrap-id dead surface routed to U7) |
+| U7 | none joins the table, the note joins the ruling | sonnet | role | | "none of these fit" is the verdict table's last row (dashed n disc, picks n, the rhead button dies), one note input per ruling sits directly under the table (always present, rides the ruling's pick in the answer), per-option note inputs and their CSS die, onotes keys change pick-id → ruling-id (old stored notes drop — break clean), the answer format string stays byte-identical, the dead wrap ids die, SKILL Step 6's note law and README move in the same change |
+| U5 | audit, release, rebuilds | sonnet | none | | audit half landed: programmatic 74/74 over the seven states (re-run at 76 after U6), the blind contract review all-PASS, the vision round's findings fixed (`909fbe4`). Re-audit after U7; open: the minor release and the six rebuilds, held for the owner's merges |
 
 ## Plan
 
-- **Tactical map.** U1 (consult rulings folded): `html.ts` (delete
-  `viewHeadFor`/`verdictFor`; add the table and tab renderers; `optOf`
-  stays), `page.ts` (`viewsOf` becomes one compare region — tab strip plus
-  every view in the DOM with all but the first hidden; `rulingSection`
-  orders rhead → stake → today → `.vtable` → `.compare` as two bordered
-  boxes, `.compare .stage` drops its own border, and the merged-ruling
-  early return stays ahead of both; note inputs move into table rows with
-  `data-note` byte-identical; the assemblyCss view-card rules die with the
-  section), `seq.ts`/`bodies.ts`/`diagram.ts` (emit the stage only — heads
-  and verdict tails deleted; `w` renders as one muted line under the
-  caption/bcap), `style.ts` (delete the view-card block; add
-  table/tabs/compare rules), `schema.ts` (fragment warning inside the
-  gain/cost VAGUE loop — `stripTags(text).length > 90` against a named
-  const beside `LONG_LINE`; not on `w`), `example.page.js` (trim g/c to
-  fragments), `test/build.test.ts` and `test/pictures.test.ts` (pins move;
-  pictures rewritten to the stage-only renderers), SKILL.md Step 4 gate +
-  field table. Pick wiring: the letter disc (a real `<button>`) and each
-  view wrap carry `data-pick`; rows and tabs carry `data-view` only, the
-  row keeps `data-needs` and every row, disc and wrap carries its `o-<k>`
-  hue; the tab strip iterates views, not rows — a letter-less today tab
-  highlights no row; tabs emit `role="tab"` + `aria-selected` +
-  `aria-controls`, wraps `role="tabpanel"` + `id`, and U3 maintains both on
-  switch. The proven shape: `progress/.scratch/rulings-wall/mock-a.html`
-  and its generator `gen2.mjs` (faked gestures — the wiring above, not the
-  mock's, is law). U3: chrome.ts builds its needs→chip map per data-pick
-  element with last-write-wins (chrome.ts:44) — rewire CARD to the rows
-  and drop `data-needs` from the wraps in the same change. U2: `page.ts` or `html.ts` (the
-  deterministic sentence split), `bodies.ts` (line-count fold), `schema.ts`
-  (today sentence warning), SKILL Step 2. U3: `chrome.ts` (show/look/pick, the CARD rewire to rows, the fold-summary click exemption), `style.ts` (the row look/picked states and the `.fold` affordance — muted mono, dashed underline, per the mock; U2 left browser-default disclosure styling)
-  wiring, restore-on-load, row states), `test/chrome.test.ts`, SKILL Step 6.
-  U4: `example.page.js`, SKILL.md, README.md, plus two named one-liners from U3 — page.ts drops the now-dead data-needs emission on wraps (chrome reads rows), and chrome.ts's empty-chips copy says "pick a letter" with its pin (build.test.ts:642). Scoped gate
-  `yarn workspace @v1nvn/rulings run test`; workspace gates `yarn test`
-  then `yarn typecheck` at the repo root, ceiling 2 min (pre-flight
-  measured 1m13s).
+- **Tactical map.** The U1 wiring (consult-folded): disc and view wraps
+  carry `data-pick`, rows carry `data-view` + `data-needs` + hue, the
+  merged-ruling early return stays ahead of table and compare, `w` is one
+  muted line under the caption. U6 rewired look to the rows alone
+  (tabindex + Enter/Space, aria-current; disc and shown picture pick).
+  U7: the none row and the ruling note live in the verdict table's box
+  (html.ts/page.ts), chrome.ts keys `onotes` by ruling id and rides the
+  note on the ruling's pick, style.ts drops the per-row note rules,
+  SKILL Step 6 + README move, build/chrome tests + snapshots move. Mocks
+  (`progress/.scratch/rulings-wall/`) are pre-U6 reference only. Scoped
+  gate `yarn workspace @v1nvn/rulings run test`; workspace gates `yarn
+  test` then `yarn typecheck`, ceiling 2 min (pre-flight measured 1m13s).
 - **Small rows:** U5 — mechanics only, no code changes; review is none
   because it changes no code, with the audit list guarding the surface.
 - **Enforcement inventory.** Determinism byte-identical (no clock, paths,
-  randomness); the storage shape `{picks, onotes, note}` untouched; the
-  answer text format (`G2a — its note, G3b (needs G3a) — its note`, blank
-  line, page note) byte-identical — its tests survive unchanged; no fetch
-  on fetch on open; build warnings are faults; files touched come out with
-  fewer comment lines; the old view-card path is deleted, not shimmed.
-  U1's builder writes `progress/.scratch/rulings-verdict-table/enforce.mjs`
-  once from these: build twice and byte-diff (determinism), grep the
-  emitted page for the storage shape and for `fetch(` (must be absent);
-  every later builder runs it as its last gate step. Checklist: a suite value where two interpretations coincide
-  (raw vs stripped length, before vs after a split) is a seam fault — a
-  fixture pins it before the gate; comment-line count is one too — no
-  script checks it.
-- **Run mechanics.** Branch `rulings-verdict-table` off `rulings-fix-pass`;
-  the PR targets main once #29 merges. Rebuild-check pages into
-  `progress/.scratch/rulings-verdict-table/` with `--no-open`; live checks
-  run programmatic (own headless Chrome over raw CDP; no screenshot file is
-  Read through the harness — vision rounds dispatch to sonnet subagents).
-- **Audit list.** U5: surface-audit on live screenshots (dark, light, 979,
-  390, empty, loaded, keyboard) before the release; a blind reviewer
-  confirms the pick/copy/persist/needs/n/quick contract unchanged.
+  randomness); the storage shape `{picks, onotes, note}` holds (U7 moves
+  the onotes key semantics pick-id → ruling-id — the shape string, not
+  the keys, is what enforce pins); the answer text format string stays
+  byte-identical — its assertion values move only where U7's note-home
+  change demands, never weakened; no fetch on open; build warnings are
+  faults; files touched come out with fewer comment lines; the old
+  view-card path and the tab strip are deleted, not shimmed.
+  `progress/.scratch/rulings-verdict-table/enforce.mjs` (double-build
+  byte-diff, storage shape, no-fetch) runs as every builder's last gate
+  step. Checklist: a suite value where two interpretations coincide (raw
+  vs stripped length, before vs after a split) is a seam fault — a
+  fixture pins it before the gate; comment-line count likewise.
+- **Run mechanics.** Branch `rulings-verdict-table` off
+  `rulings-fix-pass`; the PR targets main once #29 merges. Rebuild-check
+  pages into `progress/.scratch/rulings-verdict-table/` with `--no-open`;
+  live checks run programmatic (own headless Chrome over raw CDP; no
+  screenshot file is Read through the harness — vision rounds dispatch to
+  sonnet subagents).
+- **Audit list.** Before the release, after U7: the touched probes of the
+  U5 audit re-run (look/keyboard, none, notes, persistence) plus a fresh
+  vision round on the rebuilt example (dark, light, 979, 390); the blind
+  contract check re-runs on the U7-diff alone (the note-home change).
 
 ## Design
 
-- The verdict table is the option's one home: letter disc, title, `★
-  recommended` / `as today` / `needs` chips, `+ gain` and `− cost`
-  fragments in aligned columns, the note input on the picked row only.
-  Nothing an option says renders twice.
-- One picture region per ruling: letter tabs (letter, CSS-truncated title,
-  `today` mark) switch the shown view. Seq keeps delta rows on the shared
-  frame; bodies shows today or an option's diff; diagram swaps views.
-- `w` keeps its field and renders as one muted line inside the stage under
-  the caption — the caption opens with its conclusion, `w` says how.
-- Gestures: row body and tab are look; the letter disc and the shown
-  picture pick. Flipping views never picks.
+- The verdict table is the option's one home and one listing: letter
+  disc, title, `★ recommended` / `as today` / `needs` chips, `+ gain` and
+  `− cost` fragments in aligned columns — nothing else repeats an
+  option's identity. "none of these fit" is the table's last row.
+- One picture region per ruling below the table: the row switches the
+  shown view; sequence keeps delta rows on the shared frame, bodies shows
+  today or an option's diff, mermaid draws on first visibility.
+- One note per ruling, under the table, riding whatever is picked — no
+  per-option notes.
+- `w` keeps its field and renders as one muted line inside the stage; a
+  caption opens on its conclusion, never the option's name.
+- Gestures: row body is look (click and keyboard); the letter disc and
+  the shown picture pick. Flipping views never picks.
 - Folds are deterministic: today splits at the second sentence boundary;
   a bodies today block folds past 20 lines with its count in the label.
-- The ledger voice, the sidebar with ruled marks and N of M, the resting
-  composer bar and the copy contract survive untouched.
- the example's diagram ruling (G5) stopped on a U1 regression — mermaidBoot draws hidden wraps broken — recorded with its fix shape, lands as its own fix commit |
-| U6 | one listing — the tab strip dies, rows switch views | sonnet | role | | no element repeats an option's identity: the tab strip is deleted (row body look + disc pick are the only gestures), bodies stage tags carry state and label but no letter, the wrap keeps keyboard-reachable look (row tabindex + Enter/Space), aria-current marks the looked row, SKILL Step 6 and README carry no tab references, captions open on their conclusion (SKILL note); scoped + workspace gates green, enforce green, the audit's keyboard and look probes re-run green |
-| U7 | none joins the table, the note joins the ruling | sonnet | role | | "none of these fit" is the verdict table's last row (dashed n disc, picks n, the rhead button dies), one note input per ruling sits directly under the table (always present, rides the ruling's pick in the answer), per-option note inputs and their CSS die, onotes keys change pick-id → ruling-id (old stored notes drop — break clean), the answer format string stays byte-identical, SKILL Step 6's note law and README move in the same change |
-| U5 | audit, release, rebuilds | sonnet | none | | audit half landed: programmatic 74/74 over dark/light/979/390/empty/loaded/keyboard, the blind contract review all-PASS, the vision round's findings fixed (`909fbe4` — 390 table stacks, stake widow, pill shadow; dashed disc and header band verified non-faults). Open: the minor release and the six rebuilds, held for the owner's merges |
-
-## Plan
-
-- **Tactical map.** U1 (consult rulings folded): `html.ts` (delete
-  `viewHeadFor`/`verdictFor`; add the table and tab renderers; `optOf`
-  stays), `page.ts` (`viewsOf` becomes one compare region — tab strip plus
-  every view in the DOM with all but the first hidden; `rulingSection`
-  orders rhead → stake → today → `.vtable` → `.compare` as two bordered
-  boxes, `.compare .stage` drops its own border, and the merged-ruling
-  early return stays ahead of both; note inputs move into table rows with
-  `data-note` byte-identical; the assemblyCss view-card rules die with the
-  section), `seq.ts`/`bodies.ts`/`diagram.ts` (emit the stage only — heads
-  and verdict tails deleted; `w` renders as one muted line under the
-  caption/bcap), `style.ts` (delete the view-card block; add
-  table/tabs/compare rules), `schema.ts` (fragment warning inside the
-  gain/cost VAGUE loop — `stripTags(text).length > 90` against a named
-  const beside `LONG_LINE`; not on `w`), `example.page.js` (trim g/c to
-  fragments), `test/build.test.ts` and `test/pictures.test.ts` (pins move;
-  pictures rewritten to the stage-only renderers), SKILL.md Step 4 gate +
-  field table. Pick wiring: the letter disc (a real `<button>`) and each
-  view wrap carry `data-pick`; rows and tabs carry `data-view` only, the
-  row keeps `data-needs` and every row, disc and wrap carries its `o-<k>`
-  hue; the tab strip iterates views, not rows — a letter-less today tab
-  highlights no row; tabs emit `role="tab"` + `aria-selected` +
-  `aria-controls`, wraps `role="tabpanel"` + `id`, and U3 maintains both on
-  switch. The proven shape: `progress/.scratch/rulings-wall/mock-a.html`
-  and its generator `gen2.mjs` (faked gestures — the wiring above, not the
-  mock's, is law). U3: chrome.ts builds its needs→chip map per data-pick
-  element with last-write-wins (chrome.ts:44) — rewire CARD to the rows
-  and drop `data-needs` from the wraps in the same change. U2: `page.ts` or `html.ts` (the
-  deterministic sentence split), `bodies.ts` (line-count fold), `schema.ts`
-  (today sentence warning), SKILL Step 2. U3: `chrome.ts` (show/look/pick, the CARD rewire to rows, the fold-summary click exemption), `style.ts` (the row look/picked states and the `.fold` affordance — muted mono, dashed underline, per the mock; U2 left browser-default disclosure styling)
-  wiring, restore-on-load, row states), `test/chrome.test.ts`, SKILL Step 6.
-  U4: `example.page.js`, SKILL.md, README.md, plus two named one-liners from U3 — page.ts drops the now-dead data-needs emission on wraps (chrome reads rows), and chrome.ts's empty-chips copy says "pick a letter" with its pin (build.test.ts:642). Scoped gate
-  `yarn workspace @v1nvn/rulings run test`; workspace gates `yarn test`
-  then `yarn typecheck` at the repo root, ceiling 2 min (pre-flight
-  measured 1m13s).
-- **Small rows:** U5 — mechanics only, no code changes; review is none
-  because it changes no code, with the audit list guarding the surface.
-- **Enforcement inventory.** Determinism byte-identical (no clock, paths,
-  randomness); the storage shape `{picks, onotes, note}` untouched; the
-  answer text format (`G2a — its note, G3b (needs G3a) — its note`, blank
-  line, page note) byte-identical — its tests survive unchanged; no fetch
-  on fetch on open; build warnings are faults; files touched come out with
-  fewer comment lines; the old view-card path is deleted, not shimmed.
-  U1's builder writes `progress/.scratch/rulings-verdict-table/enforce.mjs`
-  once from these: build twice and byte-diff (determinism), grep the
-  emitted page for the storage shape and for `fetch(` (must be absent);
-  every later builder runs it as its last gate step. Checklist: a suite value where two interpretations coincide
-  (raw vs stripped length, before vs after a split) is a seam fault — a
-  fixture pins it before the gate; comment-line count is one too — no
-  script checks it.
-- **Run mechanics.** Branch `rulings-verdict-table` off `rulings-fix-pass`;
-  the PR targets main once #29 merges. Rebuild-check pages into
-  `progress/.scratch/rulings-verdict-table/` with `--no-open`; live checks
-  run programmatic (own headless Chrome over raw CDP; no screenshot file is
-  Read through the harness — vision rounds dispatch to sonnet subagents).
-- **Audit list.** U5: surface-audit on live screenshots (dark, light, 979,
-  390, empty, loaded, keyboard) before the release; a blind reviewer
-  confirms the pick/copy/persist/needs/n/quick contract unchanged.
-
-## Design
-
-- The verdict table is the option's one home: letter disc, title, `★
-  recommended` / `as today` / `needs` chips, `+ gain` and `− cost`
-  fragments in aligned columns, the note input on the picked row only.
-  Nothing an option says renders twice.
-- One picture region per ruling: letter tabs (letter, CSS-truncated title,
-  `today` mark) switch the shown view. Seq keeps delta rows on the shared
-  frame; bodies shows today or an option's diff; diagram swaps views.
-- `w` keeps its field and renders as one muted line inside the stage under
-  the caption — the caption opens with its conclusion, `w` says how.
-- Gestures: row body and tab are look; the letter disc and the shown
-  picture pick. Flipping views never picks.
-- Folds are deterministic: today splits at the second sentence boundary;
-  a bodies today block folds past 20 lines with its count in the label.
-- The ledger voice, the sidebar with ruled marks and N of M, the resting
-  composer bar and the copy contract survive untouched.
+- The ledger voice, the sidebar with ruled marks and N of M, and the
+  resting composer bar survive.
