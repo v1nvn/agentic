@@ -14,8 +14,6 @@ interface Harness {
   rowB: El;
   discB: El;
   vtB: El;
-  tabToday: El;
-  tabB: El;
   wrapToday: El;
   stage: El;
   foldSum: El;
@@ -75,22 +73,9 @@ function harness(
   discB.parent = rowB;
   const vtB = new El('span', ['vt']);
   vtB.parent = rowB;
-  const tabToday = new El('button', ['tl', 'o-a']);
-  tabToday.setAttribute('role', 'tab');
-  tabToday.setAttribute('aria-selected', 'true');
-  tabToday.setAttribute('aria-controls', 'view-G1-today');
-  tabToday.setAttribute('data-view', 'today');
-  tabToday.parent = secG1;
-  const tabB = new El('button', ['tl', 'o-b']);
-  tabB.setAttribute('role', 'tab');
-  tabB.setAttribute('aria-selected', 'false');
-  tabB.setAttribute('aria-controls', 'view-G1b');
-  tabB.setAttribute('data-view', 'G1b');
-  tabB.parent = secG1;
   const wrapToday = new El('div', ['stage-wrap', 'o-a']);
   wrapToday.setAttribute('data-view', 'today');
   wrapToday.setAttribute('data-pick', 'G1a');
-  wrapToday.setAttribute('role', 'tabpanel');
   wrapToday.setAttribute('id', 'view-G1-today');
   wrapToday.parent = secG1;
   const stage = new El('div', ['stage']);
@@ -100,7 +85,6 @@ function harness(
   const wrapB = new El('div', ['stage-wrap', 'o-b']);
   wrapB.setAttribute('data-view', 'G1b');
   wrapB.setAttribute('data-pick', 'G1b');
-  wrapB.setAttribute('role', 'tabpanel');
   wrapB.setAttribute('id', 'view-G1b');
   wrapB.setAttribute('hidden', '');
   wrapB.parent = secG1;
@@ -153,8 +137,6 @@ function harness(
           return [...picks, discA, discB];
         case '[data-needs]':
           return [rowA];
-        case '.tl':
-          return [tabToday, tabB];
         case '.stage-wrap':
           return [wrapToday, wrapB];
         case '.vrow':
@@ -226,8 +208,6 @@ function harness(
     rowB,
     discB,
     vtB,
-    tabToday,
-    tabB,
     wrapToday,
     stage,
     foldSum,
@@ -357,15 +337,20 @@ describe('the pick toggle', () => {
 });
 
 describe('the shown view', () => {
-  it('switches on a tab click and never picks', () => {
+  it('looks on Enter and Space on the row, and never picks', () => {
     const h = harness();
-    h.docClick({ target: h.tabB });
+    h.keyDown({ key: 'Enter', target: h.rowB });
     expect(h.wrapB.getAttribute('hidden')).toBeNull();
     expect(h.wrapToday.getAttribute('hidden')).toBe('');
-    expect(h.tabB.getAttribute('aria-selected')).toBe('true');
-    expect(h.tabToday.getAttribute('aria-selected')).toBe('false');
     expect(h.rowB.classList.contains('look')).toBe(true);
-    expect(h.rowA.classList.contains('look')).toBe(false);
+    expect(h.rowB.getAttribute('aria-current')).toBe('true');
+    expect(h.rowA.getAttribute('aria-current')).toBeNull();
+    expect(h.sum.innerHTML).toContain('no picks yet — pick a letter');
+    h.keyDown({ key: ' ', target: h.rowA });
+    expect(h.wrapToday.getAttribute('hidden')).toBeNull();
+    expect(h.wrapB.getAttribute('hidden')).toBe('');
+    expect(h.rowA.getAttribute('aria-current')).toBe('true');
+    expect(h.rowB.getAttribute('aria-current')).toBeNull();
     expect(h.sum.innerHTML).toContain('no picks yet — pick a letter');
   });
 
@@ -373,7 +358,8 @@ describe('the shown view', () => {
     const h = harness();
     h.docClick({ target: h.vtB });
     expect(h.wrapB.getAttribute('hidden')).toBeNull();
-    expect(h.tabB.getAttribute('aria-selected')).toBe('true');
+    expect(h.rowB.getAttribute('aria-current')).toBe('true');
+    expect(h.rowA.getAttribute('aria-current')).toBeNull();
     expect(h.sum.innerHTML).toContain('no picks yet — pick a letter');
   });
 
@@ -382,7 +368,8 @@ describe('the shown view', () => {
     h.docClick({ target: h.stage });
     expect(h.sum.innerHTML).toContain('G1a');
     expect(h.wrapToday.getAttribute('hidden')).toBeNull();
-    expect(h.tabToday.getAttribute('aria-selected')).toBe('true');
+    expect(h.rowA.getAttribute('aria-current')).toBe('true');
+    expect(h.rowB.getAttribute('aria-current')).toBeNull();
   });
 
   it('never picks through a fold summary', () => {
@@ -406,7 +393,7 @@ describe('the shown view', () => {
     h.docClick({ target: h.discB });
     expect(h.sum.innerHTML).toContain('G1b');
     expect(h.wrapToday.getAttribute('hidden')).toBeNull();
-    expect(h.tabB.getAttribute('aria-selected')).toBe('false');
+    expect(h.rowB.getAttribute('aria-current')).toBeNull();
     expect(h.rowB.classList.contains('look')).toBe(false);
   });
 });
@@ -419,7 +406,7 @@ describe('restore on load', () => {
     const h = harness({ storage });
     expect(h.wrapB.getAttribute('hidden')).toBeNull();
     expect(h.wrapToday.getAttribute('hidden')).toBe('');
-    expect(h.tabB.getAttribute('aria-selected')).toBe('true');
+    expect(h.rowB.getAttribute('aria-current')).toBe('true');
     expect(h.rowB.classList.contains('look')).toBe(true);
   });
 
@@ -429,7 +416,7 @@ describe('restore on load', () => {
     ]);
     const a = harness({ storage });
     expect(a.wrapToday.getAttribute('hidden')).toBeNull();
-    expect(a.tabToday.getAttribute('aria-selected')).toBe('true');
+    expect(a.rowA.getAttribute('aria-current')).toBe('true');
     expect(a.rowA.classList.contains('look')).toBe(true);
     const b = harness();
     expect(b.wrapToday.getAttribute('hidden')).toBeNull();

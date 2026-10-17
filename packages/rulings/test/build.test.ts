@@ -178,10 +178,10 @@ describe('the emitted page', () => {
       ),
     ).toHaveLength(8);
     expect(html).toContain(
-      '<div class="vrow o-a" data-view="today"',
+      '<div class="vrow o-a" data-view="today" tabindex="0">',
     );
     expect(html).toContain(
-      '<div class="vrow o-a" data-view="G2a" data-needs="G1a">',
+      '<div class="vrow o-a" data-view="G2a" data-needs="G1a" tabindex="0">',
     );
   });
 
@@ -197,25 +197,27 @@ describe('the emitted page', () => {
     expect(html.match(/<span class="vchips">/g)).toHaveLength(5);
   });
 
-  it('carries the pick on the disc and the wrap, the look on row and tab', () => {
+  it('carries the pick on the disc and the wrap, the look on the row', () => {
     const { html } = buildPage(loadPageFile(EXAMPLE));
     expect(
       html.match(/<button type="button" class="lt disc o-[ab]" data-pick="/g),
     ).toHaveLength(8);
     expect(html.match(/data-pick="G/g)).toHaveLength(16);
     expect(html).toContain(
-      '<div class="stage-wrap o-a" data-view="today" data-pick="G1a" role="tabpanel" id="view-G1-today">',
+      '<div class="stage-wrap o-a" data-view="today" data-pick="G1a" id="view-G1-today">',
     );
     expect(html).toContain(
-      '<div class="stage-wrap o-a" data-view="G2a" data-pick="G2a" role="tabpanel" id="view-G2a" hidden>',
+      '<div class="stage-wrap o-a" data-view="G2a" data-pick="G2a" id="view-G2a" hidden>',
     );
     expect(html).toContain(
-      '<div class="stage-wrap" data-view="today" role="tabpanel" id="view-G2-today">',
+      '<div class="stage-wrap" data-view="today" id="view-G2-today">',
     );
     expect(html).not.toMatch(/class="vrow[^"]*" data-pick/);
     expect(
-      html.match(/<button type="button" class="tl[^"]*" role="tab" /g),
-    ).toHaveLength(10);
+      html.match(
+        /<div class="vrow [^"]*" data-view="[^"]*"(?: data-needs="[^"]*")? tabindex="0">/g,
+      ),
+    ).toHaveLength(8);
   });
 
   it('puts every view in the DOM with exactly one visible per ruling', () => {
@@ -223,29 +225,28 @@ describe('the emitted page', () => {
     const compares = html.match(/<div class="compare">[\s\S]*?<\/section>/g) ?? [];
     expect(compares).toHaveLength(4);
     for (const compare of compares) {
-      expect(compare.match(/role="tabpanel" id="[^"]+">/g)).toHaveLength(1);
+      expect(compare.match(/id="view-[^"]+">/g)).toHaveLength(1);
     }
-    expect(html.match(/role="tabpanel" id="[^"]+" hidden>/g)).toHaveLength(6);
+    expect(html.match(/id="view-[^"]+" hidden>/g)).toHaveLength(6);
   });
 
-  it('emits the tab strip with tab semantics wired to the wraps', () => {
+  it('emits no tab strip: the row is the only look control, keyboard-reachable', () => {
     const { html } = buildPage(loadPageFile(EXAMPLE));
-    expect(html.match(/role="tab"/g)).toHaveLength(10);
-    expect(
-      html.match(/role="tab" aria-selected="true"/g),
-    ).toHaveLength(4);
-    expect(
-      html.match(/role="tab" aria-selected="false"/g),
-    ).toHaveLength(6);
-    expect(html.match(/role="tabpanel"/g)).toHaveLength(10);
-    expect(html).toContain(
-      '<div class="tabs" role="tablist"><button type="button" class="tl o-a" role="tab" aria-selected="true" aria-controls="view-G1-today" data-view="today"><span class="lt">a</span><span class="tt">Keep one band per paid block, as ruled in 6.5</span><span class="asr">today</span></button>',
-    );
-    expect(html).toContain(
-      '<button type="button" class="tl" role="tab" aria-selected="true" aria-controls="view-G2-today" data-view="today"><span class="tt">today</span></button>',
-    );
-    for (const m of html.matchAll(/aria-controls="([^"]+)"/g)) {
-      expect(html).toContain(`id="${m[1]}"`);
+    expect(html).not.toMatch(/role="tab"|tablist|tabpanel|class="tabs"|class="tl"|aria-selected/);
+    expect(html.match(/id="view-/g)).toHaveLength(10);
+    for (const id of [
+      'view-G1-today',
+      'view-G1b',
+      'view-G2-today',
+      'view-G2a',
+      'view-G2b',
+      'view-G4-today',
+      'view-G4a',
+      'view-G4b',
+      'view-G5-today',
+      'view-G5a',
+    ]) {
+      expect(html).toContain(`id="${id}"`);
     }
   });
 
@@ -415,10 +416,10 @@ describe('the language pass', () => {
     expect(html.match(/G3 is merged into this ruling\./g)).toHaveLength(1);
   });
 
-  it('marks the as-today option on its row and its tab, nowhere else', () => {
+  it('marks the as-today option on its row, nowhere else', () => {
     const { html } = buildPage(loadPageFile(EXAMPLE));
     expect(html.match(/<span class="asr">as today<\/span>/g)).toHaveLength(2);
-    expect(html.match(/<span class="asr">today<\/span>/g)).toHaveLength(2);
+    expect(html).not.toContain('>today</span>');
     expect(html).not.toContain('how it works now');
   });
 
@@ -436,10 +437,9 @@ describe('the language pass', () => {
     expect(css).not.toMatch(/[\d.]+px[^;{}]*var\(--mono\)/);
   });
 
-  it('fills a bodies tag letter only when its view is picked', () => {
+  it('names an option once: no letter span anywhere outside the disc', () => {
     const { html } = buildPage(loadPageFile(EXAMPLE));
-    const css = html.slice(html.indexOf('<style>'), html.indexOf('</style>'));
-    expect(css).not.toMatch(/\.body\.of-option \.tag \.lt \{[^}]*background/);
+    expect(html).not.toContain('<span class="lt">');
   });
 
   it('carries no dead mermaid max-width rule', () => {
@@ -509,7 +509,6 @@ describe('the verdict fragment warning', () => {
   });
 });
 
-// The real script bytes run in a vm over a fake DOM parsed from the same html.
 function emittedChrome(html: string) {
   FakeIO.last = null;
   const body = new El('body');
@@ -520,7 +519,7 @@ function emittedChrome(html: string) {
   );
   const wraps = [
     ...html.matchAll(
-      /<div class="stage-wrap ([^"]*)" data-view="[^"]*"(?: data-pick="([^"]*)")? role="tabpanel"/g,
+      /<div class="stage-wrap ([^"]*)" data-view="[^"]*"(?: data-pick="([^"]*)")? id="/g,
     ),
   ].map(m => ({ at: m.index, cls: m[1], pick: m[2] ?? '' }));
   const cards = [...discs, ...wraps]
@@ -533,7 +532,7 @@ function emittedChrome(html: string) {
     });
   const needsRows = [
     ...html.matchAll(
-      /<div class="vrow ([^"]*)" data-view="[^"]*"(?: data-needs="([^"]*)")?>/g,
+      /<div class="vrow ([^"]*)" data-view="[^"]*"(?: data-needs="([^"]*)")? tabindex="0">/g,
     ),
   ].map(m => {
     const el = new El('div', ['vrow', ...m[1].split(/\s+/).filter(Boolean)]);

@@ -1,4 +1,3 @@
-// Static text — mutable state lives in localStorage under the body's data-key, never in the file.
 export function panelHtml(): string {
   return `<footer class="bar" id="rulings-bar">
 <div class="bar-in" id="rulings-bar-in">
@@ -18,7 +17,6 @@ export function chromeScript(): string {
   var REF = /^(G\\d+)([a-z])$/;
   var cards = Array.prototype.slice.call(document.querySelectorAll('[data-pick]'));
   var tracked = Array.prototype.slice.call(document.querySelectorAll('[data-needs]'));
-  var vtabs = Array.prototype.slice.call(document.querySelectorAll('.tl'));
   var wraps = Array.prototype.slice.call(document.querySelectorAll('.stage-wrap'));
   var vrows = Array.prototype.slice.call(document.querySelectorAll('.vrow'));
   var noteIns = Array.prototype.slice.call(document.querySelectorAll('.onote'));
@@ -53,10 +51,9 @@ export function chromeScript(): string {
     var sec = el.closest('section');
     var id = sec && sec.getAttribute('id');
     if (!id) return null;
-    if (!views[id]) views[id] = { t: [], w: [], r: [] };
+    if (!views[id]) views[id] = { w: [], r: [] };
     return views[id];
   }
-  vtabs.forEach(function (t) { var u = rulingViews(t); if (u) u.t.push(t); });
   wraps.forEach(function (w) { var u = rulingViews(w); if (u) u.w.push(w); });
   vrows.forEach(function (r) { var u = rulingViews(r); if (u) u.r.push(r); });
 
@@ -67,11 +64,11 @@ export function chromeScript(): string {
       if (w.getAttribute('data-view') === view) w.removeAttribute('hidden');
       else w.setAttribute('hidden', '');
     });
-    u.t.forEach(function (t) {
-      t.setAttribute('aria-selected', t.getAttribute('data-view') === view ? 'true' : 'false');
-    });
     u.r.forEach(function (r) {
-      r.classList.toggle('look', r.getAttribute('data-view') === view);
+      var on = r.getAttribute('data-view') === view;
+      r.classList.toggle('look', on);
+      if (on) r.setAttribute('aria-current', 'true');
+      else r.removeAttribute('aria-current');
     });
   }
   function restoreViews() {
@@ -219,7 +216,14 @@ export function chromeScript(): string {
     if (e.key !== 'Enter' && e.key !== ' ') return;
     if (exempt(e.target)) return;
     var card = e.target.closest('[data-pick]');
-    if (card) { e.preventDefault(); card.click(); }
+    if (card) { e.preventDefault(); card.click(); return; }
+    var row = e.target.closest('[data-view]');
+    if (row) {
+      e.preventDefault();
+      var sec = row.closest('section');
+      var sid = sec && sec.getAttribute('id');
+      if (sid) show(sid, row.getAttribute('data-view'));
+    }
   });
   function sizeNote() {
     if (!notesIn) return;
