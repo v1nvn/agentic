@@ -90,7 +90,6 @@ function diffHtml(
     .join('');
 }
 
-// The today code alone folds past 20 lines; option bodies render whole.
 function splitAtLine(highlighted: string, line: number): [string, string] {
   let cut = highlighted.indexOf('\n');
   for (let seen = 1; seen < line && cut !== -1; seen++) {
@@ -125,7 +124,6 @@ function todayPre(code: string, lang: string | undefined): string {
 
 function bodyHtml(
   b: Body,
-  letter: string,
   isToday: boolean,
   todayCode?: string,
 ): string {
@@ -136,7 +134,6 @@ function bodyHtml(
       : `<span>${b.state ?? (isToday ? 'built today' : 'planned')}</span>`;
   return (
     `<div class="body ${isToday ? 'is-today' : 'of-option'}"><div class="tag">` +
-    (letter ? `<span class="lt">${letter}</span>` : '') +
     state +
     (asDiff ? '<span class="dleg">diff vs today</span>' : '') +
     (b.what ? `<b>${b.what}</b>` : '') +
@@ -156,10 +153,9 @@ export function bodiesToday(q: Ruling): string {
   if (B === undefined || !('today' in B)) {
     return '';
   }
-  const todayLetter = (q.opts ?? []).find(o => o.today === true)?.k ?? '';
   const w = optOf(q, 'today')?.w;
   return (
-    `<div class="stage"><div class="bodies">${bodyHtml(B.today, todayLetter, true)}</div>` +
+    `<div class="stage"><div class="bodies">${bodyHtml(B.today, true)}</div>` +
     (w ? `<p class="how">${w}</p>` : '') +
     '</div>'
   );
@@ -177,7 +173,7 @@ export function bodiesOption(q: Ruling, view: string): string {
   const todayCode = 'today' in B ? B.today.code : undefined;
   const w = optOf(q, view)?.w;
   return (
-    `<div class="stage"><div class="bodies">${bodyHtml(B[letter], letter, false, todayCode)}</div>` +
+    `<div class="stage"><div class="bodies">${bodyHtml(B[letter], false, todayCode)}</div>` +
     (w ? `<p class="how">${w}</p>` : '') +
     '</div>'
   );

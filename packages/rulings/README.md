@@ -4,7 +4,7 @@ Put decisions the owner must make on one local HTML page — each ruling
 self-contained: the question, its stake, how its part works today, a picture,
 and a verdict table of lettered options with gain, cost and a recommendation.
 The owner picks a letter — the table's disc or the shown picture — looks
-around through row and tab clicks, adds notes, and copies the composed answer;
+around through row clicks, adds notes, and copies the composed answer;
 picks persist under the page's `key`. The plugin is the `/rulings:consult`
 skill; the CLI builds and rebuilds the page it opens.
 

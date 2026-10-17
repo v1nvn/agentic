@@ -7,7 +7,7 @@ import type { Page, Ruling } from './schema.ts';
 import { bodiesOption, bodiesToday } from './bodies.ts';
 import { chromeScript, panelHtml } from './chrome.ts';
 import { diagramView, mermaidBoot } from './diagram.ts';
-import { esc, hueOf, optOf, sentenceEnds, stripTags, verdictTable, viewTabs, wrapId } from './html.ts';
+import { esc, hueOf, optOf, sentenceEnds, stripTags, verdictTable, wrapId } from './html.ts';
 import { seqView } from './seq.ts';
 import { pageCss } from './style.ts';
 
@@ -142,13 +142,13 @@ function compareOf(q: Ruling, id: string): string {
       return (
         `<div class="stage-wrap${o ? ` ${hueOf(o.k)}` : ''}" data-view="${view}"` +
         (o ? ` data-pick="${view === 'today' ? id + o.k : view}"` : '') +
-        ` role="tabpanel" id="${wrapId(id, view)}"${i === 0 ? '' : ' hidden'}>` +
+        ` id="${wrapId(id, view)}"${i === 0 ? '' : ' hidden'}>` +
         stageOf(q, id, view) +
         '</div>'
       );
     })
     .join('');
-  return `<div class="compare">${viewTabs(q, id, views)}${wraps}</div>`;
+  return `<div class="compare">${wraps}</div>`;
 }
 
 function rulingSection(P: Page, id: string): string {
@@ -209,9 +209,7 @@ export interface BuiltPage {
   html: string;
 }
 
-// The whole page as one deterministic string: no clock, no paths, no
-// randomness. Call only after validatePage returns green — the cast is what
-// the green verdict proved.
+// Call only after validatePage returns green — the cast is what the green verdict proved.
 export function buildPage(input: unknown): BuiltPage {
   const P = input as Page;
   const hasDiagram = Object.values(P.rulings).some(

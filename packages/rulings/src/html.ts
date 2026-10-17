@@ -53,7 +53,6 @@ export function needsOf(o: Opt): string[] {
   return typeof o.needs === 'string' ? [o.needs] : (o.needs ?? []);
 }
 
-// The today key alone would collide across rulings, so it rides the ruling id.
 export function wrapId(id: string, view: string): string {
   return `view-${view === 'today' ? `${id}-today` : view}`;
 }
@@ -73,7 +72,7 @@ export function verdictTable(q: Ruling, id: string): string {
       return (
         `<div class="vrow ${hueOf(o.k)}" data-view="${o.today === true ? 'today' : pick}"` +
         (needs.length ? ` data-needs="${needs.join(' ')}"` : '') +
-        '>' +
+        ' tabindex="0">' +
         `<button type="button" class="lt disc ${hueOf(o.k)}" data-pick="${pick}" aria-label="pick ${pick}">${o.k}</button>` +
         `<span class="vt">${o.t ?? ''}${chips ? `<span class="vchips"> ${chips}</span>` : ''}<span class="pmark">✓ picked</span></span>` +
         `<span class="vg">${o.g ?? ''}</span>` +
@@ -86,23 +85,4 @@ export function verdictTable(q: Ruling, id: string): string {
   return (
     `<div class="vtable"><div class="vhead"><span>option</span><span>gain</span><span>cost</span></div>${rows}</div>`
   );
-}
-
-export function viewTabs(q: Ruling, id: string, views: string[]): string {
-  const tabs = views
-    .map((view, i) => {
-      const o = optOf(q, view);
-      const label =
-        o === undefined
-          ? '<span class="tt">today</span>'
-          : `<span class="lt">${o.k}</span><span class="tt">${o.t ?? ''}</span>` +
-            (o.today === true ? '<span class="asr">today</span>' : '');
-      return (
-        `<button type="button" class="tl${o ? ` ${hueOf(o.k)}` : ''}" role="tab"` +
-        ` aria-selected="${i === 0 ? 'true' : 'false'}" aria-controls="${wrapId(id, view)}"` +
-        ` data-view="${view}">${label}</button>`
-      );
-    })
-    .join('');
-  return `<div class="tabs" role="tablist">${tabs}</div>`;
 }

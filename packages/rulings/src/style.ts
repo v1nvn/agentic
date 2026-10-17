@@ -1,5 +1,4 @@
 // The page stylesheet. System fonts only: nothing fetches on open.
-// Voice: a decision ledger — mono carries structure, the serif titles, the sans prose.
 export const pageCss = `
 :root {
   --paper: #eceee9; --sheet: #fbfbf9; --ink: #1b2130; --muted: #5d6573; --rule: #d7dad1; --code: #f1f2ee;
@@ -120,13 +119,6 @@ p.today b { color: var(--ink); }
 
 .compare { margin-top: 14px; background: var(--sheet); border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; }
 .compare .stage { border: 0; border-radius: 0; }
-.tabs { display: flex; gap: 4px; align-items: stretch; padding: 8px 10px 0; border-bottom: 1px solid var(--rule); flex-wrap: wrap; }
-.tabs .tl { display: inline-flex; gap: 8px; align-items: center; font: 600 var(--mono-l) var(--mono); color: var(--muted); background: none; border: 1px solid transparent; border-bottom: 0; border-radius: 7px 7px 0 0; padding: 5px 10px 7px; cursor: pointer; margin-bottom: -1px; }
-.tabs .tl .lt { width: 21px; height: 21px; font-size: var(--mono-s); }
-.tabs .tl .tt { font: 500 11.5px/1.3 var(--sans); max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.tabs .tl:hover { color: var(--ink); }
-.tabs .tl[aria-selected="true"] { color: var(--ink); border-color: var(--rule); background: var(--paper); }
-.tabs .tl[aria-selected="true"] .lt { border-color: var(--o); color: var(--o); }
 
 .stage { background: var(--sheet); border: 1px solid var(--rule); border-radius: 8px; min-width: 0; overflow: hidden; }
 .stage .legend { display: flex; flex-wrap: wrap; gap: 4px 16px; font: var(--mono-s) var(--mono); color: var(--muted); padding: 10px 14px 0; }
@@ -140,7 +132,6 @@ p.today b { color: var(--ink); }
 .bodies { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: 14px; padding: 14px; }
 .body { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .body .tag { font: var(--mono-l) var(--mono); color: var(--muted); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-.body .tag .lt { width: 20px; height: 20px; font-size: var(--mono-s); }
 .body.is-today { --o: var(--muted); }
 .body .tag b { color: var(--ink); font-weight: 600; font-family: var(--sans); font-size: 12.5px; }
 pre { margin: 0; background: var(--code); border: 1px solid var(--rule); border-radius: 6px; padding: 12px 14px; overflow-x: auto; color: var(--ink); font: var(--mono-l)/1.55 var(--mono); white-space: pre; overflow-wrap: normal; }

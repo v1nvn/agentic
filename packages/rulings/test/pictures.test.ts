@@ -154,6 +154,8 @@ describe('bodies view', () => {
     expect(html).toContain('<code>core/src/cli.ts:139-189</code>');
     expect(html).not.toContain('diff vs today');
     expect(html).toContain('<div class="body is-today">');
+    expect(html).toContain('<div class="tag"><span>built today</span>');
+    expect(html).not.toContain('<span class="lt">');
     expect(html).not.toContain('data-pick');
   });
 
@@ -163,6 +165,8 @@ describe('bodies view', () => {
     expect(html).toMatchSnapshot();
     expect(html).toContain('token keyword');
     expect(html).toContain('diff vs today');
+    expect(html).toContain('<div class="tag"><span>planned</span><span class="dleg">diff vs today</span>');
+    expect(html).not.toContain('<span class="lt">');
     expect(html).toContain('⋯ 33 unchanged lines');
     expect(html).not.toContain('The quiet walk core runs on every command');
   });
@@ -173,6 +177,7 @@ describe('bodies view', () => {
     expect(html).toMatchSnapshot();
     expect(html).toContain('sketch — feasibility not checked');
     expect(html).not.toContain('diff vs today');
+    expect(html).not.toContain('<span class="lt">');
     expect(html).toContain('class="how"');
     expect(html).toContain('recover already maps commander error codes');
   });
@@ -311,7 +316,6 @@ describe('the mermaid boot', () => {
     }
   }
 
-  // The boot ships as static script text: its behavior runs in a vm over fakes.
   function bootedOn(dark: boolean, withIO = true) {
     SpyIO.last = null;
     const authored = ['flowchart TD\n  A --> B', 'flowchart TD\n  C --> D'];
@@ -477,11 +481,11 @@ describe('page styles and theme door', () => {
     expect(pageCss).not.toContain('data-theme');
   });
 
-  it('styles the table and the tabs, not the old view cards', () => {
+  it('styles the table and the compare box, not the old view cards or a tab strip', () => {
     expect(pageCss).toMatch(/\.vtable \{[^}]*border: 1px solid var\(--rule\)/);
+    expect(pageCss).toMatch(/\.compare \{[^}]*border: 1px solid var\(--rule\)/);
     expect(pageCss).toMatch(/\.compare \.stage \{ border: 0/);
-    expect(pageCss).toMatch(/\.tabs \.tl\[aria-selected="true"\]/);
-    expect(pageCss).not.toMatch(/\.views|\.vtt|\.vmeta|\.gc \./);
+    expect(pageCss).not.toMatch(/\.views|\.vtt|\.vmeta|\.gc \.|\.tabs|\.tl\b/);
   });
 });
 

@@ -92,8 +92,9 @@ The build cannot parse mermaid text — a broken diagram is checked only when th
 - Say each fact once, in the block that owns it: the stake owns the loss, `today` owns the
   mechanism, the picture owns the numbers, the options own code and test consequences. Keep it
   short without losing what the owner needs to decide; there is no length cap.
-- **Picture** with a view for **every** option, a one-line caption that opens with its conclusion,
-  and `today: true` on the option that leaves things as they are.
+- **Picture** with a view for **every** option, a one-line caption that opens with its
+  conclusion — never with the option's name; the row already names it — and `today: true` on the
+  option that leaves things as they are.
 - **Options**: two to four, lettered. The verdict table is each option's one home: its letter
   disc, title, `★ recommended` / `as today` / `needs` chips, its **gain** and **cost** as aligned
   fragments — 90 characters at most, each checkable on the option's picture — and the note input,
@@ -145,7 +146,7 @@ Not rulings: <X, because Y>.
 ```
 
 The owner answers on the page or in chat; both read verbatim. On the page: a ruling's letter disc
-picks (click it again to unpick), the shown picture picks its option too, and a row or a tab only
+picks (click it again to unpick), the shown picture picks its option too, and a row only
 switches the shown picture — looking never picks. A reload reopens the picked option's picture.
 The none-of-these button picks `n` for a ruling
 whose options all miss, and a quick group's accept-recommended button picks its starred letters.
