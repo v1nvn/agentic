@@ -520,25 +520,27 @@ function emittedChrome(html: string) {
   const body = new El('body');
   const key = /<body data-key="([^"]*)">/.exec(html);
   if (key) body.setAttribute('data-key', key[1]);
+  const cardEl = (cls: string, pick: string): El => {
+    const el = new El('div', cls.split(/\s+/).filter(Boolean));
+    if (pick !== '') el.setAttribute('data-pick', pick);
+    el.parent = body;
+    return el;
+  };
   const discs = [...html.matchAll(/<button type="button" class="lt disc ([^"]*)" data-pick="([^"]+)"/g)].map(
-    m => ({ at: m.index, cls: m[1], pick: m[2] }),
+    m => ({ at: m.index, el: cardEl(m[1], m[2]) }),
   );
   const wraps = [
     ...html.matchAll(
-      /<div class="stage-wrap ([^"]*)" data-view="[^"]*"(?: data-pick="([^"]*)")? id="/g,
+      /<div class="stage-wrap(?: ([^"]*))?" data-view="[^"]*"(?: data-pick="([^"]+)")?(?: hidden)?>/g,
     ),
-  ].map(m => ({ at: m.index, cls: m[1], pick: m[2] ?? '' }));
+  ].map(m => ({ at: m.index, el: cardEl(m[1] ?? '', m[2] ?? '') }));
   const noneRows = [
     ...html.matchAll(/<div class="vrow none" data-pick="([^"]+)">/g),
-  ].map(m => ({ at: m.index, cls: 'vrow none', pick: m[1] }));
+  ].map(m => ({ at: m.index, el: cardEl('vrow none', m[1]) }));
   const cards = [...discs, ...wraps, ...noneRows]
     .sort((a, b) => a.at - b.at)
-    .map(c => {
-      const el = new El('div', c.cls.split(/\s+/).filter(Boolean));
-      if (c.pick !== '') el.setAttribute('data-pick', c.pick);
-      el.parent = body;
-      return el;
-    });
+    .map(c => c.el)
+    .filter(el => el.getAttribute('data-pick') !== null);
   const needsRows = [
     ...html.matchAll(
       /<div class="vrow ([^"]*)" data-view="[^"]*"(?: data-needs="([^"]*)")? tabindex="0">/g,
@@ -693,6 +695,7 @@ function emittedChrome(html: string) {
     sum,
     tab,
     where,
+    wraps: wraps.map(w => w.el),
   };
 }
 
@@ -751,6 +754,27 @@ describe('the interactive chrome', () => {
     expect(count.textContent).toBe('2 of 4 ruled');
     expect(page.sum?.innerHTML).not.toContain('needs G1a');
     expect(page.link('G1')?.classes.contains('ruled')).toBe(true);
+  });
+
+  it('carries the stage-wrap picks into the chrome and picks from the shown picture', () => {
+    const { html } = buildPage(loadPageFile(EXAMPLE));
+    const page = emittedChrome(html);
+    expect(page.wraps).toHaveLength(10);
+    expect(
+      page.wraps
+        .map(w => w.getAttribute('data-pick'))
+        .filter((p): p is string => p !== null),
+    ).toEqual(['G1a', 'G1b', 'G2a', 'G2b', 'G4a', 'G4b', 'G5b', 'G5a']);
+    const shown = page.wraps.find(w => w.getAttribute('data-pick') === 'G2b');
+    if (shown === undefined) throw new Error('fixture: the G2b stage wrap');
+    expect(shown.getAttribute('aria-pressed')).toBe('false');
+    page.click(shown);
+    expect(shown.getAttribute('aria-pressed')).toBe('true');
+    expect(page.count?.textContent).toBe('1 of 4 ruled');
+    expect(page.sum?.innerHTML).toContain('G2b');
+    page.click(shown);
+    expect(shown.getAttribute('aria-pressed')).toBe('false');
+    expect(page.count?.textContent).toBe('0 of 4 ruled');
   });
 
   it('emits a page without key with the composer and no storage key', () => {
