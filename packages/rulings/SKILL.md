@@ -174,7 +174,7 @@ with `--no-open`, ask the owner to reload.
 
 1. **About one ruling**: change that ruling only; mark it `changed`.
 2. **A principle**: sweep all rulings; report rewritten, new option, moved recommendation, untouched.
-3. **Two rulings are one**: keep one; the other gets `merged`.
+3. **Two rulings are one**: keep one; the other gets `merged`, placed last in its group.
 4. **The mechanism exists**: delete the options that build a new one; add "use that".
 5. **The owner cannot judge the options**: the framing is wrong. Walk the case through in chat from the user's side, then redo the page.
 

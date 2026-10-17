@@ -27,7 +27,7 @@ const overlay = z.strictObject({
 const step = z.strictObject({
   b: z.array(cell).optional(),
   f: z.number().int(),
-  in: z.array(z.string()).optional(),
+  in: z.array(z.string()).min(1).optional(),
   k: z.enum(KINDS),
   o: z.record(z.string(), overlay).optional(),
   s: z.string().optional(),

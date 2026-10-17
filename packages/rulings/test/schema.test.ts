@@ -288,6 +288,12 @@ describe('shape rejects at the schema door', () => {
     }
   });
 
+  it('a step in names at least one option', () => {
+    const P = loadExample();
+    P.rulings.G4.seq.steps[1].in = [];
+    expect(allText(validatePage(P))).toContain('G4.seq.steps.1.in');
+  });
+
   it('a needs array closes every entry', () => {
     const P = loadExample();
     P.rulings.G2.opts[0].needs = ['G1a', 'G1b'];
