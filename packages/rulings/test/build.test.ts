@@ -211,6 +211,29 @@ describe('the emitted page', () => {
     expect(html.match(/<span class="vchips">/g)).toHaveLength(5);
   });
 
+  it('hints the row-drives-picture signal once per ruling, under the note', () => {
+    const { html } = buildPage(loadPageFile(EXAMPLE));
+    expect(
+      html.match(/<div class="vhint">a row shows its picture below<\/div>/g),
+    ).toHaveLength(4);
+    const g1 = html.slice(html.indexOf('id="r-G1"'), html.indexOf('id="r-G2"'));
+    expect(g1.indexOf('data-note="G1"')).toBeLessThan(
+      g1.indexOf('class="vhint"'),
+    );
+    expect(g1.indexOf('class="vhint"')).toBeLessThan(
+      g1.indexOf('class="compare"'),
+    );
+  });
+
+  it('renders the merged ruling last on the page, after every live ruling', () => {
+    const { html } = buildPage(loadPageFile(EXAMPLE));
+    const at = (id: string): number => html.indexOf(`id="r-${id}"`);
+    expect(at('G1')).toBeLessThan(at('G2'));
+    expect(at('G2')).toBeLessThan(at('G4'));
+    expect(at('G4')).toBeLessThan(at('G5'));
+    expect(at('G5')).toBeLessThan(at('G3'));
+  });
+
   it('carries the pick on the disc and the wrap, the look on the row', () => {
     const { html } = buildPage(loadPageFile(EXAMPLE));
     expect(

@@ -58,6 +58,20 @@ describe('seq view', () => {
     );
   });
 
+  it('renders today’s option-only step as a quiet ghost row, not a gap', () => {
+    const P = example();
+    const nums = (html: string): string[] =>
+      [...html.matchAll(/class="num"[^>]*>(\d+)<\/text>/g)].map(m => m[1]);
+    const today = seqView(P.rulings.G4, 'G4', 'today');
+    expect(nums(today)).toEqual(['1', '2', '3', '4']);
+    expect(today).toContain('class="ghost"');
+    expect(today).toContain('only in a');
+    const a = seqView(P.rulings.G4, 'G4', 'G4a');
+    expect(a).not.toContain('class="ghost"');
+    expect(nums(a)).toEqual(['2', '3', '4']);
+    expect(nums(seqView(P.rulings.G1, 'G1', 'G1b'))).toEqual(['2', '5']);
+  });
+
   it('draws only an option’s delta rows, at their true chain numbers', () => {
     const P = example();
     const html = seqView(P.rulings.G1, 'G1', 'G1b');

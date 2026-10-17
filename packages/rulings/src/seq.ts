@@ -33,9 +33,8 @@ function overlayFor(
   return undefined;
 }
 
-// A step a view draws as a delta: today draws the whole chain (minus steps
-// that join an option), an option view draws only the steps it adds (`in`)
-// or reshapes (`o`).
+// A step a view draws as a delta: today draws the whole chain, an option view
+// draws only the steps it adds (`in`) or reshapes (`o`).
 function drawnIn(st: Step, view: string, owner: string): boolean {
   if (view === 'today') {
     return st.in === undefined;
@@ -69,13 +68,21 @@ function legendHtml(d: Seq, hasDeltas: boolean): string {
   return `<div class="legend">${kinds.join('')}${sw}</div>`;
 }
 
+const GHOST_H = 28;
+
 // The ledger runs silently through every step that happens in the view —
 // drawn or not — so a drawn row shows the true balance at its true chain
 // number; no end-balance footer.
 function seqSvg(d: Seq, owner: string, view: string, cap: string): string {
-  const drawn = d.steps
-    .map((st, i) => ({ st, n: i + 1 }))
-    .filter(({ st }) => drawnIn(st, view, owner));
+  const shown = d.steps
+    .map((st, i) => {
+      const ghost =
+        view === 'today' && st.in !== undefined
+          ? st.in.map(v => full(v, owner).slice(-1)).join(', ')
+          : null;
+      return { st, n: i + 1, ghost };
+    })
+    .filter(row => row.ghost !== null || drawnIn(row.st, view, owner));
   const L = d.lanes.length;
   const G = 92;
   const LW = 170;
@@ -94,7 +101,20 @@ function seqSvg(d: Seq, owner: string, view: string, cap: string): string {
   function fmt(v: Cell): string {
     return typeof v === 'number' ? v.toLocaleString('en-US') : String(v);
   }
-  const rows = drawn.map(({ st }) => {
+  function ghostRow(n: number, letters: string, y0: number): string {
+    const y = y0 + GHOST_H / 2;
+    const tag = `only in ${letters}`;
+    const tagEnd = 26 + tag.length * 6.6;
+    return (
+      `<g class="ghost"><text class="num" x="14" y="${y + 4}" text-anchor="middle">${n}</text>` +
+      `<text class="ghosttag" x="26" y="${y + 3.5}">${esc(tag)}</text>` +
+      `<line class="ghostrule" x1="${tagEnd + 10}" y1="${y}" x2="${lanesW - 8}" y2="${y}"/></g>`
+    );
+  }
+  const rows = shown.map(({ st, ghost }) => {
+    if (ghost !== null) {
+      return GHOST_H;
+    }
     const ov = overlayFor(st, view, owner);
     const s = ov?.s ?? st.s;
     return 40 + (s ? 14 : 0) + (ov?.n ? 16 : 0);
@@ -106,7 +126,7 @@ function seqSvg(d: Seq, owner: string, view: string, cap: string): string {
   }
   if (view !== 'today') {
     let y0 = top;
-    drawn.forEach((_, i) => {
+    shown.forEach((_, i) => {
       out += `<rect class="band" x="4" y="${y0 + 2}" width="${lanesW - 4}" height="${rows[i] - 4}" rx="3"/>`;
       y0 += rows[i];
     });
@@ -154,7 +174,13 @@ function seqSvg(d: Seq, owner: string, view: string, cap: string): string {
     bals.set(st, { pre, post: prev.slice() });
   }
   let y0 = top;
-  drawn.forEach(({ st, n }, i) => {
+  shown.forEach((row, i) => {
+    if (row.ghost !== null) {
+      out += ghostRow(row.n, row.ghost, y0);
+      y0 += rows[i];
+      return;
+    }
+    const { st, n } = row;
     const ov = overlayFor(st, view, owner);
     const gone = ov?.a === 'del';
     const isNew = st.in !== undefined;
