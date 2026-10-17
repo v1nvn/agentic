@@ -161,6 +161,8 @@ time, so it speaks only to that model.
   the progress-file shape `run` consumes, the `agents/` role files carry the law `run`
   dispatches, and every other todo skill stays in sync with all three — a change to one
   lands in the others in the same change.
+- **A subagent is steered by its role file and its brief, never by hooks.** Hooks that
+  block, rewrite or inject into a worker's calls are regressions waiting to happen.
 - **Promotion out of a thread is rare and strict.** A rule reaches a consumer repo's
   `references/` only as a settled fact that repo still needs; it reaches this repo (todo's
   own rules) only when every consumer repo needs it. The default is: it stays in the thread.
