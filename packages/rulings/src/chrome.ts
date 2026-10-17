@@ -185,14 +185,6 @@ export function chromeScript(): string {
       return;
     }
     if (exempt(e.target)) return;
-    var card = e.target.closest('[data-pick]');
-    if (card) {
-      if (endsDragSelect(e)) return;
-      var m = REF.exec(card.getAttribute('data-pick'));
-      if (m) { if (pick[m[1]] === m[2]) delete pick[m[1]]; else pick[m[1]] = m[2]; }
-      commit();
-      return;
-    }
     var quickBtn = e.target.closest('[data-picks]');
     if (quickBtn) {
       quickBtn.getAttribute('data-picks').split(/\\s+/).filter(Boolean).forEach(function (t) {
@@ -200,12 +192,27 @@ export function chromeScript(): string {
         if (q) pick[q[1]] = q[2];
       });
       commit();
+      return;
     }
-    var look = e.target.closest('[data-view]');
-    if (look) {
-      var sec = look.closest('section');
+    var row = e.target.closest('.vrow');
+    if (row) {
+      if (endsDragSelect(e)) return;
+      var d = row.getAttribute('data-pick') ? row : row.querySelector('.disc');
+      var m = d && REF.exec(d.getAttribute('data-pick'));
+      if (m) { if (pick[m[1]] === m[2]) delete pick[m[1]]; else pick[m[1]] = m[2]; }
+      var v = row.getAttribute('data-view');
+      var sec = v && row.closest('section');
       var sid = sec && sec.getAttribute('id');
-      if (sid) show(sid, look.getAttribute('data-view'));
+      if (sid) show(sid, v);
+      commit();
+      return;
+    }
+    var card = e.target.closest('[data-pick]');
+    if (card) {
+      if (endsDragSelect(e)) return;
+      var m2 = REF.exec(card.getAttribute('data-pick'));
+      if (m2) { if (pick[m2[1]] === m2[2]) delete pick[m2[1]]; else pick[m2[1]] = m2[2]; }
+      commit();
     }
   });
   document.addEventListener('keydown', function (e) {
@@ -214,12 +221,7 @@ export function chromeScript(): string {
     var card = e.target.closest('[data-pick]');
     if (card) { e.preventDefault(); card.click(); return; }
     var row = e.target.closest('[data-view]');
-    if (row) {
-      e.preventDefault();
-      var sec = row.closest('section');
-      var sid = sec && sec.getAttribute('id');
-      if (sid) show(sid, row.getAttribute('data-view'));
-    }
+    if (row) { e.preventDefault(); row.click(); }
   });
   function sizeNote() {
     if (!notesIn) return;

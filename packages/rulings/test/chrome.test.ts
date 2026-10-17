@@ -71,13 +71,13 @@ function harness(
   rowA.parent = secG1;
   const discA = new El('button', ['lt', 'disc', 'o-a']);
   discA.setAttribute('data-pick', 'G1a');
-  discA.parent = rowA;
+  rowA.appendChild(discA);
   const rowB = new El('div', ['vrow', 'o-b']);
   rowB.setAttribute('data-view', 'G1b');
   rowB.parent = secG1;
   const discB = new El('button', ['lt', 'disc', 'o-b']);
   discB.setAttribute('data-pick', 'G1b');
-  discB.parent = rowB;
+  rowB.appendChild(discB);
   const vtB = new El('span', ['vt']);
   vtB.parent = rowB;
   const noneRow = new El('div', ['vrow', 'none']);
@@ -85,7 +85,7 @@ function harness(
   noneRow.parent = secG1;
   const noneDisc = new El('button', ['lt', 'disc', 'none']);
   noneDisc.setAttribute('data-pick', 'G1n');
-  noneDisc.parent = noneRow;
+  noneRow.appendChild(noneDisc);
   const rnote = new El('input');
   rnote.setAttribute('data-note', 'G1');
   rnote.parent = secG1;
@@ -344,6 +344,9 @@ describe('the pick toggle', () => {
     h.select('');
     h.docClick({ target: h.cardB });
     expect(h.sum.innerHTML).toContain('G1b');
+    h.select('gain text selected by dragging');
+    h.docClick({ target: h.vtB });
+    expect(JSON.parse(h.storage.get('k') ?? '{}').picks).toEqual({ G1: 'b' });
   });
 
   it('lands a keyboard-activated pick while a selection is alive', () => {
@@ -356,31 +359,45 @@ describe('the pick toggle', () => {
   });
 });
 
-describe('the shown view', () => {
-  it('looks on Enter and Space on the row, and never picks', () => {
-    const h = harness();
-    h.keyDown({ key: 'Enter', target: h.rowB });
-    expect(h.wrapB.getAttribute('hidden')).toBeNull();
-    expect(h.wrapToday.getAttribute('hidden')).toBe('');
-    expect(h.rowB.classList.contains('look')).toBe(true);
-    expect(h.rowB.getAttribute('aria-current')).toBe('true');
-    expect(h.rowA.getAttribute('aria-current')).toBeNull();
-    expect(h.sum.innerHTML).toContain('no picks yet — pick a letter');
-    h.keyDown({ key: ' ', target: h.rowA });
-    expect(h.wrapToday.getAttribute('hidden')).toBeNull();
-    expect(h.wrapB.getAttribute('hidden')).toBe('');
-    expect(h.rowA.getAttribute('aria-current')).toBe('true');
-    expect(h.rowB.getAttribute('aria-current')).toBeNull();
-    expect(h.sum.innerHTML).toContain('no picks yet — pick a letter');
-  });
-
-  it('switches on a row-body click and never picks', () => {
+describe('the row picks and shows', () => {
+  it('picks and shows on a row-body click; the second click unpicks and the view stays', () => {
     const h = harness();
     h.docClick({ target: h.vtB });
+    expect(h.sum.innerHTML).toContain('G1b');
+    expect(h.wrapB.getAttribute('hidden')).toBeNull();
+    expect(h.wrapToday.getAttribute('hidden')).toBe('');
+    expect(h.rowB.getAttribute('aria-current')).toBe('true');
+    expect(h.rowB.classList.contains('look')).toBe(true);
+    h.docClick({ target: h.vtB });
+    expect(h.sum.innerHTML).toContain('no picks yet — pick a letter');
     expect(h.wrapB.getAttribute('hidden')).toBeNull();
     expect(h.rowB.getAttribute('aria-current')).toBe('true');
+  });
+
+  it('moves the ruling’s single pick a→b: storage holds exactly one letter', () => {
+    const h = harness();
+    h.docClick({ target: h.rowA });
+    h.docClick({ target: h.rowB });
+    expect(JSON.parse(h.storage.get('k') ?? '{}').picks).toEqual({ G1: 'b' });
+    expect(h.wrapB.getAttribute('hidden')).toBeNull();
+    expect(h.wrapToday.getAttribute('hidden')).toBe('');
     expect(h.rowA.getAttribute('aria-current')).toBeNull();
+    expect(h.rowB.getAttribute('aria-current')).toBe('true');
+  });
+
+  it('picks and shows on the disc click, by mouse and by keyboard', () => {
+    const h = harness();
+    h.docClick({ target: h.discB });
+    expect(h.sum.innerHTML).toContain('G1b');
+    expect(h.wrapB.getAttribute('hidden')).toBeNull();
+    expect(h.rowB.getAttribute('aria-current')).toBe('true');
+    h.keyDown({ key: 'Enter', target: h.rowA });
+    expect(h.sum.innerHTML).toContain('G1a');
+    expect(h.wrapToday.getAttribute('hidden')).toBeNull();
+    expect(h.wrapB.getAttribute('hidden')).toBe('');
+    h.keyDown({ key: ' ', target: h.discA });
     expect(h.sum.innerHTML).toContain('no picks yet — pick a letter');
+    expect(h.wrapToday.getAttribute('hidden')).toBeNull();
   });
 
   it('picks from the shown picture and keeps the view', () => {
@@ -408,14 +425,6 @@ describe('the shown view', () => {
     expect(h.storage.size).toBe(0);
   });
 
-  it('picks on the disc without moving the shown view', () => {
-    const h = harness();
-    h.docClick({ target: h.discB });
-    expect(h.sum.innerHTML).toContain('G1b');
-    expect(h.wrapToday.getAttribute('hidden')).toBeNull();
-    expect(h.rowB.getAttribute('aria-current')).toBeNull();
-    expect(h.rowB.classList.contains('look')).toBe(false);
-  });
 });
 
 describe('restore on load', () => {
@@ -476,13 +485,14 @@ describe('the none row', () => {
     expect(h.sum.innerHTML).toContain('no picks yet');
   });
 
-  it('never looks: it carries no view and moves no aria-current', () => {
+  it('never looks: it carries no view, moves no aria-current, and takes the pick', () => {
     const h = harness();
     h.keyDown({ key: 'Enter', target: h.rowB });
     expect(h.rowB.getAttribute('aria-current')).toBe('true');
     h.docClick({ target: h.noneRow });
     expect(h.noneRow.getAttribute('data-view')).toBeNull();
     expect(h.noneRow.classList.contains('look')).toBe(false);
+    expect(JSON.parse(h.storage.get('k') ?? '{}').picks).toEqual({ G1: 'n' });
     expect(h.rowB.getAttribute('aria-current')).toBe('true');
     expect(h.wrapB.getAttribute('hidden')).toBeNull();
   });
