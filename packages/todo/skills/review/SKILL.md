@@ -17,7 +17,7 @@ closed: say so and stop.
 - A PR a `/todo:run` run opened has its plan in `progress/<slug>.md` while the
   thread is live and its landed rows in `archive/<slug>.md` — the whole plan once the
   thread closed — matched by the branch name or the plan ids in its commits.
-  Its rows and its tactical map's workspace gate line are the review's context. Several candidates, or none:
+  Its rows are the review's context. Several candidates, or none:
   the diff is the whole context.
 
 The session reads no source and no diff itself; the reviewers do.

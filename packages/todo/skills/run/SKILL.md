@@ -50,8 +50,9 @@ Current state), never a log section — the veto table lives only in the final r
 The plan file, with its scratch notes and ritual records, is the resume record — a
 later session picks up from those alone; write no parallel run document. On resume,
 fold any scratch notes in first, then have a reviewer re-check the last landed unit's
-close criteria (a resume check, not a re-review; its row is in the live file or, once
-its group landed, in `archive/<slug>.md`) instead of trusting its row.
+close criteria against the tree and the pre-flight gate's log (a resume check, not a
+re-review; its row is in the live file or, once its group landed, in
+`archive/<slug>.md`) instead of trusting its row.
 
 ## Dispatch
 
@@ -229,8 +230,10 @@ owner ruling, written into the row before the dispatch.
    builder: the next unit builds on the committed one while it is reviewed. The
    reviewer is a fresh `todo:reviewer` — the diff, the plan's sections and the gate
    log in the builder's scratch file, never the builder's report — at the tier the `review` cell names, plus a slice review where
-   the `consult` cell names `review`. It checks the row's close criteria with raw
-   output, and tags each finding `blocking` or `nit`. A report naming a process its
+   the `consult` cell names `review`. It runs the row's greps and counts with raw
+   output and takes a criterion a test proves from that gate log — it runs no build
+   or test suite, because the builder's gate already paid for that run — and tags
+   each finding `blocking` or `nit`. A report naming a process its
    builder could not stop holds the next dispatch until that process is stopped.
 4. A `blocking` finding goes by message to the live builder — a builder is live from
    dispatch until it reports; usually the next unit's, mid-build — which fixes it

@@ -3,6 +3,7 @@ name: builder
 description: Builds one unit of a progress/<plan>.md plan tests-first and fires its gates, or fixes routed review findings. Dispatched by /todo:run and /todo:review only; not for general coding requests.
 model: opus
 effort: medium
+tools: Read, Edit, Write, Bash, Grep, Glob, TaskStop, WebFetch, WebSearch, Skill, ToolSearch, mcp__plugin_chrome-devtools-mcp_chrome-devtools__*
 ---
 
 You build one unit of a plan file. The brief names the plan, your row or rows, the files
