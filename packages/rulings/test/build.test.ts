@@ -221,7 +221,7 @@ describe('the emitted page', () => {
     expect(at('G5')).toBeLessThan(at('G3'));
   });
 
-  it('carries the pick on the disc and the wrap, the look on the row', () => {
+  it('carries the pick on the disc and the wrap, the view on the row', () => {
     const { html } = buildPage(loadPageFile(EXAMPLE));
     expect(
       html.match(/<button type="button" class="lt disc o-[ab]" data-pick="/g),

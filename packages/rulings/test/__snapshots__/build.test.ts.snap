@@ -102,7 +102,7 @@ p.today b { color: var(--ink); }
 .vrow { align-items: baseline; cursor: pointer; border-left: 3px solid transparent; }
 .vrow + .vrow, .vfoot { border-top: 1px dashed color-mix(in srgb, var(--rule) 60%, transparent); }
 .vrow:hover { background: color-mix(in srgb, var(--ink) 4%, transparent); }
-.vrow.look { background: color-mix(in srgb, var(--o) 6%, transparent); border-left-color: color-mix(in srgb, var(--o) 45%, var(--rule)); }
+.vrow.shown { background: color-mix(in srgb, var(--o) 6%, transparent); border-left-color: color-mix(in srgb, var(--o) 45%, var(--rule)); }
 .vrow.none { --o: var(--muted); }
 .lt { width: 27px; height: 27px; flex: none; border-radius: 50%; display: inline-grid; place-items: center; font: 700 var(--mono-l) var(--mono); color: var(--o); border: 1.5px solid var(--o); background: var(--sheet); }
 .vrow .disc { width: 26px; height: 26px; padding: 0; align-self: center; cursor: pointer; }
@@ -403,6 +403,12 @@ svg text.note { font-size: 11.5px; font-weight: 600; fill: var(--o); }
     if (m) CARD[m[0]] = (el.getAttribute('data-needs') || '').split(/\\s+/).filter(Boolean);
   });
 
+  function flip(el) {
+    var d = el.getAttribute('data-pick') ? el : el.querySelector('.disc');
+    var m = d && REF.exec(d.getAttribute('data-pick'));
+    if (m) { if (pick[m[1]] === m[2]) delete pick[m[1]]; else pick[m[1]] = m[2]; }
+  }
+
   var views = {};
   function rulingViews(el) {
     var sec = el.closest('section');
@@ -423,7 +429,7 @@ svg text.note { font-size: 11.5px; font-weight: 600; fill: var(--o); }
     });
     u.r.forEach(function (r) {
       var on = r.getAttribute('data-view') === view;
-      r.classList.toggle('look', on);
+      r.classList.toggle('shown', on);
       if (on) r.setAttribute('aria-current', 'true');
       else r.removeAttribute('aria-current');
     });
@@ -554,9 +560,7 @@ svg text.note { font-size: 11.5px; font-weight: 600; fill: var(--o); }
     var row = e.target.closest('.vrow');
     if (row) {
       if (endsDragSelect(e)) return;
-      var d = row.getAttribute('data-pick') ? row : row.querySelector('.disc');
-      var m = d && REF.exec(d.getAttribute('data-pick'));
-      if (m) { if (pick[m[1]] === m[2]) delete pick[m[1]]; else pick[m[1]] = m[2]; }
+      flip(row);
       var v = row.getAttribute('data-view');
       var sec = v && row.closest('section');
       var sid = sec && sec.getAttribute('id');
@@ -567,8 +571,7 @@ svg text.note { font-size: 11.5px; font-weight: 600; fill: var(--o); }
     var card = e.target.closest('[data-pick]');
     if (card) {
       if (endsDragSelect(e)) return;
-      var m2 = REF.exec(card.getAttribute('data-pick'));
-      if (m2) { if (pick[m2[1]] === m2[2]) delete pick[m2[1]]; else pick[m2[1]] = m2[2]; }
+      flip(card);
       commit();
     }
   });

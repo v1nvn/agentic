@@ -92,7 +92,7 @@ p.today b { color: var(--ink); }
 .vrow { align-items: baseline; cursor: pointer; border-left: 3px solid transparent; }
 .vrow + .vrow, .vfoot { border-top: 1px dashed color-mix(in srgb, var(--rule) 60%, transparent); }
 .vrow:hover { background: color-mix(in srgb, var(--ink) 4%, transparent); }
-.vrow.look { background: color-mix(in srgb, var(--o) 6%, transparent); border-left-color: color-mix(in srgb, var(--o) 45%, var(--rule)); }
+.vrow.shown { background: color-mix(in srgb, var(--o) 6%, transparent); border-left-color: color-mix(in srgb, var(--o) 45%, var(--rule)); }
 .vrow.none { --o: var(--muted); }
 .lt { width: 27px; height: 27px; flex: none; border-radius: 50%; display: inline-grid; place-items: center; font: 700 var(--mono-l) var(--mono); color: var(--o); border: 1.5px solid var(--o); background: var(--sheet); }
 .vrow .disc { width: 26px; height: 26px; padding: 0; align-self: center; cursor: pointer; }
