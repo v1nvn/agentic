@@ -37,14 +37,24 @@ already-landed changes, declared), the vision round clean after `909fbe4`.
 U6 and U7 change the surface the audit walked — the audit re-runs (the
 touched probes at minimum) before the release.
 
+The audit re-run on the U6+U7 surface: 92/92, painted page 4434px (the
+none row + note footer cost +20px per ruling, net of the dead rhead
+button). The final vision round: all three owner complaints fixed; four
+findings — G4's today diagram reserves a blank numbered band for an
+option-only step (reads broken), "no picks yet" renders twice when the
+390 bar is open, the row-drives-picture signal is inferable not evident,
+and the example's merged G3 sits between G1 and G2 down the page. One
+fix dispatch takes the four; the where-pill/heading overlap and the
+look-vs-picked accent pair are accepted cosmetics for the final report.
+
 Final-report nits: pictures.test.ts's option-diff test name still
 promises a "needs chip" its snapshot lacks (pre-existing). U6's
 wrap-id dead surface is routed to U7.
 
 ## Next step
 
-On U7's green report: commit, dispatch its blind reviewer, rebuild the
-example and the exemplar, open both for the owner's look. Then, on the
+Dispatch the vision-fix round (the four findings), then rebuild the
+example and the exemplar and open both for the owner's look. Then, on the
 owner's merges (#29 then this PR): retarget the PR base if needed,
 dispatch the minor release per references/npm-publishing.md, wait for the
 registry, rebuild the five live pages and the exemplar on the published
@@ -59,7 +69,7 @@ version, live-check one, close the thread (archive + index delete).
 | U3 | the gestures — look vs pick | sonnet | role | | landed: `61b7ce6`, closed on the blind review; its one blocking finding fixed inside U4's `a80db17` on a green gate, pinned by a watched-red test |
 | U4 | example and docs to the new authoring | sonnet | role | | landed: `a80db17` and closed — its routed pin fault and selector nit fixed in the mermaid fix commit, G5 reinstated with it |
 | U6 | one listing — the tab strip dies, rows switch views | sonnet | role | | landed: `b14fc34`, closed on the blind review (all seven criteria PASS; wrap-id dead surface routed to U7) |
-| U7 | none joins the table, the note joins the ruling | sonnet | role | | "none of these fit" is the verdict table's last row (dashed n disc, picks n, the rhead button dies), one note input per ruling sits directly under the table (always present, rides the ruling's pick in the answer), per-option note inputs and their CSS die, onotes keys change pick-id → ruling-id (old stored notes drop — break clean), the answer format string stays byte-identical, the dead wrap ids die, SKILL Step 6's note law and README move in the same change |
+| U7 | none joins the table, the note joins the ruling | sonnet | role | | landed: `86914d3` + the harness-fix commit (the emitted harness sees the 8 wrap picks again, watched red); closed on the blind review — every criterion PASS live, onotes keys move to ruling ids with load validation, stale keys drop. Original cell: "none of these fit" is the verdict table's last row (dashed n disc, picks n, the rhead button dies), one note input per ruling sits directly under the table (always present, rides the ruling's pick in the answer), per-option note inputs and their CSS die, onotes keys change pick-id → ruling-id (old stored notes drop — break clean), the answer format string stays byte-identical, the dead wrap ids die, SKILL Step 6's note law and README move in the same change |
 | U5 | audit, release, rebuilds | sonnet | none | | audit half landed: programmatic 74/74 over the seven states (re-run at 76 after U6), the blind contract review all-PASS, the vision round's findings fixed (`909fbe4`). Re-audit after U7; open: the minor release and the six rebuilds, held for the owner's merges |
 
 ## Plan
