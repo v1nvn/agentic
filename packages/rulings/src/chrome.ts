@@ -46,6 +46,12 @@ export function chromeScript(): string {
     if (m) CARD[m[0]] = (el.getAttribute('data-needs') || '').split(/\\s+/).filter(Boolean);
   });
 
+  function flip(el) {
+    var d = el.getAttribute('data-pick') ? el : el.querySelector('.disc');
+    var m = d && REF.exec(d.getAttribute('data-pick'));
+    if (m) { if (pick[m[1]] === m[2]) delete pick[m[1]]; else pick[m[1]] = m[2]; }
+  }
+
   var views = {};
   function rulingViews(el) {
     var sec = el.closest('section');
@@ -66,7 +72,7 @@ export function chromeScript(): string {
     });
     u.r.forEach(function (r) {
       var on = r.getAttribute('data-view') === view;
-      r.classList.toggle('look', on);
+      r.classList.toggle('shown', on);
       if (on) r.setAttribute('aria-current', 'true');
       else r.removeAttribute('aria-current');
     });
@@ -197,9 +203,7 @@ export function chromeScript(): string {
     var row = e.target.closest('.vrow');
     if (row) {
       if (endsDragSelect(e)) return;
-      var d = row.getAttribute('data-pick') ? row : row.querySelector('.disc');
-      var m = d && REF.exec(d.getAttribute('data-pick'));
-      if (m) { if (pick[m[1]] === m[2]) delete pick[m[1]]; else pick[m[1]] = m[2]; }
+      flip(row);
       var v = row.getAttribute('data-view');
       var sec = v && row.closest('section');
       var sid = sec && sec.getAttribute('id');
@@ -210,8 +214,7 @@ export function chromeScript(): string {
     var card = e.target.closest('[data-pick]');
     if (card) {
       if (endsDragSelect(e)) return;
-      var m2 = REF.exec(card.getAttribute('data-pick'));
-      if (m2) { if (pick[m2[1]] === m2[2]) delete pick[m2[1]]; else pick[m2[1]] = m2[2]; }
+      flip(card);
       commit();
     }
   });

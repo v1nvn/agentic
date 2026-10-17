@@ -367,7 +367,7 @@ describe('the row picks and shows', () => {
     expect(h.wrapB.getAttribute('hidden')).toBeNull();
     expect(h.wrapToday.getAttribute('hidden')).toBe('');
     expect(h.rowB.getAttribute('aria-current')).toBe('true');
-    expect(h.rowB.classList.contains('look')).toBe(true);
+    expect(h.rowB.classList.contains('shown')).toBe(true);
     h.docClick({ target: h.vtB });
     expect(h.sum.innerHTML).toContain('no picks yet — pick a letter');
     expect(h.wrapB.getAttribute('hidden')).toBeNull();
@@ -436,7 +436,7 @@ describe('restore on load', () => {
     expect(h.wrapB.getAttribute('hidden')).toBeNull();
     expect(h.wrapToday.getAttribute('hidden')).toBe('');
     expect(h.rowB.getAttribute('aria-current')).toBe('true');
-    expect(h.rowB.classList.contains('look')).toBe(true);
+    expect(h.rowB.classList.contains('shown')).toBe(true);
   });
 
   it('opens the first view on a none pick or with nothing stored', () => {
@@ -446,7 +446,7 @@ describe('restore on load', () => {
     const a = harness({ storage });
     expect(a.wrapToday.getAttribute('hidden')).toBeNull();
     expect(a.rowA.getAttribute('aria-current')).toBe('true');
-    expect(a.rowA.classList.contains('look')).toBe(true);
+    expect(a.rowA.classList.contains('shown')).toBe(true);
     const b = harness();
     expect(b.wrapToday.getAttribute('hidden')).toBeNull();
     expect(b.wrapB.getAttribute('hidden')).toBe('');
@@ -485,13 +485,13 @@ describe('the none row', () => {
     expect(h.sum.innerHTML).toContain('no picks yet');
   });
 
-  it('never looks: it carries no view, moves no aria-current, and takes the pick', () => {
+  it('never shows: it carries no view, moves no aria-current, and takes the pick', () => {
     const h = harness();
     h.keyDown({ key: 'Enter', target: h.rowB });
     expect(h.rowB.getAttribute('aria-current')).toBe('true');
     h.docClick({ target: h.noneRow });
     expect(h.noneRow.getAttribute('data-view')).toBeNull();
-    expect(h.noneRow.classList.contains('look')).toBe(false);
+    expect(h.noneRow.classList.contains('shown')).toBe(false);
     expect(JSON.parse(h.storage.get('k') ?? '{}').picks).toEqual({ G1: 'n' });
     expect(h.rowB.getAttribute('aria-current')).toBe('true');
     expect(h.wrapB.getAttribute('hidden')).toBeNull();
