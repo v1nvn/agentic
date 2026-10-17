@@ -50,7 +50,10 @@ line.
 
 ## Next step
 
-On the owner's merges (#29 then this PR): retarget the PR base if needed,
+Build U6 (the owner's pushback from the sample viewing: options repeat
+twice — table row for gain/cost, tab strip + stage letter for the visual
+change), re-run the audit's touched probes, then the release on the
+owner's merges (#29 then this PR): retarget the PR base if needed,
 dispatch the minor release per references/npm-publishing.md, wait for the
 registry, rebuild the five live pages and the exemplar on the published
 version, live-check one, close the thread (archive + index delete).
@@ -114,7 +117,10 @@ line.
 
 ## Next step
 
-On the owner's merges (#29 then this PR): retarget the PR base if needed,
+Build U6 (the owner's pushback from the sample viewing: options repeat
+twice — table row for gain/cost, tab strip + stage letter for the visual
+change), re-run the audit's touched probes, then the release on the
+owner's merges (#29 then this PR): retarget the PR base if needed,
 dispatch the minor release per references/npm-publishing.md, wait for the
 registry, rebuild the five live pages and the exemplar on the published
 version, live-check one, close the thread (archive + index delete).
@@ -127,6 +133,7 @@ version, live-check one, close the thread (archive + index delete).
 | U2 | the folds — today, notes, long today-code | sonnet | role | | landed: `a97d004`, closed on the blind review (all criteria PASS live, the diff:false seam pinned) |
 | U3 | the gestures — look vs pick | sonnet | role | | landed: `61b7ce6`, closed on the blind review; its one blocking finding (the keyboard exemption hole) fixed inside U4's `a80db17` on a green gate, pinned by a watched-red test |
 | U4 | example and docs to the new authoring | sonnet | role | | landed: `a80db17` and closed — its routed pin fault and selector nit fixed in the mermaid fix commit, G5 reinstated with it |
+| U6 | one listing — the tab strip dies, rows switch views | sonnet | role | | no element repeats an option's identity: the tab strip is deleted (row body look + disc pick are the only gestures), bodies stage tags carry state and label but no letter, the wrap keeps keyboard-reachable look (row tabindex + Enter/Space), aria-current marks the looked row, SKILL Step 6 and README carry no tab references, captions open on their conclusion (SKILL note); scoped + workspace gates green, enforce green, the audit's keyboard and look probes re-run green |
 | U5 | audit, release, rebuilds | sonnet | none | | audit half landed: programmatic 74/74 over dark/light/979/390/empty/loaded/keyboard, the blind contract review all-PASS, the vision round's findings fixed (`909fbe4` — 390 table stacks, stake widow, pill shadow; dashed disc and header band verified non-faults). Open: the minor release and the six rebuilds, held for the owner's merges |
 
 ## Plan
@@ -207,6 +214,7 @@ version, live-check one, close the thread (archive + index delete).
 - The ledger voice, the sidebar with ruled marks and N of M, the resting
   composer bar and the copy contract survive untouched.
  the example's diagram ruling (G5) stopped on a U1 regression — mermaidBoot draws hidden wraps broken — recorded with its fix shape, lands as its own fix commit |
+| U6 | one listing — the tab strip dies, rows switch views | sonnet | role | | no element repeats an option's identity: the tab strip is deleted (row body look + disc pick are the only gestures), bodies stage tags carry state and label but no letter, the wrap keeps keyboard-reachable look (row tabindex + Enter/Space), aria-current marks the looked row, SKILL Step 6 and README carry no tab references, captions open on their conclusion (SKILL note); scoped + workspace gates green, enforce green, the audit's keyboard and look probes re-run green |
 | U5 | audit, release, rebuilds | sonnet | none | | audit half landed: programmatic 74/74 over dark/light/979/390/empty/loaded/keyboard, the blind contract review all-PASS, the vision round's findings fixed (`909fbe4` — 390 table stacks, stake widow, pill shadow; dashed disc and header band verified non-faults). Open: the minor release and the six rebuilds, held for the owner's merges |
 
 ## Plan
