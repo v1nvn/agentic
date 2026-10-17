@@ -154,34 +154,48 @@ describe('the emitted page', () => {
     expect(html.match(/class="vc"/g)).toHaveLength(8);
     expect(html.match(/class="how"/g)).toHaveLength(2);
     expect(html).not.toContain('class="gc');
-    expect(html.indexOf('id="view-G2b"')).toBeLessThan(
+    expect(html.indexOf('data-view="G2b" data-pick="G2b" hidden>')).toBeLessThan(
       html.indexOf('class="how"'),
     );
     expect(html.lastIndexOf('class="how"')).toBeGreaterThan(
-      html.indexOf('id="view-G4b"'),
+      html.indexOf('data-view="G4b" data-pick="G4b" hidden>'),
     );
     expect(html.match(/★ recommended/g)).toHaveLength(5);
   });
 
-  it('renders the table once per ruling: one head, one row per option', () => {
+  it('renders the table once per ruling: one head, one row per option, the none row, the ruling note', () => {
     const { html } = buildPage(loadPageFile(EXAMPLE));
     expect(
       html.match(
         /<div class="vtable"><div class="vhead"><span>option<\/span><span>gain<\/span><span>cost<\/span><\/div>/g,
       ),
     ).toHaveLength(4);
-    expect(html.match(/<div class="vrow /g)).toHaveLength(8);
-    expect(html.match(/<span class="pmark">✓ picked<\/span>/g)).toHaveLength(8);
+    expect(html.match(/<div class="vrow /g)).toHaveLength(12);
+    expect(html.match(/<span class="pmark">✓ picked<\/span>/g)).toHaveLength(12);
     expect(
       html.match(
-        /<input class="onote" data-note="[^"]+" placeholder="note for [^"]+" aria-label="note for [^"]+">/g,
+        /<input class="rnote" data-note="G\d+" placeholder="note for G\d+ — anything its answer should carry" aria-label="note for G\d+">/g,
       ),
-    ).toHaveLength(8);
+    ).toHaveLength(4);
     expect(html).toContain(
       '<div class="vrow o-a" data-view="today" tabindex="0">',
     );
     expect(html).toContain(
       '<div class="vrow o-a" data-view="G2a" data-needs="G1a" tabindex="0">',
+    );
+    expect(html).toContain('<div class="vrow none" data-pick="G1n">');
+    expect(html).toContain(
+      '<button type="button" class="lt disc none" data-pick="G1n" aria-label="pick G1n">n</button>',
+    );
+    expect(html).toContain(
+      '<span class="vt">none of these fit<span class="pmark">✓ picked</span></span>',
+    );
+    const g1 = html.slice(html.indexOf('id="r-G1"'), html.indexOf('id="r-G2"'));
+    expect(g1.indexOf('data-view="G1b"')).toBeLessThan(
+      g1.indexOf('data-pick="G1n"'),
+    );
+    expect(g1.indexOf('data-pick="G1n"')).toBeLessThan(
+      g1.indexOf('data-note="G1"'),
     );
   });
 
@@ -202,17 +216,18 @@ describe('the emitted page', () => {
     expect(
       html.match(/<button type="button" class="lt disc o-[ab]" data-pick="/g),
     ).toHaveLength(8);
-    expect(html.match(/data-pick="G/g)).toHaveLength(16);
+    expect(html.match(/data-pick="G/g)).toHaveLength(24);
     expect(html).toContain(
-      '<div class="stage-wrap o-a" data-view="today" data-pick="G1a" id="view-G1-today">',
+      '<div class="stage-wrap o-a" data-view="today" data-pick="G1a">',
     );
     expect(html).toContain(
-      '<div class="stage-wrap o-a" data-view="G2a" data-pick="G2a" id="view-G2a" hidden>',
+      '<div class="stage-wrap o-a" data-view="G2a" data-pick="G2a" hidden>',
     );
     expect(html).toContain(
-      '<div class="stage-wrap" data-view="today" id="view-G2-today">',
+      '<div class="stage-wrap" data-view="today">',
     );
-    expect(html).not.toMatch(/class="vrow[^"]*" data-pick/);
+    expect(html).not.toMatch(/class="vrow o-[a-d][^"]*" data-pick/);
+    expect(html.match(/class="vrow none" data-pick="G\d+n">/g)).toHaveLength(4);
     expect(
       html.match(
         /<div class="vrow [^"]*" data-view="[^"]*"(?: data-needs="[^"]*")? tabindex="0">/g,
@@ -225,29 +240,15 @@ describe('the emitted page', () => {
     const compares = html.match(/<div class="compare">[\s\S]*?<\/section>/g) ?? [];
     expect(compares).toHaveLength(4);
     for (const compare of compares) {
-      expect(compare.match(/id="view-[^"]+">/g)).toHaveLength(1);
+      const opens = compare.match(/<div class="stage-wrap[^>]*>/g) ?? [];
+      expect(opens.filter(o => !o.endsWith(' hidden>'))).toHaveLength(1);
     }
-    expect(html.match(/id="view-[^"]+" hidden>/g)).toHaveLength(6);
+    expect(html.match(/<div class="stage-wrap[^>]* hidden>/g)).toHaveLength(6);
   });
 
   it('emits no tab strip: the row is the only look control, keyboard-reachable', () => {
     const { html } = buildPage(loadPageFile(EXAMPLE));
     expect(html).not.toMatch(/role="tab"|tablist|tabpanel|class="tabs"|class="tl"|aria-selected/);
-    expect(html.match(/id="view-/g)).toHaveLength(10);
-    for (const id of [
-      'view-G1-today',
-      'view-G1b',
-      'view-G2-today',
-      'view-G2a',
-      'view-G2b',
-      'view-G4-today',
-      'view-G4a',
-      'view-G4b',
-      'view-G5-today',
-      'view-G5a',
-    ]) {
-      expect(html).toContain(`id="${id}"`);
-    }
   });
 
   it('references nothing external: the one script tag is the vendored mermaid', () => {
@@ -404,9 +405,13 @@ describe('the language pass', () => {
     expect(html).not.toContain('my pick');
   });
 
-  it('prints the none button without chat syntax', () => {
+  it('prints none of these fit as the table row, without chat syntax', () => {
     const { html } = buildPage(loadPageFile(EXAMPLE));
-    expect(html).toContain('>none of these fit</button>');
+    expect(
+      html.match(/>none of these fit<span class="pmark">/g),
+    ).toHaveLength(4);
+    expect(html).not.toContain('data-none');
+    expect(html).not.toContain('none-btn');
     expect(html).not.toContain('· n');
   });
 
@@ -426,7 +431,8 @@ describe('the language pass', () => {
   it('speaks to the reader: no engine vocabulary in captions and placeholders', () => {
     const { html } = buildPage(loadPageFile(EXAMPLE));
     expect(html).not.toMatch(/The engine|diff: false|rides the answer/);
-    expect(html.match(/placeholder="note for G\d[a-z]?"/g)).toHaveLength(8);
+    expect(html.match(/placeholder="note for G\d[^"]*"/g)).toHaveLength(4);
+    expect(html).not.toMatch(/placeholder="note for G\d[a-z]/);
   });
 
   it('draws mono structure at exactly two sizes', () => {
@@ -522,7 +528,10 @@ function emittedChrome(html: string) {
       /<div class="stage-wrap ([^"]*)" data-view="[^"]*"(?: data-pick="([^"]*)")? id="/g,
     ),
   ].map(m => ({ at: m.index, cls: m[1], pick: m[2] ?? '' }));
-  const cards = [...discs, ...wraps]
+  const noneRows = [
+    ...html.matchAll(/<div class="vrow none" data-pick="([^"]+)">/g),
+  ].map(m => ({ at: m.index, cls: 'vrow none', pick: m[1] }));
+  const cards = [...discs, ...wraps, ...noneRows]
     .sort((a, b) => a.at - b.at)
     .map(c => {
       const el = new El('div', c.cls.split(/\s+/).filter(Boolean));
@@ -548,17 +557,10 @@ function emittedChrome(html: string) {
     return el;
   });
   const noteIns = [
-    ...html.matchAll(/<input class="onote" data-note="([^"]+)"/g),
+    ...html.matchAll(/<input class="rnote" data-note="([^"]+)"/g),
   ].map(m => {
     const el = new El('input');
     el.setAttribute('data-note', m[1]);
-    return el;
-  });
-  const noneBtns = [
-    ...html.matchAll(/<button type="button" class="none-btn" data-none="([^"]+)">/g),
-  ].map(m => {
-    const el = new El('button');
-    el.setAttribute('data-none', m[1]);
     return el;
   });
   const links = [
@@ -627,10 +629,8 @@ function emittedChrome(html: string) {
           return cards;
         case '[data-needs]':
           return needsRows;
-        case '.onote':
+        case '.rnote':
           return noteIns;
-        case '[data-none]':
-          return noneBtns;
         case '.side a.rl':
           return links;
         case 'section[id]':
@@ -671,7 +671,6 @@ function emittedChrome(html: string) {
     html.lastIndexOf('</script>'),
   );
   vm.runInNewContext(code, sandbox);
-  // The vm script constructs the FakeIO; the cast undoes the reset's null narrowing.
   const io = FakeIO.last as FakeIO | null;
   return {
     bar,
@@ -704,13 +703,13 @@ describe('the interactive chrome', () => {
     expect(html).toContain('data-pick="G1a"');
     expect(html).toContain('data-pick="G2b"');
     expect(html).toContain('data-needs="G1a"');
-    expect(html).toContain('data-none="G1"');
+    expect(html).toContain('data-pick="G1n"');
     expect(html).toContain('data-picks="G1a"');
     expect(html).toContain('id="picks"');
     expect(html).toContain('id="rulings-notes"');
     expect(html).toContain('id="copy-answer"');
     expect(html).toContain('localStorage.getItem');
-    expect(html).toContain('data-note="G2a"');
+    expect(html).toContain('data-note="G2"');
     expect(html).toContain('data-unpick=');
     expect(html).toContain('IntersectionObserver');
     expect(html).toContain('onotes');
