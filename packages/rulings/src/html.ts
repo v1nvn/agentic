@@ -83,8 +83,7 @@ export function verdictTable(q: Ruling, id: string): string {
     '</div>';
   const note =
     `<div class="vfoot"><input class="rnote" data-note="${id}" placeholder="note for ${id} — anything its answer should carry" aria-label="note for ${id}"></div>`;
-  const hint = '<div class="vhint">a row shows its picture below</div>';
   return (
-    `<div class="vtable"><div class="vhead"><span>option</span><span>gain</span><span>cost</span></div>${rows}${none}${note}${hint}</div>`
+    `<div class="vtable"><div class="vhead"><span>option</span><span>gain</span><span>cost</span></div>${rows}${none}${note}</div>`
   );
 }

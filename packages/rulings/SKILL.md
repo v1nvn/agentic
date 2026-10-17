@@ -146,11 +146,12 @@ I recommend <G1a, G2c>. Most important fact from the code: <fact, file:line>.
 Not rulings: <X, because Y>.
 ```
 
-The owner answers on the page or in chat; both read verbatim. On the page: a ruling's letter disc
-picks (click it again to unpick), the shown picture picks its option too, and an option row only
-switches the shown picture — looking never picks. A reload reopens the picked option's picture.
-The verdict table's last row, none of these fit, picks `n` for a ruling
-whose options all miss, and a quick group's accept-recommended button picks its starred letters.
+The owner answers on the page or in chat; both read verbatim. On the page: clicking an option's
+row — its body or its letter disc — picks it and shows its picture; clicking the same row again
+unpicks, the picture stays. The shown picture picks its option too. A reload reopens the picked
+option's picture. The verdict table's last row, none of these fit, picks `n` the same way
+(click again to unpick) for a ruling whose options all miss, and a quick group's
+accept-recommended button picks its starred letters.
 Each ruling carries one note input under its options — its text rides the answer inline after
 that ruling's pick, whatever letter is picked — and the
 composer bar's page note rides after a blank line. The composer annotates a pick whose `needs`

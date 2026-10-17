@@ -3,8 +3,8 @@
 Put decisions the owner must make on one local HTML page — each ruling
 self-contained: the question, its stake, how its part works today, a picture,
 and a verdict table of lettered options with gain, cost and a recommendation.
-The owner picks a letter — the table's disc or the shown picture — looks
-around through row clicks, adds notes, and copies the composed answer;
+The owner picks a letter by clicking its row — a second click unpicks; the
+shown picture picks too — adds notes, and copies the composed answer;
 picks persist under the page's `key`. The plugin is the `/rulings:consult`
 skill; the CLI builds and rebuilds the page it opens.
 
@@ -28,8 +28,9 @@ is remembered.
 (the owner asked, or three or more linked, or four or more independent, decisions), read the
 code and write `page.js`, run the pinned `npx` line above through the session's Bash tool
 until it exits green and the page opens, announce the path and the recommendation in chat
-without repeating the page, then read the answer back. The owner picks on the page — a letter
-disc or the shown picture, the table's none row, a quick group's accept-recommended — and pastes the composer's copied
+without repeating the page, then read the answer back. The owner picks on the page — an option's
+row (a second click unpicks), the table's none row, the shown picture, a quick group's
+accept-recommended — and pastes the composer's copied
 answer (picks with the ruling's note, unmet needs, the page note), or types picks (`G1a`, `G2n`, `G6 note: …`) in chat; both
 read verbatim. Pushback updates `page.js` and rebuilds with `--no-open` for a reload;
 one to three simple decisions never reach the page — they go through AskUserQuestion.

@@ -190,6 +190,7 @@ describe('the emitted page', () => {
     expect(html).toContain(
       '<span class="vt">none of these fit<span class="pmark">✓ picked</span></span>',
     );
+    expect(html).not.toContain('vhint');
     const g1 = html.slice(html.indexOf('id="r-G1"'), html.indexOf('id="r-G2"'));
     expect(g1.indexOf('data-view="G1b"')).toBeLessThan(
       g1.indexOf('data-pick="G1n"'),
@@ -209,20 +210,6 @@ describe('the emitted page', () => {
     expect(narrow).toContain('.vrow .vt, .vrow .vg, .vrow .vc { grid-column: 2; min-width: 0; }');
     expect(narrow).toContain('.vchips { display: flex; flex-wrap: wrap; gap: 3px 8px; }');
     expect(html.match(/<span class="vchips">/g)).toHaveLength(5);
-  });
-
-  it('hints the row-drives-picture signal once per ruling, under the note', () => {
-    const { html } = buildPage(loadPageFile(EXAMPLE));
-    expect(
-      html.match(/<div class="vhint">a row shows its picture below<\/div>/g),
-    ).toHaveLength(4);
-    const g1 = html.slice(html.indexOf('id="r-G1"'), html.indexOf('id="r-G2"'));
-    expect(g1.indexOf('data-note="G1"')).toBeLessThan(
-      g1.indexOf('class="vhint"'),
-    );
-    expect(g1.indexOf('class="vhint"')).toBeLessThan(
-      g1.indexOf('class="compare"'),
-    );
   });
 
   it('renders the merged ruling last on the page, after every live ruling', () => {
@@ -269,7 +256,7 @@ describe('the emitted page', () => {
     expect(html.match(/<div class="stage-wrap[^>]* hidden>/g)).toHaveLength(6);
   });
 
-  it('emits no tab strip: the row is the only look control, keyboard-reachable', () => {
+  it('emits no tab strip: the row is the one control, keyboard-reachable', () => {
     const { html } = buildPage(loadPageFile(EXAMPLE));
     expect(html).not.toMatch(/role="tab"|tablist|tabpanel|class="tabs"|class="tl"|aria-selected/);
   });
