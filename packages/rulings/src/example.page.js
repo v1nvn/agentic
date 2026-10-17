@@ -9,10 +9,11 @@ var PAGE = {
   ],
 
   groups: [
-    { id: "money", label: "What a buyer is owed", quick: true, rulings: ["G1", "G3"] },
+    { id: "money", label: "What a buyer is owed", quick: true, rulings: ["G1"] },
     { id: "code", label: "A code change", rulings: ["G2"] },
     { id: "ops", label: "What a restart does", rulings: ["G4"] },
-    { id: "serving", label: "What a start refuses", rulings: ["G5"] }
+    { id: "serving", label: "What a start refuses", rulings: ["G5"] },
+    { id: "merged", label: "Merged", rulings: ["G3"] }
   ],
 
   rulings: {

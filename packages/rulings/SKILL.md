@@ -72,7 +72,9 @@ it goes on the page.
 | a flow, a state, anything the other two cannot draw | free mermaid text, a view per option | `diagram` |
 
 A chain whose options add, drop or change steps is a `seq`, not a `diagram`: each option
-view draws only its delta rows on the shared lanes and ledger.
+view draws only its delta rows on the shared lanes and ledger. A step only some options run
+(`in: ["a"]`) keeps its chain number everywhere: today draws it as a quiet dashed row tagged
+`only in a`, and the option's view draws it for real.
 
 `needs: "G7a"` on an option says it only makes sense under that pick; the page shows it as a
 chip, and the composer names the pick unmet until that need lands. Rulings whose picks change

@@ -579,9 +579,11 @@ describe('the narrow chip count', () => {
     h.tabClick();
     expect(h.bar.classes.contains('open')).toBe(true);
     expect(h.tab.getAttribute('aria-expanded')).toBe('true');
+    expect(h.tab.textContent).toBe('close');
     h.tabClick();
     expect(h.bar.classes.contains('open')).toBe(false);
     expect(h.tab.getAttribute('aria-expanded')).toBe('false');
+    expect(h.tab.textContent).toBe('2 picks');
   });
 });
 

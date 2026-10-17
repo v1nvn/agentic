@@ -139,7 +139,13 @@ export function chromeScript(): string {
     if (!sum) return;
     var es = entries();
     if (bar) bar.classList.toggle('rest', es.length === 0 && (notesIn ? note : '') === '');
-    if (tab) tab.textContent = es.length === 0 ? 'no picks yet' : es.length + (es.length === 1 ? ' pick' : ' picks');
+    if (tab) {
+      var open = bar !== null && bar.classList.contains('open');
+      tab.setAttribute('aria-expanded', open ? 'true' : 'false');
+      tab.textContent = open ? 'close'
+        : es.length === 0 ? 'no picks yet'
+        : es.length + (es.length === 1 ? ' pick' : ' picks');
+    }
     if (countEl) {
       var ruled = 0;
       ORDER.forEach(function (id) { if (pick[id]) ruled++; });
@@ -165,6 +171,11 @@ export function chromeScript(): string {
     return t.closest('.rnote, a, textarea, summary');
   }
 
+  function endsDragSelect(e) {
+    var sel = window.getSelection ? window.getSelection() : null;
+    return Boolean(sel && String(sel) && e.detail);
+  }
+
   document.addEventListener('click', function (e) {
     var x = e.target.closest('[data-unpick]');
     if (x) {
@@ -176,9 +187,7 @@ export function chromeScript(): string {
     if (exempt(e.target)) return;
     var card = e.target.closest('[data-pick]');
     if (card) {
-      var sel = window.getSelection ? window.getSelection() : null;
-      // a drag-select's click carries a selection and detail > 0; card.click() carries detail 0
-      if (sel && String(sel) && e.detail) return;
+      if (endsDragSelect(e)) return;
       var m = REF.exec(card.getAttribute('data-pick'));
       if (m) { if (pick[m[1]] === m[2]) delete pick[m[1]]; else pick[m[1]] = m[2]; }
       commit();
@@ -221,8 +230,8 @@ export function chromeScript(): string {
   if (tab && bar) tab.addEventListener('click', function () {
     var open = !bar.classList.contains('open');
     bar.classList.toggle('open', open);
-    tab.setAttribute('aria-expanded', open ? 'true' : 'false');
     if (open) sizeNote();
+    render();
   });
   if (notesIn) notesIn.addEventListener('input', function () { note = notesIn.value; save(); sizeNote(); });
   noteIns.forEach(function (inp) {

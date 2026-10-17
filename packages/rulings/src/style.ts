@@ -90,7 +90,7 @@ p.today b { color: var(--ink); }
 .vhead { font: 600 var(--mono-s) var(--mono); letter-spacing: 0.06em; color: var(--muted); border-bottom: 1px solid var(--rule); padding-block: 7px; }
 .vhead span:first-child { grid-column: 1 / 3; }
 .vrow { align-items: baseline; cursor: pointer; border-left: 3px solid transparent; }
-.vrow + .vrow, .vfoot { border-top: 1px dashed color-mix(in srgb, var(--rule) 60%, transparent); }
+.vrow + .vrow, .vfoot, .vhint { border-top: 1px dashed color-mix(in srgb, var(--rule) 60%, transparent); }
 .vrow:hover { background: color-mix(in srgb, var(--ink) 4%, transparent); }
 .vrow.look { background: color-mix(in srgb, var(--o) 6%, transparent); border-left-color: color-mix(in srgb, var(--o) 45%, var(--rule)); }
 .vrow.none { --o: var(--muted); }
@@ -110,8 +110,8 @@ p.today b { color: var(--ink); }
 .rnote { display: block; width: 100%; font: 12.5px var(--sans); color: var(--ink); background: none; border: 0; border-bottom: 1px dashed var(--rule); padding: 5px 2px 4px; }
 .rnote:focus { outline: none; border-bottom-color: var(--ink); }
 .rnote::placeholder { color: var(--muted); opacity: 0.7; }
+.vhint { padding: 7px 14px; font: 500 var(--mono-s) var(--mono); color: var(--muted); }
 @media (max-width: 640px) {
-  /* no head: the +/− prefixes carry gain and cost */
   .vhead { display: none; }
   .vrow { grid-template-columns: 26px minmax(0, 1fr); row-gap: 7px; }
   .vrow .vt, .vrow .vg, .vrow .vc { grid-column: 2; min-width: 0; }
@@ -181,6 +181,8 @@ text.sub { font-size: 11.5px; fill: var(--muted); }
 .tg rect { fill: var(--sheet); stroke: var(--o); stroke-width: 1.3; }
 .tg text { font: 600 10.5px var(--sans); fill: var(--o); }
 .tg-gone rect { stroke: var(--muted); } .tg-gone text { fill: var(--muted); }
+.ghostrule { stroke: var(--rule); stroke-width: 1.2; stroke-dasharray: 4 4; }
+.ghosttag { font: 500 var(--mono-s) var(--mono); fill: var(--muted); }
 .gone { opacity: 0.42; }
 .strike { stroke: var(--o); stroke-width: 1.6; }
 svg text.note { font-size: 11.5px; font-weight: 600; fill: var(--o); }
