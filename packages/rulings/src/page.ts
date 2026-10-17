@@ -7,7 +7,7 @@ import type { Page, Ruling } from './schema.ts';
 import { bodiesOption, bodiesToday } from './bodies.ts';
 import { chromeScript, panelHtml } from './chrome.ts';
 import { diagramView, mermaidBoot } from './diagram.ts';
-import { esc, hueOf, optOf, sentenceEnds, stripTags, verdictTable, wrapId } from './html.ts';
+import { esc, hueOf, optOf, sentenceEnds, stripTags, verdictTable } from './html.ts';
 import { seqView } from './seq.ts';
 import { pageCss } from './style.ts';
 
@@ -18,15 +18,11 @@ const assemblyCss = `
 .vrow:has(.disc[aria-pressed="true"]) { border-left-color: var(--o); background: color-mix(in srgb, var(--o) 12%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--o) 30%, transparent); }
 .vrow .disc[aria-pressed="true"] { background: var(--o); color: var(--sheet); border-color: var(--o); box-shadow: 0 0 0 3px color-mix(in srgb, var(--o) 22%, transparent); }
 .vrow:has(.disc[aria-pressed="true"]) .pmark { display: inline; }
-.vrow:has(.disc[aria-pressed="true"]) .onote { display: block; }
 .vrow.unmet { border-left-style: dashed; }
 .vrow.unmet .pmark { display: none; }
 .dep { border: 1px dashed transparent; border-radius: 4px; padding: 0 4px; white-space: nowrap; }
 .unmet .dep { color: var(--k-fail); font-weight: 600; border-color: var(--k-fail); }
 .stage-wrap[aria-pressed="true"] .stage { background: color-mix(in srgb, var(--o) 4%, var(--sheet)); }
-.onote { grid-column: 1 / -1; display: none; margin-top: 4px; font: 12.5px var(--sans); color: var(--ink); background: none; border: 0; border-bottom: 1px dashed var(--rule); padding: 5px 2px 4px; width: min(100%, 420px); }
-.onote:focus { outline: none; border-bottom-color: var(--o); }
-.onote::placeholder { color: var(--muted); opacity: 0.7; }
 .ghead .quick { font: 600 var(--mono-l) var(--mono); color: var(--ink); background: var(--sheet); border: 1px solid var(--rule); border-radius: 999px; padding: 4px 13px; cursor: pointer; }
 .ghead .quick:hover { border-color: var(--ink); }
 
@@ -81,7 +77,6 @@ export function loadPageFile(pageFile: string): unknown {
   return ctx.PAGE;
 }
 
-// validatePage's green verdict already proved every group ruling exists.
 function rulingOf(P: Page, id: string): Ruling {
   return P.rulings[id];
 }
@@ -142,7 +137,7 @@ function compareOf(q: Ruling, id: string): string {
       return (
         `<div class="stage-wrap${o ? ` ${hueOf(o.k)}` : ''}" data-view="${view}"` +
         (o ? ` data-pick="${view === 'today' ? id + o.k : view}"` : '') +
-        ` id="${wrapId(id, view)}"${i === 0 ? '' : ' hidden'}>` +
+        `${i === 0 ? '' : ' hidden'}>` +
         stageOf(q, id, view) +
         '</div>'
       );
@@ -169,8 +164,7 @@ function rulingSection(P: Page, id: string): string {
     .join('');
   return (
     `<section class="ruling" id="r-${id}">` +
-    `<div class="rhead"><span class="rid">${id}</span><div><h3>${q.title ?? ''}</h3>` +
-    `<button type="button" class="none-btn" data-none="${id}">none of these fit</button></div></div>` +
+    `<div class="rhead"><span class="rid">${id}</span><h3>${q.title ?? ''}</h3></div>` +
     mergedInto +
     `<p class="stake">${q.stake ?? ''}</p>` +
     todayHtml(q.today ?? '') +

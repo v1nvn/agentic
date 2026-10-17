@@ -19,7 +19,7 @@ export function chromeScript(): string {
   var tracked = Array.prototype.slice.call(document.querySelectorAll('[data-needs]'));
   var wraps = Array.prototype.slice.call(document.querySelectorAll('.stage-wrap'));
   var vrows = Array.prototype.slice.call(document.querySelectorAll('.vrow'));
-  var noteIns = Array.prototype.slice.call(document.querySelectorAll('.onote'));
+  var noteIns = Array.prototype.slice.call(document.querySelectorAll('.rnote'));
   var sum = document.getElementById('picks');
   var notesIn = document.getElementById('rulings-notes');
   var copyBtn = document.getElementById('copy-answer');
@@ -97,7 +97,7 @@ export function chromeScript(): string {
     var p = s.picks || {};
     for (var k in p) if (LIVE[k] && typeof p[k] === 'string' && LIVE[k][p[k]]) pick[k] = p[k];
     var on = s.onotes || {};
-    for (var t in on) if (typeof on[t] === 'string') onotes[t] = on[t];
+    for (var t in on) if (typeof on[t] === 'string' && ORDER.indexOf(t) !== -1) onotes[t] = on[t];
     if (typeof s.note === 'string') note = s.note;
     else if (typeof s.notes === 'string') note = s.notes;
   }
@@ -116,7 +116,7 @@ export function chromeScript(): string {
     ORDER.forEach(function (id) {
       if (!pick[id]) return;
       var bad = pick[id] === 'n' ? [] : unmetOf(CARD[id + pick[id]] || []);
-      out.push({ label: id + pick[id], bad: bad });
+      out.push({ label: id + pick[id], rid: id, bad: bad });
     });
     return out;
   }
@@ -136,11 +136,6 @@ export function chromeScript(): string {
     tracked.forEach(function (el) {
       el.classList.toggle('unmet', unmetOf((el.getAttribute('data-needs') || '').split(/\\s+/).filter(Boolean)).length > 0);
     });
-    var noneBtns = document.querySelectorAll('[data-none]');
-    for (var i = 0; i < noneBtns.length; i++) {
-      var b = noneBtns[i];
-      b.classList.toggle('on', pick[b.getAttribute('data-none')] === 'n');
-    }
     if (!sum) return;
     var es = entries();
     if (bar) bar.classList.toggle('rest', es.length === 0 && (notesIn ? note : '') === '');
@@ -167,7 +162,7 @@ export function chromeScript(): string {
   function commit() { render(); save(); }
 
   function exempt(t) {
-    return t.closest('.onote, a, textarea, summary');
+    return t.closest('.rnote, a, textarea, summary');
   }
 
   document.addEventListener('click', function (e) {
@@ -182,18 +177,10 @@ export function chromeScript(): string {
     var card = e.target.closest('[data-pick]');
     if (card) {
       var sel = window.getSelection ? window.getSelection() : null;
-      // a click ending a drag-select carries a live selection and detail > 0;
-      // a keyboard-activated pick (card.click()) carries detail 0
+      // a drag-select's click carries a selection and detail > 0; card.click() carries detail 0
       if (sel && String(sel) && e.detail) return;
       var m = REF.exec(card.getAttribute('data-pick'));
       if (m) { if (pick[m[1]] === m[2]) delete pick[m[1]]; else pick[m[1]] = m[2]; }
-      commit();
-      return;
-    }
-    var noneBtn = e.target.closest('[data-none]');
-    if (noneBtn) {
-      var id = noneBtn.getAttribute('data-none');
-      if (pick[id] === 'n') delete pick[id]; else pick[id] = 'n';
       commit();
       return;
     }
@@ -283,7 +270,7 @@ export function chromeScript(): string {
   function answerText() {
     var line = entries().map(function (e) {
       var t = e.label + (e.bad.length ? ' (needs ' + e.bad.join(' ') + ')' : '');
-      var n = (onotes[e.label] || '').replace(/^\\s+|\\s+$/g, '');
+      var n = (onotes[e.rid] || '').replace(/^\\s+|\\s+$/g, '');
       return n ? t + ' — ' + n : t;
     }).join(', ');
     var extra = (notesIn ? notesIn.value : note).replace(/^\\s+|\\s+$/g, '');

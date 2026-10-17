@@ -12,7 +12,6 @@ export function stripTags(s: string): string {
   return s.replace(/<[^>]*>/g, '');
 }
 
-// A `.!?` ends a sentence only in prose — never in a tag or a code span — and only before whitespace.
 export function sentenceEnds(html: string): number[] {
   const ends: number[] = [];
   let i = 0;
@@ -53,10 +52,6 @@ export function needsOf(o: Opt): string[] {
   return typeof o.needs === 'string' ? [o.needs] : (o.needs ?? []);
 }
 
-export function wrapId(id: string, view: string): string {
-  return `view-${view === 'today' ? `${id}-today` : view}`;
-}
-
 export function verdictTable(q: Ruling, id: string): string {
   const rows = (q.opts ?? [])
     .map(o => {
@@ -77,12 +72,18 @@ export function verdictTable(q: Ruling, id: string): string {
         `<span class="vt">${o.t ?? ''}${chips ? `<span class="vchips"> ${chips}</span>` : ''}<span class="pmark">✓ picked</span></span>` +
         `<span class="vg">${o.g ?? ''}</span>` +
         `<span class="vc">${o.c ?? ''}</span>` +
-        `<input class="onote" data-note="${pick}" placeholder="note for ${pick}" aria-label="note for ${pick}">` +
         '</div>'
       );
     })
     .join('');
+  const none =
+    `<div class="vrow none" data-pick="${id}n">` +
+    `<button type="button" class="lt disc none" data-pick="${id}n" aria-label="pick ${id}n">n</button>` +
+    '<span class="vt">none of these fit<span class="pmark">✓ picked</span></span>' +
+    '</div>';
+  const note =
+    `<div class="vfoot"><input class="rnote" data-note="${id}" placeholder="note for ${id} — anything its answer should carry" aria-label="note for ${id}"></div>`;
   return (
-    `<div class="vtable"><div class="vhead"><span>option</span><span>gain</span><span>cost</span></div>${rows}</div>`
+    `<div class="vtable"><div class="vhead"><span>option</span><span>gain</span><span>cost</span></div>${rows}${none}${note}</div>`
   );
 }

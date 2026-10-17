@@ -7,6 +7,7 @@ import { El, FakeIO, type FakeEvent } from './dom.ts';
 interface Harness {
   cardA: El;
   cardB: El;
+  cardC: El;
   card2: El;
   secG1: El;
   rowA: El;
@@ -14,6 +15,9 @@ interface Harness {
   rowB: El;
   discB: El;
   vtB: El;
+  noneRow: El;
+  noneDisc: El;
+  rnote: El;
   wrapToday: El;
   stage: El;
   foldSum: El;
@@ -55,6 +59,9 @@ function harness(
   const card2 = new El('section', ['view', 'o-a']);
   card2.setAttribute('data-pick', 'G2a');
   card2.parent = body;
+  const cardC = new El('section', ['view', 'o-c']);
+  cardC.setAttribute('data-pick', 'G1c');
+  cardC.parent = body;
   const secG1 = new El('section');
   secG1.setAttribute('id', 'r-G1');
   secG1.parent = body;
@@ -73,10 +80,18 @@ function harness(
   discB.parent = rowB;
   const vtB = new El('span', ['vt']);
   vtB.parent = rowB;
+  const noneRow = new El('div', ['vrow', 'none']);
+  noneRow.setAttribute('data-pick', 'G1n');
+  noneRow.parent = secG1;
+  const noneDisc = new El('button', ['lt', 'disc', 'none']);
+  noneDisc.setAttribute('data-pick', 'G1n');
+  noneDisc.parent = noneRow;
+  const rnote = new El('input');
+  rnote.setAttribute('data-note', 'G1');
+  rnote.parent = secG1;
   const wrapToday = new El('div', ['stage-wrap', 'o-a']);
   wrapToday.setAttribute('data-view', 'today');
   wrapToday.setAttribute('data-pick', 'G1a');
-  wrapToday.setAttribute('id', 'view-G1-today');
   wrapToday.parent = secG1;
   const stage = new El('div', ['stage']);
   stage.parent = wrapToday;
@@ -85,7 +100,6 @@ function harness(
   const wrapB = new El('div', ['stage-wrap', 'o-b']);
   wrapB.setAttribute('data-view', 'G1b');
   wrapB.setAttribute('data-pick', 'G1b');
-  wrapB.setAttribute('id', 'view-G1b');
   wrapB.setAttribute('hidden', '');
   wrapB.parent = secG1;
   const sum = new El('div');
@@ -118,7 +132,7 @@ function harness(
   const sec2 = new El('section');
   sec2.setAttribute('id', 'r-G2');
   const byId = [sum, notesIn, copyBtn, bar, tab, count, where];
-  const picks = [cardA, cardB, card2];
+  const picks = [cardA, cardB, cardC, card2];
   const listeners: Record<string, ((e: FakeEvent) => void)[]> = {};
   const doc = {
     body,
@@ -134,13 +148,15 @@ function harness(
     querySelectorAll(sel: string): El[] {
       switch (sel) {
         case '[data-pick]':
-          return [...picks, discA, discB];
+          return [...picks, discA, discB, noneRow, noneDisc];
         case '[data-needs]':
           return [rowA];
         case '.stage-wrap':
           return [wrapToday, wrapB];
         case '.vrow':
-          return [rowA, rowB];
+          return [rowA, rowB, noneRow];
+        case '.rnote':
+          return [rnote];
         case '.side a.rl':
           return [link1, link2];
         case 'section[id]':
@@ -201,6 +217,7 @@ function harness(
   return {
     cardA,
     cardB,
+    cardC,
     card2,
     secG1,
     rowA,
@@ -208,6 +225,9 @@ function harness(
     rowB,
     discB,
     vtB,
+    noneRow,
+    noneDisc,
+    rnote,
     wrapToday,
     stage,
     foldSum,
@@ -434,6 +454,100 @@ describe('unmet needs on the row', () => {
   });
 });
 
+describe('the none row', () => {
+  it('picks n from the row and the disc, and unpicks on the second click', () => {
+    const h = harness();
+    h.docClick({ target: h.noneRow });
+    expect(h.sum.innerHTML).toContain('data-unpick="G1n"');
+    expect(h.count.textContent).toBe('1 of 2 ruled');
+    expect(h.noneRow.getAttribute('aria-pressed')).toBe('true');
+    expect(h.noneDisc.getAttribute('aria-pressed')).toBe('true');
+    h.docClick({ target: h.noneDisc });
+    expect(h.sum.innerHTML).toContain('no picks yet');
+    expect(h.count.textContent).toBe('0 of 2 ruled');
+    expect(h.noneRow.getAttribute('aria-pressed')).toBe('false');
+  });
+
+  it('picks and unpicks from the disc on the keyboard', () => {
+    const h = harness();
+    h.keyDown({ key: 'Enter', target: h.noneDisc });
+    expect(h.sum.innerHTML).toContain('data-unpick="G1n"');
+    h.keyDown({ key: ' ', target: h.noneDisc });
+    expect(h.sum.innerHTML).toContain('no picks yet');
+  });
+
+  it('never looks: it carries no view and moves no aria-current', () => {
+    const h = harness();
+    h.keyDown({ key: 'Enter', target: h.rowB });
+    expect(h.rowB.getAttribute('aria-current')).toBe('true');
+    h.docClick({ target: h.noneRow });
+    expect(h.noneRow.getAttribute('data-view')).toBeNull();
+    expect(h.noneRow.classList.contains('look')).toBe(false);
+    expect(h.rowB.getAttribute('aria-current')).toBe('true');
+    expect(h.wrapB.getAttribute('hidden')).toBeNull();
+  });
+});
+
+describe('the ruling note', () => {
+  function type(h: Harness, text: string): void {
+    h.rnote.value = text;
+    for (const ih of h.rnote.handlers.input ?? []) ih({ target: h.rnote });
+  }
+
+  it('rides whichever letter is picked: the same note follows b to c', async () => {
+    vi.useFakeTimers();
+    const h = harness();
+    type(h, 'carry this');
+    h.docClick({ target: h.cardB });
+    h.docClick({ target: h.copyBtn });
+    await vi.advanceTimersByTimeAsync(0);
+    expect(h.writes).toEqual(['G1b — carry this']);
+    h.docClick({ target: h.cardC });
+    h.docClick({ target: h.copyBtn });
+    await vi.advanceTimersByTimeAsync(0);
+    expect(h.writes).toEqual(['G1b — carry this', 'G1c — carry this']);
+  });
+
+  it('rides a none pick as G1n', async () => {
+    vi.useFakeTimers();
+    const h = harness();
+    type(h, 'what is wanted');
+    h.docClick({ target: h.noneRow });
+    h.docClick({ target: h.copyBtn });
+    await vi.advanceTimersByTimeAsync(0);
+    expect(h.writes).toEqual(['G1n — what is wanted']);
+  });
+
+  it('with no pick still carries nothing', () => {
+    const h = harness();
+    type(h, 'orphan');
+    h.docClick({ target: h.copyBtn });
+    expect(h.copyBtn.textContent).toMatch(/no picks/i);
+    expect(h.writes).toHaveLength(0);
+  });
+
+  it('restores from storage under the ruling key, and a per-pick key drops', () => {
+    const storage = new Map([
+      [
+        'k',
+        JSON.stringify({
+          picks: { G1: 'b' },
+          onotes: { G1: 'kept', G1a: 'stale per-pick note' },
+          note: '',
+        }),
+      ],
+    ]);
+    const h = harness({ storage });
+    expect(h.rnote.value).toBe('kept');
+    h.rnote.value = 'kept again';
+    for (const ih of h.rnote.handlers.input ?? []) ih({ target: h.rnote });
+    const raw = JSON.parse(h.storage.get('k') ?? '{}') as {
+      onotes: Record<string, string>;
+    };
+    expect(raw.onotes).toEqual({ G1: 'kept again' });
+  });
+});
+
 describe('the resting strip', () => {
   it('rests with no picks and no note, then expands on the first pick', () => {
     const h = harness();
@@ -548,6 +662,8 @@ describe('persistence', () => {
   it('keeps the storage shape {picks, onotes, note}', () => {
     const h = harness();
     h.docClick({ target: h.cardB });
+    h.rnote.value = 'ruling note';
+    for (const ih of h.rnote.handlers.input ?? []) ih({ target: h.rnote });
     h.notesIn.value = 'page note';
     for (const ih of h.notesIn.handlers.input ?? []) ih({ target: h.notesIn });
     const raw = JSON.parse(h.storage.get('k') ?? '{}') as Record<
@@ -556,6 +672,7 @@ describe('persistence', () => {
     >;
     expect(Object.keys(raw).sort()).toEqual(['note', 'onotes', 'picks']);
     expect(raw.picks).toEqual({ G1: 'b' });
+    expect(raw.onotes).toEqual({ G1: 'ruling note' });
     expect(raw.note).toBe('page note');
   });
 });

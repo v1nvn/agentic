@@ -1,4 +1,3 @@
-// The page stylesheet. System fonts only: nothing fetches on open.
 export const pageCss = `
 :root {
   --paper: #eceee9; --sheet: #fbfbf9; --ink: #1b2130; --muted: #5d6573; --rule: #d7dad1; --code: #f1f2ee;
@@ -77,9 +76,6 @@ section[id^="r-"] { scroll-margin-top: 14px; }
 .rhead { display: flex; gap: 14px; align-items: baseline; }
 .rid { font: 700 var(--mono-l) var(--mono); color: var(--muted); flex: none; }
 .rhead h3 { font-size: 20.5px; }
-.rhead .none-btn { margin-left: auto; font: 600 var(--mono-s) var(--mono); color: var(--muted); background: none; border: 1px dashed var(--rule); border-radius: 6px; padding: 3px 10px; cursor: pointer; }
-.rhead .none-btn:hover { color: var(--ink); border-color: var(--ink); }
-.rhead .none-btn.on { color: var(--sheet); background: var(--muted); border-style: solid; border-color: var(--muted); }
 .stake { font: 600 16.5px/1.45 var(--serif); max-width: 62ch; margin-top: 10px; text-wrap: pretty; }
 p.today { font: 14.5px/1.55 var(--sans); max-width: 68ch; color: var(--muted); margin-top: 8px; }
 p.today b { color: var(--ink); }
@@ -94,11 +90,13 @@ p.today b { color: var(--ink); }
 .vhead { font: 600 var(--mono-s) var(--mono); letter-spacing: 0.06em; color: var(--muted); border-bottom: 1px solid var(--rule); padding-block: 7px; }
 .vhead span:first-child { grid-column: 1 / 3; }
 .vrow { align-items: baseline; cursor: pointer; border-left: 3px solid transparent; }
-.vrow + .vrow { border-top: 1px dashed color-mix(in srgb, var(--rule) 60%, transparent); }
+.vrow + .vrow, .vfoot { border-top: 1px dashed color-mix(in srgb, var(--rule) 60%, transparent); }
 .vrow:hover { background: color-mix(in srgb, var(--ink) 4%, transparent); }
 .vrow.look { background: color-mix(in srgb, var(--o) 6%, transparent); border-left-color: color-mix(in srgb, var(--o) 45%, var(--rule)); }
+.vrow.none { --o: var(--muted); }
 .lt { width: 27px; height: 27px; flex: none; border-radius: 50%; display: inline-grid; place-items: center; font: 700 var(--mono-l) var(--mono); color: var(--o); border: 1.5px solid var(--o); background: var(--sheet); }
 .vrow .disc { width: 26px; height: 26px; padding: 0; align-self: center; cursor: pointer; }
+.vrow.none .disc { border-style: dashed; }
 .vrow .vt { font: 600 13.5px/1.4 var(--sans); color: var(--ink); padding-left: 38px; text-indent: -38px; }
 .vrow .vt .star { font: 600 var(--mono-s) var(--mono); white-space: nowrap; }
 .vrow .pmark { display: none; font: 700 var(--mono-s) var(--mono); color: var(--o); white-space: nowrap; }
@@ -108,6 +106,10 @@ p.today b { color: var(--ink); }
 .vrow .vg::before { content: "+ "; color: var(--add); font-weight: 700; }
 .vrow .vc { color: var(--muted); }
 .vrow .vc::before { content: "− "; font-weight: 700; }
+.vfoot { padding: 8px 14px; }
+.rnote { display: block; width: 100%; font: 12.5px var(--sans); color: var(--ink); background: none; border: 0; border-bottom: 1px dashed var(--rule); padding: 5px 2px 4px; }
+.rnote:focus { outline: none; border-bottom-color: var(--ink); }
+.rnote::placeholder { color: var(--muted); opacity: 0.7; }
 @media (max-width: 640px) {
   /* no head: the +/− prefixes carry gain and cost */
   .vhead { display: none; }

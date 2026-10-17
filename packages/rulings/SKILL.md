@@ -97,9 +97,8 @@ The build cannot parse mermaid text — a broken diagram is checked only when th
   option that leaves things as they are.
 - **Options**: two to four, lettered. The verdict table is each option's one home: its letter
   disc, title, `★ recommended` / `as today` / `needs` chips, its **gain** and **cost** as aligned
-  fragments — 90 characters at most, each checkable on the option's picture — and the note input,
-  which shows on the picked row only. Nothing an option says renders twice. Exactly one option is
-  recommended.
+  fragments — 90 characters at most, each checkable on the option's picture. Nothing an option
+  says renders twice. Exactly one option is recommended.
 
 Rules for options: they differ on **one axis**. Before an option adds a mechanism, name the
 existing thing that does the job; if it exists the option is "use that". A letter never
@@ -146,11 +145,12 @@ Not rulings: <X, because Y>.
 ```
 
 The owner answers on the page or in chat; both read verbatim. On the page: a ruling's letter disc
-picks (click it again to unpick), the shown picture picks its option too, and a row only
+picks (click it again to unpick), the shown picture picks its option too, and an option row only
 switches the shown picture — looking never picks. A reload reopens the picked option's picture.
-The none-of-these button picks `n` for a ruling
+The verdict table's last row, none of these fit, picks `n` for a ruling
 whose options all miss, and a quick group's accept-recommended button picks its starred letters.
-The picked row carries a note input — its text rides the answer inline after that pick — and the
+Each ruling carries one note input under its options — its text rides the answer inline after
+that ruling's pick, whatever letter is picked — and the
 composer bar's page note rides after a blank line. The composer annotates a pick whose `needs`
 target is unpicked as `(needs …)`, and Copy puts the whole answer on the clipboard to paste in
 chat: `G2a — its note, G3b (needs G3a) — its note`, blank line, page note. Picks and both note
