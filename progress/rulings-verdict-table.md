@@ -37,6 +37,13 @@ already-landed changes, declared), the vision round clean after `909fbe4`.
 U6 and U7 change the surface the audit walked — the audit re-runs (the
 touched probes at minimum) before the release.
 
+Everything lands closed: the vision-fix round (ghost band, open-bar
+pill, row hint, merged-last) passed its blind review on all six points;
+the two trailing nits (empty `in` rejected at the schema door, merged-last
+taught in Step 7) landed watched-red. Final surface: 148/148 scoped,
+enforce green, painted page 4434px. The where-pill/heading overlap and
+the look-vs-picked accent pair are accepted cosmetics.
+
 The audit re-run on the U6+U7 surface: 92/92, painted page 4434px (the
 none row + note footer cost +20px per ruling, net of the dead rhead
 button). The final vision round: all three owner complaints fixed; four
@@ -53,8 +60,7 @@ wrap-id dead surface is routed to U7.
 
 ## Next step
 
-Dispatch the vision-fix round (the four findings), then rebuild the
-example and the exemplar and open both for the owner's look. Then, on the
+On the owner's merges (#29 then this PR):
 owner's merges (#29 then this PR): retarget the PR base if needed,
 dispatch the minor release per references/npm-publishing.md, wait for the
 registry, rebuild the five live pages and the exemplar on the published
