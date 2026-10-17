@@ -36,6 +36,7 @@
   must not accrete.
 - **todo — board pane or band** · [packages/todo]
   Wanted: a zero-token always-visible board; the cost is an island parser of shapes `todo:rules` defines in prose. Unruled — held in the archived consult, archive/mods-port.md.
+- **todo:run — whether the orchestrator loop leaves the model** · [packages/todo] → progress/run-orchestrator-loop.md
 - **todo:run — re-measure under the role agents** · HIGH
   Wanted: a fresh `/todo:run` of `progress/audit-refactor.md` whose `/todo:postmortem` per-unit wall, tokens and minutes to first edit sit beside the baseline recorded in archive/run-costs.md.
 
