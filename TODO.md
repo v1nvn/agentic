@@ -9,7 +9,6 @@
 
 ## rulings
 
-- **Rulings — skill pass: authoring friction and the quick bridge** · MEDIUM · [packages/rulings] → progress/rulings-skill-pass.md
 - **Rulings — review nits** · LOW · [packages/rulings]
   Nits from the port and the interactive reversion: dead expected-substrings in mutation tuples, a duplicated chip assembly, restating comments, a mermaid-boots-for-merged-rulings seam, a stale layout tree, a `$D` that dies between Bash calls, a no-op accept button on a zero-rec quick group, and unpinned key/quick asymmetries. Recorded in archive/rulings-port.md and archive/rulings-interactive.md.
 

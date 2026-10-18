@@ -12,26 +12,16 @@ exemplar rebuilt on it and a timed mint inside the target.
 
 ## Current state
 
-U1 (`b7f6117`), U2 (`724facb`), U3 (`43637e6`) landed, all closed on
-review with no blocking findings; the four queued nits are swept
-(`62b539e`) and the sweep reviewed clean. The semver pick is minor —
-v0.51.0. The run's commits reach origin/main by push (owner ruling),
-then `release.yml -f bump=minor` dispatches. Remaining: U4 — exemplar
-rebuilt on the published pin and opened, a held brief of four
-decisions, the timed mint ≤ 10 min, the time recorded here.
-
-Evidence the remaining unit rests on:
-
-- `<b>Option a:`-style caption openers occur 72 times across the live
-  pages — they rebuild when next touched and meet the errors then.
-- The from-source door works only after `yarn install` at the root;
-  the published-pin door is the npx line the README pins to the train.
+All four units landed and closed on review: U1 `b7f6117`, U2
+`724facb`, U3 `43637e6`, the four review nits swept `62b539e`, U4's
+release v0.51.0 on npm (two documented failure recoveries), the
+exemplar rebuilt on the npx pin and opened, the timed mint 5 min 30 s
+— green first pass, four rulings, all table-only. The thread closes
+on this record.
 
 ## Next step
 
-On the release's green: dispatch U4's builder (held brief, exemplar
-rebuild on the published pin), then the orchestrator runs the timed
-mint and closes the thread.
+None — the thread closes in this sitting.
 
 ## Steps
 
@@ -40,7 +30,7 @@ mint and closes the thread.
 | U1 | table-only render — no picture region without a picture, `w` moves to the verdict row | sonnet | | design | One snapshot test: a page with one table-only ruling (title, stake, `today`, opts; no `seq`/`bodies`/`diagram`) builds green; its section holds no `.compare` and no `.stage-wrap`; each option's `w` occurs once, inside its `.vrow`; the pictured snapshots change only by `w` moving; the picture gate applies only to rulings that carry a picture, its table-only error text deleted; a screenshot of the table-only ruling viewed — pick, unpick, none row, note, composer and reload persistence work — landed `b7f6117` |
 | U2 | validator cull — one tier, errors only | sonnet | | | `FRAGMENT`, `TODAY_SENTENCES`, `LONG_LINE` and their checks and tests deleted; stake-digit, today/today overlap, stake/today overlap and the `diff:false` hint deleted; `Verdict` carries errors only and `grep -c "warnings" src/` is 0; the checks that remain block: VAGUE, identical body, stake `<code>`, seq exact-flow equality, more than ten rulings, and `conclusionFirst` on every caption — ruling, per-view `caps.<letter>` and `views.<k>.cap` — rejecting `/^<b>\s*option\s+[a-z]\s*[:—-]/i` while "Today …" leads pass; `cli.ts` prints errors only; the seed builds with no output — its four `<b>Option …` openers (example.page.js:38, 99×2, 118) are reworded in this unit, the new regex blocking them (U3's grep then owes only SKILL's one) — landed `724facb` |
 | U3 | the law — SKILL, README, ARCHITECTURE, seed | sonnet | | | Step 3 is the ordered kind-law and the depth law (Plan, verbatim in substance); Step 0 carries the orientation rule (Plan); Step 5 states the one-pass mint; no surface says every ruling has a picture — frontmatter description and trigger, intro, Step 2 gate, Step 4 picture bullet, fields table, Never list, README, ARCHITECTURE opening; every length-cap sentence deleted (SKILL Step 2, Step 4 ×2, fields table, Bodies), "keep it short, no cap" stays; "treat each warning as a fault" deleted; the placeholder law says `&lt;pools&gt;` in HTML fields; `w` documented as the row's muted line; `grep -in "option [a-d]:" SKILL.md src/example.page.js` is 0; seed G5 is table-only — tests pinning G5's diagram (schema.test.ts:188-195 today-view pin; pictures.test.ts diagram stage snapshots) migrate to synthetic pictured fixtures, keeping the diagram kind tested; README carries `yarn install && node packages/rulings/src/index.ts <dir>`; SKILL.md ends shorter than its 267 lines — landed `43637e6` |
-| U4 | release, exemplar, timed mint | sonnet | none | | Released per `references/npm-publishing.md` at the semver step the owner picks; `agentic-open-surfaces` rebuilt on the published pin and opened; a fresh sonnet subagent, given a held brief of four decisions, mints a page on the published pin in ≤ 10 minutes wall-clock, the time recorded here |
+| U4 | release, exemplar, timed mint | sonnet | none | | Released per `references/npm-publishing.md` at the semver step the owner picks; `agentic-open-surfaces` rebuilt on the published pin and opened; a fresh sonnet subagent, given a held brief of four decisions, mints a page on the published pin in ≤ 10 minutes wall-clock, the time recorded here — landed: v0.51.0 released (`release.yml -f bump=minor`; tlog 409 then guard-lag 403, both recovered per the doc); exemplar rebuilt on the npx pin, its 3 caption openers meeting the new errors, clean second pass, page opened; mint 5 min 30 s, green first pass, four rulings all table-only |
 
 ## Plan
 
