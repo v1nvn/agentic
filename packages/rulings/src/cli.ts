@@ -64,10 +64,7 @@ export function main(argv: string[]): number {
     console.error(`FAIL  ${pageFile}: ${(e as Error).message}`);
     return 1;
   }
-  const { errors, warnings } = validatePage(page);
-  for (const w of warnings) {
-    console.error(`warning: ${w}`);
-  }
+  const { errors } = validatePage(page);
   if (errors.length > 0) {
     for (const e of errors) {
       console.error(`error: ${e}`);

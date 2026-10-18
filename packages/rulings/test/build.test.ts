@@ -16,7 +16,6 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { main } from '../src/cli.ts';
 import { buildPage, loadPageFile, PAGE_FILE } from '../src/page.ts';
-import { validatePage } from '../src/schema.ts';
 import { El, FakeIO, type FakeEvent } from './dom.ts';
 
 const EXAMPLE = fileURLToPath(new URL('../src/example.page.js', import.meta.url));
@@ -110,30 +109,6 @@ function foldPage(lines: number): string {
       },
       opts: [
         { k: "a", rec: true, t: "Change a", g: "a is right more often", c: "one more moving part" },
-        { k: "b", t: "Change b", g: "b is cheaper here", c: "the test doubles" }
-      ]
-    }
-  }
-};`;
-}
-
-function fragmentPage(g: string, c = 'one more moving part', w?: string): string {
-  return `var PAGE = {
-  title: "One small ruling?",
-  sub: "What the rebuild owes.",
-  groups: [{ id: "one", label: "The only group", rulings: ["G1"] }],
-  rulings: {
-    G1: {
-      title: "Keep the plain door?",
-      stake: "About 3 rebuilds a week pay for a second path.",
-      today: "Today the builder writes one file through one door.",
-      bodies: {
-        today: { lang: "js", code: "let a = 1;\\nlet b = 2;" },
-        a: { lang: "js", code: "let a = 2;\\nlet b = 2;" },
-        b: { lang: "js", code: "let a = 1;\\nlet b = 4;" }
-      },
-      opts: [
-        { k: "a", rec: true, t: "Change a", g: ${JSON.stringify(g)}, c: ${JSON.stringify(c)}${w === undefined ? '' : `, w: ${JSON.stringify(w)}`} },
         { k: "b", t: "Change b", g: "b is cheaper here", c: "the test doubles" }
       ]
     }
@@ -415,23 +390,6 @@ describe('the folds', () => {
   });
 });
 
-describe('the today sentence warning', () => {
-  it('warns past three sentences and not at three', () => {
-    const three = validatePage(
-      loadPageFile(join(pageDir(sentencePage('A. B. C.')), PAGE_FILE)),
-    );
-    expect(three.errors).toEqual([]);
-    expect(three.warnings).toEqual([]);
-    const four = validatePage(
-      loadPageFile(join(pageDir(sentencePage('A. B. C. D.')), PAGE_FILE)),
-    );
-    expect(four.errors).toEqual([]);
-    expect(four.warnings).toEqual([
-      'G1.today is 4 sentences; two show before the fold — write it in three',
-    ]);
-  });
-});
-
 describe('the language pass', () => {
   it('names the recommendation and the pick, never "my pick"', () => {
     const { html } = buildPage(loadPageFile(EXAMPLE));
@@ -494,59 +452,6 @@ describe('the language pass', () => {
     const css = html.slice(html.indexOf('<style>'), html.indexOf('</style>'));
     expect(css).not.toMatch(/\.views|\.vtt|\.vmeta|\.gc\b/);
     expect(html).not.toContain('<div class="vtt">');
-  });
-});
-
-describe('the verdict fragment warning', () => {
-  it('warns past 90 stripped characters and not at 90', () => {
-    const fit = validatePage(
-      loadPageFile(join(pageDir(fragmentPage('a'.repeat(90))), PAGE_FILE)),
-    );
-    expect(fit.errors).toEqual([]);
-    expect(fit.warnings).toEqual([]);
-    const over = validatePage(
-      loadPageFile(join(pageDir(fragmentPage('a'.repeat(91))), PAGE_FILE)),
-    );
-    expect(over.errors).toEqual([]);
-    expect(over.warnings).toEqual([
-      'G1a gain is 91 characters; a table fragment fits 90',
-    ]);
-  });
-
-  it('measures the fragment stripped of its tags, not raw', () => {
-    const fit = validatePage(
-      loadPageFile(join(pageDir(fragmentPage(`<b>${'a'.repeat(88)}</b>`)), PAGE_FILE)),
-    );
-    expect(fit.errors).toEqual([]);
-    expect(fit.warnings).toEqual([]);
-    const over = validatePage(
-      loadPageFile(join(pageDir(fragmentPage(`<b>${'a'.repeat(91)}</b>`)), PAGE_FILE)),
-    );
-    expect(over.errors).toEqual([]);
-    expect(over.warnings).toEqual([
-      'G1a gain is 91 characters; a table fragment fits 90',
-    ]);
-  });
-
-  it('warns the cost by its own name', () => {
-    const r = validatePage(
-      loadPageFile(join(pageDir(fragmentPage('b is cheaper', 'c'.repeat(95))), PAGE_FILE)),
-    );
-    expect(r.warnings).toEqual([
-      'G1a cost is 95 characters; a table fragment fits 90',
-    ]);
-  });
-
-  it('leaves w alone however long it runs', () => {
-    const r = validatePage(
-      loadPageFile(
-        join(
-          pageDir(fragmentPage('b is cheaper', 'one more moving part', 'w'.repeat(200))),
-          PAGE_FILE,
-        ),
-      ),
-    );
-    expect(r.warnings).toEqual([]);
   });
 });
 
@@ -865,24 +770,6 @@ describe('the error door', () => {
     expect(existsSync(join(dir, 'index.html'))).toBe(false);
     expect(readdirSync(dir)).toEqual([PAGE_FILE]);
     expect(said).toMatch(/Unrecognized key|from/);
-  });
-
-  it('prints warnings but still emits', () => {
-    const text = readFileSync(EXAMPLE, 'utf8').replace(
-      'a read of 10 blocks',
-      'a read of ten blocks',
-    );
-    const dir = pageDir(text);
-    const err = vi.spyOn(console, 'error').mockImplementation(() => {});
-    let said = '';
-    try {
-      expect(main([dir, '--no-open'])).toBe(0);
-      said = err.mock.calls.flat().join('\n');
-    } finally {
-      err.mockRestore();
-    }
-    expect(existsSync(join(dir, 'index.html'))).toBe(true);
-    expect(said).toMatch(/has no number/);
   });
 });
 

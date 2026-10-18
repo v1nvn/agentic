@@ -21,16 +21,14 @@ function example(): Page {
 }
 
 describe('the example page', () => {
-  it('validates green with two seq rulings, a bodies ruling and a diagram ruling, no warnings', () => {
+  it('validates green with two seq rulings, a bodies ruling and a diagram ruling', () => {
     const P = example();
     expect(P.rulings.G1.seq).toBeTruthy();
     expect(P.rulings.G2.bodies).toBeTruthy();
     expect(P.rulings.G4.seq).toBeTruthy();
     expect(P.rulings.G4.diagram).toBeFalsy();
     expect(P.rulings.G5.diagram).toBeTruthy();
-    const r = validatePage(P);
-    expect(r.errors).toEqual([]);
-    expect(r.warnings).toEqual([]);
+    expect(validatePage(P).errors).toEqual([]);
   });
 });
 
@@ -53,9 +51,7 @@ describe('seq view', () => {
     expect(html).toContain('tg-changed');
     expect(html).toContain('class="band"');
     expect(html).toContain('what this option changes');
-    expect(html).toContain(
-      'Option b: all 20 paid leaf blocks have an owner.',
-    );
+    expect(html).toContain('All 20 paid leaf blocks have an owner.');
   });
 
   it('renders today’s option-only step as a quiet ghost row, not a gap', () => {
@@ -251,7 +247,7 @@ describe('the picture surfaces', () => {
   it('names each seq svg by its own view caption, not the ruling base cap', () => {
     const P = example();
     expect(seqView(P.rulings.G1, 'G1', 'G1b')).toContain(
-      'aria-label="Option b: all 20 paid leaf blocks have an owner. The read pays Paul."',
+      'aria-label="All 20 paid leaf blocks have an owner. The read pays Paul."',
     );
     expect(seqView(P.rulings.G1, 'G1', 'today')).toContain(
       'aria-label="Today 10 paid leaf blocks have no owner. A read of them pays no holder."',

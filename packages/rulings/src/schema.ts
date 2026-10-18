@@ -1,15 +1,11 @@
 import { diffLines } from 'diff';
 import { z } from 'zod';
 
-import { sentenceEnds } from './html.ts';
-
-const LONG_LINE = 76;
-const FRAGMENT = 90;
-const TODAY_SENTENCES = 3;
 export const KINDS = ['call', 'money', 'store', 'check', 'fail'] as const;
 const LANGS = ['ts', 'js', 'json', 'bash', 'markup', 'css'] as const;
 const VAGUE =
   /\b(more flexible|flexibility|cleaner|more robust|scalable|future[- ]proof|best practice|more maintainable|more elegant)\b/i;
+const OPTION_CAPTION = /^<b>\s*option\s+[a-z]\s*[:—-]/i;
 const SLUG = /^[a-z][a-z0-9-]*$/;
 const RULING_ID = /^G\d+$/;
 const LETTER = /^[a-z]$/;
@@ -120,24 +116,10 @@ export type Step = z.infer<typeof step>;
 export type Page = z.infer<typeof pageSchema>;
 export interface Verdict {
   errors: string[];
-  warnings: string[];
 }
 
 function stripTags(s: string): string {
   return s.replace(/<[^>]*>/g, '');
-}
-
-function words(t: string): string[] {
-  return stripTags(t)
-    .toLowerCase()
-    .split(/\W+/)
-    .filter(w => w.length > 0);
-}
-
-function overlap(x: string, y: string): number {
-  const a = words(x);
-  const b = new Set(words(y));
-  return a.length === 0 ? 0 : a.filter(w => b.has(w)).length / a.length;
 }
 
 export function seqViews(d: Seq, owner: string): string[] {
@@ -160,20 +142,15 @@ function flow(q: Ruling): string {
   return q.seq ? q.seq.steps.map(st => st.x ?? '').join('|') : '';
 }
 
-function longestLine(code: string): number {
-  return code.split('\n').reduce((m, l) => Math.max(m, l.length), 0);
-}
-
 export function validatePage(input: unknown): Verdict {
   const errors: string[] = [];
-  const warnings: string[] = [];
   const parsed = pageSchema.safeParse(input);
   if (!parsed.success) {
     for (const issue of parsed.error.issues) {
       const at = issue.path.join('.');
       errors.push(at ? `${at}: ${issue.message}` : issue.message);
     }
-    return { errors, warnings };
+    return { errors };
   }
   const P = parsed.data;
   const R = P.rulings;
@@ -191,8 +168,14 @@ export function validatePage(input: unknown): Verdict {
     }
   }
   function conclusionFirst(v: string | undefined, what: string): void {
-    if (!blank(v) && !/^\s*<b>/.test(v ?? '')) {
-      warnings.push(`${what} should open with its conclusion in <b>…</b>`);
+    const t = (v ?? '').trim();
+    if (t === '') {
+      return;
+    }
+    if (!t.startsWith('<b>')) {
+      errors.push(`${what} must open with its conclusion in <b>…</b>`);
+    } else if (OPTION_CAPTION.test(t)) {
+      errors.push(`${what} opens with an option label; open with the conclusion`);
     }
   }
   function optionExists(ref: string): boolean {
@@ -244,10 +227,11 @@ export function validatePage(input: unknown): Verdict {
         }
       }
     }
-    for (const v of Object.keys(d.caps ?? {})) {
+    for (const [v, cap] of Object.entries(d.caps ?? {})) {
       if (!viewOk(v)) {
         errors.push(`${where}.caps names "${v}", which is not a live option`);
       }
+      conclusionFirst(cap, `${where}.caps.${v}`);
     }
   }
 
@@ -286,18 +270,9 @@ export function validatePage(input: unknown): Verdict {
     for (let j = i + 1; j < live.length; j++) {
       const [ai, A] = live[i];
       const [bj, B] = live[j];
-      if (
-        A.today !== undefined &&
-        B.today !== undefined &&
-        Math.min(overlap(A.today, B.today), overlap(B.today, A.today)) > 0.7
-      ) {
-        warnings.push(
-          `${ai}.today and ${bj}.today say nearly the same thing; adapt each to its own ruling: only the parts and terms it needs`,
-        );
-      }
       const fa = flow(A);
       if (fa !== '' && fa === flow(B)) {
-        warnings.push(
+        errors.push(
           `${ai}.seq and ${bj}.seq draw the same steps; each picture shows only what its ruling turns on`,
         );
       }
@@ -326,28 +301,8 @@ export function validatePage(input: unknown): Verdict {
       q.today,
       `${id}.today (how this part works today, in plain words, up to where it breaks)`,
     );
-    const sentences = sentenceEnds((q.today ?? '').trim()).length + 1;
-    if (sentences > TODAY_SENTENCES) {
-      warnings.push(
-        `${id}.today is ${sentences} sentences; two show before the fold — write it in three`,
-      );
-    }
-    if (!blank(q.stake) && !/\d/.test(stripTags(q.stake ?? ''))) {
-      warnings.push(
-        `${id}.stake has no number; name a real value from the case`,
-      );
-    }
-    if (!blank(q.stake) && !blank(q.today)) {
-      const sw = words(q.stake ?? '');
-      const tw = new Set(words(q.today ?? ''));
-      if (sw.length > 0 && sw.filter(w => tw.has(w)).length / sw.length > 0.5) {
-        warnings.push(
-          `${id}.stake and ${id}.today share more than half their words; each fact lives in one block`,
-        );
-      }
-    }
     if ((q.stake ?? '').includes('<code>')) {
-      warnings.push(
+      errors.push(
         `${id}.stake names an internal thing; put it in today and say what the owner sees`,
       );
     }
@@ -374,11 +329,6 @@ export function validatePage(input: unknown): Verdict {
         errors.push(`${id}.bodies.${k} names no live option that is not today`);
       }
       req(b.code, `${id}.bodies.${k}.code`);
-      if (b.code !== undefined && longestLine(b.code) > LONG_LINE) {
-        warnings.push(
-          `${id}.bodies.${k} has a line of ${longestLine(b.code)} characters; a body fits ${LONG_LINE}`,
-        );
-      }
       const todayCode = 'today' in B ? B.today.code : undefined;
       if (k !== 'today' && todayCode !== undefined && b.code !== undefined) {
         const delta = diffLines(todayCode, b.code);
@@ -386,16 +336,8 @@ export function validatePage(input: unknown): Verdict {
           .filter(p => p.added || p.removed)
           .reduce((a, p) => a + p.count, 0);
         if (changed === 0) {
-          warnings.push(
+          errors.push(
             `${id}.bodies.${k} is identical to today; an option that changes nothing is not an option`,
-          );
-        } else if (
-          b.diff === false &&
-          changed >= Math.max(3, 0.5 * todayCode.split('\n').length) &&
-          b.code.split('\n')[0] === todayCode.split('\n')[0]
-        ) {
-          warnings.push(
-            `${id}.bodies.${k} differs from today by ${changed} lines; drop diff:false and let the builder show the delta`,
           );
         }
       }
@@ -412,6 +354,7 @@ export function validatePage(input: unknown): Verdict {
           errors.push(`${at} names no live option that is not today`);
         }
         req(v.text, `${at}.text (the mermaid text)`);
+        conclusionFirst(v.cap, `${at}.cap`);
       }
     }
     if (opts.length < 2) {
@@ -469,14 +412,8 @@ export function validatePage(input: unknown): Verdict {
         }
         const hit = VAGUE.exec(text ?? '');
         if (hit) {
-          warnings.push(
+          errors.push(
             `${nm} ${kind} uses a word the owner cannot check ("${hit[0]}")`,
-          );
-        }
-        const len = stripTags(text ?? '').length;
-        if (len > FRAGMENT) {
-          warnings.push(
-            `${nm} ${kind} is ${len} characters; a table fragment fits ${FRAGMENT}`,
           );
         }
       }
@@ -492,9 +429,9 @@ export function validatePage(input: unknown): Verdict {
   }
 
   if (live.length > 10) {
-    warnings.push(
+    errors.push(
       `${live.length} rulings on one page; past ten, decide the smallest ones yourself`,
     );
   }
-  return { errors, warnings };
+  return { errors };
 }

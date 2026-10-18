@@ -18,8 +18,7 @@ function loadExample(): any {
   return structuredClone(ctx.PAGE);
 }
 
-const allText = (r: { errors: string[]; warnings: string[] }) =>
-  [...r.errors, ...r.warnings].join('\n');
+const allText = (r: { errors: string[] }) => r.errors.join('\n');
 
 describe('unknown keys reject', () => {
   it.each([
@@ -114,69 +113,72 @@ describe('refinements fire on crafted-red fixtures', () => {
     expect(allText(validatePage(P))).toContain('G1.title must be the decision as a question');
   });
 
-  it('stake carries a digit', () => {
-    const P = loadExample();
-    P.rulings.G1.stake =
-      '<b>In every tree, a read of ten paid leaf blocks pays no owner, and no surface shows it.</b>';
-    const r = validatePage(P);
-    expect(r.errors).toEqual([]);
-    expect(r.warnings.join('\n')).toContain('G1.stake has no number');
-  });
-
   it('stake names no code internal', () => {
     const P = loadExample();
     P.rulings.G1.stake += ' It shows in <code>pool_list</code>.';
-    const r = validatePage(P);
-    expect(r.errors).toEqual([]);
-    expect(r.warnings.join('\n')).toContain('G1.stake names an internal thing');
-  });
-
-  it('stake and today share at most half their words', () => {
-    const P = loadExample();
-    P.rulings.G1.stake = `<b>${P.rulings.G1.today}</b>`;
-    const r = validatePage(P);
-    expect(r.errors).toEqual([]);
-    expect(r.warnings.join('\n')).toContain('G1.stake and G1.today share more than half');
-  });
-
-  it('near-duplicate today texts across rulings', () => {
-    const P = loadExample();
-    P.rulings.G2.today = P.rulings.G1.today;
-    const r = validatePage(P);
-    expect(r.errors).toEqual([]);
-    expect(r.warnings.join('\n')).toContain('say nearly the same thing');
+    expect(allText(validatePage(P))).toContain('G1.stake names an internal thing');
   });
 
   it('vague words in gain and cost', () => {
     const P = loadExample();
     P.rulings.G1.opts[0].g = 'cleaner and more robust';
-    const r = validatePage(P);
-    expect(r.errors).toEqual([]);
-    expect(r.warnings.join('\n')).toContain('uses a word the owner cannot check');
+    expect(allText(validatePage(P))).toContain('uses a word the owner cannot check');
   });
 
-  it('caption opens with its conclusion', () => {
+  it('every caption opens with its conclusion', () => {
     const P = loadExample();
     P.rulings.G1.seq.cap = 'Today 10 paid leaf blocks have no owner.';
-    const r = validatePage(P);
-    expect(r.errors).toEqual([]);
-    expect(r.warnings.join('\n')).toContain('G1.seq.cap should open with its conclusion');
+    expect(allText(validatePage(P))).toContain(
+      'G1.seq.cap must open with its conclusion in <b>…</b>',
+    );
   });
 
-  it('body lines fit 76 characters', () => {
+  it('a caption opening with the option label rejects, on both per-view caption homes', () => {
     const P = loadExample();
-    P.rulings.G2.bodies.today.code += `\n${'x'.repeat(80)}`;
-    const r = validatePage(P);
-    expect(r.errors).toEqual([]);
-    expect(r.warnings.join('\n')).toContain('G2.bodies.today has a line of 80 characters');
+    P.rulings.G1.seq.caps = {
+      b: '<b>Option b: all 20 paid leaf blocks have an owner.</b> The read pays Paul.',
+    };
+    expect(allText(validatePage(P))).toContain(
+      'G1.seq.caps.b opens with an option label',
+    );
+    const Q = loadExample();
+    delete Q.rulings.G4.seq;
+    Q.rulings.G4.diagram = {
+      cap: '<b>Today a crash loses the window.</b>',
+      views: {
+        a: {
+          cap: '<b>Option a: the daemon re-arms from Postgres.</b>',
+          text: 'flowchart TD\n  R[daemon restarts] --> S[window read]',
+        },
+        b: { text: 'flowchart TD\n  R[daemon restarts] --> C[the read re-arms]' },
+      },
+    };
+    expect(allText(validatePage(Q))).toContain(
+      'G4.diagram.views.a.cap opens with an option label',
+    );
+  });
+
+  it('a caption that leads with Today passes', () => {
+    const P = loadExample();
+    P.rulings.G1.seq.cap =
+      '<b>Today 10 paid leaf blocks have no owner.</b> A read of them pays no holder.';
+    expect(validatePage(P).errors).toEqual([]);
+  });
+
+  it('two rulings never draw the same steps', () => {
+    const P = loadExample();
+    P.rulings.G4.seq.ledger = structuredClone(P.rulings.G1.seq.ledger);
+    P.rulings.G4.seq.start = structuredClone(P.rulings.G1.seq.start);
+    P.rulings.G4.seq.steps = structuredClone(P.rulings.G1.seq.steps);
+    expect(allText(validatePage(P))).toContain(
+      'G1.seq and G4.seq draw the same steps',
+    );
   });
 
   it('an option body identical to today changes nothing', () => {
     const P = loadExample();
     P.rulings.G2.bodies.a.code = P.rulings.G2.bodies.today.code;
-    const r = validatePage(P);
-    expect(r.errors).toEqual([]);
-    expect(r.warnings.join('\n')).toContain('G2.bodies.a is identical to today');
+    expect(allText(validatePage(P))).toContain('G2.bodies.a is identical to today');
   });
 
   it('every live option has a picture', () => {
@@ -276,6 +278,15 @@ describe('refinements fire on crafted-red fixtures', () => {
       'G1.seq.steps[0] f and t must be lane indexes 0…3',
     );
   });
+
+  it('more than ten rulings on one page', () => {
+    const P = loadExample();
+    for (let i = 6; i <= 12; i++) {
+      P.rulings[`G${i}`] = structuredClone(P.rulings.G2);
+      P.groups[1].rulings.push(`G${i}`);
+    }
+    expect(allText(validatePage(P))).toContain('11 rulings on one page; past ten');
+  });
 });
 
 describe('shape rejects at the schema door', () => {
@@ -308,26 +319,5 @@ describe('shape rejects at the schema door', () => {
     expect(validatePage(P).errors).toEqual([]);
     P.rulings.G2.opts[0].needs = ['G1a', 'G9z'];
     expect(allText(validatePage(P))).toContain('G9z');
-  });
-});
-
-describe('errors block, warnings print', () => {
-  it('an errors page reports errors and no warnings', () => {
-    const P = loadExample();
-    delete P.rulings.G1.opts[0].rec;
-    const r = validatePage(P);
-    expect(r.errors.length).toBeGreaterThan(0);
-    expect(r.warnings).toEqual([]);
-  });
-
-  it('eleven rulings warn and nothing else errors', () => {
-    const P = loadExample();
-    for (let i = 6; i <= 12; i++) {
-      P.rulings[`G${i}`] = structuredClone(P.rulings.G2);
-      P.groups[1].rulings.push(`G${i}`);
-    }
-    const r = validatePage(P);
-    expect(r.errors).toEqual([]);
-    expect(r.warnings.join('\n')).toContain('11 rulings on one page; past ten');
   });
 });

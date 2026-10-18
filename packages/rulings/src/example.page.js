@@ -35,7 +35,7 @@ var PAGE = {
             o: { b: { x: "holder half goes to Paul’s leaf band", b: [null, null, "½ fee"] } } }
         ],
         cap: "<b>Today 10 paid leaf blocks have no owner.</b> A read of them pays no holder.",
-        caps: { b: "<b>Option b: all 20 paid leaf blocks have an owner.</b> The read pays Paul." }
+        caps: { b: "<b>All 20 paid leaf blocks have an owner.</b> The read pays Paul." }
       },
       opts: [
         { k: "a", rec: true, today: true, t: "Keep one band per paid block, as ruled in 6.5", g: "No money rule changes. The four 6.5b tests stay.", c: "The stake stays. The plan records the gap." },
@@ -96,7 +96,7 @@ var PAGE = {
             o: { a: { a: "del" }, b: { a: "del" } } }
         ],
         cap: "<b>Today a crash loses the window; the read pays into the void until a human rebuilds it.</b>",
-        caps: { a: "<b>Option a: the daemon re-arms its windows from Postgres on start.</b> No void window.", b: "<b>Option b: the read re-arms the window before paying.</b> One extra write per read." }
+        caps: { a: "<b>The daemon re-arms its windows from Postgres on start.</b> No void window.", b: "<b>The read re-arms the window before paying.</b> One extra write per read." }
       },
       opts: [
         { k: "a", rec: true, t: "The daemon re-arms its windows from Postgres on start", g: "The window survives a restart; reads never pay into the void and no human is in the loop.", c: "One more table the daemon owns and migrates; the start sequence grows a step." },
@@ -115,7 +115,7 @@ var PAGE = {
             text: 'flowchart TD\n  S[start] --> C{ledger check passes?}\n  C -- yes --> V[serve reads]\n  C -- no --> L[log a line] --> V'
           },
           a: {
-            cap: "<b>Option a: a failed check stops the daemon before its first read.</b> The on-call sees the exit, not a log line.",
+            cap: "<b>A failed check stops the daemon before its first read.</b> The on-call sees the exit, not a log line.",
             text: 'flowchart TD\n  S[start] --> C{ledger check passes?}\n  C -- yes --> V[serve reads]\n  C -- no --> X[exit non-zero]'
           }
         }
