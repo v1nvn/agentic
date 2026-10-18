@@ -332,7 +332,6 @@ svg text.note { font-size: 11.5px; font-weight: 600; fill: var(--o); }
 </div>
 <button type="button" class="bar-tab" id="bar-tab" aria-expanded="false" aria-controls="rulings-bar-in">no picks yet</button>
 </footer>
-
 <script>
 (function () {
   'use strict';

@@ -264,8 +264,7 @@ ${sideHtml(P)}
 ${groups}
 </main>
 </div>
-${panelHtml()}
-${hasDiagram ? `<script src="${MERMAID_FILE}"></script>\n${mermaidBoot()}` : ''}
+${panelHtml()}${hasDiagram ? `\n<script src="${MERMAID_FILE}"></script>\n${mermaidBoot()}` : ''}
 ${chromeScript()}
 </body>
 </html>

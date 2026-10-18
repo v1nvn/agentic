@@ -89,7 +89,7 @@ each other's options are not a page: settle them in chat (Step 0).
   is the only name: the answer table shows it.
 - **Stake**: one bold sentence. Who loses what, how often, who would notice, on a real value.
 - **Today**: how this part works now, in plain words, up to the point where it breaks. Two
-  sentences show before the fold; no case values: the fragments and the picture carry those.
+  sentences show before the fold; no case values: the fragments carry those.
   Each new term gets one plain line here.
 - Say each fact once, in the block that owns it: the stake owns the loss, `today` owns the
   mechanism, the picture owns the numbers, the options own code and test consequences. Keep it

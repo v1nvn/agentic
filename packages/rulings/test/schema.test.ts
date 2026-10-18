@@ -158,9 +158,24 @@ describe('refinements fire on crafted-red fixtures', () => {
     );
   });
 
-  it('a caption that leads with Today passes', () => {
+  it('a diagram ruling-level caption opening with the option label rejects', () => {
+    const Q = loadExample();
+    delete Q.rulings.G4.seq;
+    Q.rulings.G4.diagram = {
+      cap: '<b>Option a: the daemon re-arms from Postgres.</b>',
+      views: {
+        a: { text: 'flowchart TD\n  R[daemon restarts] --> S[window read]' },
+        b: { text: 'flowchart TD\n  R[daemon restarts] --> C[the read re-arms]' },
+      },
+    };
+    expect(allText(validatePage(Q))).toContain(
+      'G4.diagram.cap opens with an option label',
+    );
+  });
+
+  it('a caption that leads with Today passes at a per-view home', () => {
     const P = loadExample();
-    P.rulings.G1.seq.cap =
+    P.rulings.G1.seq.caps.b =
       '<b>Today 10 paid leaf blocks have no owner.</b> A read of them pays no holder.';
     expect(validatePage(P).errors).toEqual([]);
   });
