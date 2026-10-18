@@ -12,31 +12,26 @@ exemplar rebuilt on it and a timed mint inside the target.
 
 ## Current state
 
-U1 (`b7f6117`), U2 (`724facb`) and U3 (`43637e6`) landed, all closed
-on review with no blocking findings. The semver pick is in: minor —
-the run dispatches `release.yml -f bump=minor` (v0.51.0), once the
-run's commits reach origin/main. Four nits queued for the sweep,
-now in flight: the Today-passes test (schema.test.ts:161-166) is a
-no-op mutation — its non-degenerate shape is a Today-lead at a
-per-view `caps.b` home; the diagram ruling-level caption home
-(schema.ts:350 post-U2) is wired but unpinned; page.ts:268's
-diagram-less ternary leaves a blank line before the script tag
-(pinned in the whole-page snapshot); SKILL.md:92's Today line still
-names the picture as a case-value home. U1's two nits are settled;
-U2's README sentence was routed and landed with U3.
+U1 (`b7f6117`), U2 (`724facb`), U3 (`43637e6`) landed, all closed on
+review with no blocking findings; the four queued nits are swept
+(`62b539e`) and the sweep reviewed clean. The semver pick is minor —
+v0.51.0. The run's commits reach origin/main by push (owner ruling),
+then `release.yml -f bump=minor` dispatches. Remaining: U4 — exemplar
+rebuilt on the published pin and opened, a held brief of four
+decisions, the timed mint ≤ 10 min, the time recorded here.
 
-Evidence the remaining units rest on:
+Evidence the remaining unit rests on:
 
 - `<b>Option a:`-style caption openers occur 72 times across the live
-  pages — they rebuild when next touched and meet the errors then;
-  the seed's four are reworded (U2), SKILL's one is U3's.
-- The from-source door works only after `yarn install` at the root.
+  pages — they rebuild when next touched and meet the errors then.
+- The from-source door works only after `yarn install` at the root;
+  the published-pin door is the npx line the README pins to the train.
 
 ## Next step
 
-Sweep the four nits, review the sweep, get the run's commits to
-origin/main per the owner's ruling, dispatch the release, then
-U4's exemplar rebuild and timed mint.
+On the release's green: dispatch U4's builder (held brief, exemplar
+rebuild on the published pin), then the orchestrator runs the timed
+mint and closes the thread.
 
 ## Steps
 
