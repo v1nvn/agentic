@@ -12,16 +12,18 @@ exemplar rebuilt on it and a timed mint inside the target.
 
 ## Current state
 
-U1 (`b7f6117`) and U2 (`724facb`) landed, both closed on review with
-no blocking findings. U3 (the law surfaces) is in flight; nothing
-else is built. Open nits, queued for the group's sweep: the
-Today-passes test (schema.test.ts:161-166) is a no-op mutation — its
-non-degenerate shape is a Today-lead at a per-view `caps.b` home,
-which no green test covers; the diagram ruling-level caption home
-(schema.ts:350 post-U2) is wired but unpinned — deleting it stays
-green. Routed live: README:20's "errors and warnings" sentence went
-to U3's builder (its file, its unit). U1's two nits are settled
-(orchestrator-words confirmed; live-run verification waived).
+U1 (`b7f6117`), U2 (`724facb`) and U3 (`43637e6`) landed, all closed
+on review with no blocking findings. The semver pick is in: minor —
+the run dispatches `release.yml -f bump=minor` (v0.51.0), once the
+run's commits reach origin/main. Four nits queued for the sweep,
+now in flight: the Today-passes test (schema.test.ts:161-166) is a
+no-op mutation — its non-degenerate shape is a Today-lead at a
+per-view `caps.b` home; the diagram ruling-level caption home
+(schema.ts:350 post-U2) is wired but unpinned; page.ts:268's
+diagram-less ternary leaves a blank line before the script tag
+(pinned in the whole-page snapshot); SKILL.md:92's Today line still
+names the picture as a case-value home. U1's two nits are settled;
+U2's README sentence was routed and landed with U3.
 
 Evidence the remaining units rest on:
 
@@ -32,8 +34,9 @@ Evidence the remaining units rest on:
 
 ## Next step
 
-U3 is in flight; on its green report commit it and dispatch its
-reviewer. U4's semver question posts to the owner when U4 comes due.
+Sweep the four nits, review the sweep, get the run's commits to
+origin/main per the owner's ruling, dispatch the release, then
+U4's exemplar rebuild and timed mint.
 
 ## Steps
 
@@ -41,7 +44,7 @@ reviewer. U4's semver question posts to the owner when U4 comes due.
 | --- | --- | --- | --- | --- | -------------- |
 | U1 | table-only render — no picture region without a picture, `w` moves to the verdict row | sonnet | | design | One snapshot test: a page with one table-only ruling (title, stake, `today`, opts; no `seq`/`bodies`/`diagram`) builds green; its section holds no `.compare` and no `.stage-wrap`; each option's `w` occurs once, inside its `.vrow`; the pictured snapshots change only by `w` moving; the picture gate applies only to rulings that carry a picture, its table-only error text deleted; a screenshot of the table-only ruling viewed — pick, unpick, none row, note, composer and reload persistence work — landed `b7f6117` |
 | U2 | validator cull — one tier, errors only | sonnet | | | `FRAGMENT`, `TODAY_SENTENCES`, `LONG_LINE` and their checks and tests deleted; stake-digit, today/today overlap, stake/today overlap and the `diff:false` hint deleted; `Verdict` carries errors only and `grep -c "warnings" src/` is 0; the checks that remain block: VAGUE, identical body, stake `<code>`, seq exact-flow equality, more than ten rulings, and `conclusionFirst` on every caption — ruling, per-view `caps.<letter>` and `views.<k>.cap` — rejecting `/^<b>\s*option\s+[a-z]\s*[:—-]/i` while "Today …" leads pass; `cli.ts` prints errors only; the seed builds with no output — its four `<b>Option …` openers (example.page.js:38, 99×2, 118) are reworded in this unit, the new regex blocking them (U3's grep then owes only SKILL's one) — landed `724facb` |
-| U3 | the law — SKILL, README, ARCHITECTURE, seed | sonnet | | | Step 3 is the ordered kind-law and the depth law (Plan, verbatim in substance); Step 0 carries the orientation rule (Plan); Step 5 states the one-pass mint; no surface says every ruling has a picture — frontmatter description and trigger, intro, Step 2 gate, Step 4 picture bullet, fields table, Never list, README, ARCHITECTURE opening; every length-cap sentence deleted (SKILL Step 2, Step 4 ×2, fields table, Bodies), "keep it short, no cap" stays; "treat each warning as a fault" deleted; the placeholder law says `&lt;pools&gt;` in HTML fields; `w` documented as the row's muted line; `grep -in "option [a-d]:" SKILL.md src/example.page.js` is 0; seed G5 is table-only — tests pinning G5's diagram (schema.test.ts:188-195 today-view pin; pictures.test.ts diagram stage snapshots) migrate to synthetic pictured fixtures, keeping the diagram kind tested; README carries `yarn install && node packages/rulings/src/index.ts <dir>`; SKILL.md ends shorter than its 267 lines |
+| U3 | the law — SKILL, README, ARCHITECTURE, seed | sonnet | | | Step 3 is the ordered kind-law and the depth law (Plan, verbatim in substance); Step 0 carries the orientation rule (Plan); Step 5 states the one-pass mint; no surface says every ruling has a picture — frontmatter description and trigger, intro, Step 2 gate, Step 4 picture bullet, fields table, Never list, README, ARCHITECTURE opening; every length-cap sentence deleted (SKILL Step 2, Step 4 ×2, fields table, Bodies), "keep it short, no cap" stays; "treat each warning as a fault" deleted; the placeholder law says `&lt;pools&gt;` in HTML fields; `w` documented as the row's muted line; `grep -in "option [a-d]:" SKILL.md src/example.page.js` is 0; seed G5 is table-only — tests pinning G5's diagram (schema.test.ts:188-195 today-view pin; pictures.test.ts diagram stage snapshots) migrate to synthetic pictured fixtures, keeping the diagram kind tested; README carries `yarn install && node packages/rulings/src/index.ts <dir>`; SKILL.md ends shorter than its 267 lines — landed `43637e6` |
 | U4 | release, exemplar, timed mint | sonnet | none | | Released per `references/npm-publishing.md` at the semver step the owner picks; `agentic-open-surfaces` rebuilt on the published pin and opened; a fresh sonnet subagent, given a held brief of four decisions, mints a page on the published pin in ≤ 10 minutes wall-clock, the time recorded here |
 
 ## Plan
