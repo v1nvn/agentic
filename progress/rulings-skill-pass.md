@@ -12,38 +12,35 @@ exemplar rebuilt on it and a timed mint inside the target.
 
 ## Current state
 
-U1 landed (`b7f6117`): table-only render closed on review — every
-criterion met, snapshot diffs enumerated to the plan's shapes, no
-blocking findings. U2 (validator cull) is in flight; nothing else is
-built. Open nits, queued for the group's sweep: the plan amendments
-rode U1's build commit — the orchestrator's words from the consult,
-the builder wrote no law (confirmed; nothing to fix); the row's
-literal "screenshot" artifact is a recorded live run, which the
-owner's verification rule accepts (waived).
+U1 (`b7f6117`) and U2 (`724facb`) landed, both closed on review with
+no blocking findings. U3 (the law surfaces) is in flight; nothing
+else is built. Open nits, queued for the group's sweep: the
+Today-passes test (schema.test.ts:161-166) is a no-op mutation — its
+non-degenerate shape is a Today-lead at a per-view `caps.b` home,
+which no green test covers; the diagram ruling-level caption home
+(schema.ts:350 post-U2) is wired but unpinned — deleting it stays
+green. Routed live: README:20's "errors and warnings" sentence went
+to U3's builder (its file, its unit). U1's two nits are settled
+(orchestrator-words confirmed; live-run verification waived).
 
 Evidence the remaining units rest on:
 
-- Building the six live `page.js` (`~/.claude/rulings/*`, copied to
-  scratch, from source) emits ~140 warnings: ~115 the 90-char
-  fragment cap, ~22 the three-sentence `today` cap, 1 the ten-ruling
-  cap. Stake-digit, today/today overlap, stake/today overlap and
-  VAGUE fire zero times.
 - `<b>Option a:`-style caption openers occur 72 times across the live
-  pages; of the seed-and-SKILL five, U2 rewords the seed's four and
-  U3 owes SKILL's one.
+  pages — they rebuild when next touched and meet the errors then;
+  the seed's four are reworded (U2), SKILL's one is U3's.
 - The from-source door works only after `yarn install` at the root.
 
 ## Next step
 
-U2 is in flight; on its green report commit it, dispatch its reviewer
-beside U3's builder.
+U3 is in flight; on its green report commit it and dispatch its
+reviewer. U4's semver question posts to the owner when U4 comes due.
 
 ## Steps
 
 | id | unit | model | review | consult | close criteria |
 | --- | --- | --- | --- | --- | -------------- |
 | U1 | table-only render — no picture region without a picture, `w` moves to the verdict row | sonnet | | design | One snapshot test: a page with one table-only ruling (title, stake, `today`, opts; no `seq`/`bodies`/`diagram`) builds green; its section holds no `.compare` and no `.stage-wrap`; each option's `w` occurs once, inside its `.vrow`; the pictured snapshots change only by `w` moving; the picture gate applies only to rulings that carry a picture, its table-only error text deleted; a screenshot of the table-only ruling viewed — pick, unpick, none row, note, composer and reload persistence work — landed `b7f6117` |
-| U2 | validator cull — one tier, errors only | sonnet | | | `FRAGMENT`, `TODAY_SENTENCES`, `LONG_LINE` and their checks and tests deleted; stake-digit, today/today overlap, stake/today overlap and the `diff:false` hint deleted; `Verdict` carries errors only and `grep -c "warnings" src/` is 0; the checks that remain block: VAGUE, identical body, stake `<code>`, seq exact-flow equality, more than ten rulings, and `conclusionFirst` on every caption — ruling, per-view `caps.<letter>` and `views.<k>.cap` — rejecting `/^<b>\s*option\s+[a-z]\s*[:—-]/i` while "Today …" leads pass; `cli.ts` prints errors only; the seed builds with no output — its four `<b>Option …` openers (example.page.js:38, 99×2, 118) are reworded in this unit, the new regex blocking them (U3's grep then owes only SKILL's one) |
+| U2 | validator cull — one tier, errors only | sonnet | | | `FRAGMENT`, `TODAY_SENTENCES`, `LONG_LINE` and their checks and tests deleted; stake-digit, today/today overlap, stake/today overlap and the `diff:false` hint deleted; `Verdict` carries errors only and `grep -c "warnings" src/` is 0; the checks that remain block: VAGUE, identical body, stake `<code>`, seq exact-flow equality, more than ten rulings, and `conclusionFirst` on every caption — ruling, per-view `caps.<letter>` and `views.<k>.cap` — rejecting `/^<b>\s*option\s+[a-z]\s*[:—-]/i` while "Today …" leads pass; `cli.ts` prints errors only; the seed builds with no output — its four `<b>Option …` openers (example.page.js:38, 99×2, 118) are reworded in this unit, the new regex blocking them (U3's grep then owes only SKILL's one) — landed `724facb` |
 | U3 | the law — SKILL, README, ARCHITECTURE, seed | sonnet | | | Step 3 is the ordered kind-law and the depth law (Plan, verbatim in substance); Step 0 carries the orientation rule (Plan); Step 5 states the one-pass mint; no surface says every ruling has a picture — frontmatter description and trigger, intro, Step 2 gate, Step 4 picture bullet, fields table, Never list, README, ARCHITECTURE opening; every length-cap sentence deleted (SKILL Step 2, Step 4 ×2, fields table, Bodies), "keep it short, no cap" stays; "treat each warning as a fault" deleted; the placeholder law says `&lt;pools&gt;` in HTML fields; `w` documented as the row's muted line; `grep -in "option [a-d]:" SKILL.md src/example.page.js` is 0; seed G5 is table-only — tests pinning G5's diagram (schema.test.ts:188-195 today-view pin; pictures.test.ts diagram stage snapshots) migrate to synthetic pictured fixtures, keeping the diagram kind tested; README carries `yarn install && node packages/rulings/src/index.ts <dir>`; SKILL.md ends shorter than its 267 lines |
 | U4 | release, exemplar, timed mint | sonnet | none | | Released per `references/npm-publishing.md` at the semver step the owner picks; `agentic-open-surfaces` rebuilt on the published pin and opened; a fresh sonnet subagent, given a held brief of four decisions, mints a page on the published pin in ≤ 10 minutes wall-clock, the time recorded here |
 
@@ -119,18 +116,19 @@ beside U3's builder.
 - **Small rows:** U4 — release mechanics, no code; review is none
   because it changes no code, the release checklist and the timed mint
   guarding it.
-- **Tactical map.** Re-read before editing. `schema.ts`: caps `:6-8`,
-  VAGUE `:11-12`, `conclusionFirst` `:193-197` (called only `:212`,
-  `:407`), caps keys `:247-251`, pair similarity `:284-305`, today
-  `:325-334`, stake `:335-353`, one picture `:354-364`, bodies
-  `:370-401`, diagram `:402-415`, picture gate `:448-459`, fragment
-  `:473-478`, ten rulings `:491-495`. `page.ts`: `viewsOf` `:108-120`,
+- **Tactical map.** Re-read before editing. `schema.ts` (post-U2;
+  pre-cull anchors are stale — re-locate before use): OPTION_CAPTION
+  `:8`, `opt.w` `:76`, Verdict `:113-115`, conclusionFirst `:170-180`
+  called at `:195, :234, :350, :357`, today req `:299-302`, stake
+  `<code>` `:304-307`, identical body `:338-341`, one rec `:368-370`,
+  VAGUE `:415-419`, ten rulings `:432-435`. `page.ts`: `viewsOf` `:108-120`,
   `compareOf` `:132-147` (`optOf`'s one caller `:146` post-U1), `rulingSection`
   `:148-175`. verdictTable `html.ts:55-89` (`.vc` span `:74`). `w`
   terms at `seq.ts:269,273`, `bodies.ts:156,159,174,177`,
   `diagram.ts:17,21`. `show()` `chrome.ts:66-79`, `restoreViews`
   `:80-93`, row click `:203-213`, `answerText` `:284-292`; `.stage .how`
-  `style.ts:131`, vrow grid `:115`. `cli.ts:67-70` (warnings print).
+  `style.ts:131`, vrow grid `:115`. `cli.ts` errors-only print
+  (post-U2).
   Tests (consult-corrected): snapshots `build.test.ts:139-164` (`:142`
   whole page) and `pictures.test.ts:38-59,163-197,242-251` (`:191` the
   only `w`-bearing stage); `build.test.ts:394,476-524,845` (warning
@@ -147,7 +145,10 @@ beside U3's builder.
   the answer format string stays byte-identical; `today` stays
   required; files touched come out with fewer comment lines. Plan
   edits ride the orchestrator's commits only — no build commit amends
-  the plan it is judged against (U1 review's finding shape).
+  the plan it is judged against (U1 review's finding shape). Every
+  wired check home carries a test that fails on its removal, and a
+  green-path test constructs a new case, never a no-op mutation (U2
+  review's finding shape).
 - **Open question for the owner (U4).** The semver step: the cull
   turns surviving warnings into errors, so an old `page.js` with an
   `Option a:` caption or more than ten rulings fails on rebuild.
