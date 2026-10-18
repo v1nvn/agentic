@@ -6,7 +6,8 @@ and a verdict table of lettered options with gain, cost and a recommendation.
 The owner picks a letter by clicking its row — a second click unpicks; the
 shown picture picks too — adds notes, and copies the composed answer;
 picks persist under the page's `key`. The plugin is the `/rulings:consult`
-skill; the CLI builds and rebuilds the page it opens.
+skill; the CLI builds and rebuilds the page it opens. The plugin's goal and its
+non-regression floors live in [ARCHITECTURE.md](ARCHITECTURE.md).
 
 Install as a Claude Code plugin: `claude plugin install rulings@agentic`.
 
