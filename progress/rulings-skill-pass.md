@@ -12,10 +12,16 @@ exemplar rebuilt on it and a timed mint inside the target.
 
 ## Current state
 
-Hardened against source, the live corpus and transcript history. The
-units below are ready; nothing is built.
+U1 landed (`b7f6117`): table-only render closed on review — every
+criterion met, snapshot diffs enumerated to the plan's shapes, no
+blocking findings. U2 (validator cull) is in flight; nothing else is
+built. Open nits, queued for the group's sweep: the plan amendments
+rode U1's build commit — the orchestrator's words from the consult,
+the builder wrote no law (confirmed; nothing to fix); the row's
+literal "screenshot" artifact is a recorded live run, which the
+owner's verification rule accepts (waived).
 
-Evidence the units rest on:
+Evidence the remaining units rest on:
 
 - Building the six live `page.js` (`~/.claude/rulings/*`, copied to
   scratch, from source) emits ~140 warnings: ~115 the 90-char
@@ -23,22 +29,20 @@ Evidence the units rest on:
   cap. Stake-digit, today/today overlap, stake/today overlap and
   VAGUE fire zero times.
 - `<b>Option a:`-style caption openers occur 72 times across the live
-  pages and 5 times in the seed and SKILL.
-- A ruling with no picture renders an empty bordered `.compare` box
-  whose wraps still carry `data-pick`, rows toggle a "shown" state
-  that points at nothing, and `w` is lost — it renders only inside a
-  picture stage.
+  pages; of the seed-and-SKILL five, U2 rewords the seed's four and
+  U3 owes SKILL's one.
 - The from-source door works only after `yarn install` at the root.
 
 ## Next step
 
-Run the units, U1 first.
+U2 is in flight; on its green report commit it, dispatch its reviewer
+beside U3's builder.
 
 ## Steps
 
 | id | unit | model | review | consult | close criteria |
 | --- | --- | --- | --- | --- | -------------- |
-| U1 | table-only render — no picture region without a picture, `w` moves to the verdict row | sonnet | | design | One snapshot test: a page with one table-only ruling (title, stake, `today`, opts; no `seq`/`bodies`/`diagram`) builds green; its section holds no `.compare` and no `.stage-wrap`; each option's `w` occurs once, inside its `.vrow`; the pictured snapshots change only by `w` moving; the picture gate applies only to rulings that carry a picture, its table-only error text deleted; a screenshot of the table-only ruling viewed — pick, unpick, none row, note, composer and reload persistence work |
+| U1 | table-only render — no picture region without a picture, `w` moves to the verdict row | sonnet | | design | One snapshot test: a page with one table-only ruling (title, stake, `today`, opts; no `seq`/`bodies`/`diagram`) builds green; its section holds no `.compare` and no `.stage-wrap`; each option's `w` occurs once, inside its `.vrow`; the pictured snapshots change only by `w` moving; the picture gate applies only to rulings that carry a picture, its table-only error text deleted; a screenshot of the table-only ruling viewed — pick, unpick, none row, note, composer and reload persistence work — landed `b7f6117` |
 | U2 | validator cull — one tier, errors only | sonnet | | | `FRAGMENT`, `TODAY_SENTENCES`, `LONG_LINE` and their checks and tests deleted; stake-digit, today/today overlap, stake/today overlap and the `diff:false` hint deleted; `Verdict` carries errors only and `grep -c "warnings" src/` is 0; the checks that remain block: VAGUE, identical body, stake `<code>`, seq exact-flow equality, more than ten rulings, and `conclusionFirst` on every caption — ruling, per-view `caps.<letter>` and `views.<k>.cap` — rejecting `/^<b>\s*option\s+[a-z]\s*[:—-]/i` while "Today …" leads pass; `cli.ts` prints errors only; the seed builds with no output — its four `<b>Option …` openers (example.page.js:38, 99×2, 118) are reworded in this unit, the new regex blocking them (U3's grep then owes only SKILL's one) |
 | U3 | the law — SKILL, README, ARCHITECTURE, seed | sonnet | | | Step 3 is the ordered kind-law and the depth law (Plan, verbatim in substance); Step 0 carries the orientation rule (Plan); Step 5 states the one-pass mint; no surface says every ruling has a picture — frontmatter description and trigger, intro, Step 2 gate, Step 4 picture bullet, fields table, Never list, README, ARCHITECTURE opening; every length-cap sentence deleted (SKILL Step 2, Step 4 ×2, fields table, Bodies), "keep it short, no cap" stays; "treat each warning as a fault" deleted; the placeholder law says `&lt;pools&gt;` in HTML fields; `w` documented as the row's muted line; `grep -in "option [a-d]:" SKILL.md src/example.page.js` is 0; seed G5 is table-only; README carries `yarn install && node packages/rulings/src/index.ts <dir>`; SKILL.md ends shorter than its 267 lines |
 | U4 | release, exemplar, timed mint | sonnet | none | | Released per `references/npm-publishing.md` at the semver step the owner picks; `agentic-open-surfaces` rebuilt on the published pin and opened; a fresh sonnet subagent, given a held brief of four decisions, mints a page on the published pin in ≤ 10 minutes wall-clock, the time recorded here |
@@ -121,7 +125,7 @@ Run the units, U1 first.
   `:325-334`, stake `:335-353`, one picture `:354-364`, bodies
   `:370-401`, diagram `:402-415`, picture gate `:448-459`, fragment
   `:473-478`, ten rulings `:491-495`. `page.ts`: `viewsOf` `:108-120`,
-  `compareOf` `:132-147` (`optOf`'s one caller `:136`), `rulingSection`
+  `compareOf` `:132-147` (`optOf`'s one caller `:146` post-U1), `rulingSection`
   `:148-175`. verdictTable `html.ts:55-89` (`.vc` span `:74`). `w`
   terms at `seq.ts:269,273`, `bodies.ts:156,159,174,177`,
   `diagram.ts:17,21`. `show()` `chrome.ts:66-79`, `restoreViews`
@@ -131,7 +135,8 @@ Run the units, U1 first.
   whole page) and `pictures.test.ts:38-59,163-197,242-251` (`:191` the
   only `w`-bearing stage); `build.test.ts:394,476-524,845` (warning
   suites — U2 deletes them) and `pictures.test.ts:24-34` (green seed)
-  stay untouched in U1; `schema.test.ts:123-171,182-186,306-323`. SKILL:
+  stay untouched in U1; `schema.test.ts:123-171,182-186,306-323`
+  (188-195 is U1's today-view pin). SKILL:
   Step 0 `:19-32`, Step 2 cap `:53`,
   placeholder `:58-59`, Step 3 `:65-84`, Step 4 `:96-115`, Step 5
   `:131`, fields `:210-212`, seq example `:229`, bodies cap `:248`,
@@ -140,7 +145,9 @@ Run the units, U1 first.
   (pre-flight: green, 56 s).
 - **Enforcement inventory.** Exactly one recommended option, always;
   the answer format string stays byte-identical; `today` stays
-  required; files touched come out with fewer comment lines.
+  required; files touched come out with fewer comment lines. Plan
+  edits ride the orchestrator's commits only — no build commit amends
+  the plan it is judged against (U1 review's finding shape).
 - **Open question for the owner (U4).** The semver step: the cull
   turns surviving warnings into errors, so an old `page.js` with an
   `Option a:` caption or more than ten rulings fails on rebuild.
