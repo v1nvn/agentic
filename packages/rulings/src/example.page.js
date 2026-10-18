@@ -108,18 +108,6 @@ var PAGE = {
       title: "Should the daemon refuse to serve when its start check fails?",
       stake: "<b>Every daemon start runs 1 ledger check whose failure stops nothing: readers pay into a ledger the daemon itself doubted, and a log line is the only sign.</b>",
       today: "At start the daemon checks its ledger once and logs a line when the check fails. It serves either way; the check decides nothing.",
-      diagram: {
-        cap: "<b>Today a failed check is a log line; the daemon serves anyway.</b>",
-        views: {
-          today: {
-            text: 'flowchart TD\n  S[start] --> C{ledger check passes?}\n  C -- yes --> V[serve reads]\n  C -- no --> L[log a line] --> V'
-          },
-          a: {
-            cap: "<b>A failed check stops the daemon before its first read.</b> The on-call sees the exit, not a log line.",
-            text: 'flowchart TD\n  S[start] --> C{ledger check passes?}\n  C -- yes --> V[serve reads]\n  C -- no --> X[exit non-zero]'
-          }
-        }
-      },
       opts: [
         { k: "a", rec: true, t: "Refuse to serve when the check fails", g: "The on-call sees a dead daemon with a reason, not a log line to find.", c: "One flaky check now stops every read until a human restarts the daemon." },
         { k: "b", today: true, t: "Keep serving on a failed check", g: "Reads continue; a flaky check cannot take the daemon down.", c: "The only sign of a doubted ledger is a log line nobody is tailing." }

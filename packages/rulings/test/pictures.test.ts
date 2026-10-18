@@ -21,13 +21,15 @@ function example(): Page {
 }
 
 describe('the example page', () => {
-  it('validates green with two seq rulings, a bodies ruling and a diagram ruling', () => {
+  it('validates green with two seq rulings, a bodies ruling and a table-only ruling', () => {
     const P = example();
     expect(P.rulings.G1.seq).toBeTruthy();
     expect(P.rulings.G2.bodies).toBeTruthy();
     expect(P.rulings.G4.seq).toBeTruthy();
     expect(P.rulings.G4.diagram).toBeFalsy();
-    expect(P.rulings.G5.diagram).toBeTruthy();
+    expect(P.rulings.G5.seq).toBeFalsy();
+    expect(P.rulings.G5.bodies).toBeFalsy();
+    expect(P.rulings.G5.diagram).toBeFalsy();
     expect(validatePage(P).errors).toEqual([]);
   });
 });

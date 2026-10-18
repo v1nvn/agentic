@@ -59,6 +59,33 @@ const TABLE_PAGE = `var PAGE = {
   }
 };`;
 
+const DIAGRAM_PAGE = `var PAGE = {
+  title: "One small ruling?",
+  sub: "What the rebuild owes.",
+  groups: [{ id: "one", label: "The only group", rulings: ["G1"] }],
+  rulings: {
+    G1: {
+      title: "Refuse to serve when the start check fails?",
+      stake: "About 2 starts a month hide a doubted ledger behind a log line.",
+      today: "Today the daemon checks its ledger once and serves either way.",
+      diagram: {
+        cap: "<b>Today a failed check is a log line; the daemon serves anyway.</b>",
+        views: {
+          today: { text: "flowchart TD\\n  S[start] --> C{check passes?} --> V[serve reads]" },
+          a: {
+            cap: "<b>A failed check stops the daemon before its first read.</b>",
+            text: "flowchart TD\\n  S[start] --> C{check passes?} --> X[exit non-zero]"
+          }
+        }
+      },
+      opts: [
+        { k: "a", rec: true, t: "Refuse to serve", g: "the on-call sees the exit, not a log line", c: "one flaky check stops every read" },
+        { k: "b", today: true, t: "Keep serving", g: "reads continue through a flaky check", c: "the only sign is a log line" }
+      ]
+    }
+  }
+};`;
+
 const RED_PAGE = `var PAGE = {
   title: "A red page",
   sub: "s",
@@ -130,7 +157,7 @@ function pageDir(text: string): string {
 describe('the emitted page', () => {
   it('pins the example full HTML: sidebar, sections, table, compare, notes, merged note', () => {
     const { html, hasDiagram } = buildPage(loadPageFile(EXAMPLE));
-    expect(hasDiagram).toBe(true);
+    expect(hasDiagram).toBe(false);
     expect(html).toMatchSnapshot();
     expect(html).toContain('<nav class="side"');
     expect(html).toContain('href="#r-G4"');
@@ -141,7 +168,7 @@ describe('the emitted page', () => {
     expect(html).toMatch(/class="compare"/);
     expect(html).not.toMatch(/class="views"/);
     const wraps = html.match(/<div class="stage-wrap[^"]*"/g) ?? [];
-    expect(wraps).toHaveLength(10);
+    expect(wraps).toHaveLength(8);
     expect(html.match(/class="vg"/g)).toHaveLength(8);
     expect(html.match(/class="vc"/g)).toHaveLength(8);
     expect(html.match(/class="how"/g)).toHaveLength(2);
@@ -226,7 +253,7 @@ describe('the emitted page', () => {
     expect(
       html.match(/<button type="button" class="lt disc o-[ab]" data-pick="/g),
     ).toHaveLength(8);
-    expect(html.match(/data-pick="G/g)).toHaveLength(24);
+    expect(html.match(/data-pick="G/g)).toHaveLength(22);
     expect(html).toContain(
       '<div class="stage-wrap o-a" data-view="today" data-pick="G1a">',
     );
@@ -248,12 +275,12 @@ describe('the emitted page', () => {
   it('puts every view in the DOM with exactly one visible per ruling', () => {
     const { html } = buildPage(loadPageFile(EXAMPLE));
     const compares = html.match(/<div class="compare">[\s\S]*?<\/section>/g) ?? [];
-    expect(compares).toHaveLength(4);
+    expect(compares).toHaveLength(3);
     for (const compare of compares) {
       const opens = compare.match(/<div class="stage-wrap[^>]*>/g) ?? [];
       expect(opens.filter(o => !o.endsWith(' hidden>'))).toHaveLength(1);
     }
-    expect(html.match(/<div class="stage-wrap[^>]* hidden>/g)).toHaveLength(6);
+    expect(html.match(/<div class="stage-wrap[^>]* hidden>/g)).toHaveLength(5);
   });
 
   it('emits no tab strip: the row is the one control, keyboard-reachable', () => {
@@ -261,8 +288,15 @@ describe('the emitted page', () => {
     expect(html).not.toMatch(/role="tab"|tablist|tabpanel|class="tabs"|class="tl"|aria-selected/);
   });
 
-  it('references nothing external: the one script tag is the vendored mermaid', () => {
-    const { html } = buildPage(loadPageFile(EXAMPLE));
+  it('a diagram ruling ships the vendored mermaid: one script tag, nothing external', () => {
+    const dir = pageDir(DIAGRAM_PAGE);
+    expect(main([dir, '--no-open'])).toBe(0);
+    expect(readdirSync(dir).sort()).toEqual([
+      'index.html',
+      'mermaid.min.js',
+      'page.js',
+    ]);
+    const html = readFileSync(join(dir, 'index.html'), 'utf8');
     expect(html.match(/<script src="mermaid.min.js"><\/script>/g)).toHaveLength(1);
     expect(html).toContain('window.mermaid');
     expect(html).not.toMatch(/https?:\/\/|src="\/|href="\//);
@@ -699,12 +733,12 @@ describe('the interactive chrome', () => {
   it('carries the stage-wrap picks into the chrome and picks from the shown picture', () => {
     const { html } = buildPage(loadPageFile(EXAMPLE));
     const page = emittedChrome(html);
-    expect(page.wraps).toHaveLength(10);
+    expect(page.wraps).toHaveLength(8);
     expect(
       page.wraps
         .map(w => w.getAttribute('data-pick'))
         .filter((p): p is string => p !== null),
-    ).toEqual(['G1a', 'G1b', 'G2a', 'G2b', 'G4a', 'G4b', 'G5b', 'G5a']);
+    ).toEqual(['G1a', 'G1b', 'G2a', 'G2b', 'G4a', 'G4b']);
     const shown = page.wraps.find(w => w.getAttribute('data-pick') === 'G2b');
     if (shown === undefined) throw new Error('fixture: the G2b stage wrap');
     expect(shown.getAttribute('aria-pressed')).toBe('false');
@@ -742,11 +776,7 @@ describe('determinism', () => {
     expect(main([dir, '--no-open'])).toBe(0);
     const second = readFileSync(join(dir, 'index.html'));
     expect(second.equals(first)).toBe(true);
-    expect(readdirSync(dir).sort()).toEqual([
-      'index.html',
-      'mermaid.min.js',
-      'page.js',
-    ]);
+    expect(readdirSync(dir).sort()).toEqual(['index.html', 'page.js']);
   });
 
   it('carries no timestamp, absolute path or generated marker', () => {

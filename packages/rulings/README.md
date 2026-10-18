@@ -1,10 +1,11 @@
 # rulings
 
 Put decisions the owner must make on one local HTML page — each ruling
-self-contained: the question, its stake, how its part works today, a picture,
-and a verdict table of lettered options with gain, cost and a recommendation.
-The owner picks a letter by clicking its row — a second click unpicks; the
-shown picture picks too — adds notes, and copies the composed answer;
+self-contained: the question, its stake, how its part works today, and a
+verdict table of lettered options with gain, cost and a recommendation; a
+picture joins a ruling only when one earns it. The owner picks a letter by
+clicking its row — a second click unpicks; the shown picture picks too —
+adds notes, and copies the composed answer;
 picks persist under the page's `key`. The plugin is the `/rulings:consult`
 skill; the CLI builds and rebuilds the page it opens. The plugin's goal and its
 non-regression floors live in [ARCHITECTURE.md](ARCHITECTURE.md).
@@ -16,8 +17,12 @@ Install as a Claude Code plugin: `claude plugin install rulings@agentic`.
     npx -y @v1nvn/rulings@0.50.3 <page-dir>        # rebuild the page from page.js
     npx -y @v1nvn/rulings@0.50.3 <page-dir> --new  # seed page.js from the example
 
+From a checkout of this repo, the same door is:
+
+    yarn install && node packages/rulings/src/index.ts <page-dir>
+
 Pages live in `~/.claude/rulings/<topic>/` — never `/tmp`, never published.
-A rebuild prints the schema's errors and warnings and exits red on any error.
+A rebuild prints the schema's errors and exits red on any of them.
 The skill's one exec is the pinned `npx -y @v1nvn/rulings@0.50.3 <page-dir>`
 line above, run through the session's Bash tool; the one allow rule it needs is
 `Bash(npx -y @v1nvn/rulings@0.50.3:*)`; the first run asks for it once, then it

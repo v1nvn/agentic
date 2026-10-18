@@ -1,16 +1,16 @@
 ---
 name: consult
-description: Put decisions the owner must make on one local HTML page, each ruling self-contained: the question, its stake, how its part works today, a picture, lettered options with gain, cost and a recommendation. Use only when the owner asks ("rulings", "consult me", /rulings:consult), or when three or more linked, or four or more independent, decisions need a picture. "wdyt?", audits, reviews and one to three simple decisions are answered in chat, not here.
+description: Put decisions the owner must make on one local HTML page, each ruling self-contained: the question, its stake, how its part works today, and a verdict table of lettered options with gain, cost and a recommendation. Use only when the owner asks ("rulings", "consult me", /rulings:consult), or when three or more linked, or four or more independent, decisions need the page. "wdyt?", audits, reviews and one to three simple decisions are answered in chat, not here.
 ---
 
 # Rulings
 
 A **ruling** is one decision only the owner can make. The page has no home or overview panel:
-each ruling carries its own question, stake and how its part works today, over a picture of
-a real case. Nothing is written to the repo until the owner has ruled.
+each ruling carries its own question, stake and how its part works today. Nothing is written to
+the repo until the owner has ruled.
 
-Pictures first. Every option is argued as hard as the recommended one: its own picture, a gain
-and a cost of the same weight. An option not worth that goes in the notes.
+Every option is argued as hard as the recommended one: a gain and a cost of the same weight,
+each checkable. An option not worth that goes in the notes.
 
 The page renders on its own — every verdict table, fold and picture view needs no server — and a
 composer bar turns the owner's picks into an answer to paste in chat. The page assists; chat remains
@@ -19,17 +19,15 @@ the channel the answer comes back on.
 ## Step 0 — Decide whether this is a page
 
 Chat is the default. Build a page only when the owner asked for one, or when three or more
-linked, or four or more independent, decisions need a picture. One to three simple decisions:
+linked, or four or more independent, decisions need one. One to three simple decisions:
 ask in chat (Step 6). A question like "wdyt?" is a chat answer, not a ruling.
 
-Then orient the owner **in chat, before any page**, unless the owner already knows the system
-this session:
-
-1. How the system works today, in plain words, with one real case stepped through its states
-   and real values.
-2. The root question, if the decisions are linked. Linked rulings are settled in chat, root
-   first, as an "if X then Y" table. The page holds only decisions that stand alone.
-3. Ask "go?" Build the page after the owner says go.
+Orient the owner **in chat** — how the system works today, in plain words, with one real case
+stepped through its states and real values, and the root question if the decisions are linked
+(linked rulings are settled in chat, root first, as an "if X then Y" table; the page holds only
+decisions that stand alone) — unless the owner already knows the system this session. Then build
+in the same turn when the owner asked for the page; wait for "go?" only when the page is your
+idea or the picks change each other's options.
 
 ## Step 1 — Decide what is a ruling
 
@@ -38,7 +36,7 @@ for (a surface, a name, scope, money, build order, a file's home), or two answer
 defensible and differ in cost or meaning. Decide the rest yourself and say so in one line, and
 in a "Not rulings" note. A finding you checked and found false goes in that note with its
 evidence. Ids `G1`, `G2`, … in the order found. More than ten: decide the smallest yourself —
-past ten the owner stops reading, and the build warns.
+past ten the owner stops reading, and the build refuses the page.
 
 **Gate:** for each ruling you can say what the owner would lose if you decided it alone.
 
@@ -50,38 +48,40 @@ past ten the owner stops reading, and the build warns.
    values; say what is built and what is planned.
 3. For each ruling write its **today**: how the part this ruling touches works, for someone
    who has never seen the system. Two sentences show and the rest folds behind `the rest`;
-   write at most three — the build warns past three — and make the shown two stand alone.
-   Adapt it to the ruling: only the parties, steps
-   and terms this ruling needs. Never paste one shared description into every ruling; the build
-   warns when two `today` texts say the same thing.
+   make the shown two stand alone. Adapt it to the ruling: only the parties, steps
+   and terms this ruling needs. Never paste one shared description into every ruling.
 
 Never invent a value that exists in the repo. A value nobody measured is a placeholder in
-angle brackets, `<pools>`. A computed number shows its arithmetic. One quantity, one number,
-on the whole page. A claim about today that no anchor backs is checked against the code before
-it goes on the page.
+angle brackets — `&lt;pools&gt;` in the HTML fields, `<pools>` where the text stays plain.
+A computed number shows its arithmetic. One quantity, one number, on the whole page. A claim
+about today that no anchor backs is checked against the code before it goes on the page.
 
-**Gate:** every ruling has its own `today`, a real today body or diagram, and one case to tell it on.
+**Gate:** every ruling has its own `today` and one real case to tell it on.
 
-## Step 3 — Choose each ruling's picture
+## Step 3 — Choose what each ruling shows
+
+Every ruling is title, stake, `today` and the verdict table. Add a picture only when a gain or
+cost cannot be checked from its fragment alone, and take the first kind that can draw it:
 
 | When the ruling turns on… | Use | Field |
 |---|---|---|
-| events in order: calls, writes, money moving | a sequence diagram, a view per option | `seq` |
+| a code change | today's body and one body per option, shown as a diff | `bodies` |
+| an order of steps, or a balance that moves | a sequence diagram, a view per option | `seq` |
 | money or a count that moves | a ledger beside the diagram | `seq.ledger` |
-| a request and its answer, or code | today's body and one body per option, shown as a diff | `bodies` |
-| a flow, a state, anything the other two cannot draw | free mermaid text, a view per option | `diagram` |
+| something neither can draw | free mermaid text, a view per option, its caption saying in one line why | `diagram` |
+
+When every fragment names a thing the owner can check without a body (a file, a flag, a number),
+the ruling is table-only: title, stake, `today`, options — no picture field.
 
 A chain whose options add, drop or change steps is a `seq`, not a `diagram`: each option
 view draws only its delta rows on the shared lanes and ledger. A step only some options run
 (`in: ["a"]`) keeps its chain number everywhere: today draws it as a quiet dashed row tagged
-`only in a`, and the option's view draws it for real.
+`only in a`, and the option's view draws it for real. The build cannot parse mermaid text — a
+broken diagram is checked only when the page opens.
 
 `needs: "G7a"` on an option says it only makes sense under that pick; the page shows it as a
 chip, and the composer names the pick unmet until that need lands. Rulings whose picks change
-each other's options are not a page: settle them in chat
-(Step 0).
-
-The build cannot parse mermaid text — a broken diagram is checked only when the page opens.
+each other's options are not a page: settle them in chat (Step 0).
 
 ## Step 4 — Write each ruling
 
@@ -89,18 +89,18 @@ The build cannot parse mermaid text — a broken diagram is checked only when th
   is the only name: the answer table shows it.
 - **Stake**: one bold sentence. Who loses what, how often, who would notice, on a real value.
 - **Today**: how this part works now, in plain words, up to the point where it breaks. Two
-  sentences show before the fold; no case values: the picture carries those. Each new term gets
-  one plain line here.
+  sentences show before the fold; no case values: the fragments and the picture carry those.
+  Each new term gets one plain line here.
 - Say each fact once, in the block that owns it: the stake owns the loss, `today` owns the
   mechanism, the picture owns the numbers, the options own code and test consequences. Keep it
   short without losing what the owner needs to decide; there is no length cap.
-- **Picture** with a view for **every** option, a one-line caption that opens with its
-  conclusion — never with the option's name; the row already names it — and `today: true` on the
-  option that leaves things as they are.
+- **Picture**, when Step 3 gave the ruling one: a view for **every** option, a one-line caption
+  that opens with its conclusion — never with the option's name; the row already names it — and
+  `today: true` on the option that leaves things as they are.
 - **Options**: two to four, lettered. The verdict table is each option's one home: its letter
   disc, title, `★ recommended` / `as today` / `needs` chips, its **gain** and **cost** as aligned
-  fragments — 90 characters at most, each checkable on the option's picture. Nothing an option
-  says renders twice. Exactly one option is recommended.
+  fragments, each checkable on the ruling's evidence. Nothing an option says renders twice.
+  Exactly one option is recommended.
 
 Rules for options: they differ on **one axis**. Before an option adds a mechanism, name the
 existing thing that does the job; if it exists the option is "use that". A letter never
@@ -112,7 +112,7 @@ one word per meaning across the whole page: call a thing by the same name in eve
 Technical names stay. Keep the owner's or the official vocabulary; never coin one.
 
 **Gate:** read each option as "pick this and you get ⟨gain⟩, you pay ⟨cost⟩". If either half
-is vague, runs past 90 characters, or cannot be seen on the picture, rewrite it.
+is vague or names nothing the owner can check, rewrite it.
 
 ## Step 5 — Build
 
@@ -121,15 +121,15 @@ D=~/.claude/rulings/<topic>
 npx -y @v1nvn/rulings@0.50.3 "$D" --new --no-open    # first time: seeds page.js from the example
 ```
 
-Rewrite `$D/page.js` (keep the example's shape, replace all content), then rebuild until it is
-green:
+Write `$D/page.js` whole from the fields table below — keep the example's shape, replace all
+content — then build once; a second build only on red:
 
 ```sh
 npx -y @v1nvn/rulings@0.50.3 "$D"
 ```
 
-Errors block and nothing is written; treat each warning as a fault. The rebuild opens the page
-for the owner. When the owner already has it open, add `--no-open` and say "reload". Pages live
+Errors block and nothing is written. The rebuild opens the page for the owner. When the owner
+already has it open, add `--no-open` and say "reload". Pages live
 in `~/.claude/rulings/<topic>`, never `/tmp`, and are never published.
 
 **Gate:** the build exits green and the page is open in front of the owner.
@@ -147,11 +147,11 @@ Not rulings: <X, because Y>.
 ```
 
 The owner answers on the page or in chat; both read verbatim. On the page: clicking an option's
-row — its body or its letter disc — picks it and shows its picture; clicking the same row again
-unpicks, the picture stays. The shown picture picks its option too. A reload reopens the picked
-option's picture. The verdict table's last row, none of these fit, picks `n` the same way
-(click again to unpick) for a ruling whose options all miss, and a quick group's
-accept-recommended button picks its starred letters.
+row — its body or its letter disc — picks it, and shows the ruling's picture when it has one;
+clicking the same row again unpicks, the picture stays. The shown picture picks its option too,
+and a reload reopens the picked option's picture. The verdict table's last row, none of these
+fit, picks `n` the same way (click again to unpick) for a ruling whose options all miss, and a
+quick group's accept-recommended button picks its starred letters.
 Each ruling carries one note input under its options — its text rides the answer inline after
 that ruling's pick, whatever letter is picked — and the
 composer bar's page note rides after a blank line. The composer annotates a pick whose `needs`
@@ -201,15 +201,15 @@ Then: `Written: <G1a, G2c>. Nothing is committed. <file>: <what changed>. One th
 | `groups` | yes | `[{ id, label, quick, rulings: ["G1"] }]`: the label heads the group; `quick: true` gives the group's rulings an accept-recommended button. |
 | `rulings` | yes | One entry per id. |
 
-A ruling: `title` (a question), `stake`, `today`, one of `seq`, `bodies` or `diagram`,
-`opts` (2 to 4), and after a pushback `changed` or `merged` (needs only `title`, `merged`,
-`changed`).
+A ruling: `title` (a question), `stake`, `today`, at most one of `seq`, `bodies` or `diagram` —
+only when the ruling earned a picture (Step 3) — `opts` (2 to 4), and after a pushback `changed`
+or `merged` (needs only `title`, `merged`, `changed`).
 
 An option: `k` (one lowercase letter, not `n`), `t`, `rec` (on exactly one), `today` (on at most
-one), `w` (how it works — one muted line under the picture's caption), `g` and `c` (gain and cost —
-one fragment each, 90 characters at
-most, checkable on the picture), `needs`. Each
-live option needs a picture: a `seq` view, a `bodies` entry under its letter, or a diagram view.
+one), `w` (how it works — one muted line at the end of the option's verdict row), `g` and `c`
+(gain and cost — one fragment each, checkable on the ruling's evidence), `needs`. A pictured
+ruling gives every live option a view: a `seq` view, a `bodies` entry under its letter, or a
+diagram view.
 
 ### The sequence diagram
 
@@ -226,7 +226,7 @@ seq: {
     { f: 0, t: 2, k: "fail", x: "refused", o: { b: { a: "del" } } }           // struck in option b
   ],
   cap: "<b>Today the commit silently rolls back.</b> Reconcile refunds 10 blocks.",
-  caps: { a: "<b>Option a: the collision skips one span.</b> Nothing is refunded." }
+  caps: { a: "<b>The collision skips one span.</b> Nothing is refunded." }
 }
 ```
 
@@ -243,9 +243,8 @@ option view.
 `markup`, `css`. Write an option's after-code **in full**; the builder diffs it against today
 (added lines green, removed red, long unchanged runs collapsed). `diff: false` shows the option's
 body whole and unmarked — use it when the body is not the same code as today's. A today body past
-20 lines folds behind a
-`show all N lines` expander; option bodies render whole. `cap` names a cut body's source;
-`what` labels the body above it. A body line fits 76 characters.
+20 lines folds behind a `show all N lines` expander; option bodies render whole. `cap` names a
+cut body's source; `what` labels the body above it.
 
 ### Diagram
 
@@ -264,4 +263,4 @@ plain text.
 - Never publish the page. Never put the rulings in chat when a page exists.
 - Never mark two options recommended, or none. Never change what a letter means after it is
   shown, and never reuse a dropped option's letter.
-- Never argue a ruling in a paragraph the picture could show.
+- Never argue in a paragraph what a picture shows, and never add a picture a ruling did not earn.

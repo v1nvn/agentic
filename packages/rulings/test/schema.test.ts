@@ -189,9 +189,23 @@ describe('refinements fire on crafted-red fixtures', () => {
 
   it('a picture without a today view fails its today option', () => {
     const P = loadExample();
-    delete P.rulings.G5.diagram.views.today;
+    P.rulings.G4 = {
+      title: 'Who re-arms a reader’s window after a daemon restart?',
+      stake: '<b>Roughly 1 daemon restart a week lands mid-read.</b>',
+      today: 'The window lives only in the daemon’s memory.',
+      opts: [
+        { k: 'a', rec: true, t: 'Re-arm on start', g: 'The window survives a restart.', c: 'One more table the daemon owns.' },
+        { k: 'b', today: true, t: 'Re-arm in the read', g: 'No daemon change at all.', c: 'Every read pays one extra write.' },
+      ],
+      diagram: {
+        cap: '<b>Today a crash loses the window.</b>',
+        views: {
+          b: { text: 'flowchart TD\n  R[daemon restarts] --> C[the read re-arms the window]' },
+        },
+      },
+    };
     expect(allText(validatePage(P))).toContain(
-      'G5b is today, but the picture has no today view',
+      'G4b is today, but the picture has no today view',
     );
   });
 
