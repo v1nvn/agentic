@@ -1,3 +1,7 @@
+
+
+---
+
 # Rulings — the verdict-table layout
 
 **Run:** one commit per unit, one PR per thread
