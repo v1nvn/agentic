@@ -39,7 +39,7 @@ Run the units, U1 first.
 | id | unit | model | review | consult | close criteria |
 | --- | --- | --- | --- | --- | -------------- |
 | U1 | table-only render — no picture region without a picture, `w` moves to the verdict row | sonnet | | design | One snapshot test: a page with one table-only ruling (title, stake, `today`, opts; no `seq`/`bodies`/`diagram`) builds green; its section holds no `.compare` and no `.stage-wrap`; each option's `w` occurs once, inside its `.vrow`; the pictured snapshots change only by `w` moving; the picture gate applies only to rulings that carry a picture, its table-only error text deleted; a screenshot of the table-only ruling viewed — pick, unpick, none row, note, composer and reload persistence work |
-| U2 | validator cull — one tier, errors only | sonnet | | | `FRAGMENT`, `TODAY_SENTENCES`, `LONG_LINE` and their checks and tests deleted; stake-digit, today/today overlap, stake/today overlap and the `diff:false` hint deleted; `Verdict` carries errors only and `grep -c "warnings" src/` is 0; the checks that remain block: VAGUE, identical body, stake `<code>`, seq exact-flow equality, more than ten rulings, and `conclusionFirst` on every caption — ruling, per-view `caps.<letter>` and `views.<k>.cap` — rejecting `/^<b>\s*option\s+[a-z]\s*[:—-]/i` while "Today …" leads pass; `cli.ts` prints errors only; the seed builds with no output |
+| U2 | validator cull — one tier, errors only | sonnet | | | `FRAGMENT`, `TODAY_SENTENCES`, `LONG_LINE` and their checks and tests deleted; stake-digit, today/today overlap, stake/today overlap and the `diff:false` hint deleted; `Verdict` carries errors only and `grep -c "warnings" src/` is 0; the checks that remain block: VAGUE, identical body, stake `<code>`, seq exact-flow equality, more than ten rulings, and `conclusionFirst` on every caption — ruling, per-view `caps.<letter>` and `views.<k>.cap` — rejecting `/^<b>\s*option\s+[a-z]\s*[:—-]/i` while "Today …" leads pass; `cli.ts` prints errors only; the seed builds with no output — its four `<b>Option …` openers (example.page.js:38, 99×2, 118) are reworded in this unit, the new regex blocking them (U3's grep then owes only SKILL's one) |
 | U3 | the law — SKILL, README, ARCHITECTURE, seed | sonnet | | | Step 3 is the ordered kind-law and the depth law (Plan, verbatim in substance); Step 0 carries the orientation rule (Plan); Step 5 states the one-pass mint; no surface says every ruling has a picture — frontmatter description and trigger, intro, Step 2 gate, Step 4 picture bullet, fields table, Never list, README, ARCHITECTURE opening; every length-cap sentence deleted (SKILL Step 2, Step 4 ×2, fields table, Bodies), "keep it short, no cap" stays; "treat each warning as a fault" deleted; the placeholder law says `&lt;pools&gt;` in HTML fields; `w` documented as the row's muted line; `grep -in "option [a-d]:" SKILL.md src/example.page.js` is 0; seed G5 is table-only; README carries `yarn install && node packages/rulings/src/index.ts <dir>`; SKILL.md ends shorter than its 267 lines |
 | U4 | release, exemplar, timed mint | sonnet | none | | Released per `references/npm-publishing.md` at the semver step the owner picks; `agentic-open-surfaces` rebuilt on the published pin and opened; a fresh sonnet subagent, given a held brief of four decisions, mints a page on the published pin in ≤ 10 minutes wall-clock, the time recorded here |
 
@@ -68,9 +68,47 @@ Run the units, U1 first.
 - **Why one tier.** After the cull every check is exact, so a warning
   tier has nothing left that may be ignored; SKILL already calls
   warnings faults and the CLI exits 0 on them — two meanings, now one.
-- **Rendering (U1).** `compareOf` emits nothing when `viewsOf` has no
-  picture behind it; `w` renders in the verdict row for every ruling
-  kind and leaves the three picture emitters.
+- **Rendering (U1 — design consult ruled, one unit).** `w` is
+  per-option data (`opt.w`, schema.ts:76); only the render site moves.
+  `verdictTable` (html.ts:55-89) emits `<span class="how">${o.w}</span>`
+  as the row's last child when `o.w` is set, after the `.vc` span; the
+  four picture-emitter `w` terms (seq.ts:269+273, bodies.ts:156+159 and
+  174+177, diagram.ts:17+21) and their now-unused `optOf` imports are
+  deleted — `optOf` keeps its one caller, page.ts:136. CSS: the
+  `.stage .how` half of style.ts:131 goes, a muted `.vrow .how` rule
+  (`grid-column: 2 / -1`, 12.5px) arrives. `viewsOf` (page.ts:108-120)
+  returns `[]` when `seq`, `bodies` and `diagram` are all undefined;
+  `compareOf` returns `''` on empty views — no `.compare`, no
+  `.stage-wrap`; `rulingSection` is otherwise untouched. The gesture
+  degrades in one place: `show()`'s first guard (chrome.ts:66-79)
+  gains the nothing-to-show early return (consult's shape:
+  `if (!u || !view || u.w.length === 0) return;`), which covers
+  `restoreViews` (:80-93) too; the row click (:203-213) still picks.
+  A chrome.test.ts pin builds a wrapless section: a row click picks
+  (storage, chip) and never sets `shown`/`aria-current`. Picture gate
+  (schema.ts:448-459): `pictured = present.length > 0` off the
+  schema.ts:354-359 array; the whole `shown` check runs only when
+  pictured; the non-today branch text stays byte-identical (pinned by
+  schema.test.ts:182-186 untouched); the today branch text becomes
+  `${nm} is today, but the picture has no today view`, pinned by a
+  schema.test.ts case deleting G5's diagram today view. Fixture:
+  `TABLE_PAGE` beside `PLAIN_PAGE` (build.test.ts:24), one ruling,
+  two opts — one `rec`, one `today: true` — both with distinct `w`
+  strings. The test: `main([dir, '--no-open'])` returns 0 (red today
+  on the picture error), then the sliced `r-G1` section — snapshot on
+  the slice, `vtable` present, no `compare`, no `stage-wrap`, each
+  `w` text exactly once in the whole html, no `<p class="how">`.
+  Snapshot diffs carry only three shapes: the CSS line edit plus the
+  new `.vrow .how` rule; each `<p class="how">` leaving a stage; each
+  `<span class="how">` entering its option's `.vrow`, same text. The
+  whole-page entry also carries the changed `show()` guard text
+  through the inlined page script — mechanically forced, the same
+  class as the CSS hunk.
+  build.test.ts:155 stays (now pins the new site); build.test.ts:157-162
+  and pictures.test.ts:148-159 are deleted with the old home;
+  pictures.test.ts:195-196 drop their two `how` assertions, the
+  sketch-chip assertions stay; build.test.ts:394,476-524,845 and
+  pictures.test.ts:24-34 stay green untouched.
 - **Live pages** are the owner's artifacts outside the repo: only the
   exemplar is rebuilt; the rest rebuild when next touched and meet the
   new errors then.
@@ -82,16 +120,24 @@ Run the units, U1 first.
   `:407`), caps keys `:247-251`, pair similarity `:284-305`, today
   `:325-334`, stake `:335-353`, one picture `:354-364`, bodies
   `:370-401`, diagram `:402-415`, picture gate `:448-459`, fragment
-  `:473-478`, ten rulings `:491-495`. `page.ts`: `viewsOf` `:108`,
-  `compareOf` `:132-146`, `rulingSection` `:148-173`. Verdict row
-  `html.ts:67-76`. `w` at `seq.ts:269`, `bodies.ts:156,174`,
-  `diagram.ts:17`. `cli.ts:67-70` (warnings print). Tests:
-  `build.test.ts:394,476-524,845`, `schema.test.ts:123-171,306-323`,
-  `pictures.test.ts:33`. SKILL: Step 0 `:19-32`, Step 2 cap `:53`,
+  `:473-478`, ten rulings `:491-495`. `page.ts`: `viewsOf` `:108-120`,
+  `compareOf` `:132-147` (`optOf`'s one caller `:136`), `rulingSection`
+  `:148-175`. verdictTable `html.ts:55-89` (`.vc` span `:74`). `w`
+  terms at `seq.ts:269,273`, `bodies.ts:156,159,174,177`,
+  `diagram.ts:17,21`. `show()` `chrome.ts:66-79`, `restoreViews`
+  `:80-93`, row click `:203-213`, `answerText` `:284-292`; `.stage .how`
+  `style.ts:131`, vrow grid `:115`. `cli.ts:67-70` (warnings print).
+  Tests (consult-corrected): snapshots `build.test.ts:139-164` (`:142`
+  whole page) and `pictures.test.ts:38-59,163-197,242-251` (`:191` the
+  only `w`-bearing stage); `build.test.ts:394,476-524,845` (warning
+  suites — U2 deletes them) and `pictures.test.ts:24-34` (green seed)
+  stay untouched in U1; `schema.test.ts:123-171,182-186,306-323`. SKILL:
+  Step 0 `:19-32`, Step 2 cap `:53`,
   placeholder `:58-59`, Step 3 `:65-84`, Step 4 `:96-115`, Step 5
   `:131`, fields `:210-212`, seq example `:229`, bodies cap `:248`,
   Never `:267`. Scoped gate `yarn workspace @v1nvn/rulings run test`;
-  workspace gates `yarn test` then `yarn typecheck`.
+  workspace gates `yarn test` then `yarn typecheck`, ceiling 1 min
+  (pre-flight: green, 56 s).
 - **Enforcement inventory.** Exactly one recommended option, always;
   the answer format string stays byte-identical; `today` stays
   required; files touched come out with fewer comment lines.

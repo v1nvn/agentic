@@ -7,7 +7,7 @@ import 'prismjs/components/prism-typescript.js';
 
 import type { Body, Ruling } from './schema.ts';
 
-import { esc, optOf } from './html.ts';
+import { esc } from './html.ts';
 
 const LANG_ALIAS: Record<string, string> = {
   bash: 'bash',
@@ -153,10 +153,8 @@ export function bodiesToday(q: Ruling): string {
   if (B === undefined || !('today' in B)) {
     return '';
   }
-  const w = optOf(q, 'today')?.w;
   return (
     `<div class="stage"><div class="bodies">${bodyHtml(B.today, true)}</div>` +
-    (w ? `<p class="how">${w}</p>` : '') +
     '</div>'
   );
 }
@@ -171,10 +169,9 @@ export function bodiesOption(q: Ruling, view: string): string {
     return '';
   }
   const todayCode = 'today' in B ? B.today.code : undefined;
-  const w = optOf(q, view)?.w;
   return (
-    `<div class="stage"><div class="bodies">${bodyHtml(B[letter], false, todayCode)}</div>` +
-    (w ? `<p class="how">${w}</p>` : '') +
-    '</div>'
+    '<div class="stage"><div class="bodies">' +
+    bodyHtml(B[letter], false, todayCode) +
+    '</div></div>'
   );
 }

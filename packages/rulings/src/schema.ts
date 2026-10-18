@@ -362,6 +362,7 @@ export function validatePage(input: unknown): Verdict {
         `${id} has both ${present[0]?.[0]} and ${present[1]?.[0]}; one picture per ruling`,
       );
     }
+    const pictured = present.length > 0;
     if (q.seq !== undefined) {
       checkSeq(q.seq, `${id}.seq`, id);
     }
@@ -445,17 +446,19 @@ export function validatePage(input: unknown): Verdict {
       req(o.t, `${nm}.t (the option's title)`);
       req(o.g, `${nm}.g (gain)`);
       req(o.c, `${nm}.c (cost)`);
-      const shown =
-        o.today === true
-          ? q.seq !== undefined || 'today' in B || 'today' in D
-          : views.includes(id + o.k) || o.k in B || o.k in D;
-      if (!shown) {
-        errors.push(
-          nm +
-            (o.today === true
-              ? ' is today, but the ruling has no seq, no bodies.today and no diagram view'
-              : ` has no picture of its own: give it a view in the seq, bodies.${o.k} or a diagram view`),
-        );
+      if (pictured) {
+        const shown =
+          o.today === true
+            ? q.seq !== undefined || 'today' in B || 'today' in D
+            : views.includes(id + o.k) || o.k in B || o.k in D;
+        if (!shown) {
+          errors.push(
+            nm +
+              (o.today === true
+                ? ' is today, but the picture has no today view'
+                : ` has no picture of its own: give it a view in the seq, bodies.${o.k} or a diagram view`),
+          );
+        }
       }
       for (const [kind, text] of [
         ['gain', o.g],

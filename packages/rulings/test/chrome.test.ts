@@ -268,6 +268,119 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
+function wrapless(): {
+  rowA: El;
+  discA: El;
+  rowB: El;
+  noneRow: El;
+  sum: El;
+  docClick(e: { target: El }): void;
+  storage: Map<string, string>;
+} {
+  FakeIO.last = null;
+  const storage = new Map<string, string>();
+  const body = new El('body');
+  body.setAttribute('data-key', 'k');
+  const secG1 = new El('section');
+  secG1.setAttribute('id', 'r-G1');
+  secG1.parent = body;
+  const rowA = new El('div', ['vrow', 'o-a']);
+  rowA.setAttribute('data-view', 'today');
+  rowA.parent = secG1;
+  const discA = new El('button', ['lt', 'disc', 'o-a']);
+  discA.setAttribute('data-pick', 'G1a');
+  rowA.appendChild(discA);
+  const rowB = new El('div', ['vrow', 'o-b']);
+  rowB.setAttribute('data-view', 'G1b');
+  rowB.parent = secG1;
+  const discB = new El('button', ['lt', 'disc', 'o-b']);
+  discB.setAttribute('data-pick', 'G1b');
+  rowB.appendChild(discB);
+  const noneRow = new El('div', ['vrow', 'none']);
+  noneRow.setAttribute('data-pick', 'G1n');
+  noneRow.parent = secG1;
+  const sum = new El('div');
+  sum.setAttribute('id', 'picks');
+  const listeners: Record<string, ((e: FakeEvent) => void)[]> = {};
+  const doc = {
+    body,
+    addEventListener(t: string, h: (e: FakeEvent) => void): void {
+      (listeners[t] ??= []).push(h);
+    },
+    getElementById(id: string): El | null {
+      return id === 'picks' ? sum : null;
+    },
+    querySelectorAll(sel: string): El[] {
+      switch (sel) {
+        case '[data-pick]':
+          return [discA, discB, noneRow];
+        case '.stage-wrap':
+          return [];
+        case '.vrow':
+          return [rowA, rowB, noneRow];
+        case 'section[id]':
+          return [secG1];
+        default:
+          return [];
+      }
+    },
+    querySelector(): El | null {
+      return null;
+    },
+  };
+  const sandbox = {
+    document: doc,
+    IntersectionObserver: FakeIO,
+    navigator: { clipboard: { writeText: () => Promise.resolve() } },
+    localStorage: {
+      getItem: (k: string): string | null => storage.get(k) ?? null,
+      setItem: (k: string, v: string): void => {
+        storage.set(k, v);
+      },
+    },
+    setTimeout,
+    clearTimeout,
+    window: {
+      getSelection: (): { toString(): string } => ({ toString: () => '' }),
+      IntersectionObserver: FakeIO,
+      innerHeight: 900,
+    },
+  };
+  const code = chromeScript()
+    .replace(/^<script>\n/, '')
+    .replace(/<\/script>$/, '');
+  vm.runInNewContext(code, sandbox);
+  return {
+    rowA,
+    discA,
+    rowB,
+    noneRow,
+    sum,
+    docClick: (e: { target: El }): void => {
+      for (const h of listeners.click ?? []) h({ target: e.target, detail: 1 });
+    },
+    storage,
+  };
+}
+
+describe('the wrapless section', () => {
+  it('picks on a row click — storage and chip — and never marks the row shown', () => {
+    const h = wrapless();
+    h.docClick({ target: h.rowB });
+    expect(JSON.parse(h.storage.get('k') ?? '{}').picks).toEqual({ G1: 'b' });
+    expect(h.sum.innerHTML).toContain('G1b');
+    expect(h.rowB.classList.contains('shown')).toBe(false);
+    expect(h.rowB.getAttribute('aria-current')).toBeNull();
+    h.docClick({ target: h.discA });
+    expect(JSON.parse(h.storage.get('k') ?? '{}').picks).toEqual({ G1: 'a' });
+    expect(h.rowA.classList.contains('shown')).toBe(false);
+    expect(h.rowA.getAttribute('aria-current')).toBeNull();
+    h.docClick({ target: h.noneRow });
+    expect(JSON.parse(h.storage.get('k') ?? '{}').picks).toEqual({ G1: 'n' });
+    expect(h.noneRow.classList.contains('shown')).toBe(false);
+  });
+});
+
 describe('the sidebar scroll-spy', () => {
   it('clears the mark when its section leaves the spy band', () => {
     const h = harness();

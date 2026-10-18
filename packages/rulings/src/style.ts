@@ -106,6 +106,7 @@ p.today b { color: var(--ink); }
 .vrow .vg::before { content: "+ "; color: var(--add); font-weight: 700; }
 .vrow .vc { color: var(--muted); }
 .vrow .vc::before { content: "− "; font-weight: 700; }
+.vrow .how { grid-column: 2 / -1; font: 12.5px/1.5 var(--sans); color: var(--muted); min-width: 0; }
 .vfoot { padding: 8px 14px; }
 .rnote { display: block; width: 100%; font: 12.5px var(--sans); color: var(--ink); background: none; border: 0; border-bottom: 1px dashed var(--rule); padding: 5px 2px 4px; }
 .rnote:focus { outline: none; border-bottom-color: var(--ink); }
@@ -128,7 +129,7 @@ p.today b { color: var(--ink); }
 .legend i.dash { border-top-style: dashed; }
 .legend .sw { width: 16px; height: 10px; border-radius: 2px; background: color-mix(in srgb, var(--o) 18%, transparent); border: 1px solid var(--o); }
 .stage .scroll { overflow-x: auto; padding: 8px 6px 4px; }
-.stage .cap, .stage .how { border-top: 1px solid var(--rule); padding: 10px 14px; font-size: 12.5px; color: var(--muted); }
+.stage .cap { border-top: 1px solid var(--rule); padding: 10px 14px; font-size: 12.5px; color: var(--muted); }
 .stage .cap b { color: var(--ink); font-weight: 600; }
 .bodies { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: 14px; padding: 14px; }
 .body { display: flex; flex-direction: column; gap: 6px; min-width: 0; }

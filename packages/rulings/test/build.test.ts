@@ -43,6 +43,23 @@ const PLAIN_PAGE = `var PAGE = {
   }
 };`;
 
+const TABLE_PAGE = `var PAGE = {
+  title: "One small ruling?",
+  sub: "What the rebuild owes.",
+  groups: [{ id: "one", label: "The only group", rulings: ["G1"] }],
+  rulings: {
+    G1: {
+      title: "Ship the ruling as a bare table?",
+      stake: "About 3 rulings a month draw an empty box for a table-only answer.",
+      today: "Today every ruling draws a picture box, even when no picture earned it.",
+      opts: [
+        { k: "a", rec: true, t: "Bare table", g: "a table-only ruling renders bare", c: "the row carries the how line", w: "the gain names the file, the row says why" },
+        { k: "b", today: true, t: "Keep the box", g: "the frame is always there", c: "an empty bordered box", w: "the empty frame is the cost the owner sees" }
+      ]
+    }
+  }
+};`;
+
 const RED_PAGE = `var PAGE = {
   title: "A red page",
   sub: "s",
@@ -154,13 +171,21 @@ describe('the emitted page', () => {
     expect(html.match(/class="vc"/g)).toHaveLength(8);
     expect(html.match(/class="how"/g)).toHaveLength(2);
     expect(html).not.toContain('class="gc');
-    expect(html.indexOf('data-view="G2b" data-pick="G2b" hidden>')).toBeLessThan(
-      html.indexOf('class="how"'),
-    );
-    expect(html.lastIndexOf('class="how"')).toBeGreaterThan(
-      html.indexOf('data-view="G4b" data-pick="G4b" hidden>'),
-    );
     expect(html.match(/★ recommended/g)).toHaveLength(5);
+  });
+
+  it('builds a table-only ruling green: w rides its verdict row, no picture region', () => {
+    const dir = pageDir(TABLE_PAGE);
+    expect(main([dir, '--no-open'])).toBe(0);
+    const html = readFileSync(join(dir, 'index.html'), 'utf8');
+    const g1 = html.slice(html.indexOf('id="r-G1"'), html.indexOf('<footer'));
+    expect(g1).toMatchSnapshot();
+    expect(g1).toContain('<div class="vtable">');
+    expect(g1).not.toContain('compare');
+    expect(g1).not.toContain('stage-wrap');
+    expect(html.match(/the gain names the file, the row says why/g)).toHaveLength(1);
+    expect(html.match(/the empty frame is the cost the owner sees/g)).toHaveLength(1);
+    expect(html).not.toContain('<p class="how">');
   });
 
   it('renders the table once per ruling: one head, one row per option, the none row, the ruling note', () => {

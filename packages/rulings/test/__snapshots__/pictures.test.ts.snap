@@ -9,7 +9,7 @@ exports[`bodies view > pins the sketch body: state chip, no diff 1`] = `
     : commanderCode(err) === &quot;commander.helpDisplayed&quot;
       ? { help: currentCommand(program) }
       : undefined,
-)</pre><p class="bcap">Shown whole rather than marked line by line: it is not the same code as today’s walk.</p></div></div><p class="how">recover already maps commander error codes to ink replies; this adds one arm — helpDisplayed re-renders the failing command’s own usage instead of the root usage.</p></div>"
+)</pre><p class="bcap">Shown whole rather than marked line by line: it is not the same code as today’s walk.</p></div></div></div>"
 `;
 
 exports[`bodies view > pins the today stage: shown once, what label, cap cites the real quiet, no diff 1`] = `

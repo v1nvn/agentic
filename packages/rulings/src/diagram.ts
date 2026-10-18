@@ -1,6 +1,6 @@
 import type { Ruling } from './schema.ts';
 
-import { esc, optOf } from './html.ts';
+import { esc } from './html.ts';
 
 // Authored mermaid text: parsed in the browser on open, unchecked by the build.
 export function diagramView(q: Ruling, view: string): string {
@@ -14,11 +14,9 @@ export function diagramView(q: Ruling, view: string): string {
   }
   const v = d.views[key];
   const cap = v.cap ?? d.cap;
-  const w = optOf(q, view)?.w;
   return (
     `<div class="stage diagram"><div class="mermaid">${esc(v.text)}</div>` +
     (cap ? `<p class="cap">${cap}</p>` : '') +
-    (w ? `<p class="how">${w}</p>` : '') +
     '</div>'
   );
 }

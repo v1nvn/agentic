@@ -65,7 +65,7 @@ export function chromeScript(): string {
 
   function show(id, view) {
     var u = views[id];
-    if (!u || !view) return;
+    if (!u || !view || u.w.length === 0) return;
     u.w.forEach(function (w) {
       if (w.getAttribute('data-view') === view) w.removeAttribute('hidden');
       else w.setAttribute('hidden', '');

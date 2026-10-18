@@ -1,6 +1,6 @@
 import type { Overlay, Ruling, Seq, Step } from './schema.ts';
 
-import { esc, optOf, stripTags } from './html.ts';
+import { esc, stripTags } from './html.ts';
 import { KINDS } from './schema.ts';
 
 const KIND_TEXT: Record<(typeof KINDS)[number], string> = {
@@ -266,11 +266,9 @@ export function seqView(q: Ruling, id: string, view: string): string {
   const cap = capKey === undefined ? d.cap : d.caps?.[capKey];
   const hasDeltas =
     view !== 'today' && d.steps.some(st => drawnIn(st, view, id));
-  const w = optOf(q, view)?.w;
   return (
     `<div class="stage">${legendHtml(d, hasDeltas)}<div class="scroll">${seqSvg(d, id, view, cap ?? '')}</div>` +
     (cap ? `<p class="cap">${cap}</p>` : '') +
-    (w ? `<p class="how">${w}</p>` : '') +
     '</div>'
   );
 }

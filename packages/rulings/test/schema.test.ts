@@ -185,6 +185,14 @@ describe('refinements fire on crafted-red fixtures', () => {
     expect(allText(validatePage(P))).toContain('G2b has no picture of its own');
   });
 
+  it('a picture without a today view fails its today option', () => {
+    const P = loadExample();
+    delete P.rulings.G5.diagram.views.today;
+    expect(allText(validatePage(P))).toContain(
+      'G5b is today, but the picture has no today view',
+    );
+  });
+
   it('ledger widths match', () => {
     const P = loadExample();
     P.rulings.G1.seq.start = [0, 0];

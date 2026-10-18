@@ -144,19 +144,6 @@ describe('seq view', () => {
     expect(html).toContain('class="gone"');
     expect(html).toContain('class="strike"');
   });
-
-  it('renders the option’s w once, muted, under its caption', () => {
-    const P = example();
-    const html = seqView(P.rulings.G4, 'G4', 'G4b');
-    const cap = html.indexOf('class="cap"');
-    const how = html.indexOf('class="how"');
-    expect(cap).toBeGreaterThan(-1);
-    expect(how).toBeGreaterThan(cap);
-    expect(html.slice(how)).toContain(
-      'The read already opens a transaction on the leaf rows',
-    );
-    expect(seqView(P.rulings.G4, 'G4', 'today')).not.toContain('class="how"');
-  });
 });
 
 describe('bodies view', () => {
@@ -192,8 +179,6 @@ describe('bodies view', () => {
     expect(html).toContain('sketch — feasibility not checked');
     expect(html).not.toContain('diff vs today');
     expect(html).not.toContain('<span class="lt">');
-    expect(html).toContain('class="how"');
-    expect(html).toContain('recover already maps commander error codes');
   });
 
   it('collapses unchanged runs at seven lines, not six', () => {

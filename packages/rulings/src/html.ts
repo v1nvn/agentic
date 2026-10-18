@@ -72,6 +72,7 @@ export function verdictTable(q: Ruling, id: string): string {
         `<span class="vt">${o.t ?? ''}${chips ? `<span class="vchips"> ${chips}</span>` : ''}<span class="pmark">✓ picked</span></span>` +
         `<span class="vg">${o.g ?? ''}</span>` +
         `<span class="vc">${o.c ?? ''}</span>` +
+        (o.w ? `<span class="how">${o.w}</span>` : '') +
         '</div>'
       );
     })

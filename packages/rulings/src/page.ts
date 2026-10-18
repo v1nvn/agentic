@@ -106,6 +106,13 @@ function noteHtml(html: string): string {
 }
 
 function viewsOf(q: Ruling, id: string): string[] {
+  if (
+    q.seq === undefined &&
+    q.bodies === undefined &&
+    q.diagram === undefined
+  ) {
+    return [];
+  }
   const hasBase =
     q.seq !== undefined ||
     (q.bodies !== undefined && 'today' in q.bodies) ||
@@ -131,6 +138,9 @@ function stageOf(q: Ruling, id: string, view: string): string {
 
 function compareOf(q: Ruling, id: string): string {
   const views = viewsOf(q, id);
+  if (views.length === 0) {
+    return '';
+  }
   const wraps = views
     .map((view, i) => {
       const o = optOf(q, view);
