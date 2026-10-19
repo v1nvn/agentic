@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
   "name": "agentic",
-  "version": "0.51.0",
+  "version": "0.52.0",
   "description": "Eleven independent Claude Code plugins — readability (MCP server), omlx (local inference MCP server), enhansome (registry search MCP server), rm (reMarkable), md (Markdown-Viewer), zai (GLM usage), tokens (local token usage), statusline (status line + agent panel), todo (work tracking), rulings (decision pages), notify (native macOS banners).",
   "owner": {
     "name": "v1nvn",
