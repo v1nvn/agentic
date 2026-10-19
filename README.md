@@ -16,7 +16,7 @@ manifest + skills, `notify` a hooks module.
 | **zai**         | GLM Coding Plan quota and usage — the report as a pane.                                                                                | `/zai-usage`                                          |
 | **tokens**      | Live token usage — the account report as a pane, and the live session (context, flow, limits, agents) as a pane. | `/tokens-usage`, `/tokens-top`                        |
 | **statusline**  | Pick a theme for the status line + agent panel, or revert the setup.                                                                   | `/statusline:lab`                                                |
-| **todo**        | Work tracking — the rules plus seven verbs over `TODO.md`, `progress/`, `references/`, `archive/`. Every repo carries data only.         | `/todo:run <plan>`, or a what's-next ask              |
+| **todo**        | Work tracking — the rules plus eight verbs over `TODO.md`, `progress/`, `references/`, `archive/`. Every repo carries data only.         | `/todo:run <plan>`, or a what's-next ask              |
 | **rulings**     | Put decisions the owner must make on one local HTML page — each ruling self-contained, its options pictured and lettered.                | `/rulings:consult`, or "consult me"                   |
 | **notify**      | Native macOS banners on permission prompts and true-done turns — the repo, the session's own title, the message itself.                             | automatic — fires on its own                          |
 

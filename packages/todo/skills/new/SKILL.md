@@ -15,8 +15,8 @@ entry is written always; `progress/<slug>.md` only when the rules say the entry 
 
 - The moment a sitting picks up work that has no entry, or whose entry now needs a file
   — not after the fact. Mid-sitting, the moment the owner says "open the thread".
-- The close of a thread is itself a start: a successor is minted in the same edit that
-  closes the predecessor — never a separate sitting.
+- A thread's close mints a successor only from owed work the owner kept — in the same
+  edit that closes the predecessor, never a separate sitting.
 - A sitting that only parked blocked work owes a thread too: the file then holds the
   resume plan, not work-in-flight.
 
@@ -30,16 +30,19 @@ entry is written always; `progress/<slug>.md` only when the rules say the entry 
 2. Every thread minted must have its subject present in that record — subject presence
    is the invariant; label compression is fine. No subject found: say so and ask. Never
    mint from nothing.
-3. Segment. One candidate: mint it. Several: follow the owner's ruling where the sitting
-   already carries one ("create 2 todos", "combine the 2 into 1"); only when no ruling
-   is present, ask once, proposing the partition in the (a)/(b) form — which entries,
-   which files — then mint all of them on the answer. The first answer is provisional:
+3. Segment by the rules' thread test: candidates from one source are one thread unless
+   they differ in priority, carry an owner decision the rest does not wait on, or wait on
+   something outside this repo. Follow the owner's ruling where the sitting already
+   carries one ("create 2 todos", "combine the 2 into 1"); only when no ruling is
+   present and the test finds more than one thread, ask once, proposing the partition in
+   the (a)/(b) form — which entries, which files — then mint all of them on the answer. The first answer is provisional:
    a structural correction may re-cut the partition.
 4. Merge and supersede: an owner-ordered archive-then-create, or combine of live
    threads, derives the new thread from the predecessors' names — and the predecessors
    close in the same gesture, or the mint duplicates them beside the live entries.
 5. Spin-off vs resume: a sitting pointed at an existing thread file whose subject is new
-   mints a new thread; it never appends to the one pointed at.
+   adds it there as owed work when the rules' thread test makes it part of that thread;
+   otherwise it mints a new thread. A recurring runbook mints one standing thread.
 6. Check every slug against `archive/` and live `progress/` before writing — a collision
    means a past thread owns the name. Suffix the new slug per the rules; when the
    owner's own naming pinned the collision, ask.

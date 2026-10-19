@@ -1,6 +1,6 @@
 ---
 name: postmortem
-description: Read a finished run's session transcripts and report where the time and money went and which run rules were broken — the time tree across orchestrator, workers and background rituals, the token ledger and cost, per-unit figures, and mechanical waste shapes. Use when the user asks why a run was slow or costly, where its time or tokens went, or names a session to autopsy or compare against an earlier one.
+description: Read a finished run's session transcripts and report where the time and money went and which run rules were broken — the time tree across orchestrator, workers and background rituals, the token ledger and cost, totals per 100 changed lines, and mechanical waste shapes. Use when the user asks why a run was slow or costly, where its time or tokens went, or names a session to autopsy or compare against an earlier one.
 argument-hint: [session-id]
 disable-model-invocation: true
 ---
@@ -55,19 +55,20 @@ the rule it breaks, quoted by line from `run/SKILL.md` or the role file in
   `sleep`);
 - a suite re-run inside five minutes whose command differs only in output shaping
   (builder: never re-run a suite to re-shape its output);
-- a cold resume: a worker continued by message after five idle minutes (run: no worker
-  idle five minutes is resumed);
+- a cold resume: a worker continued by message after five idle minutes with no `hold`
+  between (run: a worker idle five minutes without a hold is never resumed);
 - an idle span where one background ritual ran and nothing else did.
 
 ## Report
 
-One grouped time table; per-unit figures — wall, tokens and cost divided by the
-units the plan landed, the run's shape named (units, commits, lines); the violation
+One grouped time table; the run's totals — wall, tokens, cost and dispatches — with
+tokens per 100 changed lines and the run's shape named (units, groups, commits, lines),
+never figures divided by units, which re-cutting the same work would move; the violation
 list with minutes; then levers ranked by the
 minutes they touch, each naming where it lands — this plugin's skills, the run's plan,
 or the repo. End with what the measure cannot see. Say plainly when a big number is
 the price of evidence the plan demands, not waste.
 
-Given an earlier session to compare, run the script on both and set the per-unit
-figures side by side with each side's shape. Compare cost only when both ran on the
-same models; wall and tokens per unit compare across models.
+Given an earlier session to compare, run the script on both and set the totals and
+tokens per 100 changed lines side by side with each side's shape. Compare cost only when
+both ran on the same models; wall and tokens per 100 changed lines compare across models.
