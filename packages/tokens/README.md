@@ -46,7 +46,11 @@ transcript history.
 
 **Semantics:** `input_tokens` is the _uncached_ input only; the modeled context
 is `input + cacheRead + cacheWrite`. Hit rate =
-`cacheRead / (input + cacheRead + cacheWrite)`. On the GLM Coding Plan,
+`cacheRead / (input + cacheRead + cacheWrite)`. One API response counts once:
+the transcript writes a response per content block and again when a session
+resumes, all under one message id — the largest-output snapshot is the response.
+Dispatched agents' transcripts (`<session>/subagents/`) count toward their own
+model's row. On the GLM Coding Plan,
 cached tokens count fully against quota, so a high hit rate saves latency, not
 quota.
 

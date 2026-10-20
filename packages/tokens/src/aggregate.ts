@@ -38,7 +38,7 @@ interface UsageBlock {
 }
 
 interface TranscriptEntry {
-  message?: { model?: string; usage?: UsageBlock };
+  message?: { id?: string; model?: string; usage?: UsageBlock };
   timestamp?: string;
 }
 
@@ -131,6 +131,21 @@ export function createAggregator(now = new Date()) {
   const last24 = new Map<string, UsageAcc>(); // model → acc
   const models = new Map<string, UsageAcc>(); // model → acc (whole 7d window)
 
+  // A response is written once per content block and again when a session
+  // resumes — same message id, the largest output_tokens is the whole response.
+  const requests = new Map<
+    string,
+    { model: string; ts: number; u: UsageBlock }
+  >();
+
+  function accumulate(model: string, u: UsageBlock, ts: number): void {
+    add(bucket(days, ymd(new Date(ts))), u);
+    add(bucket(models, model), u);
+    if (ts >= last24Start) {
+      add(bucket(last24, model), u);
+    }
+  }
+
   return {
     /** Files older than this (mtime) cannot hold in-window entries. */
     windowStart,
@@ -157,14 +172,23 @@ export function createAggregator(now = new Date()) {
         return;
       }
 
-      add(bucket(days, ymd(new Date(ts))), u);
-      add(bucket(models, model), u);
-      if (ts >= last24Start) {
-        add(bucket(last24, model), u);
+      const id = j.message?.id;
+      if (id === undefined) {
+        accumulate(model, u, ts);
+        return;
+      }
+      const r = requests.get(id);
+      if (r === undefined) {
+        requests.set(id, { model, ts, u });
+      } else if ((u.output_tokens ?? 0) > (r.u.output_tokens ?? 0)) {
+        r.u = u;
       }
     },
 
     result(): ScanResult {
+      for (const { model, ts, u } of requests.values()) {
+        accumulate(model, u, ts);
+      }
       return {
         now: now.toISOString(),
         days: [...days.entries()]

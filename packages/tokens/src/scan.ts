@@ -3,7 +3,9 @@
  * (see aggregate.ts for what a transcript line contributes). Claude Code
  * persists every assistant message's `usage` block to session transcripts at
  * $CLAUDE_DIR/projects/<project-dir>/<session>.jsonl (default ~/.claude) — for
- * every profile (default claude, claudez, …), interactive and headless alike.
+ * every profile (default claude, claudez, …), interactive and headless alike —
+ * and dispatched agents' transcripts at
+ * <project-dir>/<session>/subagents/agent-*.jsonl.
  */
 
 import { claudeProjectsDir } from '@v1nvn/agentic-core';
@@ -29,11 +31,24 @@ export function scan({
     .filter(d => statSync(d).isDirectory());
 
   for (const pdir of projectDirs) {
-    for (const f of readdirSync(pdir)) {
-      if (!f.endsWith('.jsonl')) {
-        continue;
+    const files: string[] = [];
+    for (const e of readdirSync(pdir, { withFileTypes: true })) {
+      if (e.isFile() && e.name.endsWith('.jsonl')) {
+        files.push(join(pdir, e.name));
+      } else if (e.isDirectory()) {
+        const sdir = join(pdir, e.name, 'subagents');
+        if (!existsSync(sdir)) {
+          continue;
+        }
+        for (const f of readdirSync(sdir)) {
+          if (f.endsWith('.jsonl')) {
+            files.push(join(sdir, f));
+          }
+        }
       }
-      const fp = join(pdir, f);
+    }
+
+    for (const fp of files) {
       if (statSync(fp).mtimeMs < agg.windowStart) {
         continue;
       }
