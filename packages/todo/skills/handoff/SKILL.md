@@ -15,8 +15,10 @@ state — do not write a parallel handoff document; that is a second home for th
 facts.
 
 1. Run the rules' stamp gate, then fold the sitting's scratch notes into the thread file
-   per the rules. A decision that outlives the thread goes to `references/`, not the
-   thread file.
+   per the rules. A stamp ahead of the running version folds nothing — the install is
+   older than the thread: leave the scratch files in place, name them in the pointer
+   prompt's last line, and the fresh session folds them once its plugin catches up. A
+   decision that outlives the thread goes to `references/`, not the thread file.
 2. Update the `TODO.md` index entry only if the title, priority or areas changed.
 3. Print a short pointer prompt the user can paste into the fresh session:
 
