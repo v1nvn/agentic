@@ -98,7 +98,7 @@ description: The work-tracking rules — TODO.md is the index, progress/<slug>.m
 
 **Closing a thread.** A `/todo:run` run closes its thread when it lands the final unit — owed work posted to the owner first, the thread file appended verbatim to `archive/<slug>.md` (created when absent) and deleted, one commit, no waiting on merge. Threads ended outside a run close by hand, the same way. **Deferrals do not ride along:** owed work and cuts the owner still wants earn one `TODO.md` entry per goal before the thread closes; the rest is dropped with the file.
 
-**Stamp gate.** Before working an existing thread, and before any pickup fold, compare its `**Todo:**` stamp to the running version (the one in the shape above). Same major and minor, or one minor behind, passes; more than one minor behind, any major apart, or no stamp audits the thread (`/todo:audit <thread>`) before any work starts. A stamp ahead of the running version means the install is older than the thread: say so, leave the stamp, and let the owner update the plugin.
+**Stamp gate.** Before working an existing thread, and before any fold in a sitting that has not yet run it, compare its `**Todo:**` stamp to the running version (the one in the shape above). Same major and minor, or one minor behind, passes; more than one minor behind, any major apart, or no stamp audits the thread (`/todo:audit <thread>`) before any work starts. A stamp ahead of the running version means the install is older than the thread: say so, leave the stamp, and let the owner update the plugin.
 
 **Checking.** `/todo:audit` checks all of the above — the whole repo, one thread, or one unit.
 
