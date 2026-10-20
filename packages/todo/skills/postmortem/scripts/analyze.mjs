@@ -2,10 +2,7 @@
 // Time tree, token ledger, cost and violation candidates for a finished Claude
 // Code session.
 //
-// Usage: node analyze.mjs <session.jsonl> [gate-pattern]
-//
-// The gate pattern is the autopsied repo's suite command, passed by the caller;
-// this script carries no repo's words.
+// Usage: node analyze.mjs <session.jsonl> <gate-pattern>
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
 
@@ -16,6 +13,16 @@ const TOLLED = new Set(['attachment', 'meta', 'queue']);
 const ORCHESTRATOR = 'orchestrator';
 const BASH_TIMEOUT = 120000;
 const STALL_SLACK = 60000;
+const RULE = {
+  foregroundSuite:
+    'run: the orchestrator starts every long-running command in the background',
+  stalled: 'builder: pass the Bash `timeout` the gate ceiling sets',
+  reviewerSuite: 'reviewer: never run a build or a test suite',
+  sleepPoll: 'builder: never poll with `sleep`',
+  reshape: 'builder: never re-run a suite to re-shape its output',
+  coldResume: 'run: a worker idle five minutes without a hold is never resumed',
+  serializedTail: 'a lever, not a rule: other work could have run beside it',
+};
 
 const ts = s => new Date(s).getTime();
 const mins = ms => ms / 60000;
@@ -185,7 +192,7 @@ const stalled = runs =>
   );
 
 function main(transcript, suiteSrc) {
-  const SUITE = suiteSrc ? new RegExp(suiteSrc) : null;
+  const SUITE = new RegExp(suiteSrc);
   const recs = records(transcript);
   const ev = timeline(recs);
   if (!ev.length) throw new Error(`no timestamped events in ${transcript}`);
@@ -396,7 +403,7 @@ function main(transcript, suiteSrc) {
       const k = `${who}: ${
         SLEEP.test(b.cmd)
           ? 'sleep (waiting)'
-          : SUITE?.test(b.cmd)
+          : SUITE.test(b.cmd)
             ? 'suite'
             : 'other'
       }`;
@@ -434,47 +441,49 @@ function main(transcript, suiteSrc) {
 
   console.log('\n## violation candidates\n');
   let flagged = false;
+  const flag = (text, rule) => {
+    flagged = true;
+    console.log(`- ${text}  [${RULE[rule]}]`);
+  };
   const norm = cmd => {
     const base = cmd.trim().replace(/^\s*cd\s+[^;]+;\s*/, '');
     const seg = base.split(';').find(s => SUITE.test(s)) ?? base;
     return seg.split('|')[0].trim();
   };
-  const orchSuites = SUITE
-    ? bashOf(orchRuns).filter(b => !b.bg && SUITE.test(b.cmd))
-    : [];
+  const orchSuites = bashOf(orchRuns).filter(b => !b.bg && SUITE.test(b.cmd));
   if (orchSuites.length) {
-    flagged = true;
-    console.log(
-      `- orchestrator ran a suite in the foreground: ${orchSuites.length} run(s), ${fmt(orchSuites.reduce((a, b) => a + b.dur, 0))}`,
+    flag(
+      `orchestrator ran a suite in the foreground: ${orchSuites.length} run(s), ${fmt(orchSuites.reduce((a, b) => a + b.dur, 0))}`,
+      'foregroundSuite',
     );
   }
   for (const { who, r } of stalls) {
-    flagged = true;
-    console.log(
-      `- stalled tool result: ${who} — \`${String(r.input.command).slice(0, 60)}\` returned after ${fmt(r.dur)} at ${hhmm(r.start)}; counted in stalls, not work`,
+    flag(
+      `stalled tool result: ${who} — \`${String(r.input.command).slice(0, 60)}\` returned after ${fmt(r.dur)} at ${hhmm(r.start)}; counted in stalls, not work`,
+      'stalled',
     );
   }
   for (const w of workers) {
-    const suites = SUITE ? w.bash.filter(b => SUITE.test(b.cmd)) : [];
+    const suites = w.bash.filter(b => SUITE.test(b.cmd));
     const sleeps = w.bash
       .filter(b => SLEEP.test(b.cmd))
       .sort((a, b) => a.start - b.start);
     if (sleeps.length >= 2 || sleeps.some(b => b.dur >= CACHE_TTL)) {
-      flagged = true;
-      console.log(
-        `- sleep poll: ${w.desc} slept ${sleeps.length} times, ${fmt(sleeps.reduce((a, b) => a + b.dur, 0))} total — first at ${hhmm(sleeps[0].start)}: ${sleeps[0].cmd.slice(0, 60)}`,
+      flag(
+        `sleep poll: ${w.desc} slept ${sleeps.length} times, ${fmt(sleeps.reduce((a, b) => a + b.dur, 0))} total — first at ${hhmm(sleeps[0].start)}: ${sleeps[0].cmd.slice(0, 60)}`,
+        'sleepPoll',
       );
     }
     if (/review/i.test(`${w.type} ${w.desc}`) && suites.length) {
-      flagged = true;
-      console.log(
-        `- suite run by a reviewer: ${w.desc} — ${suites.length} run(s), ${fmt(suites.reduce((a, b) => a + b.dur, 0))}`,
+      flag(
+        `suite run by a reviewer: ${w.desc} — ${suites.length} run(s), ${fmt(suites.reduce((a, b) => a + b.dur, 0))}`,
+        'reviewerSuite',
       );
     }
     for (const { at, idle } of w.resumes) {
-      flagged = true;
-      console.log(
-        `- cold resume: ${w.desc} continued at ${hhmm(at)} after ${fmt(idle)} idle`,
+      flag(
+        `cold resume: ${w.desc} continued at ${hhmm(at)} after ${fmt(idle)} idle`,
+        'coldResume',
       );
     }
     const clusters = new Map();
@@ -488,9 +497,9 @@ function main(transcript, suiteSrc) {
     for (const [key, runs] of clusters) {
       for (let i = 1; i < runs.length; i++) {
         if (runs[i].start - runs[i - 1].start >= 300000) continue;
-        flagged = true;
-        console.log(
-          `- re-run to re-shape: ${w.desc} re-ran \`${key.slice(0, 60)}\` ${((runs[i].start - runs[i - 1].start) / 1000).toFixed(0)}s after a green run at ${hhmm(runs[i - 1].start)}`,
+        flag(
+          `re-run to re-shape: ${w.desc} re-ran \`${key.slice(0, 60)}\` ${((runs[i].start - runs[i - 1].start) / 1000).toFixed(0)}s after a green run at ${hhmm(runs[i - 1].start)}`,
+          'reshape',
         );
       }
     }
@@ -517,9 +526,9 @@ function main(transcript, suiteSrc) {
       w => w.end > ts(prev.timestamp) && w.start < ts(e.timestamp),
     );
     if (covered.length === 1 && !busy) {
-      flagged = true;
-      console.log(
-        `- serialized tail: ${mins(gap).toFixed(0)}m idle ${hhmm(ts(prev.timestamp))}-${hhmm(ts(e.timestamp))} while only \`${covered[0].label.slice(0, 60)}\` ran`,
+      flag(
+        `serialized tail: ${mins(gap).toFixed(0)}m idle ${hhmm(ts(prev.timestamp))}-${hhmm(ts(e.timestamp))} while only \`${covered[0].label.slice(0, 60)}\` ran`,
+        'serializedTail',
       );
     }
   }
@@ -531,8 +540,8 @@ function main(transcript, suiteSrc) {
 }
 
 const [file, suiteSrc] = process.argv.slice(2);
-if (!file) {
-  console.error('usage: node analyze.mjs <session.jsonl> [gate-pattern]');
+if (!file || !suiteSrc) {
+  console.error('usage: node analyze.mjs <session.jsonl> <gate-pattern>');
   process.exit(1);
 }
 main(file, suiteSrc);

@@ -36,11 +36,9 @@ name or shape wins.
   One line. If it needs a body, the subject is probably too broad.
 - **No `Co-Authored-By` trailer — not Claude, not anyone.** History stays clean of AI
   attribution. This overrides the harness default that appends `Co-Authored-By: Claude`.
-- **A minor bump is earned, not routine.** Every progress file carries the train version
-  that last maintained it, and a gap of more than one minor sends the thread to an audit —
-  so a minor release spends that budget for every open thread. A release is `patch` unless
-  it changes a surface a user or a thread reads (a command, a skill's rules, a tool's
-  contract); batch surface changes into one minor rather than cutting one per change.
+- **A minor bump is earned, not routine.** A release is `patch` unless it changes a
+  surface a user or a thread reads (a command, a skill's rules, a tool's contract); batch
+  surface changes into one minor rather than cutting one per change.
 
 ## Docs
 
