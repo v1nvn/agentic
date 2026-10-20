@@ -121,7 +121,8 @@ group review.
    else the whole thread as one group.
 4. Derive the run mechanics:
    - Gates by construction. The tactical map pins each unit's scoped gate lines (its
-     components plus their dependents) and the workspace gate line with its ceiling in
+     components plus their dependents) and the workspace gate line — the thread file's,
+     else the repo's gate from its CLAUDE.md or package scripts — with its ceiling in
      minutes, as the pre-flight gate measured them, rounded up. The builder runs the
      scoped lines while it builds and, for a ceiling of four minutes or under, the
      workspace gate as the last step before each unit's report, in the foreground with the
