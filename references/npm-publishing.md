@@ -73,15 +73,13 @@ bootstrap publishes.
 ## Partial release failures
 
 - The known keyless failure is Rekor/tlog `409 — equivalent entry already
-  exists` while creating a provenance entry. Recover with
-  `gh run rerun <id> --failed`.
+  exists`: the publish exits red with the version on npm. After a red publish
+  the job polls `npm view <name>@<version> --prefer-online` for ten minutes
+  and continues once the registry serves it; a version that never appears
+  fails the run — recover with `gh run rerun <id> --failed`.
 - Reruns are per-package idempotent — versions already on npm are skipped and
   the remainder publishes. A version that landed before a failure keeps its
   state: provenance cannot be retro-fitted.
-- The skip guard runs `npm view`. Right after a manual publish it can still
-  404, and the rerun then dies on `403 — cannot publish over the previously
-  published versions`. Harmless — nothing is overwritten; wait for
-  `npm view <name>@<version>` to resolve, then rerun again.
 - Any push to `main` while a package is unpublished or untrusted re-fails
   `release.yml`. Finish the bootstrap before pushing again.
 
