@@ -736,7 +736,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@v1nvn/agentic-core@npm:0.52.0, @v1nvn/agentic-core@workspace:^, @v1nvn/agentic-core@workspace:packages/core":
+"@v1nvn/agentic-core@npm:0.53.0, @v1nvn/agentic-core@workspace:^, @v1nvn/agentic-core@workspace:packages/core":
   version: 0.0.0-use.local
   resolution: "@v1nvn/agentic-core@workspace:packages/core"
   dependencies:
@@ -750,7 +750,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@v1nvn/md@workspace:packages/md"
   dependencies:
-    "@v1nvn/agentic-core": "npm:0.52.0"
+    "@v1nvn/agentic-core": "npm:0.53.0"
   bin:
     md-send: ./src/index.ts
   languageName: unknown
@@ -801,7 +801,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@v1nvn/rm@workspace:packages/rm"
   dependencies:
-    "@v1nvn/agentic-core": "npm:0.52.0"
+    "@v1nvn/agentic-core": "npm:0.53.0"
   bin:
     rm-send: ./src/index.ts
   languageName: unknown
@@ -811,7 +811,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@v1nvn/rulings@workspace:packages/rulings"
   dependencies:
-    "@v1nvn/agentic-core": "npm:0.52.0"
+    "@v1nvn/agentic-core": "npm:0.53.0"
     diff: "npm:^9.0.0"
     prismjs: "npm:^1.30.0"
     zod: "npm:^4.4.3"
@@ -824,7 +824,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@v1nvn/statusline@workspace:packages/statusline"
   dependencies:
-    "@v1nvn/agentic-core": "npm:0.52.0"
+    "@v1nvn/agentic-core": "npm:0.53.0"
   bin:
     statusline: ./src/index.ts
   languageName: unknown
@@ -834,7 +834,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@v1nvn/tokens@workspace:packages/tokens"
   dependencies:
-    "@v1nvn/agentic-core": "npm:0.52.0"
+    "@v1nvn/agentic-core": "npm:0.53.0"
   bin:
     tokens-report: ./src/index.ts
   languageName: unknown
@@ -844,7 +844,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@v1nvn/zai@workspace:packages/zai"
   dependencies:
-    "@v1nvn/agentic-core": "npm:0.52.0"
+    "@v1nvn/agentic-core": "npm:0.53.0"
   bin:
     zai-usage: ./src/index.ts
   languageName: unknown

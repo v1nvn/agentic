@@ -64,7 +64,7 @@ description: The work-tracking rules — TODO.md is the index, progress/<slug>.m
 # <title>
 
 **Run:** <departures: orchestrator model · groups · ask or standing-pick · no review>
-**Todo:** 0.52.0
+**Todo:** 0.53.0
 
 ## Goal
 ## Current state
