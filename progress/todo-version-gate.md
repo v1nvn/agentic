@@ -35,3 +35,9 @@ V1, straight — the stamp and its door are one change, meaningless apart.
 - **No hooks.** The gate is semantic — which file is the thread being entered — and a prompt-grep hook cannot know it; todo is manifest, skills and agents by design.
 - **No runtime version discovery.** No env var, injection or frontmatter field exposes a plugin's version to a skill (docs-verified); `installed_plugins.json` is internal schema, `claude plugin list` a spawn answering disk state. The train-pinned literal is the clean door and the repo's own mechanism.
 - **One stamp, one fact.** Per-unit stamps and a created-by/updated-by pair are history the file does not carry; the operative fact is *last maintained by*, and git holds the commit grain.
+- **The gate reads before it folds.** The stamp is read before any pickup fold of scratch notes; otherwise the fold stamps the thread and the audit never fires.
+- **A passing audit stamps.** "Rules unchanged" (identical apart from the `**Todo:**` line) is a pass; every pass rewrites the stamp, so a sitting that changes nothing else is not re-audited next entry.
+- **A stamp ahead of the running version** means the install is older than the thread: the session says so, the owner updates the plugin, and no fold stamps backward.
+- **Only live plans gate.** `review` gates a `progress/` plan only; an archived file keeps its stamp and is never audited.
+- **The audit reviewer keeps the mechanical/judgment split** and loads the rules and audit through `Skill`: the dispatcher applies mechanical fixes and posts judgment fixes to the owner.
+- **Model invocation is the stamp gate only.** The audit's description scopes model use to a thread argument on a tripped gate; the no-argument sweep stays a typed call.
