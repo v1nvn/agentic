@@ -31,18 +31,17 @@ Open.4). It prints markdown:
   read : write ratio and the standing-context share;
 - cost from the harness `cost-state` record, per model — absent while the session
   is still live;
-- Bash time by category for the orchestrator and the workers, and every full-suite
+- Bash time by category for the orchestrator and the workers, and every workspace-gate
   firing with its duration;
 - files two or more agents read;
-- violation candidates, as many as the transcripts carry, each with the rule it breaks.
+- violation candidates, as many as the transcripts carry, each with the rule it breaks, or, where none applies (a stalled host, a lever), saying so.
 
 ## Judge
 
 Read the run's thread file and its `progress/.scratch/` records. Drop every candidate
 the records explain — a firing the thread file mandates, a flake whose failure is quoted,
 a wait an inherent dependency chain forces. Confirm each survivor with its minutes and
-the rule the script printed beside it, quoted by line from `run/SKILL.md` or the role
-file in `agents/` that holds it.
+the rule the script printed beside it.
 
 ## Report
 

@@ -38,7 +38,8 @@ name or shape wins.
   attribution. This overrides the harness default that appends `Co-Authored-By: Claude`.
 - **A minor bump is earned, not routine.** A release is `patch` unless it changes a
   surface a user or a thread reads (a command, a skill's rules, a tool's contract); batch
-  surface changes into one minor rather than cutting one per change.
+  surface changes into one minor rather than cutting one per change, because every
+  release trips every open thread's stamp gate.
 
 ## Docs
 
@@ -161,7 +162,7 @@ time, so it speaks only to that model.
 - **Emphasis is earned by a reason.** State a constraint plainly with its _because_; caps and
   `NEVER` are for contract facts and routing, not for steering behavior.
 - **todo: `/todo:run` is the primary skill.** It is the battle-tested one; `rules` defines
-  the progress-file shape `run` consumes, the `agents/` role files carry the law `run`
+  the thread-file shape `run` consumes, the `agents/` role files carry the law `run`
   dispatches, and every other todo skill stays in sync with all three — a change to one
   lands in the others in the same change.
 - **A subagent is steered by its role file and its brief, never by hooks.** Hooks that
@@ -170,8 +171,8 @@ time, so it speaks only to that model.
   `references/` only as a settled fact that repo still needs; it reaches this repo (todo's
   own rules) only when every consumer repo needs it. The default is: it stays in the thread.
 - **A skill names no consumer repo.** What one project needs — its units, files, thresholds,
-  high-stakes slices — lives in that project's plan; the skill states the generic mechanism
-  the plan fills in.
+  high-stakes slices — lives in that project's thread file; the skill states the generic
+  mechanism the thread file fills in.
 - **Review a skill before creating or updating it.** Without installing it, read Anthropic's
   skill-creator (`anthropics/claude-plugins-official`, `plugins/skill-creator/skills/skill-creator`)
   with `gh`, review the surface against it and `references/skill-review.md`, and promote any

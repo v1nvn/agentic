@@ -16,7 +16,7 @@ A thread or unit that does not resolve: say so and stop.
 
 ## Stamp gate
 
-When the rules' stamp gate trips on a thread, diff `~/.claude/plugins/cache/agentic/todo/<stamp>/skills/rules/SKILL.md` against the copy at the running version, same path. Identical apart from the `**Todo:**` line: report "rules unchanged" and restamp. Otherwise dispatch one `todo:reviewer` at `sonnet/low` — the audit's own tier, whatever the Steps cells say — to run the thread scope against exactly the clauses that moved — every clause when the stamp is missing or the cache copy is swept, and the report says so — then apply its mechanical fixes and post its judgment fixes to the owner (§Fixes). End by writing the running version into the stamp.
+When the rules' stamp gate trips on a thread, diff `~/.claude/plugins/cache/agentic/todo/<stamp>/skills/rules/SKILL.md` against the copy at the running version, same path. Identical apart from the `**Todo:**` line: report "rules unchanged" and restamp. Otherwise dispatch one `todo:reviewer` at `sonnet/low` — the audit's own tier, whatever the Steps cells say — to run the thread scope against exactly the clauses that moved — every clause, against the loaded rules, when the stamp is missing or either cache copy is absent (swept, a dev run, another marketplace), and the report says so — then apply its mechanical fixes and post its judgment fixes to the owner (§Fixes). End by writing the running version into the stamp.
 
 ## Checks
 

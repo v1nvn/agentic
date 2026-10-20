@@ -57,13 +57,14 @@ The session is orchestrator and decision-maker only. It never builds or reviews:
 dispatches, commits, rules, routes findings and passes tiers. Its only long-running
 commands are the waits no worker may hold — the pre-flight gate, a gate past four
 minutes, a ritual — started in the background. It is the one agent whose cache lasts an
-hour, so it is the cheapest place to wait and the dearest place to read. A reproduction
+hour, so it is the cheapest place to wait and the dearest place to read, every line it reads being re-read at each wake. A reproduction
 or a script goes to the role that owns it. The owner answers only what §Deviations and
 §Owed work post. Every decision is written into the thread file as it is made, in the
 section it affects, never a log section — the veto table lives only in the final report. The thread
 file, its scratch notes and ritual records are the resume record; every commit names its
-unit's id; write no parallel run document. On resume, Open applies again; the group
-review re-checks every landed unit.
+unit's id; write no parallel run document. A resume does not re-run Open: it checks the
+tree clean on the run's own branch, runs the rules' stamp gate, folds the scratch notes and
+continues; the group review re-checks every landed unit.
 
 ## Dispatch
 
@@ -99,15 +100,15 @@ dispatch. A document-unit review carries its own `sonnet/low` (§The loop 7).
 
 The orchestrator may also consult on a question the thread file does not mark, one brief
 per question, logged in the veto table; the rescue (§The loop) is such a consult. A
-`**Run:**` line that names no review — a docs sweep checked by `/todo:audit` — skips the
+`**Run:**` line that names no review — a docs sweep its end checks verify — skips the
 group review.
 
 ## Open
 
-1. Check the tree first: clean on the thread file's base (the default branch when it names
-   none) — when the prompt asks for a worktree, create it on a new branch off that base
-   and work there from here on. Then read the thread file whole and the repo CLAUDE.md
-   sections that bite, and run the rules' stamp gate on it before any dispatch.
+1. Read the thread file whole, then check the tree: clean on its base (the default branch
+   when it names none) — when the prompt asks for a worktree, create it on a new branch off
+   that base and work there from here on. Read the repo CLAUDE.md sections that bite, and
+   run the rules' stamp gate on the thread file before any dispatch.
 2. Complete the thread file. One with no units in its Steps table: stop and say so. One
    whose units lack close criteria (testable sentences) is a design, not a runnable
    thread: one `design` consult at pre-flight writes them plus an enforcement inventory,
@@ -154,8 +155,8 @@ group review.
    on code, a `todo:reviewer` consult reads it, and the code wins — then send it through
    §Deviations. A question the thread file dates to a unit ("ruled at 7") waits for that
    unit — the evidence it needs does not exist at launch.
-6. Preconditions before the first dispatch: commit what steps 1–5 wrote into the thread
-   file as one line; the workspace gate green at the start, fired by the orchestrator in
+6. Preconditions before the first dispatch: commit what steps 1–5 wrote — the thread file and
+   the index — as one line; the workspace gate green at the start, fired by the orchestrator in
    the background, its minutes written into the tactical map as the gate's ceiling; every
    unit on another thread the scope is gated on has landed there; the environment the
    scoped units need (cluster, env vars, secrets, disk, `gh` auth, quiet neighbors: file
@@ -169,10 +170,10 @@ group review.
   job. A worker inherits only its role file and the thread file. Its private notes live
   in the builder's scratch file or a reviewer's report; the fold is the only way a
   finding outlives its worker.
-- A worker is ended and a replacement continues from its scratch file when it stops
-  mid-unit — a stall or rate limit past five minutes, a lapsed hold — or passes the
-  context ceiling (a third of its window, off the last usage entry of its transcript;
-  ended at its report). A worker idle five minutes without a hold is never resumed, any
+- A worker is ended and replaced when it stops mid-unit — a stall or rate limit past five
+  minutes, a lapsed hold — or passes the context ceiling (a third of its window, off the
+  last usage entry of its transcript; ended at its report). A builder's replacement
+  continues from its scratch file; a reviewer's is a fresh dispatch of the same brief. A worker idle five minutes without a hold is never resumed, any
   role. One stalled or rate-limited for under five minutes is continued by message.
 - One builder at a time, no worktrees inside a run, no parallel builds — except
   document and dataset units (§The loop 7). A build overlaps only the next unit's
@@ -198,7 +199,8 @@ group review.
 For each group:
 
 1. **Build.** The builder builds the unit on its scoped gates, fires the workspace gate
-   and the enforcement script as the unit's last step (§Open.4), and reports green with
+   and the enforcement script as the unit's last step (§Open.4), its gate log written to
+   `progress/.scratch/<slug>/gate-<unit id>.log` as the brief names it, and reports green with
    the tree uncommitted — or reports red with the failing line and its diagnosis,
    which the orchestrator routes like a blocking finding. Where the enforcement inventory
    names checkables, the group's first builder writes the enforcement script from it into
@@ -212,14 +214,14 @@ For each group:
    unit, and nothing that depends on it lands until the orchestrator answers.
 3. **Unit review**, for a unit whose `review` cell says `unit`. A fresh `todo:reviewer`
    gets the unit's diff, the thread file's sections and the gate log
-   `progress/.scratch/<slug>/gate-<id>.log` — never the builder's report or scratch file.
+   `progress/.scratch/<slug>/gate-<unit id>.log` — never the builder's report or scratch file.
    A `blocking` finding goes by message to the held builder, which fixes it, fires the
    gate and reports the fix green; the orchestrator commits the fix naming the unit's id,
    has it re-reviewed once (step 5), and then messages the next unit. With no builder
    live, the fix goes to a fresh builder. A report naming a process its builder could not
    stop holds the next dispatch until that process is stopped.
 4. **Group review.** When the group's last unit is committed and its gate is green, one
-   fresh `todo:reviewer` reviews the group's whole diff on the same terms. Its brief names the gate logs, the
+   fresh `todo:reviewer` reviews the group's whole diff on the same terms. Its brief names every one of the group's gate logs, the
    units' rows in the thread file and, for units landed in an earlier sitting, in
    `archive/<slug>.md` under the group's heading.
 5. **Fix round.** Every `blocking` finding of the group review, with its `nit` findings,
@@ -232,7 +234,7 @@ For each group:
    unit is wrong: the orchestrator reads the specific finding, not the diff, and may take
    the rescue — a reviewer consult that diagnoses the failure — then routes the diagnosis
    to a fresh builder at the tier the consult recommends; said in one line and listed in
-   the veto table. A finding still open after one rescue goes to the owner.
+   the veto table. A finding still open after one rescue stops the run and goes to the owner.
 6. **Close the units** — each only on its stated close criteria (greps, tests, gate
    firings), as its reviews reported them, never on the builder's say-so — once no open
    blocking finding remains and every fix is committed on a green gate. Route each

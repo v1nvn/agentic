@@ -46,7 +46,8 @@ to `origin/<head>`; a cross-repository PR cannot be pushed to. Otherwise say so 
 stop.
 
 Dispatch one fresh `todo:builder`. Its brief names the PR branch, the picked findings,
-its scratch file `progress/.scratch/review-<pr>-builder.md`, and the workspace gate
+its scratch file `progress/.scratch/review-<pr>-builder.md`, its gate log
+`progress/.scratch/review-<pr>-gate.log`, and the workspace gate
 line with its ceiling — the thread file's, else the repo's gate from its CLAUDE.md or package
 scripts. The builder fires a gate whose ceiling is four minutes or under; a longer or
 unmeasured gate the session fires in the background once the builder stops, and a red
@@ -54,5 +55,5 @@ result goes to a replacement builder with the failure in its brief. Items the bu
 reports as stopped go back to the owner with its options.
 
 Commit only what landed on a green gate — one conventional line, no trailer — push to
-the PR branch, never to its base, and delete the scratch file. The fix diff gets no
+the PR branch, never to its base, and delete the scratch file and the gate log. The fix diff gets no
 further review; the closing line names the commit and the findings left unfixed.

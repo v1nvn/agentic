@@ -16,7 +16,7 @@ const STALL_SLACK = 60000;
 const RULE = {
   foregroundSuite:
     'run: the orchestrator starts every long-running command in the background',
-  stalled: 'builder: pass the Bash `timeout` the gate ceiling sets',
+  stalled: 'a stalled host, not a rule',
   reviewerSuite: 'reviewer: never run a build or a test suite',
   sleepPoll: 'builder: never poll with `sleep`',
   reshape: 'builder: never re-run a suite to re-shape its output',

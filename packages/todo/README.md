@@ -19,15 +19,15 @@ The verbs auto-invoke on their triggers — handoff asks, thread-file run asks, 
 asks, thread starts, fresh-repo setup. `/todo:review` and `/todo:postmortem` run only when typed; `/todo:audit` also fires on its own, with a thread argument, when the stamp gate trips; the no-argument sweep stays typed.
 
 `/todo:run` dispatches the two role agents; `/todo:review` and `/todo:audit` dispatch the reviewer. Each file holds its role's law; the thread file's Steps
-table sets the tier per dispatch (`model`, or a `model/effort` pair like `opus/high`) and
-marks the units that get a review of their own (`review: unit`).
+table sets the build tier per unit (`model`, or a `model/effort` pair like `opus/high`) and
+marks the units that get a review of their own (`review: unit`); reviews and audits carry their own tier.
 
 | Agent           | Default         | Does                                                                                            |
 | --------------- | --------------- | ----------------------------------------------------------------------------------------------- |
 | `todo:builder`  | `sonnet/medium` | Builds units in sequence on their scoped gates, fires the workspace gate, fixes routed findings |
 | `todo:reviewer` | `opus/high`     | Read-only: group, unit and branch review, audit, design consult, rescue diagnosis               |
 
-Each `progress/<slug>.md` carries a `**Todo:** <version>` stamp: the plugin version that last minted, folded or audited it. A missing stamp, or any other than the running version, trips the rules' stamp gate on every verb that works or folds a thread, and `/todo:audit` checks the thread against the rules that changed since, then restamps. A stamp ahead of the running version means the install is older and stays. `/todo:status` names the lag; `/todo:review` is not gated.
+Each `progress/<slug>.md` carries a `**Todo:** <version>` stamp: the plugin version that last minted, folded or audited it. A stamp behind the running version, or none, trips the rules' stamp gate on every verb that works or folds a thread, and `/todo:audit` checks the thread against the rules that changed since, then restamps. A stamp ahead of the running version means the install is older: the stamp stays and no audit runs. `/todo:status` names the lag; `/todo:review` is not gated.
 
 ## Install
 

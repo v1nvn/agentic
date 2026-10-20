@@ -23,7 +23,7 @@ entry is written always; `progress/<slug>.md` only when the rules say the entry 
 ## Derivation (no `[title]`)
 
 1. Read the whole sitting up to the mint — the owner's messages, your reports, the tool
-   results (titles are often near-verbatim lifts of prose the session read: an audit
+   results (titles are often near-verbatim lifts of prose the session read: a review
    heading, a report section, a planning-doc sentence), and repo state (`TODO.md`,
    sibling thread files) where the subject never entered prose. Mid-sitting pivots
    included — the subject can enter late, never only in the opening ask.

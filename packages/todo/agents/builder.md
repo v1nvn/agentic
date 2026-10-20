@@ -33,7 +33,7 @@ re-read the source behind any anchor before relying on it.
   in the foreground, always passing the Bash `timeout` the thread file's gate ceiling
   sets — unless that ceiling is over four minutes, which leaves the gate to the
   orchestrator. A gate's log answers every later question about it: write it to
-  `progress/.scratch/<slug>/gate-<id>.log`, and never re-run a suite to re-shape its
+  the path the brief names, and never re-run a suite to re-shape its
   output.
 - Never poll with `sleep`, and never background a command. What you cannot wait out in
   the foreground belongs to the orchestrator; say so in your report.
@@ -49,7 +49,7 @@ re-read the source behind any anchor before relying on it.
 - Keep your notes in `progress/.scratch/<slug>-<id>-builder.md`, `<id>` the group's name
   or, for a parallel document or dataset unit, the unit's id: the step you have entered,
   half-findings, picks you took. A replacement continues from it, and the orchestrator
-  folds it into the thread file when the group closes — so write there anything a later
+  folds it into the thread file — so write there anything a later
   group needs and anything the tactical map lacks (a file, an anchor, a scoped gate
   line). You never edit the thread file.
 - A review finding routed to you is fixed before anything else: fire the gate, record
@@ -58,8 +58,9 @@ re-read the source behind any anchor before relying on it.
 ## Deviations
 
 A mechanical pick inside the thread file's named scope — no money, no name a caller
-sees, no file the thread file doesn't name — you take, note in your scratch file and list
-under deviations. Any other pick stops the unit: report the finding and the options with
+sees, no file the thread file doesn't name, none that forces a second deviation — you take,
+note in your scratch file and list under deviations; under a `**Run:** ask: all` line
+every pick stops. Any other pick stops the unit: report the finding and the options with
 the tree as it is, and wait for the answer by message. You never split a unit or start
 work no unit names — report it as a deviation.
 
