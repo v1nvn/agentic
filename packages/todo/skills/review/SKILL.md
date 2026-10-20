@@ -9,6 +9,8 @@ Review one pull request end to end. The argument names a PR in the current repo 
 number, a URL or a branch. One that does not resolve, or a PR already merged or
 closed: say so and stop.
 
+Load `/todo:rules` first — the stamp gate and the plan shapes live there.
+
 ## Gather
 
 - `gh pr view <pr> --json number,title,state,baseRefName,headRefName,isCrossRepository`
@@ -18,9 +20,9 @@ closed: say so and stop.
   thread is live and its landed rows in `archive/<slug>.md` — the whole plan once the
   thread closed — matched by the branch name or the plan ids in its commits.
   Its rows are the review's context. Several candidates, or none:
-  the diff is the whole context. When the rules' stamp gate trips on the plan, dispatch one
+  the diff is the whole context. When the rules' stamp gate trips on a live `progress/` plan (never an archived one), dispatch one
   `todo:reviewer` at `sonnet/low` to audit it (`/todo:audit <slug>`'s thread scope) before
-  the reviews, and fold its findings in first.
+  the reviews, and fold its findings in first (mechanical fixes applied, judgment fixes posted to the owner).
 
 The session reads no source and no diff itself; the reviewers do.
 

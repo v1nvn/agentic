@@ -16,7 +16,7 @@ the rules and the verbs; every repo carries data only.
 | `/todo:handoff`    | —                 | Continue this session in a fresh one: update the thread file and emit a pointer, or a self-contained block when none exists.                                       |
 
 The verbs auto-invoke on their triggers — handoff asks, plan-file run asks, what's-next
-asks, thread starts, fresh-repo setup. `/todo:review` runs only when typed; `/todo:audit` also fires on its own when the stamp gate trips.
+asks, thread starts, fresh-repo setup. `/todo:review` runs only when typed; `/todo:audit` also fires on its own, with a thread argument, when the stamp gate trips; the no-argument sweep stays typed.
 `/todo:rules` loads contextually on any touch of the four surfaces.
 
 `/todo:run` dispatches two role agents. Each file holds its role's law; the plan's Steps
@@ -26,12 +26,13 @@ marks the units that get a review of their own (`review: unit`).
 | Agent           | Default         | Does                                                                                                      |
 | --------------- | --------------- | --------------------------------------------------------------------------------------------------------- |
 | `todo:builder`  | `sonnet/medium` | Builds a group's units in sequence on their scoped gates, fires the workspace gate, fixes routed findings |
-| `todo:reviewer` | `opus/high`     | Read-only: group, unit and branch review, thread audit, design consult, rescue diagnosis                                |
+| `todo:reviewer` | `opus/high`     | Read-only: group, unit and branch review, thread audit, design consult, rescue diagnosis                  |
 
-Each `progress/<slug>.md` opens with a `**Todo:** <version>` line: the plugin version that
-last minted or folded it. A missing stamp means the file predates stamping.
-Entering a thread whose stamp is more than one minor version behind (or a major apart, or
-missing) audits it first: `/todo:run` and `/todo:review` dispatch a `sonnet/low`
+Each `progress/<slug>.md` header carries a `**Todo:** <version>` line after the title and
+optional `**Run:**`: the plugin version that last minted, folded or audited it. A missing
+stamp means the file predates stamping; a stamp ahead of the running version means the
+install is older, and the stamp stays. Entering a thread whose stamp is more than one minor
+behind (any major apart, or no stamp) audits it first: `/todo:run` and `/todo:review` dispatch a `sonnet/low`
 reviewer, a conversational resume runs `/todo:audit` inline, and `/todo:status` names the
 lag. The audit diffs the cached rules at the stamp against current; unchanged rules end it.
 

@@ -52,14 +52,13 @@ const MD_SURFACES = [
   'packages/statusline/README.md',
 ];
 
-// The rules skill shows the running version in its progress-file shape; the
-// stamp literal there is the only door through which a skill learns it.
+// No runtime door exposes a plugin's version to a skill; this literal is it.
 const STAMP_SURFACE = 'packages/todo/skills/rules/SKILL.md';
-const STAMP = /(\*\*Todo:\*\* )\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?/g;
+const STAMP = /(\*\*Todo:\*\* )(\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?)/g;
 
 function stampDrift(version) {
   const stamps = [...readFileSync(STAMP_SURFACE, 'utf8').matchAll(STAMP)];
-  const found = stamps.map(match => match[0].slice(match[1].length));
+  const found = stamps.map(match => match[2]);
   if (found.length !== 1) {
     return `${STAMP_SURFACE}: expected exactly one **Todo:** stamp, found ${found.length}`;
   }
@@ -196,7 +195,7 @@ function apply(version, { locks = true } = {}) {
     regenYarnLock();
   }
   console.log(
-    `${[SOURCE, ...MIRRORS].length} manifests, ${PINNED_CONFIGS.length} config pins, ${MD_SURFACES.length} md npx surfaces, ${LOCKS.length} package locks and yarn.lock now at ${version}`,
+    `${[SOURCE, ...MIRRORS].length} manifests, ${PINNED_CONFIGS.length} config pins, ${MD_SURFACES.length} md npx surfaces, 1 stamp surface, ${LOCKS.length} package locks and yarn.lock now at ${version}`,
   );
 }
 
