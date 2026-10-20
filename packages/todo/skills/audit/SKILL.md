@@ -1,8 +1,7 @@
 ---
 name: audit
-description: Check work tracking against the rules and fix what drifted — the whole repo, one thread, or one unit of a thread.
+description: Check work tracking against the rules and fix what drifted — the whole repo, one thread, or one unit of a thread. Also the stamp gate's audit: use before working an existing progress file whose `**Todo:**` stamp is missing, more than one minor version behind the running todo, or a major apart.
 argument-hint: [thread] [unit]
-disable-model-invocation: true
 ---
 
 Load `/todo:rules` first — every check below is one of its clauses, and every fix takes its shapes.
@@ -14,6 +13,10 @@ Load `/todo:rules` first — every check below is one of its clauses, and every 
 - **`[thread] [unit]`** — one unit of that thread: its row, and the fold-in its close owed.
 
 A thread or unit that does not resolve: say so and stop.
+
+## Stamp gate
+
+When the gate (see `/todo:rules`) sends a thread here, diff `~/.claude/plugins/cache/agentic/todo/<stamp>/skills/rules/SKILL.md` against the loaded rules. Identical: report "rules unchanged" and stop, there is nothing to check. Otherwise run the thread scope against exactly the clauses that moved. A missing stamp or a swept cache copy means a full re-check against the current rules; the report says so. A passing audit ends in the fold, which writes the running version into the stamp.
 
 ## Checks
 

@@ -120,7 +120,9 @@ skips the group review.
 ## Open
 
 1. Read the plan whole, the repo CLAUDE.md sections that bite, and the tracking rules
-   (loaded above).
+   (loaded above). When the rules' stamp gate trips on the plan, dispatch one
+   `todo:reviewer` at `sonnet/low` to audit it (`/todo:audit <plan>`'s thread scope) before
+   any other dispatch, and fold its findings in first.
 2. Complete the plan. A plan with no units in its Steps table: stop and say so. A plan
    whose units lack close criteria (testable sentences) is a design, not a runnable
    plan: one `design` consult at pre-flight writes them — plus an enforcement inventory

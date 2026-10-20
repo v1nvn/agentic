@@ -14,4 +14,4 @@ thread.
   from there: the index carries neither. An entry with no file is unstarted — its
   context is all there is; say so.
 - **One thread.** Resolve `[thread]` to its `progress/<slug>.md` — a slug, a path, or a
-  title the index's pointers match — and report its current state and its next step. No file for it: say so and stop.
+  title the index's pointers match — and report its current state and its next step, and name the lag when its `**Todo:**` stamp trips the rules' stamp gate. No file for it: say so and stop.

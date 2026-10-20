@@ -18,7 +18,9 @@ closed: say so and stop.
   thread is live and its landed rows in `archive/<slug>.md` — the whole plan once the
   thread closed — matched by the branch name or the plan ids in its commits.
   Its rows are the review's context. Several candidates, or none:
-  the diff is the whole context.
+  the diff is the whole context. When the rules' stamp gate trips on the plan, dispatch one
+  `todo:reviewer` at `sonnet/low` to audit it (`/todo:audit <slug>`'s thread scope) before
+  the reviews, and fold its findings in first.
 
 The session reads no source and no diff itself; the reviewers do.
 
