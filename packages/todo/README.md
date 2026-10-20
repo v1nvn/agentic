@@ -31,10 +31,10 @@ marks the units that get a review of their own (`review: unit`).
 Each `progress/<slug>.md` header carries a `**Todo:** <version>` line after the title and
 optional `**Run:**`: the plugin version that last minted, folded or audited it. A missing
 stamp means the file predates stamping; a stamp ahead of the running version means the
-install is older, and the stamp stays. Entering a thread whose stamp is more than one minor
-behind (any major apart, or no stamp) audits it first: `/todo:run` and `/todo:review` dispatch a `sonnet/low`
-reviewer, a conversational resume runs `/todo:audit` inline, and `/todo:status` names the
-lag. The audit diffs the cached rules at the stamp against current; unchanged rules end it.
+install is older, and the stamp stays. Every verb that works or folds a thread runs the
+rules' stamp gate first: a stamp more than one minor behind, a major apart, or missing
+trips it, and `/todo:audit` diffs the cached rules at the stamp against current, sends the
+moved clauses to one `sonnet/low` reviewer, and restamps. `/todo:status` names the lag.
 
 ## Install
 

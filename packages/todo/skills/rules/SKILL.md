@@ -76,7 +76,7 @@ description: The work-tracking rules — TODO.md is the index, progress/<slug>.m
 ```
 
 - **`**Run:**`** — what departs from `/todo:run`'s defaults: an orchestrator model other than the launching session's; more than one group; `ask: all` (every pick posted) or `standing-pick: all` (even money and names taken); no review, with its reason. Absent means the defaults: one group, one builder working its units in sequence, one commit per unit, one review.
-- **`**Todo:**`** — the plugin version that last maintained the file; the example above is the running version. The mint writes it; every fold and every passing audit rewrites it to the running version, never backward; a file moving to `archive/` keeps its last stamp. Absent means the file predates the stamp — never backfilled, it appears at the next fold.
+- **`**Todo:**`** — the plugin version that last maintained the file; the example above is the running version. The mint writes it; every fold and every stamp-gate audit rewrites it to the running version, never backward; a file moving to `archive/` keeps its last stamp. Absent means the file predates the stamp — never backfilled, it appears at the next fold.
 - **Goal** — what done means: the thread's close criteria, testable.
 - **Current state** — the only place the thread's state lives, open findings and owed work included. Rewritten in place, never appended to; no dates, no snapshots beside it.
 - **Next step** — one concrete action. A step waiting on a date names it; a passed date means the step is rewritten. A dated next step and the scratch notes are the only places dates appear; a slug never carries one.
@@ -98,7 +98,7 @@ description: The work-tracking rules — TODO.md is the index, progress/<slug>.m
 
 **Closing a thread.** A `/todo:run` run closes its thread when it lands the final unit — owed work posted to the owner first, the thread file appended verbatim to `archive/<slug>.md` (created when absent) and deleted, one commit, no waiting on merge. Threads ended outside a run close by hand, the same way. **Deferrals do not ride along:** owed work and cuts the owner still wants earn one `TODO.md` entry per goal before the thread closes; the rest is dropped with the file.
 
-**Stamp gate.** Before working an existing thread, and before any fold in a sitting that has not yet run it, compare its `**Todo:**` stamp to the running version (the one in the shape above). Same major and minor, or one minor behind, passes; more than one minor behind, any major apart, or no stamp audits the thread (`/todo:audit <thread>`) before any work starts. A stamp ahead of the running version means the install is older than the thread: say so, leave the stamp, and let the owner update the plugin.
+**Stamp gate.** Before working an existing thread, and before any fold in a sitting that has not yet run it, compare its `**Todo:**` stamp to the running version (the one in the shape above). Same major and minor, or one minor behind, passes; more than one minor behind, any major apart, or no stamp trips it: run `/todo:audit <thread>` before any work starts. A stamp ahead of the running version means the install is older than the thread: say so, leave the stamp, and let the owner update the plugin.
 
 **Checking.** `/todo:audit` checks all of the above — the whole repo, one thread, or one unit.
 

@@ -72,7 +72,7 @@ the pick affects (Steps, Plan, Design; open findings and owed work in Current st
 never a log section — the veto table lives only in the final report. The plan file, with
 its scratch notes and ritual records, is the resume record — a later session picks up
 from those alone, with `git log` on the run's branch — every commit names its unit's
-id; write no parallel run document. On resume, fold any scratch notes in first (after the stamp gate reads the stamp), then
+id; write no parallel run document. On resume, run the rules' stamp gate, then fold any scratch notes in, then
 continue: the group review re-checks every landed unit.
 
 ## Dispatch
@@ -120,9 +120,7 @@ skips the group review.
 ## Open
 
 1. Read the plan whole, the repo CLAUDE.md sections that bite, and the tracking rules
-   (loaded above). When the rules' stamp gate trips on the plan, dispatch one
-   `todo:reviewer` at `sonnet/low` to audit it (`/todo:audit <plan>`'s thread scope) before
-   any other dispatch, and fold its findings in first (mechanical fixes applied, judgment fixes posted to the owner).
+   (loaded above), then run the rules' stamp gate on the plan before any dispatch.
 2. Complete the plan. A plan with no units in its Steps table: stop and say so. A plan
    whose units lack close criteria (testable sentences) is a design, not a runnable
    plan: one `design` consult at pre-flight writes them — plus an enforcement inventory

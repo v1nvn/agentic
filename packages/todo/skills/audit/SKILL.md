@@ -1,6 +1,6 @@
 ---
 name: audit
-description: Check work tracking against the rules and fix what drifted — the whole repo, one thread, or one unit of a thread. Also the stamp gate's audit: invoke with a thread argument before working an existing progress file whose `**Todo:**` stamp is more than one minor behind, any major apart, or no stamp. The no-argument whole-repo sweep is typed only.
+description: Check work tracking against the rules and fix what drifted — the whole repo, one thread, or one unit of a thread. Also invoked with a thread argument when the rules' stamp gate trips; the no-argument whole-repo sweep is typed only.
 argument-hint: [thread] [unit]
 ---
 
@@ -16,7 +16,7 @@ A thread or unit that does not resolve: say so and stop.
 
 ## Stamp gate
 
-When the gate (see `/todo:rules`) sends a thread here, diff `~/.claude/plugins/cache/*/todo/<stamp>/skills/rules/SKILL.md` against the loaded rules. Identical apart from the `**Todo:**` line: report "rules unchanged", nothing to check. Otherwise run the thread scope against exactly the clauses that moved. A missing stamp or a swept cache copy means a full re-check against the current rules; the report says so. Every pass, unchanged included, ends by writing the running version into the stamp.
+When the rules' stamp gate trips on a thread, diff `~/.claude/plugins/cache/*/todo/<stamp>/skills/rules/SKILL.md` against the loaded rules. Identical apart from the `**Todo:**` line: report "rules unchanged", nothing to check. Otherwise dispatch one `todo:reviewer` at `sonnet/low` to run the thread scope against exactly the clauses that moved — every clause when the stamp is missing or the cache copy is swept, and the report says so — then apply its mechanical fixes and post its judgment fixes to the owner (§Fixes). End by writing the running version into the stamp.
 
 ## Checks
 

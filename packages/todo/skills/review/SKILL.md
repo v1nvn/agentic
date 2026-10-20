@@ -20,9 +20,7 @@ Load `/todo:rules` first — the stamp gate and the plan shapes live there.
   thread is live and its landed rows in `archive/<slug>.md` — the whole plan once the
   thread closed — matched by the branch name or the plan ids in its commits.
   Its rows are the review's context. Several candidates, or none:
-  the diff is the whole context. When the rules' stamp gate trips on a live `progress/` plan (never an archived one), dispatch one
-  `todo:reviewer` at `sonnet/low` to audit it (`/todo:audit <slug>`'s thread scope) before
-  the reviews, and fold its findings in first (mechanical fixes applied, judgment fixes posted to the owner).
+  the diff is the whole context. A live `progress/` plan passes the rules' stamp gate before the reviews; an archived one is never gated.
 
 The session reads no source and no diff itself; the reviewers do.
 

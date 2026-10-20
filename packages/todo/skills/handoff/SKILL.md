@@ -14,7 +14,7 @@ one, mint it first via `/todo:new`. The thread file is then the durable home for
 state — do not write a parallel handoff document; that is a second home for the same
 facts.
 
-1. Fold the sitting's scratch notes into the thread file per the rules: Current state
+1. Run the rules' stamp gate, then fold the sitting's scratch notes into the thread file per the rules: Current state
    (what is true and verified now), Next step, and the Steps table; a landed
    group's units append to `archive/<slug>.md`. A decision that
    outlives the thread goes to `references/`, not the thread file.
