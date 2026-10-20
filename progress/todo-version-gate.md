@@ -27,7 +27,7 @@ V1, straight — the stamp and its door are one change, meaningless apart.
 - **The gate.** One clause in the rules (every door that works a thread loads them): before working an existing thread, compare its stamp to the running version — same major and minor passes (patch gap), minor distance of one passes (trusted to the blind reviewers the run already dispatches), more than one minor, any major, or a missing stamp audits the thread first. `run` and `review` dispatch one `sonnet/low` reviewer for that audit when the gate trips — `run` has no resume check to carry it (owner, todo-grain G8a); a conversational resume runs `audit`'s thread scope inline.
 - **The audit's aim.** When the gate trips, diff the cached rules at the stamp against current (`~/.claude/plugins/cache/agentic/todo/<stamp>/skills/rules/SKILL.md` — one directory per installed version, documented layout) and check the thread against exactly the clauses that moved; a swept cache copy means a full re-check against current rules, said so in the report.
 - **Rollout.** Every existing thread has no stamp, so its first entry after landing audits it once; the fold then stamps it current. The gate measures staleness since last maintenance, not age, and resets on every touch.
-- **Gates.** `node .github/scripts/set-version.mjs --check`, `claude plugin validate packages/todo`; `claude plugin test` has nothing to fire on a skill-only home.
+- **Gates.** Workspace gate: `node .github/scripts/set-version.mjs --check && claude plugin validate packages/todo`, ceiling 1 minute (pre-flight measured under a second); `claude plugin test` has nothing to fire on a skill-only home.
 
 ## Design
 

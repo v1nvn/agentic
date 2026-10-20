@@ -64,6 +64,7 @@ description: The work-tracking rules — TODO.md is the index, progress/<slug>.m
 # <title>
 
 **Run:** <departures: orchestrator model · groups · ask or standing-pick · no review>
+**Todo:** 0.52.0
 
 ## Goal
 ## Current state
@@ -75,6 +76,7 @@ description: The work-tracking rules — TODO.md is the index, progress/<slug>.m
 ```
 
 - **`**Run:**`** — what departs from `/todo:run`'s defaults: an orchestrator model other than the launching session's; more than one group; `ask: all` (every pick posted) or `standing-pick: all` (even money and names taken); no review, with its reason. Absent means the defaults: one group, one builder working its units in sequence, one commit per unit, one review.
+- **`**Todo:**`** — the plugin version that last maintained the file; the example above is the running version. The mint writes it and every fold rewrites it to the running version; a file moving to `archive/` keeps its last stamp. Absent means the file predates the stamp — never backfilled, it appears at the next fold.
 - **Goal** — what done means: the thread's close criteria, testable.
 - **Current state** — the only place the thread's state lives, open findings and owed work included. Rewritten in place, never appended to; no dates, no snapshots beside it.
 - **Next step** — one concrete action. A step waiting on a date names it; a passed date means the step is rewritten. A dated next step and the scratch notes are the only places dates appear; a slug never carries one.
@@ -84,7 +86,7 @@ description: The work-tracking rules — TODO.md is the index, progress/<slug>.m
 - **A standing thread** — a loop that never closes — has no Steps and is worked by the session, never by `/todo:run`: its goal is the loop's purpose, its current state is rewritten each sitting, and a recurring schedule lives in Current state with only the next occurrence as Next step.
 - **A cost or gain** the file states is a measured number with its method, or an estimate that names the unit whose result replaces it.
 
-**Notes fold in; the file stays current.** During a sitting, notes go to the thread's scratch files. Closing a unit, a handoff, or the end of any sitting that changed the thread folds them in: re-read the thread file top to bottom, carry what the notes established into Current state, the Steps table and Plan, rewrite in place anything the work made false or spent — the next unit's row included — delete superseded clauses (git is the history) — except a landed group's units and the plan text only they used, which append to `archive/<slug>.md` — then delete the scratch files. Scratch files found when a thread is picked up are folded in first: a sitting can end without warning. The index entry changes in the same sitting only when its title, priority or areas did.
+**Notes fold in; the file stays current.** During a sitting, notes go to the thread's scratch files. Closing a unit, a handoff, or the end of any sitting that changed the thread folds them in: re-read the thread file top to bottom, carry what the notes established into Current state, the Steps table and Plan, rewrite in place anything the work made false or spent — the `**Todo:**` stamp included — the next unit's row included — delete superseded clauses (git is the history) — except a landed group's units and the plan text only they used, which append to `archive/<slug>.md` — then delete the scratch files. Scratch files found when a thread is picked up are folded in first: a sitting can end without warning. The index entry changes in the same sitting only when its title, priority or areas did.
 
 **One home per fact.** Index in `TODO.md`, task state in `progress/`, reusable facts in `references/`. Where a repo already keeps a kind of fact elsewhere, that is its home: an entry or a file names it, never copies. Don't duplicate.
 

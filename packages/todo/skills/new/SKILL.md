@@ -51,7 +51,7 @@ entry is written always; `progress/<slug>.md` only when the rules say the entry 
 
 - Index entry in the rules' shape, tagged per their priority ladder when the sitting
   judged its value; its context, when it has no file, passes the rules' test.
-- `progress/<slug>.md` in the rules' shape — written only when the entry needs one:
+- `progress/<slug>.md` in the rules' shape, stamped `**Todo:**` with the running version — written only when the entry needs one:
   context past two sentences, or work the sitting already did on the thread itself.
 - The sitting's content rulings — what the file includes and excludes — ride into the
   file; they are independent of the title.

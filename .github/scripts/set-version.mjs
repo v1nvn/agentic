@@ -52,6 +52,27 @@ const MD_SURFACES = [
   'packages/statusline/README.md',
 ];
 
+// The rules skill shows the running version in its progress-file shape; the
+// stamp literal there is the only door through which a skill learns it.
+const STAMP_SURFACE = 'packages/todo/skills/rules/SKILL.md';
+const STAMP = /(\*\*Todo:\*\* )\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?/g;
+
+function stampDrift(version) {
+  const stamps = [...readFileSync(STAMP_SURFACE, 'utf8').matchAll(STAMP)];
+  const found = stamps.map(match => match[0].slice(match[1].length));
+  if (found.length !== 1) {
+    return `${STAMP_SURFACE}: expected exactly one **Todo:** stamp, found ${found.length}`;
+  }
+  return found[0] === version
+    ? null
+    : `${STAMP_SURFACE}: **Todo:** stamp ${found[0]} != repo version ${version}`;
+}
+
+function rewriteStamp(version) {
+  const contents = readFileSync(STAMP_SURFACE, 'utf8');
+  writeFileSync(STAMP_SURFACE, contents.replace(STAMP, `$1${version}`));
+}
+
 // Replace the single "version" key without reflowing the rest of the file —
 // these manifests are hand-formatted (literal em-dashes, one-line objects),
 // and a JSON round-trip would churn every line.
@@ -166,6 +187,7 @@ function apply(version, { locks = true } = {}) {
   for (const path of [...PINNED_CONFIGS, ...MD_SURFACES]) {
     rewritePins(path, version);
   }
+  rewriteStamp(version);
   // The locks pin the train's own core version with its registry integrity
   // hash, so they can only regenerate once that version is published — the
   // release train bumps with --no-locks, publishes core, then re-applies.
@@ -319,7 +341,7 @@ if (command === '--check') {
   for (const path of LOCKS) {
     messages.push(lockDrift(path, repo), lockManifestDrift(path));
   }
-  messages.push(yarnLockDrift(repo));
+  messages.push(stampDrift(repo), yarnLockDrift(repo));
   const errors = messages.filter(Boolean);
   if (errors.length > 0) {
     fail(errors);

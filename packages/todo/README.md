@@ -28,6 +28,9 @@ marks the units that get a review of their own (`review: unit`).
 | `todo:builder`  | `sonnet/medium` | Builds a group's units in sequence on their scoped gates, fires the workspace gate, fixes routed findings |
 | `todo:reviewer` | `opus/high`     | Read-only: group, unit and branch review, design consult, rescue diagnosis                                |
 
+Each `progress/<slug>.md` opens with a `**Todo:** <version>` line: the plugin version that
+last minted or folded it. A missing stamp means the file predates stamping.
+
 ## Install
 
 ```sh
