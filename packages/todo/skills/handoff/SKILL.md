@@ -14,10 +14,11 @@ one, mint it first via `/todo:new`. The thread file is then the durable home for
 state — do not write a parallel handoff document; that is a second home for the same
 facts.
 
-1. Fold the sitting's scratch notes into the thread file per the rules: Current state
-   (what is true and verified now), Next step, and the Steps table; a landed
-   group's units append to `archive/<slug>.md`. A decision that
-   outlives the thread goes to `references/`, not the thread file.
+1. Run the rules' stamp gate, then fold the sitting's scratch notes into the thread file
+   per the rules. A stamp ahead of the running version folds nothing — the install is
+   older than the thread: leave the scratch files in place, name them in the pointer
+   prompt's last line, and the fresh session folds them once its plugin catches up. A
+   decision that outlives the thread goes to `references/`, not the thread file.
 2. Update the `TODO.md` index entry only if the title, priority or areas changed.
 3. Print a short pointer prompt the user can paste into the fresh session:
 

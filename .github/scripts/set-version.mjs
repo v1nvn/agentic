@@ -52,6 +52,26 @@ const MD_SURFACES = [
   'packages/statusline/README.md',
 ];
 
+// No runtime door exposes a plugin's version to a skill; this literal is it.
+const STAMP_SURFACE = 'packages/todo/skills/rules/SKILL.md';
+const STAMP = /(\*\*Todo:\*\* )(\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?)/g;
+
+function stampDrift(version) {
+  const stamps = [...readFileSync(STAMP_SURFACE, 'utf8').matchAll(STAMP)];
+  const found = stamps.map(match => match[2]);
+  if (found.length !== 1) {
+    return `${STAMP_SURFACE}: expected exactly one **Todo:** stamp, found ${found.length}`;
+  }
+  return found[0] === version
+    ? null
+    : `${STAMP_SURFACE}: **Todo:** stamp ${found[0]} != repo version ${version}`;
+}
+
+function rewriteStamp(version) {
+  const contents = readFileSync(STAMP_SURFACE, 'utf8');
+  writeFileSync(STAMP_SURFACE, contents.replace(STAMP, `$1${version}`));
+}
+
 // Replace the single "version" key without reflowing the rest of the file —
 // these manifests are hand-formatted (literal em-dashes, one-line objects),
 // and a JSON round-trip would churn every line.
@@ -166,6 +186,7 @@ function apply(version, { locks = true } = {}) {
   for (const path of [...PINNED_CONFIGS, ...MD_SURFACES]) {
     rewritePins(path, version);
   }
+  rewriteStamp(version);
   // The locks pin the train's own core version with its registry integrity
   // hash, so they can only regenerate once that version is published — the
   // release train bumps with --no-locks, publishes core, then re-applies.
@@ -174,7 +195,7 @@ function apply(version, { locks = true } = {}) {
     regenYarnLock();
   }
   console.log(
-    `${[SOURCE, ...MIRRORS].length} manifests, ${PINNED_CONFIGS.length} config pins, ${MD_SURFACES.length} md npx surfaces, ${LOCKS.length} package locks and yarn.lock now at ${version}`,
+    `${[SOURCE, ...MIRRORS].length} manifests, ${PINNED_CONFIGS.length} config pins, ${MD_SURFACES.length} md npx surfaces, 1 stamp surface, ${LOCKS.length} package locks and yarn.lock now at ${version}`,
   );
 }
 
@@ -319,7 +340,7 @@ if (command === '--check') {
   for (const path of LOCKS) {
     messages.push(lockDrift(path, repo), lockManifestDrift(path));
   }
-  messages.push(yarnLockDrift(repo));
+  messages.push(stampDrift(repo), yarnLockDrift(repo));
   const errors = messages.filter(Boolean);
   if (errors.length > 0) {
     fail(errors);
