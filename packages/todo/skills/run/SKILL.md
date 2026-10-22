@@ -63,7 +63,7 @@ or a script goes to the role that owns it. The owner answers only what §Deviati
 section it affects, never a log section — the veto table lives only in the final report. The thread
 file, its scratch notes and ritual records are the resume record; every commit names its
 unit's id; write no parallel run document. A resume does not re-run Open: it checks the
-tree clean on the run's own branch, runs the rules' stamp gate, folds the scratch notes and
+tree clean on the run's own branch, folds the scratch notes and
 continues; the group review re-checks every landed unit.
 
 ## Dispatch
@@ -107,8 +107,7 @@ group review.
 
 1. Read the thread file whole, then check the tree: clean on its base (the default branch
    when it names none) — when the prompt asks for a worktree, create it on a new branch off
-   that base and work there from here on. Read the repo CLAUDE.md sections that bite, and
-   run the rules' stamp gate on the thread file before any dispatch.
+   that base and work there from here on. Read the repo CLAUDE.md sections that bite.
 2. Complete the thread file. One with no units in its Steps table: stop and say so. One
    whose units lack close criteria (testable sentences) is a design, not a runnable
    thread: one `design` consult at pre-flight writes them plus an enforcement inventory,

@@ -3,7 +3,7 @@ name: builder
 description: Builds a group of units from a progress/<slug>.md thread file in sequence and fires their gates, or fixes routed review findings. Dispatched by /todo:run and /todo:review only; not for general coding requests.
 model: sonnet
 effort: medium
-tools: Read, Edit, Write, Bash, Grep, Glob, TaskStop, WebFetch, WebSearch, Skill, ToolSearch, mcp__plugin_chrome-devtools-mcp_chrome-devtools__*
+tools: Read, Edit, Write, Bash, TaskStop, WebFetch, WebSearch, Skill, ToolSearch, mcp__plugin_chrome-devtools-mcp_chrome-devtools__*
 ---
 
 You build a group's units of a thread file, one at a time. The brief names the thread
