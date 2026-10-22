@@ -16,7 +16,7 @@ hand-edited global file is gone; README and AGENTS.md count eleven plugins.
 
 ## Current state
 
-Nothing is built. The corpus is settled (under Design): 68 rules in 9 groups,
+Nothing is built. The corpus is settled (under Design): 69 rules in 9 groups,
 texts from the mined 120-line draft verbatim and the live global file's uncovered
 lines adapted in, regrouped so every owner-style rule sits in
 `control` — one boolean drops them all from any render that wants them off.
@@ -117,7 +117,7 @@ render.
   the diff and stop.
 ```
 
-**The corpus — 68 rules, 9 groups.** C1's input, verbatim.
+**The corpus — 69 rules, 9 groups.** C1's input, verbatim.
 
 ### control — who runs the session (11)
 
@@ -133,7 +133,7 @@ render.
 - No tool or agent attribution in commits, PRs, issues or reviews.
 - My screenshots and screen captures never leave this machine.
 
-### change — how code changes (11)
+### change — how code changes (12)
 
 - Minimal diff: reduce to the actual fix; reject machinery the fix doesn't need.
 - Clean fixes only — no band-aids, hacks or special cases; park it if it can't be done cleanly.
@@ -146,6 +146,7 @@ render.
 - A redesign is planned from the new system, not fitted to the old one: its tests, surfaces and mechanisms derive from the new doors; an old test, mechanism or name survives only when shown to do a job the new design has.
 - A port keeps behavior and meaning, not shape: where the code being moved can say the same thing more cleanly in its new home, write it that way.
 - Keep the built thing simple, lean, and as close to the system's own surface as it can be; anything on top of that is a new todo thread, never machinery inside the current one.
+- Understanding is paid at writing or at debugging — pay it at writing.
 
 ### verification — how work is proven (12)
 

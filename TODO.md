@@ -37,6 +37,7 @@
 - **todo:run — whether the orchestrator loop leaves the model** · [packages/todo] → progress/run-orchestrator-loop.md
 - **todo:run — re-measure under the role agents** · HIGH
   Wanted: a fresh `/todo:run` of `progress/audit-refactor.md` whose `/todo:postmortem` per-unit wall, tokens and minutes to first edit sit beside the baseline recorded in archive/run-costs.md.
+- **Grill — interview pass on unit authoring** · [packages/todo] → progress/grill.md
 
 ## Parked
 
