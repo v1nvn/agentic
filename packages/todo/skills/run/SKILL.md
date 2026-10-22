@@ -172,9 +172,9 @@ group review.
   in the builder's scratch file or a reviewer's report; the fold is the only way a
   finding outlives its worker.
 - A worker is ended and replaced when it stops mid-unit — a stall or rate limit past five
-  minutes, a lapsed hold — or passes the context ceiling (a third of its window, off the
+  minutes — or passes the context ceiling (a third of its window, off the
   last usage entry of its transcript; ended at its report). A builder's replacement
-  continues from its scratch file; a reviewer's is a fresh dispatch of the same brief. A worker idle five minutes without a hold is never resumed, any
+  continues from its scratch file; a reviewer's is a fresh dispatch of the same brief. A worker idle five minutes is never resumed, any
   role. One stalled or rate-limited for under five minutes is continued by message.
 - One builder at a time, no worktrees inside a run, no parallel builds — except
   document and dataset units (§The loop 7). A build overlaps only the next unit's
@@ -185,12 +185,10 @@ group review.
   ritual tool pins its full invocation; the orchestrator derives it once and writes it
   into the thread file when the thread file pins none.
 - No worker waits on another worker. A subagent's cache expires after five idle minutes
-  and a resume re-writes its whole context, at about ten times the price of a cache read.
-  So a live builder whose next message must wait — an owner answer, a background gate, a
-  live look — gets `hold` from the orchestrator every four minutes; after ten holds the
-  orchestrator stops and the builder lapses. A builder whose group has no unit left is not
-  held. While a worker is in flight or a builder is held, the orchestrator wakes every
-  four minutes — to check on the worker or send the hold; with neither, it sets no timer.
+  and a resume re-writes its whole context, at about ten times the price of a cache read;
+  a wait long enough to expire one is paid as a replacement, never dodged. The
+  orchestrator sets no timer: a worker's report, a background command's exit or the
+  owner's answer is what wakes it.
 - The orchestrator never opens a source file to understand it. It reads reports, gate
   output, `git diff` and `git show` diffs, and the diff classes the thread file flags as
   silent-failure carriers (migrations, wire bodies, signatures).
@@ -211,12 +209,12 @@ For each group:
    because auto mode refuses a worker's commit. The lockfile, README and docs the gate
    exercises ride that commit; a split build is a deviation. In the same
    wake it messages the builder the next unit — or, when the unit carries a unit review,
-   dispatches that review and holds the builder until it passes. A deviation stops its
+   dispatches that review and the builder waits until it passes. A deviation stops its
    unit, and nothing that depends on it lands until the orchestrator answers.
 3. **Unit review**, for a unit whose `review` cell says `unit`. A fresh `todo:reviewer`
    gets the unit's diff, the thread file's sections and the gate log
    `progress/.scratch/<slug>/gate-<unit id>.log` — never the builder's report or scratch file.
-   A `blocking` finding goes by message to the held builder, which fixes it, fires the
+   A `blocking` finding goes by message to the builder, which fixes it, fires the
    gate and reports the fix green; the orchestrator commits the fix naming the unit's id,
    has it re-reviewed once (step 5), and then messages the next unit. With no builder
    live, the fix goes to a fresh builder. A report naming a process its builder could not

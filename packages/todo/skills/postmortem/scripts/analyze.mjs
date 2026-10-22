@@ -19,8 +19,9 @@ const RULE = {
   stalled: 'a stalled host, not a rule',
   reviewerSuite: 'reviewer: never run a build or a test suite',
   sleepPoll: 'builder: never poll with `sleep`',
+  orchSleep: 'run: the orchestrator sets no timer — a report, a background exit or the owner is what wakes it',
   reshape: 'builder: never re-run a suite to re-shape its output',
-  coldResume: 'run: a worker idle five minutes without a hold is never resumed',
+  coldResume: 'run: a worker idle five minutes is never resumed',
   serializedTail: 'a lever, not a rule: other work could have run beside it',
 };
 
@@ -450,11 +451,19 @@ function main(transcript, suiteSrc) {
     const seg = base.split(';').find(s => SUITE.test(s)) ?? base;
     return seg.split('|')[0].trim();
   };
-  const orchSuites = bashOf(orchRuns).filter(b => !b.bg && SUITE.test(b.cmd));
+  const orchBash = bashOf(orchRuns);
+  const orchSuites = orchBash.filter(b => !b.bg && SUITE.test(b.cmd));
   if (orchSuites.length) {
     flag(
       `orchestrator ran a suite in the foreground: ${orchSuites.length} run(s), ${fmt(orchSuites.reduce((a, b) => a + b.dur, 0))}`,
       'foregroundSuite',
+    );
+  }
+  const orchSleeps = orchBash.filter(b => SLEEP.test(b.cmd));
+  if (orchSleeps.length) {
+    flag(
+      `orchestrator sleep: ${orchSleeps.length} call(s), ${fmt(orchSleeps.reduce((a, b) => a + b.dur, 0))} total — first at ${hhmm(orchSleeps[0].start)}: ${orchSleeps[0].cmd.slice(0, 60)}`,
+      'orchSleep',
     );
   }
   for (const { who, r } of stalls) {

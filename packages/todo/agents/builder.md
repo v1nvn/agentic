@@ -73,5 +73,3 @@ fix; each report wakes the orchestrator, so never send progress. Under
 ~20 lines, in this order: diff stat; gate tail, pasted raw; per close criterion, its
 proof; the A/B verdict where the unit calls for one; deviations; surprises.
 
-A message that says only `hold` keeps your cache warm while the orchestrator waits:
-answer `held` and nothing else.
