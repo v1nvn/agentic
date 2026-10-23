@@ -63,7 +63,7 @@ describe('seq view', () => {
     expect(html).toContain('All 20 paid leaf blocks have an owner.');
   });
 
-  it('renders today’s option-only step as a quiet ghost row, not a gap', () => {
+  it('renders every skipped chain number as a quiet ghost row, not a gap', () => {
     const P = example();
     const nums = (html: string): string[] =>
       [...html.matchAll(/class="num"[^>]*>(\d+)<\/text>/g)].map(m => m[1]);
@@ -72,9 +72,10 @@ describe('seq view', () => {
     expect(today).toContain('class="ghost"');
     expect(today).toContain('only in a');
     const a = drawn(seqView, P.rulings.G4, 'G4', 'G4a');
-    expect(a).not.toContain('class="ghost"');
-    expect(nums(a)).toEqual(['2', '3', '4']);
-    expect(nums(drawn(seqView, P.rulings.G1, 'G1', 'G1b'))).toEqual(['2', '5']);
+    expect(nums(a)).toEqual(['1', '2', '3', '4']);
+    expect(a).toContain('class="ghost"');
+    expect(a).toContain('as today');
+    expect(nums(drawn(seqView, P.rulings.G1, 'G1', 'G1b'))).toEqual(['1', '2', '3', '4', '5']);
   });
 
   it('draws only an option’s delta rows, at their true chain numbers', () => {
@@ -88,7 +89,7 @@ describe('seq view', () => {
     const nums = [...html.matchAll(/class="num"[^>]*>(\d+)<\/text>/g)].map(
       m => m[1],
     );
-    expect(nums).toEqual(['2', '5']);
+    expect(nums).toEqual(['1', '2', '3', '4', '5']);
   });
 
   it('omits the svg aria-label when no caption resolves', () => {

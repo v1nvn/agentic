@@ -69,7 +69,6 @@ function legendHtml(d: Seq, hasDeltas: boolean): string {
 }
 
 const GHOST_H = 28;
-const SCROLL_FLOOR = 600;
 
 // The ledger runs silently through every step that happens in the view —
 // drawn or not — so a drawn row shows the true balance at its true chain
@@ -77,10 +76,11 @@ const SCROLL_FLOOR = 600;
 function seqSvg(d: Seq, owner: string, view: string, cap: string): string {
   const shown = d.steps
     .map((st, i) => {
-      const ghost =
-        view === 'today' && st.in !== undefined
-          ? st.in.map(v => full(v, owner).slice(-1)).join(', ')
-          : null;
+      const ghost = drawnIn(st, view, owner)
+        ? null
+        : st.in === undefined
+          ? 'as today'
+          : `only in ${st.in.map(v => full(v, owner).slice(-1)).join(', ')}`;
       return { st, n: i + 1, ghost };
     })
     .filter(row => row.ghost !== null || drawnIn(row.st, view, owner));
@@ -102,9 +102,8 @@ function seqSvg(d: Seq, owner: string, view: string, cap: string): string {
   function fmt(v: Cell): string {
     return typeof v === 'number' ? v.toLocaleString('en-US') : String(v);
   }
-  function ghostRow(n: number, letters: string, y0: number): string {
+  function ghostRow(n: number, tag: string, y0: number): string {
     const y = y0 + GHOST_H / 2;
-    const tag = `only in ${letters}`;
     const tagEnd = 26 + tag.length * 6.6;
     return (
       `<g class="ghost"><text class="num" x="14" y="${y + 4}" text-anchor="middle">${n}</text>` +
@@ -121,14 +120,16 @@ function seqSvg(d: Seq, owner: string, view: string, cap: string): string {
     return 40 + (s ? 14 : 0) + (ov?.n ? 16 : 0);
   });
   const H = top + rows.reduce((a, b) => a + b, 0) + 12;
-  let out = `<svg class="seq" viewBox="0 0 ${W} ${H}" style="min-width:${Math.min(W, SCROLL_FLOOR)}px" role="img"${cap ? ` aria-label="${esc(stripTags(cap))}"` : ''}>`;
+  let out = `<svg class="seq" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img"${cap ? ` aria-label="${esc(stripTags(cap))}"` : ''}>`;
   if (nb) {
     out += `<rect class="ledger-bg" x="${lanesW + gap - 6}" y="8" width="${nb * BW + 12}" height="${H - 14}" rx="4"/>`;
   }
   if (view !== 'today') {
     let y0 = top;
-    shown.forEach((_, i) => {
-      out += `<rect class="band" x="4" y="${y0 + 2}" width="${lanesW - 4}" height="${rows[i] - 4}" rx="3"/>`;
+    shown.forEach((row, i) => {
+      if (row.ghost === null) {
+        out += `<rect class="band" x="4" y="${y0 + 2}" width="${lanesW - 4}" height="${rows[i] - 4}" rx="3"/>`;
+      }
       y0 += rows[i];
     });
   }

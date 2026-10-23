@@ -6,7 +6,7 @@ lettered options with gain, cost and a recommendation beside a picture that
 joins only when one earns it. Clicking an option picks it and shows its
 picture — a second click unpicks; hovering previews a picture without picking.
 The owner adds a note per ruling and copies the
-composed answer; the sidebar's layout switch sets the picture beside or under the options, remembered across pages — a sequence diagram, too wide to sit beside them, always sits under;
+composed answer; the sidebar's layout switch sets the picture beside or under the options, remembered across pages — a sequence diagram, too wide to sit beside them, always sits under, at a fixed text size that scrolls sideways in a narrow pane;
 picks persist under the page's `key`. The plugin is the `/rulings:consult`
 skill; the CLI builds and rebuilds the page it opens. The plugin's goal and its
 non-regression floors live in [ARCHITECTURE.md](ARCHITECTURE.md).
