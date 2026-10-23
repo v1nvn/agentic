@@ -136,14 +136,14 @@ pre.diff { padding: 12px 0; }
 .token.function, .token.method { color: var(--tk-fn); }
 .token.class-name, .token.maybe-class-name { color: var(--tk-cls); }
 
-svg.seq { display: block; max-width: 100%; height: auto; font-family: var(--sans); color: var(--ink); }
-svg text { fill: currentColor; font-size: 12.5px; }
+svg.seq { display: block; margin-inline: auto; font-family: var(--sans); color: var(--ink); }
+svg text { fill: currentColor; font-size: var(--s); }
 .life { stroke: var(--rule); stroke-width: 1.2; }
 .actor rect { fill: color-mix(in srgb, var(--ink) 8%, var(--sheet)); stroke: var(--ink); stroke-width: 1.2; }
 .actor text { font-weight: 500; font-size: 13px; }
 .num { font: 500 11px var(--sans); fill: var(--muted); }
 .e line { stroke-width: 1.8; fill: none; }
-text.sub { font-size: 11.5px; fill: var(--muted); }
+text.sub { font-size: 11px; fill: var(--muted); }
 .k-call { color: var(--k-call); } .k-call line { stroke: var(--k-call); }
 .k-money { color: var(--k-money); } .k-money line { stroke: var(--k-money); }
 .k-store { color: var(--k-store); } .k-store line { stroke: var(--k-store); stroke-width: 2.6; }
@@ -157,13 +157,13 @@ text.sub { font-size: 11.5px; fill: var(--muted); }
 .bal.chg { font-weight: 500; fill: var(--ink); }
 .band { fill: color-mix(in srgb, var(--o) 13%, transparent); }
 .tg rect { fill: var(--paper); stroke: var(--o); stroke-width: 1.3; }
-.tg text { font: 500 10.5px var(--sans); fill: var(--o); }
+.tg text { font: 500 11px var(--sans); fill: var(--o); }
 .tg-gone rect { stroke: var(--muted); } .tg-gone text { fill: var(--muted); }
 .ghostrule { stroke: var(--rule); stroke-width: 1.2; stroke-dasharray: 4 4; }
 .ghosttag { font: 500 11px var(--mono); fill: var(--muted); }
 .gone { opacity: 0.42; }
 .strike { stroke: var(--o); stroke-width: 1.6; }
-svg text.note { font-size: 11.5px; font-weight: 500; fill: var(--o); }
+svg text.note { font-size: 11px; font-weight: 500; fill: var(--o); }
 
 .bar { position: fixed; z-index: 10; bottom: 16px; left: calc(50% + var(--side) / 2); transform: translateX(-50%); width: min(820px, calc(100vw - var(--side) - 48px)); background: var(--sheet); border: 1px solid var(--rule); border-radius: var(--r); box-shadow: 0 6px 24px color-mix(in srgb, var(--ink) 12%, transparent); }
 .bar-in { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 8px 8px 8px 12px; }
