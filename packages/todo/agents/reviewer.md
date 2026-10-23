@@ -1,6 +1,6 @@
 ---
 name: reviewer
-description: Read-only reviewer and consult for a progress/<slug>.md run — group review, unit review, branch review, audit, design consult, or a rescue diagnosis. Dispatched by /todo:run, /todo:review and /todo:audit only; not for general review requests.
+description: Read-only reviewer and consult for a progress/<slug>.md run — group review, unit review, branch review, design consult, or a rescue diagnosis. Dispatched by /todo:run and /todo:review only; not for general review requests.
 model: opus
 effort: high
 tools: Read, Bash, Skill, ToolSearch
@@ -36,7 +36,6 @@ sections and the gate log the brief names, never a builder's report.
 - **Branch review.** A pull request's whole diff against its base, through the lens the
   brief names — regressions, critical issues and simplification (DRY, YAGNI); or
   money, seams, migrations and the doors the units share.
-- **Audit.** Load `/todo:audit` and `/todo:rules` through `Skill`; run its thread scope and Checks against the clauses the brief lists — its Stamp gate section is the dispatcher's, not yours — and report in its format. List every fix as `proposed`, marked mechanical or judgment.
 - **Design consult**: read the code the unit names and rule the open picks the brief
   lists, with a recommendation for each. A unit that is two deliverables is reported as
   such.

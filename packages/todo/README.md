@@ -12,22 +12,22 @@ the rules and the verbs; every repo carries data only.
 | `/todo:review`     | `<pr>`             | Two reviewers over a PR's whole diff — regressions and simplification; money, seams and migrations — then fix what the owner picks on the PR branch.  |
 | `/todo:postmortem` | `[session-id]`     | Autopsy a finished run's transcripts: the time tree, the token ledger and cost per agent and model, plus run-rule violation candidates.               |
 | `/todo:status`     | `[thread]`         | Read-only projection: the board (no arg), or one thread's state · next step.                                                                          |
-| `/todo:audit`      | `[thread] [unit]`  | Check the repo, one thread, or one unit against the rules; fix drift in place, propose judgment calls.                                                |
 | `/todo:handoff`    | —                  | Continue this session in a fresh one: update the thread file and emit a pointer, or a self-contained block when none exists.                          |
 
 The verbs auto-invoke on their triggers — handoff asks, thread-file run asks, what's-next
-asks, thread starts, fresh-repo setup. `/todo:review` and `/todo:postmortem` run only when typed; `/todo:audit` also fires on its own, with a thread argument, when the stamp gate trips; the no-argument sweep stays typed.
+asks, thread starts, fresh-repo setup. `/todo:review` and `/todo:postmortem` run only when typed; an audit runs when the owner asks — the repo, a thread, a unit — or when the rules' stamp gate fires the auditor, whose script restamps a rules-unchanged lag in place.
 
-`/todo:run` dispatches the two role agents; `/todo:review` and `/todo:audit` dispatch the reviewer. Each file holds its role's law; the thread file's Steps
+`/todo:run` dispatches the builder and the reviewer; `/todo:review` dispatches the reviewer; an audit — the owner's ask or the stamp gate — dispatches the auditor. Each file holds its role's law; the thread file's Steps
 table sets the build tier per unit (`model`, or a `model/effort` pair like `opus/high`) and
 marks the units that get a review of their own (`review: unit`); reviews and audits carry their own tier.
 
 | Agent           | Default         | Does                                                                                            |
 | --------------- | --------------- | ----------------------------------------------------------------------------------------------- |
 | `todo:builder`  | `sonnet/medium` | Builds units in sequence on their scoped gates, fires the workspace gate, fixes routed findings |
-| `todo:reviewer` | `opus/high`     | Read-only: group, unit and branch review, audit, design consult, rescue diagnosis               |
+| `todo:reviewer` | `opus/high`     | Read-only: group, unit and branch review, design consult, rescue diagnosis                      |
+| `todo:auditor`  | `sonnet/low`    | Checks tracking against the rules — repo, thread or unit — fixes mechanical drift, proposes judgment calls; the stamp gate's audit when the rules moved |
 
-Each `progress/<slug>.md` carries a `**Todo:** <version>` stamp: the plugin version that last minted, folded or audited it. A stamp behind the running version, or none, trips the rules' stamp gate on every verb that works or folds a thread, and `/todo:audit` checks the thread against the rules that changed since, then restamps. A stamp ahead of the running version means the install is older: the stamp stays, no audit runs, and work stops until the plugin is updated. `/todo:status` names the lag; `/todo:review` is not gated.
+Each `progress/<slug>.md` carries a `**Todo:** <version>` stamp: the plugin version that last minted, folded or audited it. A stamp behind the running version, or none, trips the rules' stamp gate on every verb that works or folds a thread: rules unchanged since the stamp, the gate restamps in place; rules changed, the auditor checks the thread against the clauses that moved, then restamps. A stamp ahead of the running version means the install is older: the stamp stays, no audit runs, and work stops until the plugin is updated. `/todo:status` names the lag; `/todo:review` is not gated.
 
 ## Install
 

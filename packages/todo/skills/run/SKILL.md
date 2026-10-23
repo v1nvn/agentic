@@ -68,7 +68,7 @@ continues; the group review re-checks every landed unit.
 
 ## Dispatch
 
-A dispatch is one Agent call: a fresh spawn of one of the plugin's two role agents. A
+A dispatch is one Agent call: a fresh spawn of one of the plugin's role agents. A
 role's file carries its law, so a brief carries only pointers. Never `fork` — a fork copies the
 orchestrator's context — and never another agent type.
 
