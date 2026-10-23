@@ -242,4 +242,8 @@ describe('page styles', () => {
   it('renders light-only: no dark tokens, no scheme query, no param door', () => {
     expect(pageCss).not.toMatch(/prefers-color-scheme|color-scheme|data-theme/);
   });
+
+  it('one ink accent: no per-option hue tokens or classes remain', () => {
+    expect(pageCss).not.toMatch(/--opt-|\.o-[abcd]\b/);
+  });
 });

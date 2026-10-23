@@ -38,8 +38,8 @@ function boot({ stored = {}, writeText, spy }: Boot = {}) {
     },
   });
   const doc = dom.window.document;
-  const $ = (sel: string): HTMLElement => {
-    const el = doc.querySelector<HTMLElement>(sel);
+  const $ = <T extends Element = HTMLElement>(sel: string): T => {
+    const el = doc.querySelector<T>(sel);
     if (el === null) throw new Error(`no ${sel}`);
     return el;
   };
@@ -62,11 +62,12 @@ describe('picking and previewing', () => {
     const p = boot();
     expect(p.shown('G1')).toEqual(['today']);
     p.$(`${row('G1b')} .ot-t`).click();
-    expect(p.$(row('G1b')).getAttribute('aria-pressed')).toBe('true');
+    expect(p.$<HTMLInputElement>(`${row('G1b')} input`).checked).toBe(true);
     expect(p.shown('G1')).toEqual(['G1b']);
     expect(p.saved()?.picks).toEqual({ G1: 'b' });
     p.$(row('G1b')).click();
     expect(p.saved()?.picks).toEqual({});
+    expect(p.$<HTMLInputElement>(`${row('G1b')} input`).checked).toBe(false);
     expect(p.shown('G1')).toEqual(['G1b']);
   });
 
@@ -75,7 +76,7 @@ describe('picking and previewing', () => {
     p.$(row('G1a')).click();
     p.$(row('G1b')).click();
     expect(p.saved()?.picks).toEqual({ G1: 'b' });
-    expect(p.$(row('G1a')).getAttribute('aria-pressed')).toBe('false');
+    expect(p.$<HTMLInputElement>(`${row('G1a')} input`).checked).toBe(false);
   });
 
   it('hovering a row previews its picture and leaving the options restores the pick', () => {
@@ -96,15 +97,17 @@ describe('picking and previewing', () => {
 
   it('a focus preview ends when focus leaves the options', () => {
     const p = boot();
-    p.$(row('G2a')).focus();
+    p.$(`${row('G2a')} input`).focus();
     expect(p.shown('G2')).toEqual(['G2a']);
     p.$('.rnote[data-note="G2"]').focus();
     expect(p.shown('G2')).toEqual(['today']);
   });
 
-  it('Enter on a focused row picks it', () => {
+  it('checking an option’s radio picks it', () => {
     const p = boot();
-    p.$(row('G1b')).dispatchEvent(new p.dom.window.KeyboardEvent('keydown', { bubbles: true, key: 'Enter' }));
+    const input = p.$<HTMLInputElement>(`${row('G1b')} input`);
+    input.checked = true;
+    input.dispatchEvent(new p.dom.window.Event('change', { bubbles: true }));
     expect(p.saved()?.picks).toEqual({ G1: 'b' });
   });
 
@@ -125,7 +128,7 @@ describe('picking and previewing', () => {
   it('None of these fit picks n and leaves the picture alone', () => {
     const p = boot();
     p.$(`${row('G1n')} .ot-t`).click();
-    expect(p.$(row('G1n')).getAttribute('aria-pressed')).toBe('true');
+    expect(p.$<HTMLInputElement>(`${row('G1n')} input`).checked).toBe(true);
     expect(p.saved()?.picks).toEqual({ G1: 'n' });
     expect(p.shown('G1')).toEqual(['today']);
   });
@@ -157,7 +160,7 @@ describe('restore on load', () => {
   it('reopens the picked option’s picture', () => {
     const p = boot({ stored: { [KEY]: JSON.stringify({ picks: { G1: 'b' }, onotes: {}, note: '' }) } });
     expect(p.shown('G1')).toEqual(['G1b']);
-    expect(p.$('[data-pick="G1b"]').getAttribute('aria-pressed')).toBe('true');
+    expect(p.$<HTMLInputElement>('[data-pick="G1b"] input').checked).toBe(true);
   });
 
   it('opens the first picture on a none pick', () => {
@@ -194,7 +197,7 @@ describe('the answer', () => {
     p.type('.rnote[data-note="G1"]', 'keep it');
     p.type('.rnote[data-note="G4"]', 'ask ops first');
     p.type('#rulings-notes', 'ship Friday');
-    expect(p.$('#r-G2 .opt.o-a').classList.contains('unmet')).toBe(true);
+    expect(p.$('#r-G2 [data-pick="G2a"]').classList.contains('unmet')).toBe(true);
     expect(p.$('#picks').textContent).toContain('needs G1a');
     p.$('#copy-answer').click();
     await vi.waitFor(() => expect(p.$('#copy-answer').textContent).toBe('Copied'));

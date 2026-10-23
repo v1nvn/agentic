@@ -17,10 +17,6 @@ export function stripTags(s: string): string {
   return s.replace(/<[^>]*>/g, '');
 }
 
-export function hueOf(k: string): string {
-  return 'o-' + 'abcd'.charAt('abcdefghijklmnopqrstuvwxyz'.indexOf(k) % 4);
-}
-
 export function needsOf(o: Opt): string[] {
   return typeof o.needs === 'string' ? [o.needs] : (o.needs ?? []);
 }
