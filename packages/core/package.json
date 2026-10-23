@@ -1,6 +1,6 @@
 {
   "name": "@v1nvn/agentic-core",
-  "version": "0.53.1",
+  "version": "0.54.0",
   "description": "Shared source home for the @v1nvn agent tools — runtime helpers and the drawing kit every process-side surface imports.",
   "type": "module",
   "main": "./src/index.ts",
