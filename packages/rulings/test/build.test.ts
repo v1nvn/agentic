@@ -121,14 +121,21 @@ describe('the emitted page', () => {
       'G1b',
     ]);
     expect(g1.match(/<div class="vw[^"]*" data-view="[^"]+">/g)).toHaveLength(1);
-    expect(g1).toContain('data-pick="G1a" data-look="today">');
-    expect(g1).toContain('data-pick="G1b" data-look="G1b">');
+    expect(g1).toContain('<label class="opt" data-pick="G1a" data-look="today">');
+    expect(g1).toContain('<label class="opt" data-pick="G1b" data-look="G1b">');
+  });
+
+  it('options are one radio group per ruling, the none row included', () => {
+    const g1 = sectionOf(buildPage(loadPageFile(EXAMPLE)), 'G1');
+    const names = [...g1.matchAll(/<input type="radio" name="([^"]+)"/g)].map(m => m[1]);
+    expect(names.length).toBeGreaterThan(1);
+    expect(new Set(names)).toEqual(new Set(['G1']));
   });
 
   it('opens the view with its caption beside the option disc', () => {
     const g1 = sectionOf(buildPage(loadPageFile(EXAMPLE)), 'G1');
     expect(g1).toContain(
-      '<div class="vh"><span class="disc o-b">b</span><p class="vcap"><b>All 20 paid leaf blocks have an owner.</b> The read pays Paul.</p></div>',
+      '<div class="vh"><span class="disc">b</span><p class="vcap"><b>All 20 paid leaf blocks have an owner.</b> The read pays Paul.</p></div>',
     );
   });
 
@@ -144,8 +151,8 @@ describe('the emitted page', () => {
     const html = readFileSync(join(dir, 'index.html'), 'utf8');
     expect(html).toContain('<div class="decide bare">');
     expect(html).not.toContain('class="view"');
-    expect(html).not.toMatch(/<div class="opt [^"]*" data-look/);
-    expect(html).toContain('<p class="w">the gain names the file, the row says why</p>');
+    expect(html).not.toMatch(/class="opt"[^>]*data-look/);
+    expect(html).toContain('<span class="w">the gain names the file, the row says why</span>');
   });
 
   it('a figure ruling inlines its markup and writes nothing beside index.html', () => {

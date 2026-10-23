@@ -2,7 +2,7 @@ import type { Opt, Ruling } from './schema.ts';
 
 import { bodiesOption, bodiesToday } from './bodies.ts';
 import { figureView } from './figure.ts';
-import { hueOf, needsOf, type Stage } from './html.ts';
+import { needsOf, type Stage } from './html.ts';
 import { seqView } from './seq.ts';
 
 interface View {
@@ -45,30 +45,27 @@ function optionRow(id: string, o: Opt, looks: boolean): string {
     (o.today === true ? '<span class="tag">as today</span>' : '') +
     needs.map(n => `<span class="tag need">needs ${n}</span>`).join('');
   return (
-    `<div class="opt ${hueOf(o.k)}" role="button" tabindex="0" aria-pressed="false" data-pick="${ref}"` +
+    `<label class="opt" data-pick="${ref}"` +
     (looks ? ` data-look="${o.today === true ? 'today' : ref}"` : '') +
     (needs.length > 0 ? ` data-needs="${needs.join(' ')}"` : '') +
-    `><span class="disc">${o.k}</span>` +
-    `<div class="ot"><span class="ot-t">${o.t ?? ''}</span>${tags}</div>` +
-    (o.w ? `<p class="w">${o.w}</p>` : '') +
-    `<p class="g">${o.g ?? ''}</p><p class="c">${o.c ?? ''}</p>` +
-    '</div>'
+    `><input type="radio" name="${id}" value="${o.k}">` +
+    `<span class="disc">${o.k}</span>` +
+    `<span class="ot"><span class="ot-t">${o.t ?? ''}</span>${tags}</span>` +
+    (o.w ? `<span class="w">${o.w}</span>` : '') +
+    `<span class="g">${o.g ?? ''}</span><span class="c">${o.c ?? ''}</span>` +
+    '</label>'
   );
 }
 
 const TODAY_ROW =
-  '<div class="opt" role="button" tabindex="0" data-look="today" aria-label="Show today’s picture"><span class="disc"></span>' +
-  '<div class="ot"><span class="ot-t">Today</span><span class="tag">kept by no option</span></div></div>';
+  '<button type="button" class="opt" data-look="today" aria-label="Show today’s picture"><span class="disc"></span>' +
+  '<span class="ot"><span class="ot-t">Today</span><span class="tag">kept by no option</span></span></button>';
 
 function viewHtml(v: View, shown: boolean): string {
-  const hue = v.opt ? ` ${hueOf(v.opt.k)}` : '';
-  const disc = v.opt
-    ? `<span class="disc${hue}">${v.opt.k}</span>`
-    : '<span class="disc"></span>';
   const cap = v.stage.cap || `<b>${v.opt?.t ?? 'Today'}</b>`;
   return (
-    `<div class="vw${hue}" data-view="${v.key}"${shown ? '' : ' hidden'}>` +
-    `<div class="vh">${disc}<p class="vcap">${cap}</p></div>` +
+    `<div class="vw" data-view="${v.key}"${shown ? '' : ' hidden'}>` +
+    `<div class="vh"><span class="disc">${v.opt?.k ?? ''}</span><p class="vcap">${cap}</p></div>` +
     `<div class="pic">${v.stage.body}</div></div>`
   );
 }
@@ -80,8 +77,9 @@ export function decideHtml(q: Ruling, id: string): string {
   const base =
     views[0]?.key === 'today' && views[0].opt === undefined ? TODAY_ROW : '';
   const none =
-    `<div class="opt" role="button" tabindex="0" aria-pressed="false" data-pick="${id}n">` +
-    '<span class="disc">n</span><div class="ot"><span class="ot-t">None of these fit</span></div></div>';
+    `<label class="opt" data-pick="${id}n">` +
+    `<input type="radio" name="${id}" value="n"><span class="disc">n</span>` +
+    '<span class="ot"><span class="ot-t">None of these fit</span></span></label>';
   const rows = base + opts.map(o => optionRow(id, o, looks)).join('') + none;
   const pane = looks
     ? `<div class="view">${views.map((v, i) => viewHtml(v, i === 0)).join('')}</div>`

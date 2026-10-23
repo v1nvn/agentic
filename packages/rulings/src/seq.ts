@@ -192,7 +192,7 @@ function seqSvg(d: Seq, owner: string, view: string, cap: string): string {
     out += `<g${gone ? ' class="gone"' : ''}>`;
     out += `<text class="num" x="14" y="${y + 4}" text-anchor="middle">${n}</text>`;
     if (tag) {
-      out += `<g class="tg tg-${tag}"><rect x="26" y="${y - 9}" width="58" height="18" rx="9"/><text x="55" y="${y + 4}" text-anchor="middle">${tag}</text></g>`;
+      out += `<g class="tg tg-${tag}"><rect x="26" y="${y - 9}" width="58" height="18" rx="4"/><text x="55" y="${y + 4}" text-anchor="middle">${tag}</text></g>`;
     }
     let ly: number;
     if (st.f === st.t) {

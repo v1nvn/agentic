@@ -91,25 +91,21 @@ export function chromeScript(): string {
     });
   }
 
-  function flip(ref) {
-    var m = REF.exec(ref);
-    if (pick[m[1]] === m[2]) delete pick[m[1]];
-    else pick[m[1]] = m[2];
-  }
   function unmet(needs) {
     return needs.filter(function (t) { var m = REF.exec(t); return !m || pick[m[1]] !== m[2]; });
   }
   function entries() {
     return ORDER.filter(function (id) { return pick[id]; }).map(function (id) {
       var row = document.querySelector('[data-pick="' + id + pick[id] + '"]');
-      return { label: id + pick[id], rid: id, bad: unmet(words(row.getAttribute('data-needs'))), hue: row.className.match(/\\bo-[a-d]\\b/) };
+      return { label: id + pick[id], rid: id, bad: unmet(words(row.getAttribute('data-needs'))) };
     });
   }
 
   function render() {
     pickers.forEach(function (d) {
       var m = REF.exec(d.getAttribute('data-pick'));
-      d.setAttribute('aria-pressed', pick[m[1]] === m[2] ? 'true' : 'false');
+      var input = d.querySelector('input');
+      if (input) input.checked = pick[m[1]] === m[2];
     });
     all('.opt[data-needs]').forEach(function (r) {
       r.classList.toggle('unmet', unmet(words(r.getAttribute('data-needs'))).length > 0);
@@ -127,7 +123,7 @@ export function chromeScript(): string {
     sum.innerHTML = es.length === 0
       ? '<span class="empty">No picks yet — click an option</span>'
       : es.map(function (e) {
-        return '<span class="chip' + (e.hue ? ' ' + e.hue[0] : '') + (e.bad.length ? ' unmet' : '') + '"><i></i>' + e.label +
+        return '<span class="chip' + (e.bad.length ? ' unmet' : '') + '"><i></i>' + e.label +
           (e.bad.length ? '<span class="need">needs ' + e.bad.join(' ') + '</span>' : '') +
           '<button type="button" class="x" data-unpick="' + e.label + '" aria-label="unpick ' + e.label + '">×</button></span>';
       }).join('');
@@ -150,22 +146,30 @@ export function chromeScript(): string {
       commit();
       return;
     }
-    if (t.closest('input, textarea, a')) return;
     var picker = t.closest('[data-pick]');
     if (picker) {
-      if (endsDragSelect(e)) return;
-      flip(picker.getAttribute('data-pick'));
-      commit();
+      var input = picker.querySelector('input');
+      if (input && endsDragSelect(e)) { e.preventDefault(); return; }
+      if (input && t !== input && input.checked) {
+        e.preventDefault();
+        input.checked = false;
+        delete pick[REF.exec(picker.getAttribute('data-pick'))[1]];
+        commit();
+      }
+      if (picker.hasAttribute('data-look')) look(picker.closest('section'), picker.getAttribute('data-look'));
+      return;
     }
+    if (t.closest('input, textarea, a')) return;
     var row = t.closest('.opt[data-look]');
     if (row) look(row.closest('section'), row.getAttribute('data-look'));
   });
-  document.addEventListener('keydown', function (e) {
-    if (e.key !== 'Enter' && e.key !== ' ') return;
-    var row = e.target.closest && e.target.closest('.opt');
-    if (!row || e.target !== row) return;
-    e.preventDefault();
-    row.click();
+  document.addEventListener('change', function (e) {
+    var input = e.target;
+    var picker = input.closest && input.closest('[data-pick]');
+    if (!picker || input.type !== 'radio') return;
+    var m = REF.exec(picker.getAttribute('data-pick'));
+    pick[m[1]] = m[2];
+    commit();
   });
   function preview(e) {
     var row = e.target.closest && e.target.closest('.opts .opt');
