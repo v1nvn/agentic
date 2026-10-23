@@ -1,13 +1,10 @@
 export const LAYOUT_KEY = 'rulings-layout';
 
-export function panelHtml(): string {
-  return `<footer class="bar" id="rulings-bar">
-<div class="bar-in" id="rulings-bar-in">
+export function composerHtml(): string {
+  return `<footer class="composer" id="rulings-composer">
 <div class="chips" id="picks" aria-live="polite"></div>
 <textarea id="rulings-notes" rows="1" placeholder="Page note — anything the answer should carry"></textarea>
 <button type="button" class="go" id="copy-answer">Copy answer</button>
-</div>
-<button type="button" class="bar-tab" id="bar-tab" aria-expanded="false" aria-controls="rulings-bar-in">No picks yet</button>
 </footer>`;
 }
 
@@ -27,8 +24,6 @@ export function chromeScript(): string {
   var sum = document.getElementById('picks');
   var notesIn = document.getElementById('rulings-notes');
   var copyBtn = document.getElementById('copy-answer');
-  var bar = document.getElementById('rulings-bar');
-  var tab = document.getElementById('bar-tab');
   var countEl = document.getElementById('ruled-count');
   var where = document.getElementById('rulings-where');
   var links = {};
@@ -111,12 +106,6 @@ export function chromeScript(): string {
       r.classList.toggle('unmet', unmet(words(r.getAttribute('data-needs'))).length > 0);
     });
     var es = entries();
-    if (bar) bar.classList.toggle('rest', es.length === 0 && note === '');
-    if (tab) {
-      var open = bar.classList.contains('open');
-      tab.setAttribute('aria-expanded', open ? 'true' : 'false');
-      tab.textContent = open ? 'Close' : es.length === 0 ? 'No picks yet' : es.length + (es.length === 1 ? ' pick' : ' picks');
-    }
     if (countEl) countEl.textContent = es.length + ' of ' + ORDER.length + ' ruled';
     for (var h in links) links[h].classList.toggle('ruled', !!pick[h.slice(2)]);
     if (!sum) return;
@@ -127,6 +116,7 @@ export function chromeScript(): string {
           (e.bad.length ? '<span class="need">needs ' + e.bad.join(' ') + '</span>' : '') +
           '<button type="button" class="x" data-unpick="' + e.label + '" aria-label="unpick ' + e.label + '">×</button></span>';
       }).join('');
+    if (copyBtn) copyBtn.disabled = answerText() === '';
   }
   function commit() { render(); save(); }
   function endsDragSelect(e) {
@@ -189,16 +179,9 @@ export function chromeScript(): string {
   });
 
   function sizeNote() {
-    var cap = Math.max(120, (window.innerHeight || 640) - 220);
     notesIn.style.height = 'auto';
-    notesIn.style.height = Math.min(notesIn.scrollHeight + notesIn.offsetHeight - notesIn.clientHeight, cap) + 'px';
+    notesIn.style.height = notesIn.scrollHeight + notesIn.offsetHeight - notesIn.clientHeight + 'px';
   }
-  if (tab) tab.addEventListener('click', function () {
-    var open = !bar.classList.contains('open');
-    bar.classList.toggle('open', open);
-    if (open) sizeNote();
-    render();
-  });
   if (notesIn) notesIn.addEventListener('input', function () { note = notesIn.value; commit(); sizeNote(); });
   all('.rnote').forEach(function (inp) {
     inp.addEventListener('input', function () { onotes[inp.getAttribute('data-note')] = inp.value; save(); });
@@ -267,7 +250,6 @@ export function chromeScript(): string {
   }
   if (copyBtn) copyBtn.addEventListener('click', function () {
     var t = answerText();
-    if (t === '') { say('Nothing to copy yet — pick an option or write a note'); return; }
     var done = function (ok) { say(ok ? 'Copied' : 'Copy failed — copy the summary by hand'); };
     if (navigator.clipboard && navigator.clipboard.writeText) {
       within(navigator.clipboard.writeText(t), 1500).then(function (ok) { done(ok || fallbackCopy(t)); });

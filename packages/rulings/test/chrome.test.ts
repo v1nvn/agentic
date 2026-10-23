@@ -205,10 +205,11 @@ describe('the answer', () => {
     expect(Object.keys(p.saved() ?? {}).sort()).toEqual(['note', 'onotes', 'picks']);
   });
 
-  it('refuses a copy with no picks', () => {
+  it('the page note alone wakes Copy', () => {
     const p = boot({ writeText: () => Promise.resolve() });
-    p.$('#copy-answer').click();
-    expect(p.$('#copy-answer').textContent).toBe('Nothing to copy yet — pick an option or write a note');
+    expect(p.$<HTMLButtonElement>('#copy-answer').disabled).toBe(true);
+    p.type('#rulings-notes', 'ship Friday');
+    expect(p.$<HTMLButtonElement>('#copy-answer').disabled).toBe(false);
   });
 
   it('settles a hanging clipboard within its bound', async () => {
@@ -223,15 +224,13 @@ describe('the answer', () => {
 });
 
 describe('the page chrome', () => {
-  it('counts ruled rulings, marks them in the sidebar and wakes the resting bar', () => {
+  it('counts ruled rulings, marks them in the sidebar and rests Copy until there is an answer', () => {
     const p = boot();
-    expect(p.$('#rulings-bar').classList.contains('rest')).toBe(true);
-    expect(p.$('#bar-tab').textContent).toBe('No picks yet');
+    expect(p.$<HTMLButtonElement>('#copy-answer').disabled).toBe(true);
     p.$('[data-pick="G1b"]').click();
     expect(p.$('#ruled-count').textContent).toBe('1 of 5 ruled');
     expect(p.$('a[href="#r-G1"]').classList.contains('ruled')).toBe(true);
-    expect(p.$('#rulings-bar').classList.contains('rest')).toBe(false);
-    expect(p.$('#bar-tab').textContent).toBe('1 pick');
+    expect(p.$<HTMLButtonElement>('#copy-answer').disabled).toBe(false);
   });
 
   it('marks the ruling in view and names it on the narrow pill', () => {
