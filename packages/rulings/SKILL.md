@@ -161,9 +161,9 @@ beside its picture (or above it — the owner's layout switch). Clicking an opti
 shows its picture; clicking it again unpicks. Hovering or focusing an option previews its
 picture without picking, and a Today row previews today's when no option keeps it. A reload
 reopens the picked option's picture. The last option, **None of these fit**, picks `n` for a
-ruling whose options all miss, and a quick group's accept-recommended button picks its starred
-letters. Each ruling carries one note at the bottom of its card — its text rides the answer
-inline after that ruling's pick, or alone as `G4 — its note` when nothing is picked — and the
+ruling whose options all miss, and a quick group's accept-recommended button picks its letters
+tagged recommended. Each ruling carries one note at the bottom of its card — its text rides the
+answer inline after that ruling's pick, or alone as `G4 — its note` when nothing is picked — and the
 composer's page note rides after a blank line. The composer annotates a pick whose `needs`
 target is unpicked as `(needs …)`, and Copy puts the whole answer on the clipboard to paste in
 chat: `G2a — its note, G3b (needs G3a) — its note`, blank line, page note. Picks and both note

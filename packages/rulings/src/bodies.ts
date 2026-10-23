@@ -51,7 +51,7 @@ function bodyStage(b: Body, isToday: boolean, todayCode?: string): Stage {
   const asDiff = !isToday && todayCode !== undefined && b.diff !== false;
   const state =
     b.state === 'sketch'
-      ? 'sketch — feasibility not checked'
+      ? 'sketch (feasibility not checked)'
       : (b.state ?? (isToday ? 'built today' : 'planned'));
   return {
     body:

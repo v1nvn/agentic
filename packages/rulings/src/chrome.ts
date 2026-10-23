@@ -255,7 +255,7 @@ export function chromeScript(): string {
   }
   if (copyBtn) copyBtn.addEventListener('click', function () {
     var t = answerText();
-    var done = function (ok) { say(ok ? 'Copied' : 'Copy failed — copy the summary by hand'); };
+    var done = function (ok) { say(ok ? 'Copied' : 'Copy failed. Copy the summary by hand.'); };
     if (navigator.clipboard && navigator.clipboard.writeText) {
       within(navigator.clipboard.writeText(t), 1500).then(function (ok) { done(ok || fallbackCopy(t)); });
     } else done(fallbackCopy(t));
