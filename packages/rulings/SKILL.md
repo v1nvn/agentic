@@ -108,7 +108,7 @@ each other's options are not a page: settle them in chat (Step 0).
   that opens with its conclusion — never with the option's name; the row already names it — and
   `today: true` on the option that leaves things as they are.
 - **Options**: two to four, lettered. The options list is each option's one home: its letter
-  disc, title, `★ recommended` / `as today` / `needs` tags, its **gain** and **cost**
+  disc, title, `recommended` / `as today` / `needs` tags, its **gain** and **cost**
   fragments, each checkable on the ruling's evidence. Nothing an option says renders twice.
   Exactly one option is recommended.
 

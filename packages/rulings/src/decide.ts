@@ -41,7 +41,7 @@ function optionRow(id: string, o: Opt, looks: boolean): string {
   const ref = id + o.k;
   const needs = needsOf(o);
   const tags =
-    (o.rec === true ? '<span class="tag rec">★ recommended</span>' : '') +
+    (o.rec === true ? '<span class="tag rec">recommended</span>' : '') +
     (o.today === true ? '<span class="tag">as today</span>' : '') +
     needs.map(n => `<span class="tag need">needs ${n}</span>`).join('');
   return (
@@ -86,7 +86,8 @@ export function decideHtml(q: Ruling, id: string): string {
     : '';
   const foot =
     '<div class="rfoot">' +
-    `<textarea class="rnote" data-note="${id}" rows="1" placeholder="Note on ${id} — what your answer should carry" aria-label="note on ${id}"></textarea>` +
+    `<label class="nlabel" for="note-${id}">Note on ${id}</label>` +
+    `<textarea class="rnote" id="note-${id}" name="note-${id}" data-note="${id}" rows="1"></textarea>` +
     '</div>';
   const shape = !looks ? ' bare' : q.seq !== undefined ? ' wide' : '';
   return `<div class="decide${shape}"><div class="opts">${rows}</div>${pane}${foot}</div>`;

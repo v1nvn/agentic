@@ -233,15 +233,23 @@ describe('the page chrome', () => {
     expect(p.$<HTMLButtonElement>('#copy-answer').disabled).toBe(false);
   });
 
-  it('marks the ruling in view and names it on the narrow pill', () => {
+  it('marks the ruling in view and shows its id alone on the narrow pill', () => {
     let cb: Spy = () => {};
     const p = boot({ spy: c => (cb = c) });
     const g4 = p.$('#r-G4');
     cb([{ isIntersecting: true, target: g4 }]);
     expect(p.$('a[href="#r-G4"]').classList.contains('here')).toBe(true);
     expect(p.$('#rulings-where').hasAttribute('hidden')).toBe(false);
-    expect(p.$('#rulings-where').textContent).toBe('G4 · Who re-arms a reader’s window after a daemon restart?');
+    expect(p.$('#rulings-where').textContent).toBe('G4');
     cb([{ isIntersecting: false, target: g4 }]);
     expect(p.$('#rulings-where').hasAttribute('hidden')).toBe(true);
+  });
+
+  it('shows a one-line hint when it restores a session, and not on a fresh page', () => {
+    const fresh = boot();
+    expect(fresh.$('#rulings-hint').hidden).toBe(true);
+    const p = boot({ stored: { [KEY]: JSON.stringify({ picks: { G1: 'b' }, onotes: {}, note: '' }) } });
+    expect(p.$('#rulings-hint').hidden).toBe(false);
+    expect(p.$('#rulings-hint').textContent).toMatch(/restored/i);
   });
 });

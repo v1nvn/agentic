@@ -79,7 +79,7 @@ function groupHtml(P: Page, g: Page['groups'][number]): string {
   return (
     `<div class="ghead"><h2>${esc(g.label ?? '')}</h2>` +
     (g.quick === true
-      ? `<button type="button" class="quick" data-picks="${picks.join(' ')}">Accept ★ recommended</button>`
+      ? `<button type="button" class="quick" data-picks="${picks.join(' ')}">Accept recommended</button>`
       : '') +
     '</div>' +
     g.rulings.map(id => rulingSection(P, id)).join('')
