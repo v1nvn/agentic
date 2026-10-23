@@ -4,7 +4,7 @@ import vm from 'node:vm';
 
 import type { Page, Ruling } from './schema.ts';
 
-import { chromeScript, panelHtml } from './chrome.ts';
+import { chromeScript, composerHtml } from './chrome.ts';
 import { decideHtml } from './decide.ts';
 import { esc, stripTags } from './html.ts';
 import { pageCss } from './style.ts';
@@ -65,7 +65,7 @@ function sideHtml(P: Page): string {
     '<div class="layout" role="group" aria-label="Layout">' +
     '<button type="button" data-layout="side" aria-pressed="true">Side by side</button>' +
     '<button type="button" data-layout="stacked" aria-pressed="false">Stacked</button></div>' +
-    `<div class="scount" id="ruled-count">0 of ${ruleable} ruled</div>${groups}</nav>`
+    `<a class="scount" id="ruled-count" href="#rulings-composer">0 of ${ruleable} ruled</a>${groups}</nav>`
   );
 }
 
@@ -112,8 +112,8 @@ ${sideHtml(P)}
 </header>
 <div class="notes">${notes}</div>
 ${P.groups.map(g => groupHtml(P, g)).join('')}
+${composerHtml()}
 </div></main>
-${panelHtml()}
 ${chromeScript()}
 </body>
 </html>

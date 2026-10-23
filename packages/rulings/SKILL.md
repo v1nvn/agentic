@@ -13,7 +13,7 @@ Every option is argued as hard as the recommended one: a gain and a cost of the 
 each checkable. An option not worth that goes in the notes.
 
 The page renders on its own — every options list and picture view needs no server — and a
-composer bar turns the owner's picks into an answer to paste in chat. The page assists; chat remains
+composer turns the owner's picks into an answer to paste in chat. The page assists; chat remains
 the channel the answer comes back on.
 
 ## Step 0 — Decide whether this is a page
@@ -164,7 +164,7 @@ reopens the picked option's picture. The last option, **None of these fit**, pic
 ruling whose options all miss, and a quick group's accept-recommended button picks its starred
 letters. Each ruling carries one note at the bottom of its card — its text rides the answer
 inline after that ruling's pick, or alone as `G4 — its note` when nothing is picked — and the
-composer bar's page note rides after a blank line. The composer annotates a pick whose `needs`
+composer's page note rides after a blank line. The composer annotates a pick whose `needs`
 target is unpicked as `(needs …)`, and Copy puts the whole answer on the clipboard to paste in
 chat: `G2a — its note, G3b (needs G3a) — its note`, blank line, page note. Picks and both note
 kinds persist per page under its `key`, so a reload keeps them. In chat the owner types picks like
