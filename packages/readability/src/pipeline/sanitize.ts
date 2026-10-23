@@ -1,7 +1,6 @@
-import DOMPurify, {
-  type DOMPurify as DOMPurifyInstance,
-  type WindowLike as DOMPurifyWindow,
-} from 'dompurify';
+import DOMPurify, { type DOMPurify as DOMPurifyInstance } from 'dompurify';
+
+import type { DOMWindow } from 'jsdom';
 
 export interface SanitizeResult {
   readonly html: string;
@@ -30,9 +29,8 @@ function countRemoved(
 // iframes) before Turndown converts it to Markdown — it is a pipeline stage,
 // not a product. A sanitized-HTML output mode was rejected: the server emits
 // Markdown, and callers wanting sanitized HTML should run DOMPurify directly.
-export function sanitizeHtml(dirty: string, window: Window): SanitizeResult {
-  // DOMPurify's WindowLike is structurally compatible at runtime but not under TS.
-  const purify = DOMPurify(window as unknown as DOMPurifyWindow);
+export function sanitizeHtml(dirty: string, window: DOMWindow): SanitizeResult {
+  const purify = DOMPurify(window);
   const html = purify.sanitize(dirty);
   return {
     html,

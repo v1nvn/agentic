@@ -1,5 +1,7 @@
 import type { ReadabilityParseResult } from './readability.ts';
 
+import type { DOMWindow } from 'jsdom';
+
 interface GatingSignal {
   readonly likely: boolean;
   readonly reason: string;
@@ -84,5 +86,5 @@ export interface ExtractionContext {
   readonly rootSelector?: string;
   readonly sanitizedHtml?: string;
   // Must be the same window the document came from — DOMPurify is bound to it.
-  readonly window?: Window;
+  readonly window?: DOMWindow;
 }

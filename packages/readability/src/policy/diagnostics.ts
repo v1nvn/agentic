@@ -8,6 +8,8 @@ import type { GatingSignal } from './gating.ts';
 import type { PaginationSignal } from './pagination.ts';
 import type { PresetSignal } from './presets.ts';
 
+import type { DOMWindow } from 'jsdom';
+
 export interface DiagnosticsInput {
   readonly articleHtml?: string;
   readonly boilerplateRemoved?: number;
@@ -25,10 +27,10 @@ export interface DiagnosticsInput {
   readonly sanitization?: SanitizationDiagnostics;
   readonly trace?: readonly TraceStage[];
   readonly truncated?: boolean;
-  readonly window?: Window;
+  readonly window?: DOMWindow;
 }
 
-function countElements(html: string, window?: Window): number {
+function countElements(html: string, window?: DOMWindow): number {
   if (!window || !html) {
     return 0;
   }

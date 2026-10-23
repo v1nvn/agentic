@@ -4,6 +4,8 @@ import type { ImageMode, TableFormat } from '../pipeline/turndown.ts';
 import { sanitizeHtml } from '../pipeline/sanitize.ts';
 import { toMarkdown } from '../pipeline/turndown.ts';
 
+import type { DOMWindow } from 'jsdom';
+
 export interface FallbackOptions {
   readonly baseUrl?: string;
   readonly codeBlockStyle?: 'fenced' | 'indented';
@@ -12,7 +14,7 @@ export interface FallbackOptions {
   readonly images?: ImageMode;
   readonly sanitize: boolean;
   readonly tables?: TableFormat;
-  readonly window: Window;
+  readonly window: DOMWindow;
 }
 
 export interface FallbackResult {

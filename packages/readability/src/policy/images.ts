@@ -1,6 +1,8 @@
 import { isPlaceholderSrc } from '../pipeline/normalize.ts';
 import { absolutize } from '../pipeline/urls.ts';
 
+import type { DOMWindow } from 'jsdom';
+
 export interface ImageEntry {
   readonly alt: string;
   readonly caption: string;
@@ -23,7 +25,7 @@ function positiveInt(value: null | string): number | undefined {
 // skips any remaining data:/placeholder srcs the lazy resolver left alone.
 export function collectImageInventory(
   html: string,
-  window: Window,
+  window: DOMWindow,
   baseUrl?: string,
 ): ImageEntry[] {
   if (!html) {

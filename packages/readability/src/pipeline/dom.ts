@@ -1,8 +1,8 @@
-import { JSDOM } from 'jsdom';
+import { type DOMWindow, JSDOM } from 'jsdom';
 
 export interface BuiltDocument {
   readonly document: Document;
-  readonly window: Window;
+  readonly window: DOMWindow;
 }
 
 // Built only from caller-supplied `html`; `baseUrl` is origin context for
