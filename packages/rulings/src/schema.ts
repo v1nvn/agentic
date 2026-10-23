@@ -9,6 +9,23 @@ const OPTION_CAPTION = /^<b>\s*option\s+[a-z]\s*[:—-]/i;
 const SLUG = /^[a-z][a-z0-9-]*$/;
 const RULING_ID = /^G\d+$/;
 const LETTER = /^[a-z]$/;
+const VOID_TAGS = new Set([
+  'area',
+  'br',
+  'col',
+  'embed',
+  'hr',
+  'img',
+  'input',
+  'source',
+  'track',
+  'wbr',
+]);
+const PAINTED_ATTR =
+  /\b(?:style|fill|stroke|color|stop-color|flood-color)\s*=\s*("[^"]*"|'[^']*')/gi;
+const LITERAL_COLOUR = /#[0-9a-f]{3,8}\b|\b(?:rgb|hsl)a?\(/i;
+const EXTERNAL_REF =
+  /\b(?:src|href|xlink:href)\s*=\s*["']?\s*(?!data:)(?:[a-z][a-z0-9+.-]*:|\/\/)|url\(\s*["']?\s*(?:https?:|\/\/)/i;
 
 const cell = z.union([z.number(), z.string(), z.null()]);
 
@@ -49,14 +66,14 @@ const body = z.strictObject({
   what: z.string().optional(),
 });
 
-const diagramBody = z.strictObject({
+const figureView = z.strictObject({
   cap: z.string().optional(),
-  text: z.string(),
+  html: z.string(),
 });
 
-const diagram = z.strictObject({
+const figure = z.strictObject({
   cap: z.string().optional(),
-  views: z.record(z.string(), diagramBody),
+  views: z.record(z.string(), figureView),
 });
 
 const opt = z.strictObject({
@@ -75,7 +92,7 @@ const opt = z.strictObject({
 const ruling = z.strictObject({
   bodies: z.record(z.string(), body).optional(),
   changed: z.string().optional(),
-  diagram: diagram.optional(),
+  figure: figure.optional(),
   merged: z.string().regex(RULING_ID).optional(),
   opts: z.array(opt).optional(),
   stake: z.string().optional(),
@@ -108,7 +125,7 @@ const pageSchema = z.strictObject({
 
 export type Opt = z.infer<typeof opt>;
 export type Body = z.infer<typeof body>;
-export type Diagram = z.infer<typeof diagram>;
+export type Figure = z.infer<typeof figure>;
 export type Overlay = z.infer<typeof overlay>;
 export type Ruling = z.infer<typeof ruling>;
 export type Seq = z.infer<typeof seq>;
@@ -120,6 +137,58 @@ export interface Verdict {
 
 function stripTags(s: string): string {
   return s.replace(/<[^>]*>/g, '');
+}
+
+function unclosedTag(html: string): string | undefined {
+  const open: string[] = [];
+  for (const [, close, name, self] of html.matchAll(
+    /<(\/?)([a-zA-Z][\w:-]*)\b[^>]*?(\/?)>/g,
+  )) {
+    const tag = name.toLowerCase();
+    if (self === '/' || (close === '' && VOID_TAGS.has(tag))) {
+      continue;
+    }
+    if (close === '') {
+      open.push(tag);
+      continue;
+    }
+    const top = open.pop();
+    if (top !== tag) {
+      return top === undefined
+        ? `</${tag}> closes nothing`
+        : `</${tag}> closes <${top}>`;
+    }
+  }
+  const last = open.at(-1);
+  return last === undefined ? undefined : `<${last}> is never closed`;
+}
+
+export function figureFaults(html: string): string[] {
+  const faults: string[] = [];
+  if (/<script\b/i.test(html) || /\son[a-z]+\s*=/i.test(html)) {
+    faults.push('runs script; a figure is static markup');
+  }
+  if (/<style\b/i.test(html)) {
+    faults.push(
+      'carries a <style> block, which restyles the whole page; style inline',
+    );
+  }
+  if (EXTERNAL_REF.test(html)) {
+    faults.push('loads from outside the page; inline it or use a data: URI');
+  }
+  for (const [, value] of html.matchAll(PAINTED_ATTR)) {
+    if (LITERAL_COLOUR.test(value)) {
+      faults.push(
+        'paints a literal colour, which ignores the dark theme; use the page tokens (var(--ink), var(--o), …)',
+      );
+      break;
+    }
+  }
+  const tag = unclosedTag(html);
+  if (tag !== undefined) {
+    faults.push(`breaks the page layout: ${tag}`);
+  }
+  return faults;
 }
 
 export function seqViews(d: Seq, owner: string): string[] {
@@ -175,7 +244,9 @@ export function validatePage(input: unknown): Verdict {
     if (!t.startsWith('<b>')) {
       errors.push(`${what} must open with its conclusion in <b>…</b>`);
     } else if (OPTION_CAPTION.test(t)) {
-      errors.push(`${what} opens with an option label; open with the conclusion`);
+      errors.push(
+        `${what} opens with an option label; open with the conclusion`,
+      );
     }
   }
   function optionExists(ref: string): boolean {
@@ -309,7 +380,7 @@ export function validatePage(input: unknown): Verdict {
     const pictures: [string, unknown][] = [
       ['a seq', q.seq],
       ['bodies', q.bodies],
-      ['a diagram', q.diagram],
+      ['a figure', q.figure],
     ];
     const present = pictures.filter(([, v]) => v !== undefined);
     if (present.length > 1) {
@@ -342,18 +413,21 @@ export function validatePage(input: unknown): Verdict {
         }
       }
     }
-    if (q.diagram !== undefined) {
+    if (q.figure !== undefined) {
       req(
-        q.diagram.cap,
-        `${id}.diagram.cap (the caption: its conclusion in <b>…</b>)`,
+        q.figure.cap,
+        `${id}.figure.cap (the caption: its conclusion in <b>…</b>)`,
       );
-      conclusionFirst(q.diagram.cap, `${id}.diagram.cap`);
-      for (const [k, v] of Object.entries(q.diagram.views)) {
-        const at = `${id}.diagram.views.${k}`;
+      conclusionFirst(q.figure.cap, `${id}.figure.cap`);
+      for (const [k, v] of Object.entries(q.figure.views)) {
+        const at = `${id}.figure.views.${k}`;
         if (k !== 'today' && !opts.some(o => o.k === k && o.today !== true)) {
           errors.push(`${at} names no live option that is not today`);
         }
-        req(v.text, `${at}.text (the mermaid text)`);
+        req(v.html, `${at}.html (the figure markup)`);
+        for (const f of figureFaults(v.html)) {
+          errors.push(`${at}.html ${f}`);
+        }
         conclusionFirst(v.cap, `${at}.cap`);
       }
     }
@@ -373,7 +447,7 @@ export function validatePage(input: unknown): Verdict {
       errors.push(`${id}: only one option can be today`);
     }
     const views = q.seq !== undefined ? seqViews(q.seq, id) : [];
-    const D = q.diagram?.views ?? {};
+    const D = q.figure?.views ?? {};
     const letters = new Set<string>();
     for (const o of opts) {
       const nm = id + o.k;
@@ -399,7 +473,7 @@ export function validatePage(input: unknown): Verdict {
             nm +
               (o.today === true
                 ? ' is today, but the picture has no today view'
-                : ` has no picture of its own: give it a view in the seq, bodies.${o.k} or a diagram view`),
+                : ` has no picture of its own: give it a view in the seq, bodies.${o.k} or a figure view`),
           );
         }
       }

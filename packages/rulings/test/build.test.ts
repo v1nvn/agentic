@@ -59,7 +59,7 @@ const TABLE_PAGE = `var PAGE = {
   }
 };`;
 
-const DIAGRAM_PAGE = `var PAGE = {
+const FIGURE_PAGE = `var PAGE = {
   title: "One small ruling?",
   sub: "What the rebuild owes.",
   groups: [{ id: "one", label: "The only group", rulings: ["G1"] }],
@@ -68,13 +68,13 @@ const DIAGRAM_PAGE = `var PAGE = {
       title: "Refuse to serve when the start check fails?",
       stake: "About 2 starts a month hide a doubted ledger behind a log line.",
       today: "Today the daemon checks its ledger once and serves either way.",
-      diagram: {
+      figure: {
         cap: "<b>Today a failed check is a log line; the daemon serves anyway.</b>",
         views: {
-          today: { text: "flowchart TD\\n  S[start] --> C{check passes?} --> V[serve reads]" },
+          today: { html: '<svg viewBox="0 0 200 40"><text x="8" y="24" fill="var(--ink)">start → serve reads</text></svg>' },
           a: {
             cap: "<b>A failed check stops the daemon before its first read.</b>",
-            text: "flowchart TD\\n  S[start] --> C{check passes?} --> X[exit non-zero]"
+            html: '<svg viewBox="0 0 200 40"><text x="8" y="24" fill="var(--o)">start → exit non-zero</text></svg>'
           }
         }
       },
@@ -156,8 +156,7 @@ function pageDir(text: string): string {
 
 describe('the emitted page', () => {
   it('pins the example full HTML: sidebar, sections, table, compare, notes, merged note', () => {
-    const { html, hasDiagram } = buildPage(loadPageFile(EXAMPLE));
-    expect(hasDiagram).toBe(false);
+    const html = buildPage(loadPageFile(EXAMPLE));
     expect(html).toMatchSnapshot();
     expect(html).toContain('<nav class="side"');
     expect(html).toContain('href="#r-G4"');
@@ -168,12 +167,12 @@ describe('the emitted page', () => {
     expect(html).toMatch(/class="compare"/);
     expect(html).not.toMatch(/class="views"/);
     const wraps = html.match(/<div class="stage-wrap[^"]*"/g) ?? [];
-    expect(wraps).toHaveLength(8);
-    expect(html.match(/class="vg"/g)).toHaveLength(8);
-    expect(html.match(/class="vc"/g)).toHaveLength(8);
+    expect(wraps).toHaveLength(10);
+    expect(html.match(/class="vg"/g)).toHaveLength(10);
+    expect(html.match(/class="vc"/g)).toHaveLength(10);
     expect(html.match(/class="how"/g)).toHaveLength(2);
     expect(html).not.toContain('class="gc');
-    expect(html.match(/★ recommended/g)).toHaveLength(5);
+    expect(html.match(/★ recommended/g)).toHaveLength(6);
   });
 
   it('builds a table-only ruling green: w rides its verdict row, no picture region', () => {
@@ -191,19 +190,19 @@ describe('the emitted page', () => {
   });
 
   it('renders the table once per ruling: one head, one row per option, the none row, the ruling note', () => {
-    const { html } = buildPage(loadPageFile(EXAMPLE));
+    const html = buildPage(loadPageFile(EXAMPLE));
     expect(
       html.match(
         /<div class="vtable"><div class="vhead"><span>option<\/span><span>gain<\/span><span>cost<\/span><\/div>/g,
       ),
-    ).toHaveLength(4);
-    expect(html.match(/<div class="vrow /g)).toHaveLength(12);
-    expect(html.match(/<span class="pmark">✓ picked<\/span>/g)).toHaveLength(12);
+    ).toHaveLength(5);
+    expect(html.match(/<div class="vrow /g)).toHaveLength(15);
+    expect(html.match(/<span class="pmark">✓ picked<\/span>/g)).toHaveLength(15);
     expect(
       html.match(
         /<input class="rnote" data-note="G\d+" placeholder="note for G\d+ — anything its answer should carry" aria-label="note for G\d+">/g,
       ),
-    ).toHaveLength(4);
+    ).toHaveLength(5);
     expect(html).toContain(
       '<div class="vrow o-a" data-view="today" tabindex="0">',
     );
@@ -228,7 +227,7 @@ describe('the emitted page', () => {
   });
 
   it('stacks the narrow table: chips wrap under the title, gain and cost below, no head', () => {
-    const { html } = buildPage(loadPageFile(EXAMPLE));
+    const html = buildPage(loadPageFile(EXAMPLE));
     const css = html.slice(html.indexOf('<style>'), html.indexOf('</style>'));
     const at = css.indexOf('@media (max-width: 640px)');
     const narrow = css.slice(at, css.indexOf('@media', at + 6));
@@ -236,11 +235,11 @@ describe('the emitted page', () => {
     expect(narrow).toContain('grid-template-columns: 26px minmax(0, 1fr)');
     expect(narrow).toContain('.vrow .vt, .vrow .vg, .vrow .vc { grid-column: 2; min-width: 0; }');
     expect(narrow).toContain('.vchips { display: flex; flex-wrap: wrap; gap: 3px 8px; }');
-    expect(html.match(/<span class="vchips">/g)).toHaveLength(5);
+    expect(html.match(/<span class="vchips">/g)).toHaveLength(7);
   });
 
   it('renders the merged ruling last on the page, after every live ruling', () => {
-    const { html } = buildPage(loadPageFile(EXAMPLE));
+    const html = buildPage(loadPageFile(EXAMPLE));
     const at = (id: string): number => html.indexOf(`id="r-${id}"`);
     expect(at('G1')).toBeLessThan(at('G2'));
     expect(at('G2')).toBeLessThan(at('G4'));
@@ -249,11 +248,11 @@ describe('the emitted page', () => {
   });
 
   it('carries the pick on the disc and the wrap, the view on the row', () => {
-    const { html } = buildPage(loadPageFile(EXAMPLE));
+    const html = buildPage(loadPageFile(EXAMPLE));
     expect(
       html.match(/<button type="button" class="lt disc o-[ab]" data-pick="/g),
-    ).toHaveLength(8);
-    expect(html.match(/data-pick="G/g)).toHaveLength(22);
+    ).toHaveLength(10);
+    expect(html.match(/data-pick="G/g)).toHaveLength(28);
     expect(html).toContain(
       '<div class="stage-wrap o-a" data-view="today" data-pick="G1a">',
     );
@@ -264,49 +263,45 @@ describe('the emitted page', () => {
       '<div class="stage-wrap" data-view="today">',
     );
     expect(html).not.toMatch(/class="vrow o-[a-d][^"]*" data-pick/);
-    expect(html.match(/class="vrow none" data-pick="G\d+n">/g)).toHaveLength(4);
+    expect(html.match(/class="vrow none" data-pick="G\d+n">/g)).toHaveLength(5);
     expect(
       html.match(
         /<div class="vrow [^"]*" data-view="[^"]*"(?: data-needs="[^"]*")? tabindex="0">/g,
       ),
-    ).toHaveLength(8);
+    ).toHaveLength(10);
   });
 
   it('puts every view in the DOM with exactly one visible per ruling', () => {
-    const { html } = buildPage(loadPageFile(EXAMPLE));
+    const html = buildPage(loadPageFile(EXAMPLE));
     const compares = html.match(/<div class="compare">[\s\S]*?<\/section>/g) ?? [];
-    expect(compares).toHaveLength(3);
+    expect(compares).toHaveLength(4);
     for (const compare of compares) {
       const opens = compare.match(/<div class="stage-wrap[^>]*>/g) ?? [];
       expect(opens.filter(o => !o.endsWith(' hidden>'))).toHaveLength(1);
     }
-    expect(html.match(/<div class="stage-wrap[^>]* hidden>/g)).toHaveLength(5);
+    expect(html.match(/<div class="stage-wrap[^>]* hidden>/g)).toHaveLength(6);
   });
 
   it('emits no tab strip: the row is the one control, keyboard-reachable', () => {
-    const { html } = buildPage(loadPageFile(EXAMPLE));
+    const html = buildPage(loadPageFile(EXAMPLE));
     expect(html).not.toMatch(/role="tab"|tablist|tabpanel|class="tabs"|class="tl"|aria-selected/);
   });
 
-  it('a diagram ruling ships the vendored mermaid: one script tag, nothing external', () => {
-    const dir = pageDir(DIAGRAM_PAGE);
+  it('a figure ruling inlines its markup: one stage per view, nothing beside index.html', () => {
+    const dir = pageDir(FIGURE_PAGE);
     expect(main([dir, '--no-open'])).toBe(0);
-    expect(readdirSync(dir).sort()).toEqual([
-      'index.html',
-      'mermaid.min.js',
-      'page.js',
-    ]);
+    expect(readdirSync(dir).sort()).toEqual(['index.html', 'page.js']);
     const html = readFileSync(join(dir, 'index.html'), 'utf8');
-    expect(html.match(/<script src="mermaid.min.js"><\/script>/g)).toHaveLength(1);
-    expect(html).toContain('window.mermaid');
-    expect(html).not.toMatch(/https?:\/\/|src="\/|href="\//);
+    expect(html.match(/class="stage figure"/g)).toHaveLength(2);
+    expect(html).toContain('fill="var(--o)">start → exit non-zero</text>');
+    expect(html).not.toMatch(/<script src=|https?:\/\/|src="\/|href="\//);
   });
 });
 
 describe('the folds', () => {
   it('shows two sentences of a three-sentence today and folds the rest', () => {
-    const { html } = buildPage(loadPageFile(EXAMPLE));
-    expect(html.match(/<p class="today">/g)).toHaveLength(6);
+    const html = buildPage(loadPageFile(EXAMPLE));
+    expect(html.match(/<p class="today">/g)).toHaveLength(7);
     expect(html).toContain(
       '<p class="today">Paul buys a reader on a leaf. The daemon records an owner for each block it builds, called a <b>band</b>.</p>' +
         '<details class="fold"><summary>the rest</summary><p class="today">A read pays half its fee to the band, which stops where the reader’s window starts.</p></details>',
@@ -320,7 +315,7 @@ describe('the folds', () => {
   });
 
   it('renders a two-sentence today whole, without a fold', () => {
-    const { html } = buildPage(loadPageFile(EXAMPLE));
+    const html = buildPage(loadPageFile(EXAMPLE));
     expect(html).toContain(
       '<p class="today">The window lives only in the daemon’s memory. After a crash the console shows the reader with no window; whoever is on call reads the ledger, rebuilds the range by hand, and the next read pays the band again.</p>',
     );
@@ -332,7 +327,7 @@ describe('the folds', () => {
         'First sentence ends here. Second walks a span (<code>a. b</code> is one string) and a link (<a href="#r-G1. a">the ruling</a>). Third sentence pays the fee.',
       ),
     );
-    const { html } = buildPage(loadPageFile(join(dir, PAGE_FILE)));
+    const html = buildPage(loadPageFile(join(dir, PAGE_FILE)));
     expect(html).toContain(
       '<p class="today">First sentence ends here. Second walks a span (<code>a. b</code> is one string) and a link (<a href="#r-G1. a">the ruling</a>).</p>',
     );
@@ -342,7 +337,7 @@ describe('the folds', () => {
   });
 
   it('folds the notes block on its bold lead', () => {
-    const { html } = buildPage(loadPageFile(EXAMPLE));
+    const html = buildPage(loadPageFile(EXAMPLE));
     expect(html).toContain(
       '<div class="note"><b>Not rulings: two findings are decided.</b> <details class="fold"><summary>the rest</summary> Finding 1 is false:',
     );
@@ -355,7 +350,7 @@ describe('the folds', () => {
         '  notes: [{ html: "Plain words, then a <b>bold middle</b>, then more plain words." }],\n  groups:',
       ),
     );
-    const { html } = buildPage(loadPageFile(join(dir, PAGE_FILE)));
+    const html = buildPage(loadPageFile(join(dir, PAGE_FILE)));
     expect(html).toContain(
       '<div class="note">Plain words, then a <b>bold middle</b>, then more plain words.</div>',
     );
@@ -363,7 +358,7 @@ describe('the folds', () => {
   });
 
   it('folds a today body past 20 lines behind its count, once, never an option body', () => {
-    const { html } = buildPage(loadPageFile(EXAMPLE));
+    const html = buildPage(loadPageFile(EXAMPLE));
     expect(html).toContain(
       '<details class="fold"><summary>show all 51 lines</summary><pre>',
     );
@@ -375,16 +370,16 @@ describe('the folds', () => {
 
   it('folds past 20 lines and not at 20, and the 25-line snapshot option never folds', () => {
     const at = buildPage(loadPageFile(join(pageDir(foldPage(20)), PAGE_FILE)));
-    expect(at.html).not.toContain('show all');
-    expect(at.html).not.toContain('<details class="fold"');
-    expect(at.html).toContain('<pre>let v0 = 0;');
-    expect(at.html).toContain('let v24 = 24;</pre>');
+    expect(at).not.toContain('show all');
+    expect(at).not.toContain('<details class="fold"');
+    expect(at).toContain('<pre>let v0 = 0;');
+    expect(at).toContain('let v24 = 24;</pre>');
     const over = buildPage(loadPageFile(join(pageDir(foldPage(21)), PAGE_FILE)));
-    expect(over.html).toContain('let v19 = 19;</pre><details class="fold"><summary>');
-    expect(over.html).toContain(
+    expect(over).toContain('let v19 = 19;</pre><details class="fold"><summary>');
+    expect(over).toContain(
       '<summary>show all 21 lines</summary><pre>let v20 = 20;</pre>',
     );
-    expect(over.html.match(/show all/g)).toHaveLength(1);
+    expect(over.match(/show all/g)).toHaveLength(1);
   });
 
   it('keeps a token that spans the fold line whole on both sides of the fold', () => {
@@ -415,7 +410,7 @@ describe('the folds', () => {
     }
   }
 };`);
-    const { html } = buildPage(loadPageFile(join(dir, PAGE_FILE)));
+    const html = buildPage(loadPageFile(join(dir, PAGE_FILE)));
     expect(html).toContain(
       '<span class="token comment">/* one comment starts here</span></pre>' +
         '<details class="fold"><summary>show all 22 lines</summary>' +
@@ -426,44 +421,44 @@ describe('the folds', () => {
 
 describe('the language pass', () => {
   it('names the recommendation and the pick, never "my pick"', () => {
-    const { html } = buildPage(loadPageFile(EXAMPLE));
-    expect(html.match(/class="star">★ recommended</g)).toHaveLength(4);
+    const html = buildPage(loadPageFile(EXAMPLE));
+    expect(html.match(/class="star">★ recommended</g)).toHaveLength(5);
     expect(html).toContain('>accept ★ recommended</button>');
     expect(html).not.toContain('my pick');
   });
 
   it('prints none of these fit as the table row, without chat syntax', () => {
-    const { html } = buildPage(loadPageFile(EXAMPLE));
+    const html = buildPage(loadPageFile(EXAMPLE));
     expect(
       html.match(/>none of these fit<span class="pmark">/g),
-    ).toHaveLength(4);
+    ).toHaveLength(5);
     expect(html).not.toContain('data-none');
     expect(html).not.toContain('none-btn');
     expect(html).not.toContain('· n');
   });
 
   it('carries the merged sentence once, in the merged ruling’s own section', () => {
-    const { html } = buildPage(loadPageFile(EXAMPLE));
+    const html = buildPage(loadPageFile(EXAMPLE));
     expect(html.match(/Same money question as G1/g)).toHaveLength(1);
     expect(html.match(/G3 is merged into this ruling\./g)).toHaveLength(1);
   });
 
   it('marks the as-today option on its row, nowhere else', () => {
-    const { html } = buildPage(loadPageFile(EXAMPLE));
-    expect(html.match(/<span class="asr">as today<\/span>/g)).toHaveLength(2);
+    const html = buildPage(loadPageFile(EXAMPLE));
+    expect(html.match(/<span class="asr">as today<\/span>/g)).toHaveLength(3);
     expect(html).not.toContain('>today</span>');
     expect(html).not.toContain('how it works now');
   });
 
   it('speaks to the reader: no engine vocabulary in captions and placeholders', () => {
-    const { html } = buildPage(loadPageFile(EXAMPLE));
+    const html = buildPage(loadPageFile(EXAMPLE));
     expect(html).not.toMatch(/The engine|diff: false|rides the answer/);
-    expect(html.match(/placeholder="note for G\d[^"]*"/g)).toHaveLength(4);
+    expect(html.match(/placeholder="note for G\d[^"]*"/g)).toHaveLength(5);
     expect(html).not.toMatch(/placeholder="note for G\d[a-z]/);
   });
 
   it('draws mono structure at exactly two sizes', () => {
-    const { html } = buildPage(loadPageFile(EXAMPLE));
+    const html = buildPage(loadPageFile(EXAMPLE));
     const css = html.slice(html.indexOf('<style>'), html.indexOf('</style>'));
     expect(css).toContain('--mono-s: 11px');
     expect(css).toContain('--mono-l: 12.5px');
@@ -471,18 +466,12 @@ describe('the language pass', () => {
   });
 
   it('names an option once: no letter span anywhere outside the disc', () => {
-    const { html } = buildPage(loadPageFile(EXAMPLE));
+    const html = buildPage(loadPageFile(EXAMPLE));
     expect(html).not.toContain('<span class="lt">');
   });
 
-  it('carries no dead mermaid max-width rule', () => {
-    const { html } = buildPage(loadPageFile(EXAMPLE));
-    const css = html.slice(html.indexOf('<style>'), html.indexOf('</style>'));
-    expect(css).not.toMatch(/\.mermaid svg/);
-  });
-
   it('keeps the view-card path deleted: no vhead chips row, no gain cost fragments on a view', () => {
-    const { html } = buildPage(loadPageFile(EXAMPLE));
+    const html = buildPage(loadPageFile(EXAMPLE));
     const css = html.slice(html.indexOf('<style>'), html.indexOf('</style>'));
     expect(css).not.toMatch(/\.views|\.vtt|\.vmeta|\.gc\b/);
     expect(html).not.toContain('<div class="vtt">');
@@ -675,7 +664,7 @@ function emittedChrome(html: string) {
 
 describe('the interactive chrome', () => {
   it('keys persistence on the page key and wires pick, none, quick, notes, composer', () => {
-    const { html } = buildPage(loadPageFile(EXAMPLE));
+    const html = buildPage(loadPageFile(EXAMPLE));
     expect(html).toContain('<body data-key="rulings-testril-pr251">');
     expect(html).toContain('data-pick="G1a"');
     expect(html).toContain('data-pick="G2b"');
@@ -693,7 +682,7 @@ describe('the interactive chrome', () => {
   });
 
   it('boots the emitted chrome into a resting bar, a counting tab, an honest counter and a hidden pill', () => {
-    const { html } = buildPage(loadPageFile(EXAMPLE));
+    const html = buildPage(loadPageFile(EXAMPLE));
     const page = emittedChrome(html);
     const bar = page.bar;
     const tab = page.tab;
@@ -704,7 +693,7 @@ describe('the interactive chrome', () => {
     expect(bar.classes.contains('rest')).toBe(true);
     expect(tab.textContent).toBe('no picks yet');
     expect(tab.getAttribute('aria-controls')).toBe(page.barIn?.id);
-    expect(count.textContent).toBe('0 of 4 ruled');
+    expect(count.textContent).toBe('0 of 5 ruled');
     expect(page.sum?.innerHTML).toContain('no picks yet — pick a letter');
     expect(page.where?.getAttribute('hidden')).toBe('');
     expect(html).not.toContain('max-height: 120px');
@@ -722,33 +711,33 @@ describe('the interactive chrome', () => {
     const g2a = page.clickCard('G2a');
     expect(g2a).toBeDefined();
     expect(bar.classes.contains('rest')).toBe(false);
-    expect(count.textContent).toBe('1 of 4 ruled');
+    expect(count.textContent).toBe('1 of 5 ruled');
     expect(page.sum?.innerHTML).toContain('needs G1a');
     page.clickCard('G1a');
-    expect(count.textContent).toBe('2 of 4 ruled');
+    expect(count.textContent).toBe('2 of 5 ruled');
     expect(page.sum?.innerHTML).not.toContain('needs G1a');
     expect(page.link('G1')?.classes.contains('ruled')).toBe(true);
   });
 
   it('carries the stage-wrap picks into the chrome and picks from the shown picture', () => {
-    const { html } = buildPage(loadPageFile(EXAMPLE));
+    const html = buildPage(loadPageFile(EXAMPLE));
     const page = emittedChrome(html);
-    expect(page.wraps).toHaveLength(8);
+    expect(page.wraps).toHaveLength(10);
     expect(
       page.wraps
         .map(w => w.getAttribute('data-pick'))
         .filter((p): p is string => p !== null),
-    ).toEqual(['G1a', 'G1b', 'G2a', 'G2b', 'G4a', 'G4b']);
+    ).toEqual(['G1a', 'G1b', 'G2a', 'G2b', 'G4a', 'G4b', 'G6b', 'G6a']);
     const shown = page.wraps.find(w => w.getAttribute('data-pick') === 'G2b');
     if (shown === undefined) throw new Error('fixture: the G2b stage wrap');
     expect(shown.getAttribute('aria-pressed')).toBe('false');
     page.click(shown);
     expect(shown.getAttribute('aria-pressed')).toBe('true');
-    expect(page.count?.textContent).toBe('1 of 4 ruled');
+    expect(page.count?.textContent).toBe('1 of 5 ruled');
     expect(page.sum?.innerHTML).toContain('G2b');
     page.click(shown);
     expect(shown.getAttribute('aria-pressed')).toBe('false');
-    expect(page.count?.textContent).toBe('0 of 4 ruled');
+    expect(page.count?.textContent).toBe('0 of 5 ruled');
   });
 
   it('emits a page without key with the composer and no storage key', () => {
@@ -761,7 +750,7 @@ describe('the interactive chrome', () => {
   });
 
   it('carries the theme cut: no param reading, no data-theme anywhere', () => {
-    const { html } = buildPage(loadPageFile(EXAMPLE));
+    const html = buildPage(loadPageFile(EXAMPLE));
     expect(html).not.toContain('data-theme');
     expect(html).not.toContain('theme=');
     expect(html).toContain('prefers-color-scheme: dark');
@@ -780,7 +769,7 @@ describe('determinism', () => {
   });
 
   it('carries no timestamp, absolute path or generated marker', () => {
-    const { html } = buildPage(loadPageFile(EXAMPLE));
+    const html = buildPage(loadPageFile(EXAMPLE));
     expect(html).not.toMatch(/20\d\d-\d\d-\d\d|\d{2}:\d\d:\d\d/);
     expect(html).not.toContain(tmpdir());
   });
@@ -803,14 +792,13 @@ describe('the error door', () => {
   });
 });
 
-describe('a page without diagram rulings', () => {
-  it('references nothing external and copies no mermaid', () => {
+describe('a page without figure rulings', () => {
+  it('references nothing external and writes nothing beside index.html', () => {
     const dir = pageDir(PLAIN_PAGE);
     expect(main([dir, '--no-open'])).toBe(0);
     expect(readdirSync(dir).sort()).toEqual(['index.html', 'page.js']);
     const html = readFileSync(join(dir, 'index.html'), 'utf8');
     expect(html).not.toContain('<script src=');
-    expect(html).not.toContain('window.mermaid');
   });
 });
 

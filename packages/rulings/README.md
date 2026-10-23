@@ -31,7 +31,7 @@ is remembered.
 ## Skill
 
 `/rulings:consult` is the plugin's one skill. From the model's seat: decide it is a page
-(the owner asked, or three or more linked, or four or more independent, decisions), read the
+(the owner asked, or must rule on evidence they do not hold), read the
 code and write `page.js`, run the pinned `npx` line above through the session's Bash tool
 until it exits green and the page opens, announce the path and the recommendation in chat
 without repeating the page, then read the answer back. The owner picks on the page — an option's
@@ -39,7 +39,7 @@ row (a second click unpicks), the table's none row, the shown picture, a quick g
 accept-recommended — and pastes the composer's copied
 answer (picks with the ruling's note, unmet needs, the page note), or types picks (`G1a`, `G2n`, `G6 note: …`) in chat; both
 read verbatim. Pushback updates `page.js` and rebuilds with `--no-open` for a reload;
-one to three simple decisions never reach the page — they go through AskUserQuestion.
+a decision the owner can rule from one line never reaches the page — it goes through AskUserQuestion.
 
 ## Layout
 
@@ -49,10 +49,8 @@ packages/rulings/                   the builder CLI, pure TS — the plugin root
   src/index.ts                      the CLI entry
   src/cli.ts, page.ts               the command door and the page assembly
   src/schema.ts                     the page schema — one typed door
-  src/seq.ts, bodies.ts, diagram.ts the three picture emitters (SVG, prism diff, mermaid)
+  src/seq.ts, bodies.ts, figure.ts  the three picture emitters (seq SVG, prism diff, free HTML/SVG)
   src/chrome.ts                     the pick composer bar and its one script
   src/style.ts                      the page stylesheet (system theme alone)
-  src/vendor/mermaid.min.js         vendored upstream mermaid@11, copied into a
-                                     page dir only when a diagram ruling exists
   test/                             the vitest suite
 ```

@@ -1,26 +1,12 @@
 import { spawnSync } from 'node:child_process';
-import {
-  copyFileSync,
-  existsSync,
-  mkdirSync,
-  rmSync,
-  writeFileSync,
-} from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
 
-import {
-  buildPage,
-  examplePagePath,
-  loadPageFile,
-  MERMAID_FILE,
-  PAGE_FILE,
-} from './page.ts';
+import { buildPage, examplePagePath, loadPageFile, PAGE_FILE } from './page.ts';
 import { validatePage } from './schema.ts';
 
 const FLAGS = ['--new', '--no-open'];
-const HERE = fileURLToPath(new URL('.', import.meta.url));
 
 function usage(): void {
   console.error('usage: rulings <page-dir> [--new] [--no-open]');
@@ -75,15 +61,8 @@ export function main(argv: string[]): number {
     return 1;
   }
 
-  const { html, hasDiagram } = buildPage(page);
   const indexFile = join(dir, 'index.html');
-  writeFileSync(indexFile, html);
-  const vendorInPage = join(dir, MERMAID_FILE);
-  if (hasDiagram) {
-    copyFileSync(join(HERE, 'vendor', MERMAID_FILE), vendorInPage);
-  } else if (existsSync(vendorInPage)) {
-    rmSync(vendorInPage);
-  }
+  writeFileSync(indexFile, buildPage(page));
   console.log(`wrote ${indexFile}`);
   if (!flags.includes('--no-open')) {
     const opened = spawnSync('open', [indexFile], { stdio: 'ignore' });

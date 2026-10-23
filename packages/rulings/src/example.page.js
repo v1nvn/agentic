@@ -13,6 +13,7 @@ var PAGE = {
     { id: "code", label: "A code change", rulings: ["G2"] },
     { id: "ops", label: "What a restart does", rulings: ["G4"] },
     { id: "serving", label: "What a start refuses", rulings: ["G5"] },
+    { id: "receipt", label: "What a buyer sees", rulings: ["G6"] },
     { id: "merged", label: "Merged", rulings: ["G3"] }
   ],
 
@@ -111,6 +112,34 @@ var PAGE = {
       opts: [
         { k: "a", rec: true, t: "Refuse to serve when the check fails", g: "The on-call sees a dead daemon with a reason, not a log line to find.", c: "One flaky check now stops every read until a human restarts the daemon." },
         { k: "b", today: true, t: "Keep serving on a failed check", g: "Reads continue; a flaky check cannot take the daemon down.", c: "The only sign of a doubted ledger is a log line nobody is tailing." }
+      ]
+    },
+    G6: {
+      title: "Does a reader’s receipt show the blocks that paid no owner?",
+      stake: "<b>Paul’s receipt for a 2,400 read says 1,200 went to owners and never says why the other half did not.</b>",
+      today: "A receipt lists the read’s price and what it paid to block owners. Blocks without an owner add nothing to the second line and are not named.",
+      figure: {
+        cap: "<b>Today the receipt has no line for the 10 blocks that paid nobody.</b>",
+        views: {
+          today: {
+            html: '<div class="rcpt" style="font: 12.5px var(--mono); color: var(--ink); background: var(--paper); border: 1px solid var(--rule); border-radius: 8px; padding: 12px 16px; min-width: 260px">' +
+              '<div style="display: flex; justify-content: space-between; gap: 24px"><span>Reader [40, 50)</span><span>2,400</span></div>' +
+              '<div style="display: flex; justify-content: space-between; gap: 24px; color: var(--muted)"><span>Paid to owners</span><span>1,200</span></div>' +
+              '</div>'
+          },
+          a: {
+            cap: "<b>The receipt names the 10 blocks that paid nobody.</b>",
+            html: '<div class="rcpt" style="font: 12.5px var(--mono); color: var(--ink); background: var(--paper); border: 1px solid var(--rule); border-radius: 8px; padding: 12px 16px; min-width: 260px">' +
+              '<div style="display: flex; justify-content: space-between; gap: 24px"><span>Reader [40, 50)</span><span>2,400</span></div>' +
+              '<div style="display: flex; justify-content: space-between; gap: 24px; color: var(--muted)"><span>Paid to owners</span><span>1,200</span></div>' +
+              '<div style="display: flex; justify-content: space-between; gap: 24px; color: var(--o); font-weight: 600"><span>10 blocks with no owner</span><span>0</span></div>' +
+              '</div>'
+          }
+        }
+      },
+      opts: [
+        { k: "a", rec: true, t: "Add an unowned line", g: "Paul sees which 10 blocks paid nobody, on the receipt Paul already reads.", c: "Every receipt grows a line, zero on most reads." },
+        { k: "b", today: true, t: "Keep the receipt as it is", g: "No receipt change.", c: "A buyer finds unowned blocks only by asking." }
       ]
     }
   }

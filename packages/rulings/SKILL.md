@@ -1,6 +1,6 @@
 ---
 name: consult
-description: Put decisions the owner must make on one local HTML page, each ruling self-contained: the question, its stake, how its part works today, and a verdict table of lettered options with gain, cost and a recommendation. Use only when the owner asks ("rulings", "consult me", /rulings:consult), or when three or more linked, or four or more independent, decisions need the page. "wdyt?", audits, reviews and one to three simple decisions are answered in chat, not here.
+description: Put the decisions the owner must rule on, each with its evidence, on one local HTML page — question, stake, how the part works today, lettered options with gain, cost and a recommendation, and a picture of the mechanism when one earns it. Use when the owner has to rule on evidence they do not hold — a plan with open forks, a review whose findings leave forks only the owner can rule on, a design whose options differ in cost or surface — or asks for it ("rulings", "consult me", /rulings:consult). Not for a plain question, an audit with no choices, or a decision the owner can rule from one line: those go in chat, through AskUserQuestion.
 ---
 
 # Rulings
@@ -18,9 +18,12 @@ the channel the answer comes back on.
 
 ## Step 0 — Decide whether this is a page
 
-Chat is the default. Build a page only when the owner asked for one, or when three or more
-linked, or four or more independent, decisions need one. One to three simple decisions:
-ask in chat (Step 6). A question like "wdyt?" is a chat answer, not a ruling.
+Build a page when the owner must rule on evidence they do not hold: how a part they have not
+read works today, and what each option changes on a real case. One such decision earns a page
+as much as five do. A decision the owner can rule from one line — they know the part, and the
+options differ on one visible fact — goes through AskUserQuestion (Step 6). "wdyt?" asks for
+your view: answer it in chat. If the answer ends in forks the owner can rule on only after
+reading code, build the page.
 
 Orient the owner **in chat** — how the system works today, in plain words, with one real case
 stepped through its states and real values, and the root question if the decisions are linked
@@ -68,16 +71,22 @@ cost cannot be checked from its fragment alone, and take the first kind that can
 | a code change | today's body and one body per option, shown as a diff | `bodies` |
 | an order of steps, or a balance that moves | a sequence diagram, a view per option | `seq` |
 | money or a count that moves | a ledger beside the diagram | `seq.ledger` |
-| something neither can draw | free mermaid text, a view per option, its caption saying in one line why | `diagram` |
+| anything else: an output or screen, states and transitions, a timeline, a number compared across options, a structure, a trade-off grid | a figure: static HTML or SVG, a view per option | `figure` |
+
+A chain whose options add, drop or change steps is a `seq`, not a `figure`: each option
+view draws only its delta rows on the shared lanes and ledger. A step only some options run
+(`in: ["a"]`) keeps its chain number everywhere: today draws it as a quiet dashed row tagged
+`only in a`, and the option's view draws it for real.
+
+Before drawing a figure, load the `artifact-diagramming` skill — and `dataviz` for a chart,
+`artifact-design` for a screen or layout — and draw by its rules; when one is not installed,
+draw without it. Paint only with the page's tokens, because the page follows the owner's light
+or dark theme and a literal colour breaks one of them: `var(--ink)`, `--muted`, `--rule`,
+`--paper`, `--sheet`, `--code`, `--add`, `--del`, and `var(--o)`, the colour of the view's own
+option.
 
 When every fragment names a thing the owner can check without a body (a file, a flag, a number),
 the ruling is table-only: title, stake, `today`, options — no picture field.
-
-A chain whose options add, drop or change steps is a `seq`, not a `diagram`: each option
-view draws only its delta rows on the shared lanes and ledger. A step only some options run
-(`in: ["a"]`) keeps its chain number everywhere: today draws it as a quiet dashed row tagged
-`only in a`, and the option's view draws it for real. The build cannot parse mermaid text — a
-broken diagram is checked only when the page opens.
 
 `needs: "G7a"` on an option says it only makes sense under that pick; the page shows it as a
 chip, and the composer names the pick unmet until that need lands. Rulings whose picks change
@@ -163,9 +172,9 @@ of these fit, and its note says what is wanted. A note overrides the pick for th
 ruling missing from the answer is still open. Never treat your recommendation as the owner's
 answer. A root pick that moves a recommendation is announced before the next question.
 
-**One to three simple decisions, in chat** — AskUserQuestion, not a page: one question per
-decision, two to four options, each option's description carrying its gain and cost, the
-recommended one named in the question; the owner's own answer takes the place of `n`.
+**A decision the owner can rule from one line, in chat** — AskUserQuestion, not a page: one
+question per decision, two to four options, each option's description carrying its gain and
+cost, the recommended one named in the question; the owner's own answer takes the place of `n`.
 
 ## Step 7 — Pushback
 
@@ -201,7 +210,7 @@ Then: `Written: <G1a, G2c>. Nothing is committed. <file>: <what changed>. One th
 | `groups` | yes | `[{ id, label, quick, rulings: ["G1"] }]`: the label heads the group; `quick: true` gives the group's rulings an accept-recommended button. |
 | `rulings` | yes | One entry per id. |
 
-A ruling: `title` (a question), `stake`, `today`, at most one of `seq`, `bodies` or `diagram` —
+A ruling: `title` (a question), `stake`, `today`, at most one of `seq`, `bodies` or `figure` —
 only when the ruling earned a picture (Step 3) — `opts` (2 to 4), and after a pushback `changed`
 or `merged` (needs only `title`, `merged`, `changed`).
 
@@ -209,7 +218,7 @@ An option: `k` (one lowercase letter, not `n`), `t`, `rec` (on exactly one), `to
 one), `w` (how it works — one muted line at the end of the option's verdict row), `g` and `c`
 (gain and cost — one fragment each, checkable on the ruling's evidence), `needs`. A pictured
 ruling gives every live option a view: a `seq` view, a `bodies` entry under its letter, or a
-diagram view.
+figure view.
 
 ### The sequence diagram
 
@@ -246,14 +255,16 @@ body whole and unmarked — use it when the body is not the same code as today's
 20 lines folds behind a `show all N lines` expander; option bodies render whole. `cap` names a
 cut body's source; `what` labels the body above it.
 
-### Diagram
+### Figure
 
-`diagram: { cap, views: { today|letter: { text, cap } } }` — free mermaid (`flowchart`,
-`stateDiagram-v2`, …), one view per live option plus `today`. Write mermaid text plainly
-(`-->`); the builder handles what HTML needs. The ruling's `cap` opens the block; each view may
-carry its own.
+`figure: { cap, views: { today|letter: { html, cap } } }` — one view per live option plus
+`today`. `html` is static markup inserted as written: inline SVG with a `viewBox`, or HTML
+styled inline, laid out for the page column (about 800px; an SVG scales down). The build
+refuses a script or event handler, a `<style>` block, anything loaded from outside the page (a
+`data:` URI is fine), a literal colour, and an unclosed tag. The ruling's `cap` opens the
+block; each view may carry its own.
 
-Strings in `page.js`: single quotes for bodies, `\n` for a line break, `\'` or `’` for an
+Strings in `page.js`: single quotes for bodies and figure markup, `\n` for a line break, `\'` or `’` for an
 apostrophe. Titles, stakes, gains, costs and captions are HTML (`<code>`, `&lt;`); bodies are
 plain text.
 

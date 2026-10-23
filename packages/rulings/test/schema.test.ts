@@ -143,34 +143,58 @@ describe('refinements fire on crafted-red fixtures', () => {
     );
     const Q = loadExample();
     delete Q.rulings.G4.seq;
-    Q.rulings.G4.diagram = {
+    Q.rulings.G4.figure = {
       cap: '<b>Today a crash loses the window.</b>',
       views: {
         a: {
           cap: '<b>Option a: the daemon re-arms from Postgres.</b>',
-          text: 'flowchart TD\n  R[daemon restarts] --> S[window read]',
+          html: '<p>window read from Postgres</p>',
         },
-        b: { text: 'flowchart TD\n  R[daemon restarts] --> C[the read re-arms]' },
+        b: { html: '<p>the read re-arms</p>' },
       },
     };
     expect(allText(validatePage(Q))).toContain(
-      'G4.diagram.views.a.cap opens with an option label',
+      'G4.figure.views.a.cap opens with an option label',
     );
   });
 
-  it('a diagram ruling-level caption opening with the option label rejects', () => {
+  it('a figure ruling-level caption opening with the option label rejects', () => {
     const Q = loadExample();
     delete Q.rulings.G4.seq;
-    Q.rulings.G4.diagram = {
+    Q.rulings.G4.figure = {
       cap: '<b>Option a: the daemon re-arms from Postgres.</b>',
       views: {
-        a: { text: 'flowchart TD\n  R[daemon restarts] --> S[window read]' },
-        b: { text: 'flowchart TD\n  R[daemon restarts] --> C[the read re-arms]' },
+        a: { html: '<p>window read from Postgres</p>' },
+        b: { html: '<p>the read re-arms</p>' },
       },
     };
     expect(allText(validatePage(Q))).toContain(
-      'G4.diagram.cap opens with an option label',
+      'G4.figure.cap opens with an option label',
     );
+  });
+
+  it.each([
+    ['<p>ok<script>alert(1)</script></p>', 'runs script'],
+    ['<svg><rect onclick="x()"/></svg>', 'runs script'],
+    ['<style>.vrow { display: none }</style>', 'carries a <style> block, which restyles the whole page'],
+    ['<img src="https://example.com/a.png">', 'loads from outside the page'],
+    ['<svg><image href="//cdn.example/a.svg"/></svg>', 'loads from outside the page'],
+    ['<svg><rect fill="#1b2130"/></svg>', 'paints a literal colour'],
+    ['<div style="border: 1px solid rgb(0, 0, 0)">x</div>', 'paints a literal colour'],
+    ['<div><p>left open</div>', 'breaks the page layout: </div> closes <p>'],
+    ['<div>x', 'breaks the page layout: <div> is never closed'],
+  ])('a figure view %s is refused', (html, said) => {
+    const P = loadExample();
+    P.rulings.G6.figure.views.a.html = html;
+    expect(allText(validatePage(P))).toContain(`G6.figure.views.a.html ${said}`);
+  });
+
+  it('a figure view using tokens, void tags, self-closing SVG and data: URIs passes', () => {
+    const P = loadExample();
+    P.rulings.G6.figure.views.a.html =
+      '<div style="color: var(--muted)"><img src="data:image/png;base64,AA"><br>' +
+      '<svg viewBox="0 0 10 10"><rect fill="var(--o)" width="4" height="4"/></svg></div>';
+    expect(validatePage(P).errors).toEqual([]);
   });
 
   it('a caption that leads with Today passes at a per-view home', () => {
@@ -212,10 +236,10 @@ describe('refinements fire on crafted-red fixtures', () => {
         { k: 'a', rec: true, t: 'Re-arm on start', g: 'The window survives a restart.', c: 'One more table the daemon owns.' },
         { k: 'b', today: true, t: 'Re-arm in the read', g: 'No daemon change at all.', c: 'Every read pays one extra write.' },
       ],
-      diagram: {
+      figure: {
         cap: '<b>Today a crash loses the window.</b>',
         views: {
-          b: { text: 'flowchart TD\n  R[daemon restarts] --> C[the read re-arms the window]' },
+          b: { html: '<p>the read re-arms the window</p>' },
         },
       },
     };

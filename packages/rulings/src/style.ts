@@ -187,5 +187,6 @@ text.sub { font-size: 11.5px; fill: var(--muted); }
 .strike { stroke: var(--o); stroke-width: 1.6; }
 svg text.note { font-size: 11.5px; font-weight: 600; fill: var(--o); }
 
-.stage.diagram .mermaid { display: flex; justify-content: center; padding: 14px; overflow-x: auto; }
+.stage.figure .fig { display: flex; justify-content: center; padding: 14px; overflow-x: auto; }
+.stage.figure .fig svg { max-width: 100%; height: auto; }
 `;

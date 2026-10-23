@@ -35,6 +35,9 @@ read by eye.
   ("even when the user only pastes a bare link").
 - Name categories of intent, not an ever-growing list of queries.
 - Every clause resolves: an "otherwise" names the condition it is otherwise to.
+- A judgment trigger ("evidence the user does not hold") carries an explicit negative
+  boundary naming the near-misses. A changed trigger sweeps every other statement of the
+  old rule — body steps, fallback paths, the README — in the same change.
 - A `disable-model-invocation: true` skill needs no trigger text — only the owner invokes it.
 
 ## Body
@@ -43,7 +46,8 @@ read by eye.
   with when-to-read guidance; a reference over 300 lines gets a table of contents.
 - Imperative. Caps and `NEVER` only for contract facts and routing; every other constraint
   carries its _because_.
-- No instruction vague enough to read two ways; every external call has a failure branch.
+- No instruction vague enough to read two ways; every external call has a failure branch,
+  and so does every host skill the body tells the model to load (it may not be installed).
 - Code the model would rewrite on every run is bundled under `scripts/`.
 - Speak only to the running model. A note for the maintainer — why a version is pinned —
   is deleted from the surface.

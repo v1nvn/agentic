@@ -6,13 +6,19 @@ import type { Page, Ruling } from './schema.ts';
 
 import { bodiesOption, bodiesToday } from './bodies.ts';
 import { chromeScript, panelHtml } from './chrome.ts';
-import { diagramView, mermaidBoot } from './diagram.ts';
-import { esc, hueOf, optOf, sentenceEnds, stripTags, verdictTable } from './html.ts';
+import { figureView } from './figure.ts';
+import {
+  esc,
+  hueOf,
+  optOf,
+  sentenceEnds,
+  stripTags,
+  verdictTable,
+} from './html.ts';
 import { seqView } from './seq.ts';
 import { pageCss } from './style.ts';
 
 export const PAGE_FILE = 'page.js';
-export const MERMAID_FILE = 'mermaid.min.js';
 
 const assemblyCss = `
 .vrow:has(.disc[aria-pressed="true"]) { border-left-color: var(--o); background: color-mix(in srgb, var(--o) 12%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--o) 30%, transparent); }
@@ -106,17 +112,13 @@ function noteHtml(html: string): string {
 }
 
 function viewsOf(q: Ruling, id: string): string[] {
-  if (
-    q.seq === undefined &&
-    q.bodies === undefined &&
-    q.diagram === undefined
-  ) {
+  if (q.seq === undefined && q.bodies === undefined && q.figure === undefined) {
     return [];
   }
   const hasBase =
     q.seq !== undefined ||
     (q.bodies !== undefined && 'today' in q.bodies) ||
-    (q.diagram !== undefined && 'today' in q.diagram.views);
+    (q.figure !== undefined && 'today' in q.figure.views);
   const out: string[] = hasBase ? ['today'] : [];
   for (const o of q.opts ?? []) {
     if (o.today !== true) {
@@ -133,7 +135,7 @@ function stageOf(q: Ruling, id: string, view: string): string {
   if (q.seq !== undefined) {
     return seqView(q, id, view);
   }
-  return diagramView(q, view);
+  return figureView(q, view);
 }
 
 function compareOf(q: Ruling, id: string): string {
@@ -208,17 +210,9 @@ function sideHtml(P: Page): string {
   return `<nav class="side" aria-label="Rulings"><div class="scount" id="ruled-count">0 of ${ruleable} ruled</div>${groups}</nav>`;
 }
 
-export interface BuiltPage {
-  hasDiagram: boolean;
-  html: string;
-}
-
 // Call only after validatePage returns green — the cast is what the green verdict proved.
-export function buildPage(input: unknown): BuiltPage {
+export function buildPage(input: unknown): string {
   const P = input as Page;
-  const hasDiagram = Object.values(P.rulings).some(
-    q => q.diagram !== undefined,
-  );
   const notes = (P.notes ?? [])
     .map(n => `<div class="note">${noteHtml(n.html ?? '')}</div>`)
     .join('');
@@ -241,7 +235,7 @@ export function buildPage(input: unknown): BuiltPage {
       );
     })
     .join('');
-  const html = `<!doctype html>
+  return `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -264,12 +258,11 @@ ${sideHtml(P)}
 ${groups}
 </main>
 </div>
-${panelHtml()}${hasDiagram ? `\n<script src="${MERMAID_FILE}"></script>\n${mermaidBoot()}` : ''}
+${panelHtml()}
 ${chromeScript()}
 </body>
 </html>
 `;
-  return { html, hasDiagram };
 }
 
 // --new seeds from the example that ships beside this module.
