@@ -149,7 +149,7 @@ describe('picking and previewing', () => {
     expect(p.saved()).toBeNull();
   });
 
-  it('accept recommended picks the group’s starred letters', () => {
+  it('accept recommended picks the group’s recommended letters', () => {
     const p = boot();
     p.$('.quick').click();
     expect(p.saved()?.picks).toEqual({ G1: 'a' });
@@ -217,7 +217,7 @@ describe('the answer', () => {
     p.$('[data-pick="G1b"]').click();
     p.$('#copy-answer').click();
     await vi.waitFor(
-      () => expect(p.$('#copy-answer').textContent).toBe('Copy failed — copy the summary by hand'),
+      () => expect(p.$('#copy-answer').textContent).toBe('Copy failed. Copy the summary by hand.'),
       { timeout: 3000 },
     );
   });

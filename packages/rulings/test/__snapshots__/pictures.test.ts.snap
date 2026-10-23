@@ -7,7 +7,7 @@ exports[`bodies view > pins the option diff: its own body only, prism tokens, ev
 
 exports[`bodies view > pins the sketch body: state chip, no diff 1`] = `
 "Shown whole rather than marked line by line: it is not the same code as today’s walk.
-<div class="btag"><span>sketch — feasibility not checked</span></div><pre>parseQuietly(program, args, err =&gt;
+<div class="btag"><span>sketch (feasibility not checked)</span></div><pre>parseQuietly(program, args, err =&gt;
   err instanceof HelpRequested
     ? { help: err.command }
     : commanderCode(err) === &quot;commander.helpDisplayed&quot;

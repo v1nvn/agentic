@@ -180,7 +180,7 @@ describe('bodies view', () => {
     const P = example();
     const html = drawn(bodiesOption, P.rulings.G2, 'G2b');
     expect(html).toMatchSnapshot();
-    expect(html).toContain('sketch — feasibility not checked');
+    expect(html).toContain('sketch (feasibility not checked)');
     expect(html).not.toContain('diff vs today');
   });
 
