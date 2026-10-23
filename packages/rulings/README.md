@@ -53,6 +53,6 @@ packages/rulings/                   the builder CLI, pure TS — the plugin root
   src/seq.ts, bodies.ts, figure.ts  the three picture emitters (seq SVG, prism diff, free HTML/SVG)
   src/decide.ts                     the decision card: options beside the picture views
   src/chrome.ts                     the composer bar and the page's one script
-  src/style.ts                      the page stylesheet (system theme alone)
+  src/style.ts                      the page stylesheet (light-only)
   test/                             the vitest suite
 ```

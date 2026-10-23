@@ -81,8 +81,8 @@ view draws only its delta rows on the shared lanes and ledger. A step only some 
 The card around a figure is its frame: draw no border, card or background of your own. Before
 drawing a figure, load the `artifact-diagramming` skill — and `dataviz` for a chart,
 `artifact-design` for a screen or layout — and draw by its rules; when one is not installed,
-draw without it. Paint only with the page's tokens, because the page follows the owner's light
-or dark theme and a literal colour breaks one of them: `var(--ink)`, `--muted`, `--rule`,
+draw without it. Paint only with the page's tokens — the page is light-only and a literal
+colour steps outside them: `var(--ink)`, `--muted`, `--rule`,
 `--paper`, `--sheet`, `--code`, `--add`, `--del`, and `var(--o)`, the colour of the view's own
 option.
 

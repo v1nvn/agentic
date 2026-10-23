@@ -13,15 +13,6 @@ export const pageCss = `
   --side: 228px;
   --o: var(--ink);
 }
-@media (prefers-color-scheme: dark) {
-  :root {
-    color-scheme: dark;
-    --paper: #14171c; --sheet: #1c2027; --ink: #e6e8ec; --muted: #9aa3b1; --rule: #2f3540; --code: #171b21;
-    --opt-a: #8ea6ff; --opt-b: #d58beb; --opt-c: #f28bae; --opt-d: #7bd389;
-    --add: #3fb950; --del: #f85149; --k-call: #e6e8ec; --k-money: #f2b35b; --k-store: #5cc8da; --k-check: #9aa3b1; --k-fail: #ff8a80;
-    --tk-kw: #c3a6ff; --tk-str: #7bd389; --tk-com: #6f7787; --tk-num: #f2b35b; --tk-fn: #8ea6ff; --tk-cls: #5cc8da;
-  }
-}
 .o-a { --o: var(--opt-a); } .o-b { --o: var(--opt-b); } .o-c { --o: var(--opt-c); } .o-d { --o: var(--opt-d); }
 
 * { box-sizing: border-box; }
