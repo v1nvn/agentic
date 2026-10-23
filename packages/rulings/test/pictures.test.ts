@@ -232,15 +232,14 @@ describe('the picture surfaces', () => {
   });
 });
 
-describe('page styles and theme door', () => {
+describe('page styles', () => {
   it('fetches nothing on open: no imports, no urls, system fonts only', () => {
     expect(pageCss).not.toMatch(/@import|url\(/i);
     expect(pageCss).not.toMatch(/Newsreader|Public Sans|JetBrains|googleapis/);
     expect(pageCss).toContain('system-ui');
   });
 
-  it('dark mode is the media query alone: no param door, no override block', () => {
-    expect(pageCss).toContain('prefers-color-scheme: dark');
-    expect(pageCss).not.toContain('data-theme');
+  it('renders light-only: no dark tokens, no scheme query, no param door', () => {
+    expect(pageCss).not.toMatch(/prefers-color-scheme|color-scheme|data-theme/);
   });
 });
