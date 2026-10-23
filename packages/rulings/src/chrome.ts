@@ -2,8 +2,10 @@ export const LAYOUT_KEY = 'rulings-layout';
 
 export function composerHtml(): string {
   return `<footer class="composer" id="rulings-composer">
+<p class="rhint" id="rulings-hint" hidden>Restored from your last visit</p>
 <div class="chips" id="picks" aria-live="polite"></div>
-<textarea id="rulings-notes" rows="1" placeholder="Page note — anything the answer should carry"></textarea>
+<label class="nlabel" for="rulings-notes">Page note</label>
+<textarea id="rulings-notes" name="page-note" rows="1"></textarea>
 <button type="button" class="go" id="copy-answer">Copy answer</button>
 </footer>`;
 }
@@ -25,6 +27,7 @@ export function chromeScript(): string {
   var notesIn = document.getElementById('rulings-notes');
   var copyBtn = document.getElementById('copy-answer');
   var countEl = document.getElementById('ruled-count');
+  var hintEl = document.getElementById('rulings-hint');
   var where = document.getElementById('rulings-where');
   var links = {};
   all('.side a.rl').forEach(function (a) { links[a.getAttribute('href').slice(1)] = a; });
@@ -39,6 +42,7 @@ export function chromeScript(): string {
   var pick = {};
   var onotes = {};
   var note = '';
+  var restored = false;
 
   function load() {
     if (!KEY) return;
@@ -50,6 +54,7 @@ export function chromeScript(): string {
     var on = s.onotes || {};
     for (var t in on) if (typeof on[t] === 'string' && LIVE[t]) onotes[t] = on[t];
     if (typeof s.note === 'string') note = s.note;
+    restored = Object.keys(p).length > 0 || Object.keys(on).length > 0 || note !== '';
   }
   function save() {
     if (KEY) store(KEY, JSON.stringify({ picks: pick, onotes: onotes, note: note }));
@@ -106,11 +111,12 @@ export function chromeScript(): string {
       r.classList.toggle('unmet', unmet(words(r.getAttribute('data-needs'))).length > 0);
     });
     var es = entries();
+    if (hintEl) hintEl.hidden = !restored;
     if (countEl) countEl.textContent = es.length + ' of ' + ORDER.length + ' ruled';
     for (var h in links) links[h].classList.toggle('ruled', !!pick[h.slice(2)]);
     if (!sum) return;
     sum.innerHTML = es.length === 0
-      ? '<span class="empty">No picks yet — click an option</span>'
+      ? '<span class="empty">No picks yet</span>'
       : es.map(function (e) {
         return '<span class="chip' + (e.bad.length ? ' unmet' : '') + '"><i></i>' + e.label +
           (e.bad.length ? '<span class="need">needs ' + e.bad.join(' ') + '</span>' : '') +
@@ -190,10 +196,9 @@ export function chromeScript(): string {
   function setWhere(id) {
     if (!where) return;
     if (!id) { where.setAttribute('hidden', ''); return; }
-    var l = links['r-' + id];
     where.removeAttribute('hidden');
     where.setAttribute('href', '#r-' + id);
-    where.textContent = id + ' · ' + (l ? l.querySelector('.t').textContent : '');
+    where.textContent = id;
   }
   if ('IntersectionObserver' in window) {
     var here = null;

@@ -99,9 +99,9 @@ button.opt { text-align: left; }
 
 .disc { width: 28px; height: 28px; display: inline-grid; place-items: center; align-self: start; border: 1.5px solid var(--o); border-radius: 50%; color: var(--o); font: 500 var(--s) var(--mono); }
 .rfoot { grid-column: 1 / -1; padding: 12px 20px; }
+.nlabel { display: block; padding-bottom: 2px; font-size: var(--s); color: var(--muted); }
 .rnote { display: block; width: 100%; resize: vertical; padding: 5px 0; border: 0; border-bottom: 1px solid var(--rule); background: none; color: var(--ink); font: var(--s)/1.5 var(--sans); }
 .rnote:focus { outline: none; border-bottom-color: var(--ink); }
-.rnote::placeholder { color: var(--muted); }
 
 .vw { padding: 18px 20px 20px; }
 .vh { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 12px; align-items: center; }
@@ -166,17 +166,19 @@ text.sub { font-size: 11px; fill: var(--muted); }
 svg text.note { font-size: 11px; font-weight: 500; fill: var(--o); }
 
 .composer { max-width: var(--measure); margin-top: var(--gap-l); display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.rhint { flex: 1 1 100%; font-size: var(--s); color: var(--muted); }
+.composer .nlabel { flex: none; }
 .composer textarea { flex: 1 1 240px; min-width: 150px; min-height: 32px; resize: vertical; padding: 7px 10px; border: 1px solid var(--rule); border-radius: var(--r-s); background: var(--sheet); color: var(--ink); font: var(--s) var(--sans); }
 .composer textarea:focus { outline: none; border-color: var(--ink); }
 .composer .go { flex: none; padding: 8px 14px; border-radius: var(--r-s); background: var(--ink); color: var(--sheet); font-weight: 600; font-size: var(--s); cursor: pointer; white-space: nowrap; }
 .composer .go:disabled { opacity: 0.4; cursor: default; }
 .chips { flex: 1 1 200px; min-width: 0; display: flex; flex-wrap: wrap; gap: 6px; }
 .chips .empty { color: var(--muted); font-size: var(--s); padding: 4px 0; }
-.chip { display: inline-flex; align-items: center; gap: 6px; padding: 2px 4px 2px 8px; border: 1px solid var(--rule); border-radius: var(--r-s); background: var(--paper); font: var(--s) var(--mono); }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 2px 2px 2px 8px; border: 1px solid var(--rule); border-radius: var(--r-s); background: var(--paper); font: var(--s) var(--mono); }
 .chip i { width: 8px; height: 8px; border-radius: 50%; background: var(--o); }
-.chip .need { color: var(--muted); font-family: var(--sans); }
-.chip.unmet .need { color: var(--ink); text-decoration: underline dotted; }
-.chip .x { color: var(--muted); padding: 0 4px; cursor: pointer; }
+.chip .need { padding: 0 6px; border: 1px solid var(--rule); border-radius: var(--r-s); font-family: var(--sans); color: var(--muted); white-space: nowrap; }
+.chip.unmet .need { color: var(--ink); text-decoration: underline dotted; text-underline-offset: 3px; }
+.chip .x { width: 32px; height: 32px; display: inline-grid; place-items: center; color: var(--muted); cursor: pointer; }
 .chip .x:hover { color: var(--ink); }
 
 @media (max-width: 979px) {
