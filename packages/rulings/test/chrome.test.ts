@@ -1,803 +1,245 @@
-import vm from 'node:vm';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { JSDOM } from 'jsdom';
+import { fileURLToPath } from 'node:url';
+import { describe, expect, it, vi } from 'vitest';
 
-import { chromeScript } from '../src/chrome.ts';
-import { El, FakeIO, type FakeEvent } from './dom.ts';
+import { LAYOUT_KEY } from '../src/chrome.ts';
+import { buildPage, loadPageFile } from '../src/page.ts';
 
-interface Harness {
-  cardA: El;
-  cardB: El;
-  cardC: El;
-  card2: El;
-  secG1: El;
-  rowA: El;
-  discA: El;
-  rowB: El;
-  discB: El;
-  vtB: El;
-  noneRow: El;
-  noneDisc: El;
-  rnote: El;
-  wrapToday: El;
-  stage: El;
-  foldSum: El;
-  wrapB: El;
-  sum: El;
-  notesIn: El;
-  copyBtn: El;
-  bar: El;
-  tab: El;
-  count: El;
-  where: El;
-  link1: El;
-  link2: El;
-  sec1: El;
-  docClick(e: FakeEvent): void;
-  keyDown(e: FakeEvent): void;
-  tabClick(): void;
-  select(text: string): void;
-  storage: Map<string, string>;
-  writes: string[];
+const EXAMPLE = fileURLToPath(new URL('../src/example.page.js', import.meta.url));
+const KEY = 'rulings-testril-pr251';
+const HTML = buildPage(loadPageFile(EXAMPLE));
+
+type Spy = (ents: { isIntersecting: boolean; target: Element }[]) => void;
+
+interface Boot {
+  stored?: Record<string, string>;
+  writeText?: (t: string) => Promise<void>;
+  spy?: (cb: Spy) => void;
 }
 
-function harness(
-  over: {
-    storage?: Map<string, string>;
-    writeText?: (t: string) => Promise<void>;
-  } = {},
-): Harness {
-  FakeIO.last = null;
-  const storage = over.storage ?? new Map();
-  const body = new El('body');
-  body.setAttribute('data-key', 'k');
-  const cardA = new El('section', ['view', 'o-a']);
-  cardA.setAttribute('data-pick', 'G1a');
-  cardA.parent = body;
-  const cardB = new El('section', ['view', 'o-b']);
-  cardB.setAttribute('data-pick', 'G1b');
-  cardB.parent = body;
-  const card2 = new El('section', ['view', 'o-a']);
-  card2.setAttribute('data-pick', 'G2a');
-  card2.parent = body;
-  const cardC = new El('section', ['view', 'o-c']);
-  cardC.setAttribute('data-pick', 'G1c');
-  cardC.parent = body;
-  const secG1 = new El('section');
-  secG1.setAttribute('id', 'r-G1');
-  secG1.parent = body;
-  const rowA = new El('div', ['vrow', 'o-a']);
-  rowA.setAttribute('data-view', 'today');
-  rowA.setAttribute('data-needs', 'G2a');
-  rowA.parent = secG1;
-  const discA = new El('button', ['lt', 'disc', 'o-a']);
-  discA.setAttribute('data-pick', 'G1a');
-  rowA.appendChild(discA);
-  const rowB = new El('div', ['vrow', 'o-b']);
-  rowB.setAttribute('data-view', 'G1b');
-  rowB.parent = secG1;
-  const discB = new El('button', ['lt', 'disc', 'o-b']);
-  discB.setAttribute('data-pick', 'G1b');
-  rowB.appendChild(discB);
-  const vtB = new El('span', ['vt']);
-  vtB.parent = rowB;
-  const noneRow = new El('div', ['vrow', 'none']);
-  noneRow.setAttribute('data-pick', 'G1n');
-  noneRow.parent = secG1;
-  const noneDisc = new El('button', ['lt', 'disc', 'none']);
-  noneDisc.setAttribute('data-pick', 'G1n');
-  noneRow.appendChild(noneDisc);
-  const rnote = new El('input');
-  rnote.setAttribute('data-note', 'G1');
-  rnote.parent = secG1;
-  const wrapToday = new El('div', ['stage-wrap', 'o-a']);
-  wrapToday.setAttribute('data-view', 'today');
-  wrapToday.setAttribute('data-pick', 'G1a');
-  wrapToday.parent = secG1;
-  const stage = new El('div', ['stage']);
-  stage.parent = wrapToday;
-  const foldSum = new El('summary');
-  foldSum.parent = wrapToday;
-  const wrapB = new El('div', ['stage-wrap', 'o-b']);
-  wrapB.setAttribute('data-view', 'G1b');
-  wrapB.setAttribute('data-pick', 'G1b');
-  wrapB.setAttribute('hidden', '');
-  wrapB.parent = secG1;
-  const sum = new El('div');
-  sum.setAttribute('id', 'picks');
-  const notesIn = new El('textarea');
-  notesIn.setAttribute('id', 'rulings-notes');
-  const copyBtn = new El('button');
-  copyBtn.setAttribute('id', 'copy-answer');
-  copyBtn.textContent = 'Copy answer';
-  const bar = new El('footer', ['bar']);
-  bar.setAttribute('id', 'rulings-bar');
-  const tab = new El('button', ['bar-tab']);
-  tab.setAttribute('id', 'bar-tab');
-  tab.setAttribute('aria-expanded', 'false');
-  const count = new El('div', ['scount']);
-  count.setAttribute('id', 'ruled-count');
-  count.textContent = '0 of 2 ruled';
-  const where = new El('a', ['where']);
-  where.setAttribute('id', 'rulings-where');
-  where.setAttribute('hidden', '');
-  const link1 = new El('a', ['rl']);
-  link1.setAttribute('href', '#r-G1');
-  const link1T = new El('span', ['t']);
-  link1T.textContent = 'Who owns a leaf block?';
-  link1.appendChild(link1T);
-  const link2 = new El('a', ['rl']);
-  link2.setAttribute('href', '#r-G2');
-  const sec1 = new El('section');
-  sec1.setAttribute('id', 'r-G1');
-  const sec2 = new El('section');
-  sec2.setAttribute('id', 'r-G2');
-  const byId = [sum, notesIn, copyBtn, bar, tab, count, where];
-  const picks = [cardA, cardB, cardC, card2];
-  const listeners: Record<string, ((e: FakeEvent) => void)[]> = {};
-  const doc = {
-    body,
-    addEventListener(t: string, h: (e: FakeEvent) => void): void {
-      (listeners[t] ??= []).push(h);
-    },
-    fire(t: string, e: FakeEvent): void {
-      for (const h of listeners[t] ?? []) h(e);
-    },
-    getElementById(id: string): El | null {
-      return byId.find(e => e.id === id) ?? null;
-    },
-    querySelectorAll(sel: string): El[] {
-      switch (sel) {
-        case '[data-pick]':
-          return [...picks, discA, discB, noneRow, noneDisc];
-        case '[data-needs]':
-          return [rowA];
-        case '.stage-wrap':
-          return [wrapToday, wrapB];
-        case '.vrow':
-          return [rowA, rowB, noneRow];
-        case '.rnote':
-          return [rnote];
-        case '.side a.rl':
-          return [link1, link2];
-        case 'section[id]':
-          return [sec1, sec2];
-        default:
-          return [];
+function boot({ stored = {}, writeText, spy }: Boot = {}) {
+  const dom = new JSDOM(HTML, {
+    runScripts: 'dangerously',
+    url: 'https://rulings.test/',
+    beforeParse(w) {
+      for (const [k, v] of Object.entries(stored)) w.localStorage.setItem(k, v);
+      if (writeText) Object.defineProperty(w.navigator, 'clipboard', { value: { writeText } });
+      if (spy) {
+        const report = spy;
+        Object.assign(w, {
+          IntersectionObserver: class {
+            constructor(cb: Spy) {
+              report(cb);
+            }
+            observe(): void {}
+          },
+        });
       }
     },
-    querySelector(sel: string): El | null {
-      const m = /^\[data-pick="(.+)"\]$/.exec(sel);
-      return m ? (picks.find(c => c.getAttribute('data-pick') === m[1]) ?? null) : null;
-    },
-    createElement(tag: string): El {
-      return new El(tag);
-    },
-    execCommand(): boolean {
-      return false;
-    },
+  });
+  const doc = dom.window.document;
+  const $ = (sel: string): HTMLElement => {
+    const el = doc.querySelector<HTMLElement>(sel);
+    if (el === null) throw new Error(`no ${sel}`);
+    return el;
   };
-  const writes: string[] = [];
-  const clipboard = {
-    writeText:
-      over.writeText ??
-      ((t: string) => {
-        writes.push(t);
-        return Promise.resolve();
-      }),
+  const shown = (id: string): string[] =>
+    [...doc.querySelectorAll(`#r-${id} .vw:not([hidden])`)].map(v => v.getAttribute('data-view') ?? '');
+  const saved = (): { picks: Record<string, string> } | null =>
+    JSON.parse(dom.window.localStorage.getItem(KEY) ?? 'null');
+  const type = (sel: string, value: string): void => {
+    const el = $(sel) as HTMLInputElement;
+    el.value = value;
+    el.dispatchEvent(new dom.window.Event('input', { bubbles: true }));
   };
-  let selectionText = '';
-  const sandbox = {
-    document: doc,
-    IntersectionObserver: FakeIO,
-    navigator: { clipboard },
-    localStorage: {
-      getItem: (k: string): string | null => storage.get(k) ?? null,
-      setItem: (k: string, v: string): void => {
-        storage.set(k, v);
-      },
-    },
-    setTimeout,
-    clearTimeout,
-    window: {
-      getSelection: (): { toString(): string } => ({
-        toString: (): string => selectionText,
-      }),
-      IntersectionObserver: FakeIO,
-      innerHeight: 900,
-    },
-  };
-  const code = chromeScript()
-    .replace(/^<script>\n/, '')
-    .replace(/<\/script>$/, '');
-  El.clickSink = null;
-  vm.runInNewContext(code, sandbox);
-  El.clickSink = (e: FakeEvent): void => {
-    doc.fire('click', e);
-  };
-  return {
-    cardA,
-    cardB,
-    cardC,
-    card2,
-    secG1,
-    rowA,
-    discA,
-    rowB,
-    discB,
-    vtB,
-    noneRow,
-    noneDisc,
-    rnote,
-    wrapToday,
-    stage,
-    foldSum,
-    wrapB,
-    sum,
-    notesIn,
-    copyBtn,
-    bar,
-    tab,
-    count,
-    where,
-    link1,
-    link2,
-    sec1,
-    docClick: (e: FakeEvent): void => {
-      doc.fire('click', { detail: 1, ...e });
-      for (const h of e.target.handlers.click ?? []) h({ detail: 1, ...e });
-    },
-    keyDown: (e: FakeEvent): void => {
-      doc.fire('keydown', { preventDefault: () => {}, ...e });
-    },
-    tabClick: (): void => {
-      doc.fire('click', { target: tab, detail: 1 });
-      for (const h of tab.handlers.click ?? []) h({ target: tab, detail: 1 });
-    },
-    select: (text: string): void => {
-      selectionText = text;
-    },
-    storage,
-    writes,
-  };
+  return { $, doc, dom, saved, shown, type };
 }
 
-beforeEach(() => {
-  FakeIO.last = null;
-});
-afterEach(() => {
-  vi.useRealTimers();
-});
+describe('picking and previewing', () => {
+  const row = (ref: string): string => `.opt[data-pick="${ref}"]`;
 
-function wrapless(): {
-  rowA: El;
-  discA: El;
-  rowB: El;
-  noneRow: El;
-  sum: El;
-  docClick(e: { target: El }): void;
-  storage: Map<string, string>;
-} {
-  FakeIO.last = null;
-  const storage = new Map<string, string>();
-  const body = new El('body');
-  body.setAttribute('data-key', 'k');
-  const secG1 = new El('section');
-  secG1.setAttribute('id', 'r-G1');
-  secG1.parent = body;
-  const rowA = new El('div', ['vrow', 'o-a']);
-  rowA.setAttribute('data-view', 'today');
-  rowA.parent = secG1;
-  const discA = new El('button', ['lt', 'disc', 'o-a']);
-  discA.setAttribute('data-pick', 'G1a');
-  rowA.appendChild(discA);
-  const rowB = new El('div', ['vrow', 'o-b']);
-  rowB.setAttribute('data-view', 'G1b');
-  rowB.parent = secG1;
-  const discB = new El('button', ['lt', 'disc', 'o-b']);
-  discB.setAttribute('data-pick', 'G1b');
-  rowB.appendChild(discB);
-  const noneRow = new El('div', ['vrow', 'none']);
-  noneRow.setAttribute('data-pick', 'G1n');
-  noneRow.parent = secG1;
-  const sum = new El('div');
-  sum.setAttribute('id', 'picks');
-  const listeners: Record<string, ((e: FakeEvent) => void)[]> = {};
-  const doc = {
-    body,
-    addEventListener(t: string, h: (e: FakeEvent) => void): void {
-      (listeners[t] ??= []).push(h);
-    },
-    getElementById(id: string): El | null {
-      return id === 'picks' ? sum : null;
-    },
-    querySelectorAll(sel: string): El[] {
-      switch (sel) {
-        case '[data-pick]':
-          return [discA, discB, noneRow];
-        case '.stage-wrap':
-          return [];
-        case '.vrow':
-          return [rowA, rowB, noneRow];
-        case 'section[id]':
-          return [secG1];
-        default:
-          return [];
-      }
-    },
-    querySelector(): El | null {
-      return null;
-    },
-  };
-  const sandbox = {
-    document: doc,
-    IntersectionObserver: FakeIO,
-    navigator: { clipboard: { writeText: () => Promise.resolve() } },
-    localStorage: {
-      getItem: (k: string): string | null => storage.get(k) ?? null,
-      setItem: (k: string, v: string): void => {
-        storage.set(k, v);
-      },
-    },
-    setTimeout,
-    clearTimeout,
-    window: {
-      getSelection: (): { toString(): string } => ({ toString: () => '' }),
-      IntersectionObserver: FakeIO,
-      innerHeight: 900,
-    },
-  };
-  const code = chromeScript()
-    .replace(/^<script>\n/, '')
-    .replace(/<\/script>$/, '');
-  vm.runInNewContext(code, sandbox);
-  return {
-    rowA,
-    discA,
-    rowB,
-    noneRow,
-    sum,
-    docClick: (e: { target: El }): void => {
-      for (const h of listeners.click ?? []) h({ target: e.target, detail: 1 });
-    },
-    storage,
-  };
-}
-
-describe('the wrapless section', () => {
-  it('picks on a row click — storage and chip — and never marks the row shown', () => {
-    const h = wrapless();
-    h.docClick({ target: h.rowB });
-    expect(JSON.parse(h.storage.get('k') ?? '{}').picks).toEqual({ G1: 'b' });
-    expect(h.sum.innerHTML).toContain('G1b');
-    expect(h.rowB.classList.contains('shown')).toBe(false);
-    expect(h.rowB.getAttribute('aria-current')).toBeNull();
-    h.docClick({ target: h.discA });
-    expect(JSON.parse(h.storage.get('k') ?? '{}').picks).toEqual({ G1: 'a' });
-    expect(h.rowA.classList.contains('shown')).toBe(false);
-    expect(h.rowA.getAttribute('aria-current')).toBeNull();
-    h.docClick({ target: h.noneRow });
-    expect(JSON.parse(h.storage.get('k') ?? '{}').picks).toEqual({ G1: 'n' });
-    expect(h.noneRow.classList.contains('shown')).toBe(false);
-  });
-});
-
-describe('the sidebar scroll-spy', () => {
-  it('clears the mark when its section leaves the spy band', () => {
-    const h = harness();
-    const io = FakeIO.last;
-    if (io === null) throw new Error('fixture: no IntersectionObserver');
-    io.cb([{ target: h.sec1, isIntersecting: true }]);
-    expect(h.link1.classList.contains('here')).toBe(true);
-    io.cb([{ target: h.sec1, isIntersecting: false }]);
-    expect(h.link1.classList.contains('here')).toBe(false);
-  });
-});
-
-describe('the composer chips', () => {
-  it('carries the option hue on the dot, with the letter visible on it', () => {
-    const h = harness();
-    h.docClick({ target: h.cardB });
-    expect(h.sum.innerHTML).toContain('background:var(--opt-b)');
-    expect(h.sum.innerHTML).toContain('>b</span>');
+  it('a row click picks the option and shows its picture; a second click unpicks', () => {
+    const p = boot();
+    expect(p.shown('G1')).toEqual(['today']);
+    p.$(`${row('G1b')} .ot-t`).click();
+    expect(p.$(row('G1b')).getAttribute('aria-pressed')).toBe('true');
+    expect(p.shown('G1')).toEqual(['G1b']);
+    expect(p.saved()?.picks).toEqual({ G1: 'b' });
+    p.$(row('G1b')).click();
+    expect(p.saved()?.picks).toEqual({});
+    expect(p.shown('G1')).toEqual(['G1b']);
   });
 
-  it('prints the letter once: the dot carries it, the label names the ruling', () => {
-    const h = harness();
-    h.docClick({ target: h.cardB });
-    const visible = h.sum.innerHTML.replace(
-      /(data-unpick|aria-label)="[^"]*"/g,
-      '',
-    );
-    expect(visible).toContain('>b</span>G1');
-    expect(visible).not.toContain('G1b');
-  });
-});
-
-describe('the copy button', () => {
-  it('refuses a copy with zero picks, never saying Copied', async () => {
-    vi.useFakeTimers();
-    const h = harness();
-    h.docClick({ target: h.copyBtn });
-    expect(h.copyBtn.textContent).toMatch(/no picks/i);
-    expect(h.writes).toHaveLength(0);
-    await vi.advanceTimersByTimeAsync(2000);
-    expect(h.copyBtn.textContent).toBe('Copy answer');
+  it('holds one pick per ruling', () => {
+    const p = boot();
+    p.$(row('G1a')).click();
+    p.$(row('G1b')).click();
+    expect(p.saved()?.picks).toEqual({ G1: 'b' });
+    expect(p.$(row('G1a')).getAttribute('aria-pressed')).toBe('false');
   });
 
-  it('still says Copied when the clipboard settles', async () => {
-    vi.useFakeTimers();
-    const h = harness();
-    h.docClick({ target: h.cardB });
-    h.docClick({ target: h.copyBtn });
-    await vi.advanceTimersByTimeAsync(0);
-    expect(h.copyBtn.textContent).toBe('Copied');
-    expect(h.writes).toEqual(['G1b']);
+  it('hovering a row previews its picture and leaving the options restores the pick', () => {
+    const p = boot();
+    p.$(row('G2b')).click();
+    const hover = (el: HTMLElement, type: string): void => {
+      el.dispatchEvent(new p.dom.window.MouseEvent(type, { bubbles: type === 'mouseover' }));
+    };
+    hover(p.$(`${row('G2a')} .g`), 'mouseover');
+    expect(p.shown('G2')).toEqual(['G2a']);
+    expect(p.saved()?.picks).toEqual({ G2: 'b' });
+    hover(p.$('#r-G2 .opts'), 'mouseleave');
+    expect(p.shown('G2')).toEqual(['G2b']);
+    hover(p.$(`${row('G2a')} .g`), 'mouseover');
+    hover(p.$(`${row('G2n')} .ot-t`), 'mouseover');
+    expect(p.shown('G2')).toEqual(['G2b']);
   });
 
-  it('settles a hanging clipboard within a bound instead of waiting forever', async () => {
-    vi.useFakeTimers();
-    const h = harness({
-      writeText: () => new Promise<void>(() => {}),
-    });
-    h.docClick({ target: h.cardB });
-    h.docClick({ target: h.copyBtn });
-    await vi.advanceTimersByTimeAsync(1600);
-    expect(h.copyBtn.textContent).toBe(
-      'Copy failed — copy the summary by hand',
-    );
-  });
-});
-
-describe('the pick toggle', () => {
-  it('leaves the pick unchanged when the click ends a drag-select', () => {
-    const h = harness();
-    h.select('caption text selected by dragging');
-    h.docClick({ target: h.cardB });
-    expect(h.sum.innerHTML).toContain('no picks yet');
-    h.select('');
-    h.docClick({ target: h.cardB });
-    expect(h.sum.innerHTML).toContain('G1b');
-    h.select('gain text selected by dragging');
-    h.docClick({ target: h.vtB });
-    expect(JSON.parse(h.storage.get('k') ?? '{}').picks).toEqual({ G1: 'b' });
+  it('a focus preview ends when focus leaves the options', () => {
+    const p = boot();
+    p.$(row('G2a')).focus();
+    expect(p.shown('G2')).toEqual(['G2a']);
+    p.$('.rnote[data-note="G2"]').focus();
+    expect(p.shown('G2')).toEqual(['today']);
   });
 
-  it('lands a keyboard-activated pick while a selection is alive', () => {
-    const h = harness();
-    h.select('caption text selected by dragging');
-    h.keyDown({ key: 'Enter', target: h.cardB });
-    expect(h.sum.innerHTML).toContain('G1b');
-    h.keyDown({ key: ' ', target: h.cardA });
-    expect(h.sum.innerHTML).toContain('G1a');
-  });
-});
-
-describe('the row picks and shows', () => {
-  it('picks and shows on a row-body click; the second click unpicks and the view stays', () => {
-    const h = harness();
-    h.docClick({ target: h.vtB });
-    expect(h.sum.innerHTML).toContain('G1b');
-    expect(h.wrapB.getAttribute('hidden')).toBeNull();
-    expect(h.wrapToday.getAttribute('hidden')).toBe('');
-    expect(h.rowB.getAttribute('aria-current')).toBe('true');
-    expect(h.rowB.classList.contains('shown')).toBe(true);
-    h.docClick({ target: h.vtB });
-    expect(h.sum.innerHTML).toContain('no picks yet — pick a letter');
-    expect(h.wrapB.getAttribute('hidden')).toBeNull();
-    expect(h.rowB.getAttribute('aria-current')).toBe('true');
+  it('Enter on a focused row picks it', () => {
+    const p = boot();
+    p.$(row('G1b')).dispatchEvent(new p.dom.window.KeyboardEvent('keydown', { bubbles: true, key: 'Enter' }));
+    expect(p.saved()?.picks).toEqual({ G1: 'b' });
   });
 
-  it('moves the ruling’s single pick a→b: storage holds exactly one letter', () => {
-    const h = harness();
-    h.docClick({ target: h.rowA });
-    h.docClick({ target: h.rowB });
-    expect(JSON.parse(h.storage.get('k') ?? '{}').picks).toEqual({ G1: 'b' });
-    expect(h.wrapB.getAttribute('hidden')).toBeNull();
-    expect(h.wrapToday.getAttribute('hidden')).toBe('');
-    expect(h.rowA.getAttribute('aria-current')).toBeNull();
-    expect(h.rowB.getAttribute('aria-current')).toBe('true');
+  it('the Today row shows today’s picture and picks nothing', () => {
+    const p = boot();
+    p.$(row('G2a')).click();
+    p.$('#r-G2 .opt[data-look="today"]').click();
+    expect(p.shown('G2')).toEqual(['today']);
+    expect(p.saved()?.picks).toEqual({ G2: 'a' });
   });
 
-  it('picks and shows on the disc click, by mouse and by keyboard', () => {
-    const h = harness();
-    h.docClick({ target: h.discB });
-    expect(h.sum.innerHTML).toContain('G1b');
-    expect(h.wrapB.getAttribute('hidden')).toBeNull();
-    expect(h.rowB.getAttribute('aria-current')).toBe('true');
-    h.keyDown({ key: 'Enter', target: h.rowA });
-    expect(h.sum.innerHTML).toContain('G1a');
-    expect(h.wrapToday.getAttribute('hidden')).toBeNull();
-    expect(h.wrapB.getAttribute('hidden')).toBe('');
-    h.keyDown({ key: ' ', target: h.discA });
-    expect(h.sum.innerHTML).toContain('no picks yet — pick a letter');
-    expect(h.wrapToday.getAttribute('hidden')).toBeNull();
+  it('a ruling without a picture picks from its rows', () => {
+    const p = boot();
+    p.$(`${row('G5a')} .c`).click();
+    expect(p.saved()?.picks).toEqual({ G5: 'a' });
   });
 
-  it('picks from the shown picture and keeps the view', () => {
-    const h = harness();
-    h.docClick({ target: h.stage });
-    expect(h.sum.innerHTML).toContain('G1a');
-    expect(h.wrapToday.getAttribute('hidden')).toBeNull();
-    expect(h.rowA.getAttribute('aria-current')).toBe('true');
-    expect(h.rowB.getAttribute('aria-current')).toBeNull();
+  it('None of these fit picks n and leaves the picture alone', () => {
+    const p = boot();
+    p.$(`${row('G1n')} .ot-t`).click();
+    expect(p.$(row('G1n')).getAttribute('aria-pressed')).toBe('true');
+    expect(p.saved()?.picks).toEqual({ G1: 'n' });
+    expect(p.shown('G1')).toEqual(['today']);
   });
 
-  it('never picks through a fold summary', () => {
-    const h = harness();
-    h.docClick({ target: h.foldSum });
-    expect(h.sum.innerHTML).toContain('no picks yet — pick a letter');
+  it('marks the row whose picture is showing for assistive tech', () => {
+    const p = boot();
+    expect(p.$('#r-G1 .opt[data-look="today"]').getAttribute('aria-current')).toBe('true');
+    p.$(row('G1b')).click();
+    expect(p.$(row('G1b')).getAttribute('aria-current')).toBe('true');
+    expect(p.$(row('G1a')).hasAttribute('aria-current')).toBe(false);
   });
 
-  it('never picks through a fold summary on the keyboard either', () => {
-    const h = harness();
-    h.keyDown({ key: ' ', target: h.foldSum });
-    expect(h.sum.innerHTML).toContain('no picks yet — pick a letter');
-    expect(h.storage.size).toBe(0);
-    h.keyDown({ key: 'Enter', target: h.foldSum });
-    expect(h.sum.innerHTML).toContain('no picks yet — pick a letter');
-    expect(h.storage.size).toBe(0);
+  it('a click that ends a text selection picks nothing', () => {
+    const p = boot();
+    const title = p.$(`${row('G1b')} .ot-t`);
+    p.doc.getSelection()?.selectAllChildren(title);
+    title.dispatchEvent(new p.dom.window.MouseEvent('click', { bubbles: true, detail: 1 }));
+    expect(p.saved()).toBeNull();
   });
 
+  it('accept recommended picks the group’s starred letters', () => {
+    const p = boot();
+    p.$('.quick').click();
+    expect(p.saved()?.picks).toEqual({ G1: 'a' });
+  });
 });
 
 describe('restore on load', () => {
-  it('reopens the stored pick’s view', () => {
-    const storage = new Map([
-      ['k', JSON.stringify({ picks: { G1: 'b' }, onotes: {}, note: '' })],
-    ]);
-    const h = harness({ storage });
-    expect(h.wrapB.getAttribute('hidden')).toBeNull();
-    expect(h.wrapToday.getAttribute('hidden')).toBe('');
-    expect(h.rowB.getAttribute('aria-current')).toBe('true');
-    expect(h.rowB.classList.contains('shown')).toBe(true);
+  it('reopens the picked option’s picture', () => {
+    const p = boot({ stored: { [KEY]: JSON.stringify({ picks: { G1: 'b' }, onotes: {}, note: '' }) } });
+    expect(p.shown('G1')).toEqual(['G1b']);
+    expect(p.$('[data-pick="G1b"]').getAttribute('aria-pressed')).toBe('true');
   });
 
-  it('opens the first view on a none pick or with nothing stored', () => {
-    const storage = new Map([
-      ['k', JSON.stringify({ picks: { G1: 'n' }, onotes: {}, note: '' })],
-    ]);
-    const a = harness({ storage });
-    expect(a.wrapToday.getAttribute('hidden')).toBeNull();
-    expect(a.rowA.getAttribute('aria-current')).toBe('true');
-    expect(a.rowA.classList.contains('shown')).toBe(true);
-    const b = harness();
-    expect(b.wrapToday.getAttribute('hidden')).toBeNull();
-    expect(b.wrapB.getAttribute('hidden')).toBe('');
+  it('opens the first picture on a none pick', () => {
+    const p = boot({ stored: { [KEY]: JSON.stringify({ picks: { G1: 'n' }, onotes: {}, note: '' }) } });
+    expect(p.shown('G1')).toEqual(['today']);
   });
 });
 
-describe('unmet needs on the row', () => {
-  it('marks the row until its need is picked', () => {
-    const h = harness();
-    h.docClick({ target: h.discA });
-    expect(h.rowA.classList.contains('unmet')).toBe(true);
-    h.docClick({ target: h.card2 });
-    expect(h.rowA.classList.contains('unmet')).toBe(false);
+describe('the layout switch', () => {
+  it('stacks on press and remembers it across pages', () => {
+    const p = boot();
+    expect(p.doc.body.classList.contains('stacked')).toBe(false);
+    p.$('[data-layout="stacked"]').click();
+    expect(p.doc.body.classList.contains('stacked')).toBe(true);
+    expect(p.$('[data-layout="stacked"]').getAttribute('aria-pressed')).toBe('true');
+    expect(p.$('[data-layout="side"]').getAttribute('aria-pressed')).toBe('false');
+    expect(p.dom.window.localStorage.getItem(LAYOUT_KEY)).toBe('stacked');
+    const again = boot({ stored: { [LAYOUT_KEY]: 'stacked' } });
+    expect(again.doc.body.classList.contains('stacked')).toBe(true);
   });
 });
 
-describe('the none row', () => {
-  it('picks n from the row and the disc, and unpicks on the second click', () => {
-    const h = harness();
-    h.docClick({ target: h.noneRow });
-    expect(h.sum.innerHTML).toContain('data-unpick="G1n"');
-    expect(h.count.textContent).toBe('1 of 2 ruled');
-    expect(h.noneRow.getAttribute('aria-pressed')).toBe('true');
-    expect(h.noneDisc.getAttribute('aria-pressed')).toBe('true');
-    h.docClick({ target: h.noneDisc });
-    expect(h.sum.innerHTML).toContain('no picks yet');
-    expect(h.count.textContent).toBe('0 of 2 ruled');
-    expect(h.noneRow.getAttribute('aria-pressed')).toBe('false');
+describe('the answer', () => {
+  it('copies picks with their notes and unmet needs, then the page note', async () => {
+    const writes: string[] = [];
+    const p = boot({
+      writeText: t => {
+        writes.push(t);
+        return Promise.resolve();
+      },
+    });
+    p.$('[data-pick="G1b"]').click();
+    p.$('[data-pick="G2a"]').click();
+    p.type('.rnote[data-note="G1"]', 'keep it');
+    p.type('.rnote[data-note="G4"]', 'ask ops first');
+    p.type('#rulings-notes', 'ship Friday');
+    expect(p.$('#r-G2 .opt.o-a').classList.contains('unmet')).toBe(true);
+    expect(p.$('#picks').textContent).toContain('needs G1a');
+    p.$('#copy-answer').click();
+    await vi.waitFor(() => expect(p.$('#copy-answer').textContent).toBe('Copied'));
+    expect(writes).toEqual(['G1b — keep it, G2a (needs G1a), G4 — ask ops first\n\nship Friday']);
+    expect(Object.keys(p.saved() ?? {}).sort()).toEqual(['note', 'onotes', 'picks']);
   });
 
-  it('picks and unpicks from the disc on the keyboard', () => {
-    const h = harness();
-    h.keyDown({ key: 'Enter', target: h.noneDisc });
-    expect(h.sum.innerHTML).toContain('data-unpick="G1n"');
-    h.keyDown({ key: ' ', target: h.noneDisc });
-    expect(h.sum.innerHTML).toContain('no picks yet');
+  it('refuses a copy with no picks', () => {
+    const p = boot({ writeText: () => Promise.resolve() });
+    p.$('#copy-answer').click();
+    expect(p.$('#copy-answer').textContent).toBe('Nothing to copy yet — pick an option or write a note');
   });
 
-  it('never shows: it carries no view, moves no aria-current, and takes the pick', () => {
-    const h = harness();
-    h.keyDown({ key: 'Enter', target: h.rowB });
-    expect(h.rowB.getAttribute('aria-current')).toBe('true');
-    h.docClick({ target: h.noneRow });
-    expect(h.noneRow.getAttribute('data-view')).toBeNull();
-    expect(h.noneRow.classList.contains('shown')).toBe(false);
-    expect(JSON.parse(h.storage.get('k') ?? '{}').picks).toEqual({ G1: 'n' });
-    expect(h.rowB.getAttribute('aria-current')).toBe('true');
-    expect(h.wrapB.getAttribute('hidden')).toBeNull();
-  });
-});
-
-describe('the ruling note', () => {
-  function type(h: Harness, text: string): void {
-    h.rnote.value = text;
-    for (const ih of h.rnote.handlers.input ?? []) ih({ target: h.rnote });
-  }
-
-  it('rides whichever letter is picked: the same note follows b to c', async () => {
-    vi.useFakeTimers();
-    const h = harness();
-    type(h, 'carry this');
-    h.docClick({ target: h.cardB });
-    h.docClick({ target: h.copyBtn });
-    await vi.advanceTimersByTimeAsync(0);
-    expect(h.writes).toEqual(['G1b — carry this']);
-    h.docClick({ target: h.cardC });
-    h.docClick({ target: h.copyBtn });
-    await vi.advanceTimersByTimeAsync(0);
-    expect(h.writes).toEqual(['G1b — carry this', 'G1c — carry this']);
-  });
-
-  it('rides a none pick as G1n', async () => {
-    vi.useFakeTimers();
-    const h = harness();
-    type(h, 'what is wanted');
-    h.docClick({ target: h.noneRow });
-    h.docClick({ target: h.copyBtn });
-    await vi.advanceTimersByTimeAsync(0);
-    expect(h.writes).toEqual(['G1n — what is wanted']);
-  });
-
-  it('with no pick still carries nothing', () => {
-    const h = harness();
-    type(h, 'orphan');
-    h.docClick({ target: h.copyBtn });
-    expect(h.copyBtn.textContent).toMatch(/no picks/i);
-    expect(h.writes).toHaveLength(0);
-  });
-
-  it('restores from storage under the ruling key, and a per-pick key drops', () => {
-    const storage = new Map([
-      [
-        'k',
-        JSON.stringify({
-          picks: { G1: 'b' },
-          onotes: { G1: 'kept', G1a: 'stale per-pick note' },
-          note: '',
-        }),
-      ],
-    ]);
-    const h = harness({ storage });
-    expect(h.rnote.value).toBe('kept');
-    h.rnote.value = 'kept again';
-    for (const ih of h.rnote.handlers.input ?? []) ih({ target: h.rnote });
-    const raw = JSON.parse(h.storage.get('k') ?? '{}') as {
-      onotes: Record<string, string>;
-    };
-    expect(raw.onotes).toEqual({ G1: 'kept again' });
+  it('settles a hanging clipboard within its bound', async () => {
+    const p = boot({ writeText: () => new Promise(() => {}) });
+    p.$('[data-pick="G1b"]').click();
+    p.$('#copy-answer').click();
+    await vi.waitFor(
+      () => expect(p.$('#copy-answer').textContent).toBe('Copy failed — copy the summary by hand'),
+      { timeout: 3000 },
+    );
   });
 });
 
-describe('the resting strip', () => {
-  it('rests with no picks and no note, then expands on the first pick', () => {
-    const h = harness();
-    expect(h.bar.classes.contains('rest')).toBe(true);
-    h.docClick({ target: h.cardB });
-    expect(h.bar.classes.contains('rest')).toBe(false);
-    h.docClick({ target: h.cardB });
-    expect(h.bar.classes.contains('rest')).toBe(true);
+describe('the page chrome', () => {
+  it('counts ruled rulings, marks them in the sidebar and wakes the resting bar', () => {
+    const p = boot();
+    expect(p.$('#rulings-bar').classList.contains('rest')).toBe(true);
+    expect(p.$('#bar-tab').textContent).toBe('No picks yet');
+    p.$('[data-pick="G1b"]').click();
+    expect(p.$('#ruled-count').textContent).toBe('1 of 5 ruled');
+    expect(p.$('a[href="#r-G1"]').classList.contains('ruled')).toBe(true);
+    expect(p.$('#rulings-bar').classList.contains('rest')).toBe(false);
+    expect(p.$('#bar-tab').textContent).toBe('1 pick');
   });
 
-  it('does not rest over a persisted note', () => {
-    const storage = new Map([
-      ['k', JSON.stringify({ note: 'carry this', onotes: {}, picks: {} })],
-    ]);
-    const h = harness({ storage });
-    expect(h.bar.classes.contains('rest')).toBe(false);
-  });
-});
-
-describe('the narrow chip count', () => {
-  it('counts the picks on the tab, which opens and closes the bar', () => {
-    const h = harness();
-    expect(h.tab.textContent).toBe('no picks yet');
-    h.docClick({ target: h.cardB });
-    expect(h.tab.textContent).toBe('1 pick');
-    h.docClick({ target: h.card2 });
-    expect(h.tab.textContent).toBe('2 picks');
-    expect(h.bar.classes.contains('open')).toBe(false);
-    h.tabClick();
-    expect(h.bar.classes.contains('open')).toBe(true);
-    expect(h.tab.getAttribute('aria-expanded')).toBe('true');
-    expect(h.tab.textContent).toBe('close');
-    h.tabClick();
-    expect(h.bar.classes.contains('open')).toBe(false);
-    expect(h.tab.getAttribute('aria-expanded')).toBe('false');
-    expect(h.tab.textContent).toBe('2 picks');
-  });
-});
-
-describe('the sidebar ruled state', () => {
-  it('marks each ruled ruling and states N of M ruled', () => {
-    const h = harness();
-    expect(h.count.textContent).toBe('0 of 2 ruled');
-    h.docClick({ target: h.cardB });
-    expect(h.count.textContent).toBe('1 of 2 ruled');
-    expect(h.link1.classList.contains('ruled')).toBe(true);
-    expect(h.link2.classList.contains('ruled')).toBe(false);
-    h.docClick({ target: h.cardA });
-    expect(h.count.textContent).toBe('1 of 2 ruled');
-    h.docClick({ target: h.card2 });
-    expect(h.count.textContent).toBe('2 of 2 ruled');
-    expect(h.link2.classList.contains('ruled')).toBe(true);
-    h.docClick({ target: h.cardA });
-    h.docClick({ target: h.card2 });
-    expect(h.count.textContent).toBe('0 of 2 ruled');
-    expect(h.link1.classList.contains('ruled')).toBe(false);
-    expect(h.link2.classList.contains('ruled')).toBe(false);
-  });
-});
-
-describe('the narrow wayfinding pill', () => {
-  it('carries the spied ruling and hides when its section leaves', () => {
-    const h = harness();
-    const io = FakeIO.last;
-    if (io === null) throw new Error('fixture: no IntersectionObserver');
-    io.cb([{ target: h.sec1, isIntersecting: true }]);
-    expect(h.where.getAttribute('hidden')).toBeNull();
-    expect(h.where.getAttribute('href')).toBe('#r-G1');
-    expect(h.where.textContent).toContain('G1');
-    expect(h.where.textContent).toContain('Who owns a leaf block?');
-    io.cb([{ target: h.sec1, isIntersecting: false }]);
-    expect(h.where.getAttribute('hidden')).toBe('');
-  });
-});
-
-describe('the page note', () => {
-  it('grows on input', () => {
-    const h = harness();
-    h.notesIn.value = 'l1\nl2\nl3';
-    for (const ih of h.notesIn.handlers.input ?? []) ih({ target: h.notesIn });
-    expect(parseFloat(h.notesIn.style.height)).toBe(60);
-  });
-
-  it('shows whole after reload', () => {
-    const storage = new Map([
-      ['k', JSON.stringify({ note: 'l1\nl2\nl3', onotes: {}, picks: {} })],
-    ]);
-    const h = harness({ storage });
-    expect(h.notesIn.value).toBe('l1\nl2\nl3');
-    expect(parseFloat(h.notesIn.style.height)).toBe(60);
-  });
-
-  it('reaches a tall note whole within the viewport share', () => {
-    const lines = Array.from({ length: 12 }, (_, i) => `l${i}`).join('\n');
-    const storage = new Map([
-      ['k', JSON.stringify({ note: lines, onotes: {}, picks: {} })],
-    ]);
-    const h = harness({ storage });
-    expect(h.notesIn.value.split('\n')).toHaveLength(12);
-    expect(parseFloat(h.notesIn.style.height)).toBe(240);
-  });
-
-  it('caps the autogrow at the viewport share, not a fixed pixel height', () => {
-    const lines = Array.from({ length: 100 }, (_, i) => `l${i}`).join('\n');
-    const storage = new Map([
-      ['k', JSON.stringify({ note: lines, onotes: {}, picks: {} })],
-    ]);
-    const h = harness({ storage });
-    expect(parseFloat(h.notesIn.style.height)).toBe(680);
-  });
-});
-
-describe('persistence', () => {
-  it('keeps the storage shape {picks, onotes, note}', () => {
-    const h = harness();
-    h.docClick({ target: h.cardB });
-    h.rnote.value = 'ruling note';
-    for (const ih of h.rnote.handlers.input ?? []) ih({ target: h.rnote });
-    h.notesIn.value = 'page note';
-    for (const ih of h.notesIn.handlers.input ?? []) ih({ target: h.notesIn });
-    const raw = JSON.parse(h.storage.get('k') ?? '{}') as Record<
-      string,
-      unknown
-    >;
-    expect(Object.keys(raw).sort()).toEqual(['note', 'onotes', 'picks']);
-    expect(raw.picks).toEqual({ G1: 'b' });
-    expect(raw.onotes).toEqual({ G1: 'ruling note' });
-    expect(raw.note).toBe('page note');
+  it('marks the ruling in view and names it on the narrow pill', () => {
+    let cb: Spy = () => {};
+    const p = boot({ spy: c => (cb = c) });
+    const g4 = p.$('#r-G4');
+    cb([{ isIntersecting: true, target: g4 }]);
+    expect(p.$('a[href="#r-G4"]').classList.contains('here')).toBe(true);
+    expect(p.$('#rulings-where').hasAttribute('hidden')).toBe(false);
+    expect(p.$('#rulings-where').textContent).toBe('G4 · Who re-arms a reader’s window after a daemon restart?');
+    cb([{ isIntersecting: false, target: g4 }]);
+    expect(p.$('#rulings-where').hasAttribute('hidden')).toBe(true);
   });
 });

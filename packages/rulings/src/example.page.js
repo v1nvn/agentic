@@ -122,17 +122,19 @@ var PAGE = {
         cap: "<b>Today the receipt has no line for the 10 blocks that paid nobody.</b>",
         views: {
           today: {
-            html: '<div class="rcpt" style="font: 12.5px var(--mono); color: var(--ink); background: var(--paper); border: 1px solid var(--rule); border-radius: 8px; padding: 12px 16px; min-width: 260px">' +
-              '<div style="display: flex; justify-content: space-between; gap: 24px"><span>Reader [40, 50)</span><span>2,400</span></div>' +
-              '<div style="display: flex; justify-content: space-between; gap: 24px; color: var(--muted)"><span>Paid to owners</span><span>1,200</span></div>' +
+            html: '<div style="font: var(--s)/1.5 var(--mono); width: 300px">' +
+              '<div style="font: 600 var(--s) var(--sans); color: var(--muted); padding-bottom: 6px">Receipt</div>' +
+              '<div style="display: flex; justify-content: space-between; gap: 32px; padding: 6px 0; border-top: 1px solid var(--rule)"><span>Reader [40, 50)</span><span>2,400</span></div>' +
+              '<div style="display: flex; justify-content: space-between; gap: 32px; padding: 6px 0; border-top: 1px solid var(--rule); color: var(--muted)"><span>Paid to owners</span><span>1,200</span></div>' +
               '</div>'
           },
           a: {
             cap: "<b>The receipt names the 10 blocks that paid nobody.</b>",
-            html: '<div class="rcpt" style="font: 12.5px var(--mono); color: var(--ink); background: var(--paper); border: 1px solid var(--rule); border-radius: 8px; padding: 12px 16px; min-width: 260px">' +
-              '<div style="display: flex; justify-content: space-between; gap: 24px"><span>Reader [40, 50)</span><span>2,400</span></div>' +
-              '<div style="display: flex; justify-content: space-between; gap: 24px; color: var(--muted)"><span>Paid to owners</span><span>1,200</span></div>' +
-              '<div style="display: flex; justify-content: space-between; gap: 24px; color: var(--o); font-weight: 600"><span>10 blocks with no owner</span><span>0</span></div>' +
+            html: '<div style="font: var(--s)/1.5 var(--mono); width: 300px">' +
+              '<div style="font: 600 var(--s) var(--sans); color: var(--muted); padding-bottom: 6px">Receipt</div>' +
+              '<div style="display: flex; justify-content: space-between; gap: 32px; padding: 6px 0; border-top: 1px solid var(--rule)"><span>Reader [40, 50)</span><span>2,400</span></div>' +
+              '<div style="display: flex; justify-content: space-between; gap: 32px; padding: 6px 0; border-top: 1px solid var(--rule); color: var(--muted)"><span>Paid to owners</span><span>1,200</span></div>' +
+              '<div style="display: flex; justify-content: space-between; gap: 32px; padding: 6px 0; border-top: 1px solid var(--rule); color: var(--o); font-weight: 600"><span>10 blocks with no owner</span><span>0</span></div>' +
               '</div>'
           }
         }

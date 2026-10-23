@@ -4,9 +4,9 @@ Rulings is a quick bridge between the agent and whoever rules. The decision
 turns on code the reader does not hold in their head — rarely the whole system,
 often not even the part being worked — and the page closes that gap with
 evidence: how the part works today, and what each option changes. The evidence
-is title, stake, `today` and a verdict table for every ruling; a picture — a
+is title, stake, `today` and lettered options for every ruling; a picture — a
 code diff, a sequence diagram, a free HTML or SVG figure — joins only when a gain or
-cost cannot be checked from the table alone. The reader gets it, rules in chat,
+cost cannot be checked from the options alone. The reader gets it, rules in chat,
 and nothing is written until the ruling lands.
 
 The floors a change may not regress:

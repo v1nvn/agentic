@@ -4,10 +4,16 @@ import vm from 'node:vm';
 import { describe, expect, it } from 'vitest';
 
 import { bodiesOption, bodiesToday } from '../src/bodies.ts';
+import type { Stage } from '../src/html.ts';
 import { figureView } from '../src/figure.ts';
 import { seqView } from '../src/seq.ts';
 import { validatePage, type Page, type Ruling } from '../src/schema.ts';
 import { pageCss } from '../src/style.ts';
+
+function drawn<A extends unknown[]>(emit: (...a: A) => Stage | undefined, ...a: A): string {
+  const s = emit(...a);
+  return s === undefined ? '' : `${s.cap}\n${s.body}`;
+}
 
 function example(): Page {
   const text = readFileSync(
@@ -38,7 +44,7 @@ describe('the example page', () => {
 describe('seq view', () => {
   it('pins the today stage: lanes, ledger, start row, legend, no tags, no verdict', () => {
     const P = example();
-    const html = seqView(P.rulings.G1, 'G1', 'today');
+    const html = drawn(seqView, P.rulings.G1, 'G1', 'today');
     expect(html).toMatchSnapshot();
     expect(html).toContain('class="balh"');
     expect(html).toContain('>start</text>');
@@ -49,7 +55,7 @@ describe('seq view', () => {
 
   it('pins the option stage: overlay expansion, changed tag, band, per-view cap', () => {
     const P = example();
-    const html = seqView(P.rulings.G1, 'G1', 'G1b');
+    const html = drawn(seqView, P.rulings.G1, 'G1', 'G1b');
     expect(html).toMatchSnapshot();
     expect(html).toContain('tg-changed');
     expect(html).toContain('class="band"');
@@ -61,19 +67,19 @@ describe('seq view', () => {
     const P = example();
     const nums = (html: string): string[] =>
       [...html.matchAll(/class="num"[^>]*>(\d+)<\/text>/g)].map(m => m[1]);
-    const today = seqView(P.rulings.G4, 'G4', 'today');
+    const today = drawn(seqView, P.rulings.G4, 'G4', 'today');
     expect(nums(today)).toEqual(['1', '2', '3', '4']);
     expect(today).toContain('class="ghost"');
     expect(today).toContain('only in a');
-    const a = seqView(P.rulings.G4, 'G4', 'G4a');
+    const a = drawn(seqView, P.rulings.G4, 'G4', 'G4a');
     expect(a).not.toContain('class="ghost"');
     expect(nums(a)).toEqual(['2', '3', '4']);
-    expect(nums(seqView(P.rulings.G1, 'G1', 'G1b'))).toEqual(['2', '5']);
+    expect(nums(drawn(seqView, P.rulings.G1, 'G1', 'G1b'))).toEqual(['2', '5']);
   });
 
   it('draws only an option’s delta rows, at their true chain numbers', () => {
     const P = example();
-    const html = seqView(P.rulings.G1, 'G1', 'G1b');
+    const html = drawn(seqView, P.rulings.G1, 'G1', 'G1b');
     expect(html).toContain('bands [30, 40) and [40, 50)');
     expect(html).toContain('holder half goes to Paul’s leaf band');
     expect(html).not.toContain('pays 2,400 for the reader');
@@ -96,8 +102,8 @@ describe('seq view', () => {
         steps: [{ f: 0, k: 'call', t: 1, x: 'hi' }],
       },
     };
-    expect(seqView(q, 'G9', 'G9a')).not.toContain('aria-label');
-    expect(seqView(q, 'G9', 'today')).not.toContain('aria-label');
+    expect(drawn(seqView, q, 'G9', 'G9a')).not.toContain('aria-label');
+    expect(drawn(seqView, q, 'G9', 'today')).not.toContain('aria-label');
   });
 
   it('threads the ledger through undrawn steps so drawn balances are true', () => {
@@ -123,7 +129,7 @@ describe('seq view', () => {
         ],
       },
     };
-    const html = seqView(q, 'G9', 'G9b');
+    const html = drawn(seqView, q, 'G9', 'G9b');
     expect(html).not.toContain('base write');
     expect(html).toMatch(
       />read<\/text>(?:<\/g>)+<text class="bal"[^>]*>5<\/text>/,
@@ -137,7 +143,7 @@ describe('seq view', () => {
     s.steps[0].in = ['b'];
     s.steps[2].o = { b: { a: 'del' } };
     expect(validatePage(P).errors).toEqual([]);
-    const html = seqView(P.rulings.G1, 'G1', 'G1b');
+    const html = drawn(seqView, P.rulings.G1, 'G1', 'G1b');
     expect(html).toContain('tg-new');
     expect(html).toContain('tg-gone');
     expect(html).toContain('class="gone"');
@@ -148,89 +154,66 @@ describe('seq view', () => {
 describe('bodies view', () => {
   it('pins the today stage: shown once, what label, cap cites the real quiet, no diff', () => {
     const P = example();
-    const html = bodiesToday(P.rulings.G2);
+    const html = drawn(bodiesToday, P.rulings.G2);
     expect(html).toMatchSnapshot();
     expect(html).toContain('The quiet walk core runs on every command, today.');
     expect(html).toContain('<code>core/src/cli.ts:139-189</code>');
     expect(html).not.toContain('diff vs today');
-    expect(html).toContain('<div class="body is-today">');
-    expect(html).toContain('<div class="tag"><span>built today</span>');
-    expect(html).not.toContain('<span class="lt">');
+    expect(html).toContain('<div class="btag"><span>built today</span>');
     expect(html).not.toContain('data-pick');
   });
 
-  it('pins the option diff: its own body only, prism tokens, needs chip, collapsed runs', () => {
+  it('pins the option diff: its own body only, prism tokens, every unchanged line shown', () => {
     const P = example();
-    const html = bodiesOption(P.rulings.G2, 'G2a');
+    const html = drawn(bodiesOption, P.rulings.G2, 'G2a');
     expect(html).toMatchSnapshot();
     expect(html).toContain('token keyword');
     expect(html).toContain('diff vs today');
-    expect(html).toContain('<div class="tag"><span>planned</span><span class="dleg">diff vs today</span>');
-    expect(html).not.toContain('<span class="lt">');
-    expect(html).toContain('⋯ 33 unchanged lines');
+    expect(html).toContain('<div class="btag"><span>planned</span><span>diff vs today</span>');
+    expect(html).not.toContain('unchanged lines');
+    expect(html.match(/class="dl same"/g)?.length).toBeGreaterThan(30);
     expect(html).not.toContain('The quiet walk core runs on every command');
   });
 
   it('pins the sketch body: state chip, no diff', () => {
     const P = example();
-    const html = bodiesOption(P.rulings.G2, 'G2b');
+    const html = drawn(bodiesOption, P.rulings.G2, 'G2b');
     expect(html).toMatchSnapshot();
     expect(html).toContain('sketch — feasibility not checked');
     expect(html).not.toContain('diff vs today');
-    expect(html).not.toContain('<span class="lt">');
   });
 
-  it('collapses unchanged runs at seven lines, not six', () => {
-    function diffCase(lineCount: number): string {
-      const lines = Array.from({ length: lineCount }, (_, i) => `v${i}();`);
-      const after = [...lines.slice(0, -1), `v${lineCount - 1}(1);`].join('\n');
-      const q: Ruling = {
-        bodies: {
-          a: { lang: 'js', code: after },
-          today: { lang: 'js', code: lines.join('\n') },
-        },
-        opts: [{ c: 'c', g: 'g', k: 'a', t: 't' }],
-      };
-      return bodiesOption(q, 'G9a');
-    }
-    expect(diffCase(8)).toContain('unchanged lines');
-    expect(diffCase(7)).not.toContain('unchanged lines');
-  });
+
 });
 
 describe('figure view', () => {
   it('pins the today stage and an option stage: markup inserted as written, cap', () => {
     const q = example().rulings.G6;
-    expect(figureView(q, 'today')).toMatchSnapshot();
-    const a = figureView(q, 'G6a');
+    expect(drawn(figureView, q, 'today')).toMatchSnapshot();
+    const a = drawn(figureView, q, 'G6a');
     expect(a).toMatchSnapshot();
-    expect(a).toContain('<div class="stage figure"><div class="fig"><div class="rcpt"');
+    expect(a).toContain('<b>The receipt names the 10 blocks that paid nobody.</b>\n<div class="fig"><div style=');
     expect(a).not.toContain('data-pick');
   });
 });
 
 describe('the picture surfaces', () => {
-  it('scopes the today measure to the head paragraph so it cannot land on a view', () => {
-    expect(pageCss).toMatch(/p\.today\s*\{[^}]*max-width: 68ch/);
-    expect(pageCss).not.toMatch(/(^|\})\s*\.today\s*\{/);
-  });
-
   it('names each seq svg by its own view caption, not the ruling base cap', () => {
     const P = example();
-    expect(seqView(P.rulings.G1, 'G1', 'G1b')).toContain(
+    expect(drawn(seqView, P.rulings.G1, 'G1', 'G1b')).toContain(
       'aria-label="All 20 paid leaf blocks have an owner. The read pays Paul."',
     );
-    expect(seqView(P.rulings.G1, 'G1', 'today')).toContain(
+    expect(drawn(seqView, P.rulings.G1, 'G1', 'today')).toContain(
       'aria-label="Today 10 paid leaf blocks have no owner. A read of them pays no holder."',
     );
   });
 
   it('carries the changes legend key only on a view that changes rows', () => {
     const P = example();
-    expect(seqView(P.rulings.G1, 'G1', 'G1b')).toContain(
+    expect(drawn(seqView, P.rulings.G1, 'G1', 'G1b')).toContain(
       'what this option changes',
     );
-    expect(seqView(P.rulings.G1, 'G1', 'today')).not.toContain(
+    expect(drawn(seqView, P.rulings.G1, 'G1', 'today')).not.toContain(
       'what this option changes',
     );
     const q: Ruling = {
@@ -243,9 +226,9 @@ describe('the picture surfaces', () => {
         steps: [{ f: 0, k: 'call', o: { a: { x: 'only a changes' } }, t: 1, x: 'hi' }],
       },
     };
-    expect(seqView(q, 'G9', 'G9a')).toContain('what this option changes');
-    expect(seqView(q, 'G9', 'G9b')).not.toContain('what this option changes');
-    expect(seqView(q, 'G9', 'today')).not.toContain('what this option changes');
+    expect(drawn(seqView, q, 'G9', 'G9a')).toContain('what this option changes');
+    expect(drawn(seqView, q, 'G9', 'G9b')).not.toContain('what this option changes');
+    expect(drawn(seqView, q, 'G9', 'today')).not.toContain('what this option changes');
   });
 });
 
@@ -260,12 +243,4 @@ describe('page styles and theme door', () => {
     expect(pageCss).toContain('prefers-color-scheme: dark');
     expect(pageCss).not.toContain('data-theme');
   });
-
-  it('styles the table and the compare box, not the old view cards or a tab strip', () => {
-    expect(pageCss).toMatch(/\.vtable \{[^}]*border: 1px solid var\(--rule\)/);
-    expect(pageCss).toMatch(/\.compare \{[^}]*border: 1px solid var\(--rule\)/);
-    expect(pageCss).toMatch(/\.compare \.stage \{ border: 0/);
-    expect(pageCss).not.toMatch(/\.views|\.vtt|\.vmeta|\.gc \.|\.tabs|\.tl\b/);
-  });
 });
-

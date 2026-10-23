@@ -12,7 +12,7 @@ the repo until the owner has ruled.
 Every option is argued as hard as the recommended one: a gain and a cost of the same weight,
 each checkable. An option not worth that goes in the notes.
 
-The page renders on its own — every verdict table, fold and picture view needs no server — and a
+The page renders on its own — every options list and picture view needs no server — and a
 composer bar turns the owner's picks into an answer to paste in chat. The page assists; chat remains
 the channel the answer comes back on.
 
@@ -50,8 +50,8 @@ past ten the owner stops reading, and the build refuses the page.
 2. Pick a real case for each ruling (a simple one and a complex one across the page). Use real
    values; say what is built and what is planned.
 3. For each ruling write its **today**: how the part this ruling touches works, for someone
-   who has never seen the system. Two sentences show and the rest folds behind `the rest`;
-   make the shown two stand alone. Adapt it to the ruling: only the parties, steps
+   who has never seen the system, in two or three sentences: the page shows all of it, right
+   after the stake, as one paragraph. Adapt it to the ruling: only the parties, steps
    and terms this ruling needs. Never paste one shared description into every ruling.
 
 Never invent a value that exists in the repo. A value nobody measured is a placeholder in
@@ -63,7 +63,7 @@ about today that no anchor backs is checked against the code before it goes on t
 
 ## Step 3 — Choose what each ruling shows
 
-Every ruling is title, stake, `today` and the verdict table. Add a picture only when a gain or
+Every ruling is title, stake, `today` and its options. Add a picture only when a gain or
 cost cannot be checked from its fragment alone, and take the first kind that can draw it:
 
 | When the ruling turns on… | Use | Field |
@@ -78,7 +78,8 @@ view draws only its delta rows on the shared lanes and ledger. A step only some 
 (`in: ["a"]`) keeps its chain number everywhere: today draws it as a quiet dashed row tagged
 `only in a`, and the option's view draws it for real.
 
-Before drawing a figure, load the `artifact-diagramming` skill — and `dataviz` for a chart,
+The card around a figure is its frame: draw no border, card or background of your own. Before
+drawing a figure, load the `artifact-diagramming` skill — and `dataviz` for a chart,
 `artifact-design` for a screen or layout — and draw by its rules; when one is not installed,
 draw without it. Paint only with the page's tokens, because the page follows the owner's light
 or dark theme and a literal colour breaks one of them: `var(--ink)`, `--muted`, `--rule`,
@@ -97,8 +98,8 @@ each other's options are not a page: settle them in chat (Step 0).
 - **Title**: the decision as a question ("Who owns a leaf block inside its reader's window?"). It
   is the only name: the answer table shows it.
 - **Stake**: one bold sentence. Who loses what, how often, who would notice, on a real value.
-- **Today**: how this part works now, in plain words, up to the point where it breaks. Two
-  sentences show before the fold; no case values: the fragments carry those.
+- **Today**: how this part works now, in plain words, up to the point where it breaks. Two or
+  three sentences that read on from the stake; no case values: the fragments carry those.
   Each new term gets one plain line here.
 - Say each fact once, in the block that owns it: the stake owns the loss, `today` owns the
   mechanism, the picture owns the numbers, the options own code and test consequences. Keep it
@@ -106,8 +107,8 @@ each other's options are not a page: settle them in chat (Step 0).
 - **Picture**, when Step 3 gave the ruling one: a view for **every** option, a one-line caption
   that opens with its conclusion — never with the option's name; the row already names it — and
   `today: true` on the option that leaves things as they are.
-- **Options**: two to four, lettered. The verdict table is each option's one home: its letter
-  disc, title, `★ recommended` / `as today` / `needs` chips, its **gain** and **cost** as aligned
+- **Options**: two to four, lettered. The options list is each option's one home: its letter
+  disc, title, `★ recommended` / `as today` / `needs` tags, its **gain** and **cost**
   fragments, each checkable on the ruling's evidence. Nothing an option says renders twice.
   Exactly one option is recommended.
 
@@ -155,21 +156,21 @@ I recommend <G1a, G2c>. Most important fact from the code: <fact, file:line>.
 Not rulings: <X, because Y>.
 ```
 
-The owner answers on the page or in chat; both read verbatim. On the page: clicking an option's
-row — its body or its letter disc — picks it, and shows the ruling's picture when it has one;
-clicking the same row again unpicks, the picture stays. The shown picture picks its option too,
-and a reload reopens the picked option's picture. The verdict table's last row, none of these
-fit, picks `n` the same way (click again to unpick) for a ruling whose options all miss, and a
-quick group's accept-recommended button picks its starred letters.
-Each ruling carries one note input under its options — its text rides the answer inline after
-that ruling's pick, whatever letter is picked — and the
+The owner answers on the page or in chat; both read verbatim. On the page, a ruling's options sit
+beside its picture (or above it — the owner's layout switch). Clicking an option picks it and
+shows its picture; clicking it again unpicks. Hovering or focusing an option previews its
+picture without picking, and a Today row previews today's when no option keeps it. A reload
+reopens the picked option's picture. The last option, **None of these fit**, picks `n` for a
+ruling whose options all miss, and a quick group's accept-recommended button picks its starred
+letters. Each ruling carries one note at the bottom of its card — its text rides the answer
+inline after that ruling's pick, or alone as `G4 — its note` when nothing is picked — and the
 composer bar's page note rides after a blank line. The composer annotates a pick whose `needs`
 target is unpicked as `(needs …)`, and Copy puts the whole answer on the clipboard to paste in
 chat: `G2a — its note, G3b (needs G3a) — its note`, blank line, page note. Picks and both note
 kinds persist per page under its `key`, so a reload keeps them. In chat the owner types picks like
 `G1a, G2c` and notes like `G6 note: …`; `G2n` means none
 of these fit, and its note says what is wanted. A note overrides the pick for that ruling. A
-ruling missing from the answer is still open. Never treat your recommendation as the owner's
+ruling with no pick is still open, even when its note rides the answer. Never treat your recommendation as the owner's
 answer. A root pick that moves a recommendation is announced before the next question.
 
 **A decision the owner can rule from one line, in chat** — AskUserQuestion, not a page: one
@@ -206,7 +207,7 @@ Then: `Written: <G1a, G2c>. Nothing is committed. <file>: <what changed>. One th
 |---|---|---|
 | `eyebrow`, `title`, `sub` | title, sub | Repo and thread; two or three words; one sentence ending "Nothing is written until you rule." |
 | `key` | no | a stable slug for the topic; the composer's picks and notes persist in the browser under it. |
-| `notes` | no | `[{ html }]`: a bold lead, then "Not rulings" and what you decided — the lead stays in view, the rest folds. |
+| `notes` | no | `[{ html }]`: a bold lead, then "Not rulings" and what you decided; every note shows whole. |
 | `groups` | yes | `[{ id, label, quick, rulings: ["G1"] }]`: the label heads the group; `quick: true` gives the group's rulings an accept-recommended button. |
 | `rulings` | yes | One entry per id. |
 
@@ -215,7 +216,7 @@ only when the ruling earned a picture (Step 3) — `opts` (2 to 4), and after a 
 or `merged` (needs only `title`, `merged`, `changed`).
 
 An option: `k` (one lowercase letter, not `n`), `t`, `rec` (on exactly one), `today` (on at most
-one), `w` (how it works — one muted line at the end of the option's verdict row), `g` and `c`
+one), `w` (how it works — one muted line at the end of the option's row), `g` and `c`
 (gain and cost — one fragment each, checkable on the ruling's evidence), `needs`. A pictured
 ruling gives every live option a view: a `seq` view, a `bodies` entry under its letter, or a
 figure view.
@@ -250,9 +251,10 @@ option view.
 `bodies: { today: { state, code, cap, what, lang }, b: {…} }`. `state` is "built today",
 "plan as written" or "sketch" (feasibility not checked). `lang`: `ts`, `js`, `json`, `bash`,
 `markup`, `css`. Write an option's after-code **in full**; the builder diffs it against today
-(added lines green, removed red, long unchanged runs collapsed). `diff: false` shows the option's
-body whole and unmarked — use it when the body is not the same code as today's. A today body past
-20 lines folds behind a `show all N lines` expander; option bodies render whole. `cap` names a
+(added lines green, removed red, every unchanged line shown, so cut the body to the lines the
+ruling turns on). `diff: false` shows the option's
+body whole and unmarked — use it when the body is not the same code as today's. Every body
+renders whole, so cut a long one to the lines the ruling turns on. `cap` names a
 cut body's source; `what` labels the body above it.
 
 ### Figure

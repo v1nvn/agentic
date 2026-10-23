@@ -1,6 +1,6 @@
 import type { Overlay, Ruling, Seq, Step } from './schema.ts';
 
-import { esc, stripTags } from './html.ts';
+import { esc, type Stage, stripTags } from './html.ts';
 import { KINDS } from './schema.ts';
 
 const KIND_TEXT: Record<(typeof KINDS)[number], string> = {
@@ -69,6 +69,7 @@ function legendHtml(d: Seq, hasDeltas: boolean): string {
 }
 
 const GHOST_H = 28;
+const SCROLL_FLOOR = 600;
 
 // The ledger runs silently through every step that happens in the view —
 // drawn or not — so a drawn row shows the true balance at its true chain
@@ -120,7 +121,7 @@ function seqSvg(d: Seq, owner: string, view: string, cap: string): string {
     return 40 + (s ? 14 : 0) + (ov?.n ? 16 : 0);
   });
   const H = top + rows.reduce((a, b) => a + b, 0) + 12;
-  let out = `<svg class="seq" viewBox="0 0 ${W} ${H}" style="min-width:${Math.min(W, 760)}px" role="img"${cap ? ` aria-label="${esc(stripTags(cap))}"` : ''}>`;
+  let out = `<svg class="seq" viewBox="0 0 ${W} ${H}" style="min-width:${Math.min(W, SCROLL_FLOOR)}px" role="img"${cap ? ` aria-label="${esc(stripTags(cap))}"` : ''}>`;
   if (nb) {
     out += `<rect class="ledger-bg" x="${lanesW + gap - 6}" y="8" width="${nb * BW + 12}" height="${H - 14}" rx="4"/>`;
   }
@@ -257,18 +258,21 @@ function seqSvg(d: Seq, owner: string, view: string, cap: string): string {
   return out + '</svg>';
 }
 
-export function seqView(q: Ruling, id: string, view: string): string {
+export function seqView(
+  q: Ruling,
+  id: string,
+  view: string,
+): Stage | undefined {
   const d = q.seq;
   if (d === undefined) {
-    return '';
+    return undefined;
   }
   const capKey = Object.keys(d.caps ?? {}).find(k => full(k, id) === view);
   const cap = capKey === undefined ? d.cap : d.caps?.[capKey];
   const hasDeltas =
     view !== 'today' && d.steps.some(st => drawnIn(st, view, id));
-  return (
-    `<div class="stage">${legendHtml(d, hasDeltas)}<div class="scroll">${seqSvg(d, id, view, cap ?? '')}</div>` +
-    (cap ? `<p class="cap">${cap}</p>` : '') +
-    '</div>'
-  );
+  return {
+    body: `${legendHtml(d, hasDeltas)}<div class="scroll">${seqSvg(d, id, view, cap ?? '')}</div>`,
+    cap: cap ?? '',
+  };
 }

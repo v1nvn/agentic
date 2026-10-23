@@ -1,13 +1,6 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`the emitted page > builds a table-only ruling green: w rides its verdict row, no picture region 1`] = `
-"id="r-G1"><div class="rhead"><span class="rid">G1</span><h3>Ship the ruling as a bare table?</h3></div><p class="stake">About 3 rulings a month draw an empty box for a table-only answer.</p><p class="today">Today every ruling draws a picture box, even when no picture earned it.</p><div class="vtable"><div class="vhead"><span>option</span><span>gain</span><span>cost</span></div><div class="vrow o-a" data-view="G1a" tabindex="0"><button type="button" class="lt disc o-a" data-pick="G1a" aria-label="pick G1a">a</button><span class="vt">Bare table<span class="vchips"> <span class="star">★ recommended</span></span><span class="pmark">✓ picked</span></span><span class="vg">a table-only ruling renders bare</span><span class="vc">the row carries the how line</span><span class="how">the gain names the file, the row says why</span></div><div class="vrow o-b" data-view="today" tabindex="0"><button type="button" class="lt disc o-b" data-pick="G1b" aria-label="pick G1b">b</button><span class="vt">Keep the box<span class="vchips"> <span class="asr">as today</span></span><span class="pmark">✓ picked</span></span><span class="vg">the frame is always there</span><span class="vc">an empty bordered box</span><span class="how">the empty frame is the cost the owner sees</span></div><div class="vrow none" data-pick="G1n"><button type="button" class="lt disc none" data-pick="G1n" aria-label="pick G1n">n</button><span class="vt">none of these fit<span class="pmark">✓ picked</span></span></div><div class="vfoot"><input class="rnote" data-note="G1" placeholder="note for G1 — anything its answer should carry" aria-label="note for G1"></div></div></section>
-</main>
-</div>
-"
-`;
-
-exports[`the emitted page > pins the example full HTML: sidebar, sections, table, compare, notes, merged note 1`] = `
+exports[`the emitted page > pins the example full HTML 1`] = `
 "<!doctype html>
 <html lang="en">
 <head>
@@ -21,13 +14,14 @@ exports[`the emitted page > pins the example full HTML: sidebar, sections, table
   --opt-a: #3b5bdb; --opt-b: #9c36b5; --opt-c: #c2255c; --opt-d: #2b8a3e;
   --add: #1a7f37; --del: #cf222e; --k-call: #1b2130; --k-money: #a15c07; --k-store: #0b7285; --k-check: #6b7280; --k-fail: #c92a2a;
   --tk-kw: #7048b6; --tk-str: #2f7d4f; --tk-com: #87907e; --tk-num: #a15c07; --tk-fn: #1c66c9; --tk-cls: #0b7285;
-  --serif: Georgia, "Times New Roman", serif;
   --sans: system-ui, -apple-system, "Segoe UI", sans-serif;
   --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  --mono-s: 11px;
-  --mono-l: 12.5px;
+  --t: 20px; --b: 14px; --s: 12.5px;
+  --r: 8px; --r-s: 4px;
+  --measure: 760px;
+  --gap-s: 16px; --gap-m: 24px; --gap-l: 40px;
+  --side: 228px;
   --o: var(--ink);
-  --rail: 3px;
 }
 @media (prefers-color-scheme: dark) {
   :root {
@@ -42,138 +36,124 @@ exports[`the emitted page > pins the example full HTML: sidebar, sections, table
 
 * { box-sizing: border-box; }
 html { background: var(--paper); scroll-behavior: smooth; }
-body { margin: 0; background: var(--paper); color: var(--ink); font: 14.5px/1.55 var(--sans); }
-code { font: 0.86em var(--mono); background: var(--code); border: 1px solid var(--rule); padding: 0 4px; border-radius: 3px; overflow-wrap: anywhere; }
-h1, h3 { margin: 0; font-family: var(--serif); font-weight: 600; line-height: 1.18; text-wrap: balance; }
-h2 { margin: 0; font: 600 var(--mono-s) var(--mono); letter-spacing: 0.08em; color: var(--muted); }
-p { margin: 0; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: var(--b)/1.55 var(--sans); }
+h1, h2, h3, p { margin: 0; }
+b, strong { font-weight: 600; }
+code { font-family: var(--mono); background: var(--code); padding: 0 4px; border-radius: var(--r-s); overflow-wrap: anywhere; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } html { scroll-behavior: auto; } }
 
-.side { position: fixed; top: 0; bottom: 0; left: 0; width: 228px; padding: 22px 14px 90px; border-right: 1px solid var(--rule); background: var(--paper); overflow-y: auto; overscroll-behavior: contain; }
-.doc { margin-left: 228px; }
-.col-in { max-width: 880px; margin: 0 auto; padding: 0 34px 110px; }
-section[id^="r-"] { scroll-margin-top: 14px; }
+.side { position: fixed; inset: 0 auto 0 0; width: var(--side); padding: 20px 14px 96px; border-right: 1px solid var(--rule); overflow-y: auto; overscroll-behavior: contain; font-size: var(--s); }
+.layout { display: flex; gap: 2px; padding: 2px; margin-bottom: 18px; border: 1px solid var(--rule); border-radius: var(--r); }
+.layout button { flex: 1; padding: 4px 0; border: 0; border-radius: var(--r-s); background: none; color: var(--muted); cursor: pointer; }
+.layout button[aria-pressed="true"] { background: var(--sheet); color: var(--ink); font-weight: 600; }
+.scount { color: var(--muted); padding: 0 8px 12px; }
+.sg { margin-bottom: 14px; }
+.sg h2 { display: flex; justify-content: space-between; padding: 0 8px 4px; font: 600 var(--s) var(--sans); color: var(--muted); }
+.rl { display: flex; gap: 8px; align-items: baseline; padding: 4px 8px; border-radius: var(--r-s); color: var(--muted); text-decoration: none; }
+.rl .gid { flex: none; font-family: var(--mono); }
+.rl .t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rl:hover { color: var(--ink); background: color-mix(in srgb, var(--ink) 5%, transparent); }
+.rl.here { color: var(--ink); background: var(--sheet); }
+.rl.merged .t { font-style: italic; }
+.rl.ruled { color: var(--ink); }
+.rl.ruled::after { content: "✓"; margin-left: auto; flex: none; color: var(--add); }
 
-.masthead { padding-block: 34px 10px; }
-.eyebrow { font: var(--mono-s) var(--mono); color: var(--muted); }
-.masthead h1 { font-size: 31px; letter-spacing: -0.01em; margin-top: 6px; }
-.masthead .sub { color: var(--muted); max-width: 64ch; margin-top: 8px; font-size: 14.5px; }
+.where { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); z-index: 9; display: none; max-width: calc(100vw - 24px); padding: 6px 14px; border: 1px solid var(--rule); border-radius: var(--r); background: var(--sheet); color: var(--ink); font-size: var(--s); text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; box-shadow: 0 6px 24px color-mix(in srgb, var(--ink) 12%, transparent); }
 
-.side .scount { font: 600 var(--mono-s) var(--mono); letter-spacing: 0.04em; color: var(--muted); padding: 0 8px 14px; }
-.side .sg { margin-bottom: 16px; }
-.side .sg h2 { padding: 0 8px 5px; display: flex; justify-content: space-between; }
-.side .sg h2 .n { letter-spacing: 0; }
-.side a.rl { display: flex; gap: 8px; align-items: baseline; padding: 3.5px 8px; border-radius: 5px; text-decoration: none; color: var(--muted); font: 13px/1.35 var(--sans); }
-.side a.rl .gid { font: 600 var(--mono-s) var(--mono); color: var(--muted); flex: none; }
-.side a.rl .t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.side a.rl:hover { color: var(--ink); background: color-mix(in srgb, var(--ink) 5%, transparent); }
-.side a.rl.here { color: var(--ink); background: var(--sheet); box-shadow: inset var(--rail) 0 0 var(--ink); }
-.side a.rl.merged .t { font-style: italic; }
-.side a.rl.ruled { color: var(--ink); }
-.side a.rl.ruled .gid { color: var(--ink); }
-.side a.rl.ruled::after { content: "✓"; margin-left: auto; flex: none; font: 700 var(--mono-s) var(--mono); color: var(--add); }
+.doc { margin-left: var(--side); }
+.doc-in { max-width: 1240px; margin: 0 auto; padding: 32px 32px 140px; }
+.mast { max-width: var(--measure); }
+.eyebrow { font-size: var(--s); color: var(--muted); }
+.mast h1 { font: 600 var(--t)/1.3 var(--sans); margin-top: 4px; }
+.mast .sub { color: var(--muted); margin-top: 4px; }
+.notes { max-width: var(--measure); margin-top: var(--gap-s); display: grid; gap: 6px; color: var(--muted); }
+.note b { color: var(--ink); font-weight: 600; }
 
-.where { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); z-index: 9; display: none; max-width: calc(100vw - 24px); padding: 6px 14px; border-radius: 999px; background: var(--sheet); border: 1px solid var(--rule); box-shadow: 0 8px 28px color-mix(in srgb, var(--ink) 14%, transparent); text-decoration: none; color: var(--ink); font: 12.5px var(--sans); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.where:hover { border-color: var(--ink); }
-@media (max-width: 979px) {
-  .where:not([hidden]) { display: block; }
-  section[id^="r-"] { scroll-margin-top: 54px; }
+.ghead { display: flex; gap: 14px; align-items: center; margin-top: var(--gap-l); padding-top: 12px; border-top: 1px solid var(--rule); }
+.notes + .ghead { margin-top: var(--gap-m); }
+.ghead h2 { font: 600 var(--s) var(--sans); color: var(--muted); }
+.ghead .quick { padding: 3px 10px; border: 1px solid var(--rule); border-radius: var(--r-s); background: var(--sheet); font-size: var(--s); cursor: pointer; }
+.ghead .quick:hover { border-color: var(--ink); }
+
+.ruling { display: grid; grid-template-columns: 40px minmax(0, 1fr); margin-top: var(--gap-l); scroll-margin-top: var(--gap-s); }
+.ghead + .ruling { margin-top: var(--gap-s); }
+.ruling > * { grid-column: 2; max-width: var(--measure); }
+.ruling > .rid { grid-column: 1; font: 600 var(--s)/28px var(--mono); color: var(--muted); }
+.ruling > .decide { grid-column: 1 / -1; max-width: none; }
+.ruling h3 { font: 600 var(--t)/1.4 var(--sans); text-wrap: balance; }
+.lede { margin-top: 8px; color: var(--muted); text-wrap: pretty; }
+.lede .stake, .lede b { color: var(--ink); font-weight: 600; }
+
+.decide { margin-top: var(--gap-s); display: grid; grid-template-columns: minmax(300px, 2fr) minmax(0, 3fr); background: var(--sheet); border: 1px solid var(--rule); border-radius: var(--r); }
+.opts { display: flex; flex-direction: column; gap: 2px; padding: 8px; min-width: 0; align-self: start; position: sticky; top: var(--gap-s); }
+.view { min-width: 0; border-left: 1px solid var(--rule); }
+.vw { position: sticky; top: var(--gap-s); }
+.decide:is(.wide, .bare, .stacked .decide) { grid-template-columns: minmax(0, 1fr); }
+.decide:is(.wide, .bare, .stacked .decide) .view { border-left: 0; border-top: 1px solid var(--rule); }
+.decide:is(.wide, .bare, .stacked .decide) :is(.vw, .opts) { position: static; }
+
+.opt { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 2px 12px; padding: 10px 12px; border-radius: var(--r); cursor: pointer; }
+.opt > :not(.disc) { grid-column: 2; }
+.opt:hover { background: color-mix(in srgb, var(--ink) 4%, transparent); }
+.opt.looked { background: color-mix(in srgb, var(--o) 9%, transparent); }
+.opt[aria-pressed="true"] .disc { background: var(--o); color: var(--sheet); }
+.opt:focus-visible { outline-color: var(--o); outline-offset: -2px; }
+.ot { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; }
+.ot-t { font-weight: 600; }
+.tag { font-size: var(--s); color: var(--muted); white-space: nowrap; }
+.tag.rec { color: var(--ink); font-weight: 600; }
+.unmet .tag.need { color: var(--ink); text-decoration: underline dotted; text-underline-offset: 3px; }
+.g, .c, .w { font-size: var(--s); }
+.g::before { content: "+ "; color: var(--add); font-weight: 700; }
+.c { color: var(--muted); }
+.c::before { content: "− "; font-weight: 700; }
+.w { color: var(--muted); font-style: italic; }
+@media (min-width: 980px) {
+  .decide:is(.wide, .bare, .stacked .decide) .opt { grid-template-columns: 28px minmax(0, 1fr) minmax(0, 1fr); }
+  .decide:is(.wide, .bare, .stacked .decide) .opt > :is(.ot, .w) { grid-column: 2 / -1; }
+  .decide:is(.wide, .bare, .stacked .decide) .opt > .c { grid-column: 3; }
 }
 
-.notes { display: grid; gap: 7px; padding-block: 14px 26px; max-width: 78ch; }
-.note { font-size: 13.5px; color: var(--muted); padding-left: 3.2em; text-indent: -3.2em; }
-.note b { font: 600 var(--mono-l) var(--mono); color: var(--ink); padding-right: 0.4em; }
-
-.ghead { display: flex; gap: 14px; align-items: baseline; border-top: 1px solid var(--rule); margin-top: 44px; padding-top: 12px; }
-.ghead:first-of-type { margin-top: 10px; }
-.ghead h2 { font-size: var(--mono-l); color: var(--ink); }
-.ghead .n { font: 400 var(--mono-s) var(--mono); color: var(--muted); }
-
-.ruling { padding-block: 30px 6px; }
-.rhead { display: flex; gap: 14px; align-items: baseline; }
-.rid { font: 700 var(--mono-l) var(--mono); color: var(--muted); flex: none; }
-.rhead h3 { font-size: 20.5px; }
-.stake { font: 600 16.5px/1.45 var(--serif); max-width: 62ch; margin-top: 10px; text-wrap: pretty; }
-p.today { font: 14.5px/1.55 var(--sans); max-width: 68ch; color: var(--muted); margin-top: 8px; }
-p.today b { color: var(--ink); }
-.fold > summary { display: inline-block; font: 600 var(--mono-s) var(--mono); color: var(--muted); background: none; border: 0; border-bottom: 1px dashed var(--rule); padding: 0 0 1px; cursor: pointer; list-style: none; }
-.fold > summary::-webkit-details-marker { display: none; }
-.fold > summary:hover { color: var(--ink); border-bottom-color: var(--ink); }
-.changed { border: 1px solid var(--rule); background: var(--sheet); padding: 10px 14px; max-width: 78ch; font-size: 13.5px; border-radius: 8px; margin-top: 10px; }
-.meta-line { font: var(--mono-l) var(--mono); color: var(--muted); margin-top: 3px; }
-
-.vtable { margin-top: 16px; border: 1px solid var(--rule); border-radius: 10px; background: var(--sheet); overflow: hidden; }
-.vhead, .vrow { display: grid; grid-template-columns: 26px minmax(0, 37%) minmax(0, 31%) minmax(0, 32%); gap: 0 12px; padding: 8px 14px; }
-.vhead { font: 600 var(--mono-s) var(--mono); letter-spacing: 0.06em; color: var(--muted); border-bottom: 1px solid var(--rule); padding-block: 7px; }
-.vhead span:first-child { grid-column: 1 / 3; }
-.vrow { align-items: baseline; cursor: pointer; border-left: 3px solid transparent; }
-.vrow + .vrow, .vfoot { border-top: 1px dashed color-mix(in srgb, var(--rule) 60%, transparent); }
-.vrow:hover { background: color-mix(in srgb, var(--ink) 4%, transparent); }
-.vrow.shown { background: color-mix(in srgb, var(--o) 6%, transparent); border-left-color: color-mix(in srgb, var(--o) 45%, var(--rule)); }
-.vrow.none { --o: var(--muted); }
-.lt { width: 27px; height: 27px; flex: none; border-radius: 50%; display: inline-grid; place-items: center; font: 700 var(--mono-l) var(--mono); color: var(--o); border: 1.5px solid var(--o); background: var(--sheet); }
-.vrow .disc { width: 26px; height: 26px; padding: 0; align-self: center; cursor: pointer; }
-.vrow.none .disc { border-style: dashed; }
-.vrow .vt { font: 600 13.5px/1.4 var(--sans); color: var(--ink); padding-left: 38px; text-indent: -38px; }
-.vrow .vt .star { font: 600 var(--mono-s) var(--mono); white-space: nowrap; }
-.vrow .pmark { display: none; font: 700 var(--mono-s) var(--mono); color: var(--o); white-space: nowrap; }
-.asr { font: 500 var(--mono-s) var(--mono); color: var(--muted); white-space: nowrap; }
-.vrow .vg, .vrow .vc { font: 12.5px/1.5 var(--sans); min-width: 0; }
-.vrow .vg { color: var(--ink); }
-.vrow .vg::before { content: "+ "; color: var(--add); font-weight: 700; }
-.vrow .vc { color: var(--muted); }
-.vrow .vc::before { content: "− "; font-weight: 700; }
-.vrow .how { grid-column: 2 / -1; font: 12.5px/1.5 var(--sans); color: var(--muted); min-width: 0; }
-.vfoot { padding: 8px 14px; }
-.rnote { display: block; width: 100%; font: 12.5px var(--sans); color: var(--ink); background: none; border: 0; border-bottom: 1px dashed var(--rule); padding: 5px 2px 4px; }
+.disc { width: 28px; height: 28px; display: inline-grid; place-items: center; align-self: start; border: 1.5px solid var(--o); border-radius: 50%; color: var(--o); font: 600 var(--s) var(--mono); }
+.rfoot { grid-column: 1 / -1; padding: 12px 20px; border-top: 1px solid var(--rule); }
+.rnote { display: block; width: 100%; resize: vertical; padding: 5px 0; border: 0; border-bottom: 1px solid var(--rule); background: none; color: var(--ink); font: var(--s)/1.5 var(--sans); }
 .rnote:focus { outline: none; border-bottom-color: var(--ink); }
-.rnote::placeholder { color: var(--muted); opacity: 0.7; }
-@media (max-width: 640px) {
-  .vhead { display: none; }
-  .vrow { grid-template-columns: 26px minmax(0, 1fr); row-gap: 7px; }
-  .vrow .vt, .vrow .vg, .vrow .vc { grid-column: 2; min-width: 0; }
-  .vrow .vt { padding-left: 0; text-indent: 0; }
-  .vrow .vchips { display: flex; flex-wrap: wrap; gap: 3px 8px; }
-}
+.rnote::placeholder { color: var(--muted); }
 
-.compare { margin-top: 14px; background: var(--sheet); border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; }
-.compare .stage { border: 0; border-radius: 0; }
+.vw { padding: 18px 20px 20px; }
+.vh { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 12px; align-items: center; }
 
-.stage { background: var(--sheet); border: 1px solid var(--rule); border-radius: 8px; min-width: 0; overflow: hidden; }
-.stage .legend { display: flex; flex-wrap: wrap; gap: 4px 16px; font: var(--mono-s) var(--mono); color: var(--muted); padding: 10px 14px 0; }
+.vcap { color: var(--muted); }
+.vcap b { color: var(--ink); font-weight: 600; }
+.pic { margin: 16px 0 0 40px; min-width: 0; }
+.pic .scroll { overflow-x: auto; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 16px; padding-bottom: 8px; font-size: var(--s); color: var(--muted); }
 .legend span { display: inline-flex; align-items: center; gap: 6px; }
-.legend i { width: 20px; height: 0; border-top: 2.5px solid var(--k); }
+.legend i { width: 18px; height: 0; border-top: 2.5px solid var(--k); }
 .legend i.dash { border-top-style: dashed; }
-.legend .sw { width: 16px; height: 10px; border-radius: 2px; background: color-mix(in srgb, var(--o) 18%, transparent); border: 1px solid var(--o); }
-.stage .scroll { overflow-x: auto; padding: 8px 6px 4px; }
-.stage .cap { border-top: 1px solid var(--rule); padding: 10px 14px; font-size: 12.5px; color: var(--muted); }
-.stage .cap b { color: var(--ink); font-weight: 600; }
-.bodies { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: 14px; padding: 14px; }
-.body { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
-.body .tag { font: var(--mono-l) var(--mono); color: var(--muted); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-.body.is-today { --o: var(--muted); }
-.body .tag b { color: var(--ink); font-weight: 600; font-family: var(--sans); font-size: 12.5px; }
-pre { margin: 0; background: var(--code); border: 1px solid var(--rule); border-radius: 6px; padding: 12px 14px; overflow-x: auto; color: var(--ink); font: var(--mono-l)/1.55 var(--mono); white-space: pre; overflow-wrap: normal; }
-.body .bcap { color: var(--muted); font-size: 12.5px; }
-.body .tag .state-chip { border: 1px dashed var(--rule); border-radius: 4px; padding: 0 6px; }
-.body .tag .dleg { opacity: 0.75; }
-.dl { display: block; padding: 0 10px 0 22px; position: relative; }
-.dl::before { position: absolute; left: 8px; font-weight: 600; }
-.dl.add { background: color-mix(in srgb, var(--add) 18%, transparent); }
-.dl.add::before { content: "+"; color: color-mix(in srgb, var(--add) 60%, var(--ink)); }
-.dl.del { background: color-mix(in srgb, var(--del) 16%, transparent); }
-.dl.del::before { content: "-"; color: color-mix(in srgb, var(--del) 60%, var(--ink)); }
-.dl.ctx { opacity: 0.72; }
-.dl.ell { color: var(--muted); font-style: italic; opacity: 0.8; }
-pre.diff { padding: 8px 0; }
-pre.diff .dl { margin: 0; }
+.legend .sw { width: 14px; height: 10px; border-radius: 2px; background: color-mix(in srgb, var(--o) 18%, transparent); border: 1px solid var(--o); }
+.btag { display: flex; flex-wrap: wrap; gap: 4px 10px; margin-bottom: 6px; font-size: var(--s); color: var(--muted); }
+.btag b { color: var(--ink); font-weight: 600; }
+pre { margin: 0; padding: 12px 14px; overflow-x: auto; background: var(--code); border-radius: var(--r); color: var(--ink); font: var(--s)/1.6 var(--mono); white-space: pre; }
+pre.diff { padding: 12px 0; }
+.fig { overflow-x: auto; }
+.fig svg { max-width: 100%; height: auto; }
+
+.dl { display: block; padding: 0 14px 0 26px; position: relative; }
+.dl::before { position: absolute; left: 10px; font-weight: 600; }
+.dl.add { background: color-mix(in srgb, var(--add) 16%, transparent); }
+.dl.add::before { content: "+"; color: var(--add); }
+.dl.del { background: color-mix(in srgb, var(--del) 14%, transparent); }
+.dl.del::before { content: "−"; color: var(--del); }
+.dl.same { opacity: 0.72; }
 .token.keyword, .token.boolean, .token.constant, .token.important, .token.tag { color: var(--tk-kw); }
 .token.string, .token.char, .token.attr-value, .token.regex { color: var(--tk-str); }
 .token.comment, .token.prolog, .token.doctype, .token.cdata { color: var(--tk-com); font-style: italic; }
 .token.number, .token.symbol, .token.attr-name { color: var(--tk-num); }
 .token.function, .token.method { color: var(--tk-fn); }
 .token.class-name, .token.maybe-class-name { color: var(--tk-cls); }
-.body.of-option pre { border-color: color-mix(in srgb, var(--o) 40%, var(--rule)); }
 
 svg.seq { display: block; max-width: 100%; height: auto; font-family: var(--sans); color: var(--ink); }
 svg text { fill: currentColor; font-size: 12.5px; }
@@ -192,82 +172,68 @@ text.sub { font-size: 11.5px; fill: var(--muted); }
 .self rect { fill: var(--sheet); stroke: currentColor; stroke-width: 1.5; }
 .ledger-bg { fill: var(--paper); }
 .balh { font: 600 11px var(--sans); fill: var(--muted); }
-.bal { font: var(--mono-l) var(--mono); fill: var(--muted); }
+.bal { font: var(--s) var(--mono); fill: var(--muted); }
 .bal.chg { font-weight: 600; fill: var(--ink); }
 .band { fill: color-mix(in srgb, var(--o) 13%, transparent); }
 .tg rect { fill: var(--sheet); stroke: var(--o); stroke-width: 1.3; }
 .tg text { font: 600 10.5px var(--sans); fill: var(--o); }
 .tg-gone rect { stroke: var(--muted); } .tg-gone text { fill: var(--muted); }
 .ghostrule { stroke: var(--rule); stroke-width: 1.2; stroke-dasharray: 4 4; }
-.ghosttag { font: 500 var(--mono-s) var(--mono); fill: var(--muted); }
+.ghosttag { font: 500 11px var(--mono); fill: var(--muted); }
 .gone { opacity: 0.42; }
 .strike { stroke: var(--o); stroke-width: 1.6; }
 svg text.note { font-size: 11.5px; font-weight: 600; fill: var(--o); }
 
-.stage.figure .fig { display: flex; justify-content: center; padding: 14px; overflow-x: auto; }
-.stage.figure .fig svg { max-width: 100%; height: auto; }
-
-.vrow:has(.disc[aria-pressed="true"]) { border-left-color: var(--o); background: color-mix(in srgb, var(--o) 12%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--o) 30%, transparent); }
-.vrow .disc[aria-pressed="true"] { background: var(--o); color: var(--sheet); border-color: var(--o); box-shadow: 0 0 0 3px color-mix(in srgb, var(--o) 22%, transparent); }
-.vrow:has(.disc[aria-pressed="true"]) .pmark { display: inline; }
-.vrow.unmet { border-left-style: dashed; }
-.vrow.unmet .pmark { display: none; }
-.dep { border: 1px dashed transparent; border-radius: 4px; padding: 0 4px; white-space: nowrap; }
-.unmet .dep { color: var(--k-fail); font-weight: 600; border-color: var(--k-fail); }
-.stage-wrap[aria-pressed="true"] .stage { background: color-mix(in srgb, var(--o) 4%, var(--sheet)); }
-.ghead .quick { font: 600 var(--mono-l) var(--mono); color: var(--ink); background: var(--sheet); border: 1px solid var(--rule); border-radius: 999px; padding: 4px 13px; cursor: pointer; }
-.ghead .quick:hover { border-color: var(--ink); }
-
-.bar { position: fixed; z-index: 10; bottom: 18px; left: 50%; transform: translateX(calc(-50% + 114px)); width: min(856px, calc(100vw - 228px - 48px)); background: var(--sheet); border: 1px solid var(--rule); border-radius: 12px; box-shadow: 0 8px 28px color-mix(in srgb, var(--ink) 14%, transparent); }
-.bar-in { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 10px 12px; }
+.bar { position: fixed; z-index: 10; bottom: 16px; left: calc(50% + var(--side) / 2); transform: translateX(-50%); width: min(820px, calc(100vw - var(--side) - 48px)); background: var(--sheet); border: 1px solid var(--rule); border-radius: var(--r); box-shadow: 0 6px 24px color-mix(in srgb, var(--ink) 12%, transparent); }
+.bar-in { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 8px 8px 8px 12px; }
 .chips { flex: 1 1 200px; min-width: 0; display: flex; flex-wrap: wrap; gap: 6px; }
-.chips .empty { font: 500 var(--mono-l) var(--mono); color: var(--muted); padding: 6px 2px; }
-.chip { display: inline-flex; align-items: center; gap: 6px; font: 600 var(--mono-l) var(--mono); color: var(--ink); background: var(--paper); border: 1px solid var(--rule); border-radius: 999px; padding: 3px 6px 3px 4px; }
-.chip .d { width: 19px; height: 19px; border-radius: 50%; display: inline-grid; place-items: center; font-size: var(--mono-s); font-weight: 700; color: var(--sheet); }
-.chip.unmet { border-color: var(--k-fail); }
-.chip.unmet .x { color: var(--k-fail); }
-.chip .need { font: 500 var(--mono-s) var(--mono); color: var(--k-fail); }
-.chip .x { border: 0; background: none; color: var(--muted); cursor: pointer; font: 700 13px var(--sans); padding: 0 3px; line-height: 1; }
+.chips .empty { color: var(--muted); font-size: var(--s); padding: 4px 0; }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 2px 4px 2px 8px; border: 1px solid var(--rule); border-radius: var(--r-s); background: var(--paper); font: var(--s) var(--mono); }
+.chip i { width: 8px; height: 8px; border-radius: 50%; background: var(--o); }
+.chip .need { color: var(--muted); font-family: var(--sans); }
+.chip.unmet .need { color: var(--ink); text-decoration: underline dotted; }
+.chip .x { border: 0; background: none; color: var(--muted); padding: 0 4px; cursor: pointer; }
 .chip .x:hover { color: var(--ink); }
-.bar textarea { flex: 0 1 260px; min-width: 150px; min-height: 34px; resize: vertical; font: 12.5px var(--sans); color: var(--ink); background: var(--paper); border: 1px solid var(--rule); border-radius: 7px; padding: 8px 10px; }
+.bar textarea { flex: 0 1 260px; min-width: 150px; min-height: 32px; resize: vertical; padding: 7px 10px; border: 1px solid var(--rule); border-radius: var(--r-s); background: var(--paper); color: var(--ink); font: var(--s) var(--sans); }
 .bar textarea:focus { outline: none; border-color: var(--ink); }
-.bar button.go { flex: none; font: 600 13px var(--sans); color: var(--sheet); background: var(--ink); border: 0; border-radius: 7px; padding: 9px 16px; cursor: pointer; }
-.bar button.go:hover { opacity: 0.88; }
-:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
-
-.bar.rest .bar-in { padding: 6px 12px; }
+.bar .go { flex: none; padding: 8px 14px; border: 0; border-radius: var(--r-s); background: var(--ink); color: var(--sheet); font-weight: 600; font-size: var(--s); cursor: pointer; white-space: nowrap; }
 .bar.rest textarea { display: none; }
-.bar.rest button.go { padding: 6px 14px; }
-.bar .bar-tab { display: none; font: 600 var(--mono-l) var(--mono); color: var(--ink); background: var(--sheet); border: 1px solid var(--rule); border-radius: 999px; padding: 8px 16px; cursor: pointer; box-shadow: 0 8px 28px color-mix(in srgb, var(--ink) 14%, transparent); }
+.bar .bar-tab { display: none; padding: 8px 16px; border: 1px solid var(--rule); border-radius: var(--r); background: var(--sheet); font-size: var(--s); font-weight: 600; cursor: pointer; }
 
 @media (max-width: 979px) {
   .side { display: none; }
   .doc { margin-left: 0; }
+  .doc-in { padding: 20px 16px 140px; }
+  .ruling { grid-template-columns: 32px minmax(0, 1fr); scroll-margin-top: 54px; }
+  .decide { grid-template-columns: minmax(0, 1fr); }
+  .view { border-left: 0; border-top: 1px solid var(--rule); }
+  .vw, .opts { position: static; }
+  .where:not([hidden]) { display: block; }
   .bar { left: 12px; right: 12px; transform: none; width: auto; }
 }
-
 @media (max-width: 640px) {
-  .bar { bottom: 12px; text-align: center; }
+  .vw { padding: 16px 14px; }
+  .pic { margin-left: 0; }
+  .bar { bottom: 12px; text-align: center; border: 0; background: none; box-shadow: none; }
   .bar .bar-in { display: none; }
+  .bar.open { border: 1px solid var(--rule); background: var(--sheet); }
   .bar.open .bar-in { display: flex; flex-direction: column; align-items: stretch; max-height: calc(100vh - 120px); overflow-y: auto; }
   .bar.open textarea { display: block; flex: 1 1 auto; width: 100%; min-width: 0; }
-  .bar .chips { flex-basis: auto; }
   .bar .bar-tab { display: inline-flex; margin: 8px 0 0; }
 }
 </style>
 </head>
 <body data-key="rulings-testril-pr251">
-<nav class="side" aria-label="Rulings"><div class="scount" id="ruled-count">0 of 5 ruled</div><div class="sg"><h2><span>What a buyer is owed</span><span class="n">1</span></h2><a class="rl" href="#r-G1"><span class="gid">G1</span><span class="t">Who owns a leaf block inside its reader’s window?</span></a></div><div class="sg"><h2><span>A code change</span><span class="n">1</span></h2><a class="rl" href="#r-G2"><span class="gid">G2</span><span class="t">Should core stop replacing a caller’s exit handler?</span></a></div><div class="sg"><h2><span>What a restart does</span><span class="n">1</span></h2><a class="rl" href="#r-G4"><span class="gid">G4</span><span class="t">Who re-arms a reader’s window after a daemon restart?</span></a></div><div class="sg"><h2><span>What a start refuses</span><span class="n">1</span></h2><a class="rl" href="#r-G5"><span class="gid">G5</span><span class="t">Should the daemon refuse to serve when its start check fails?</span></a></div><div class="sg"><h2><span>What a buyer sees</span><span class="n">1</span></h2><a class="rl" href="#r-G6"><span class="gid">G6</span><span class="t">Does a reader’s receipt show the blocks that paid no owner?</span></a></div><div class="sg"><h2><span>Merged</span><span class="n">1</span></h2><a class="rl merged" href="#r-G3"><span class="gid">G3</span><span class="t">Should the reader’s window mint its own leaf band?</span></a></div></nav>
+<nav class="side" aria-label="Rulings"><div class="layout" role="group" aria-label="Layout"><button type="button" data-layout="side" aria-pressed="true">Side by side</button><button type="button" data-layout="stacked" aria-pressed="false">Stacked</button></div><div class="scount" id="ruled-count">0 of 5 ruled</div><div class="sg"><h2><span>What a buyer is owed</span><span>1</span></h2><a class="rl" href="#r-G1"><span class="gid">G1</span><span class="t">Who owns a leaf block inside its reader’s window?</span></a></div><div class="sg"><h2><span>A code change</span><span>1</span></h2><a class="rl" href="#r-G2"><span class="gid">G2</span><span class="t">Should core stop replacing a caller’s exit handler?</span></a></div><div class="sg"><h2><span>What a restart does</span><span>1</span></h2><a class="rl" href="#r-G4"><span class="gid">G4</span><span class="t">Who re-arms a reader’s window after a daemon restart?</span></a></div><div class="sg"><h2><span>What a start refuses</span><span>1</span></h2><a class="rl" href="#r-G5"><span class="gid">G5</span><span class="t">Should the daemon refuse to serve when its start check fails?</span></a></div><div class="sg"><h2><span>What a buyer sees</span><span>1</span></h2><a class="rl" href="#r-G6"><span class="gid">G6</span><span class="t">Does a reader’s receipt show the blocks that paid no owner?</span></a></div><div class="sg"><h2><span>Merged</span><span>1</span></h2><a class="rl merged" href="#r-G3"><span class="gid">G3</span><span class="t">Should the reader’s window mint its own leaf band?</span></a></div></nav>
 <a class="where" id="rulings-where" hidden></a>
-<div class="doc">
-<main class="col-in">
-<div class="masthead">
+<main class="doc"><div class="doc-in">
+<header class="mast">
 <div class="eyebrow">testril, PR 251, native-functions 6</div>
 <h1>PR 251 rulings</h1>
 <p class="sub">What to do about the review findings that are real. Nothing is written until you rule.</p>
-</div>
-<div class="notes"><div class="note"><b>Not rulings: two findings are decided.</b> <details class="fold"><summary>the rest</summary> Finding 1 is false: a band opens only on landed blocks (<code>store.rs:332-390</code>). Finding 2 is ruled: dev databases reset.</details></div></div>
-<div class="ghead"><h2>What a buyer is owed</h2><button type="button" class="quick" data-picks="G1a">accept ★ recommended</button></div><section class="ruling" id="r-G1"><div class="rhead"><span class="rid">G1</span><h3>Who owns a leaf block inside its reader’s window?</h3></div><div class="changed"><b>G3 is merged into this ruling.</b></div><p class="stake"><b>In every tree, a read of 10 blocks Paul paid for pays no owner, and no surface shows it.</b></p><p class="today">Paul buys a reader on a leaf. The daemon records an owner for each block it builds, called a <b>band</b>.</p><details class="fold"><summary>the rest</summary><p class="today">A read pays half its fee to the band, which stops where the reader’s window starts.</p></details><div class="vtable"><div class="vhead"><span>option</span><span>gain</span><span>cost</span></div><div class="vrow o-a" data-view="today" tabindex="0"><button type="button" class="lt disc o-a" data-pick="G1a" aria-label="pick G1a">a</button><span class="vt">Keep one band per paid block, as ruled in 6.5<span class="vchips"> <span class="star">★ recommended</span> <span class="asr">as today</span></span><span class="pmark">✓ picked</span></span><span class="vg">No money rule changes. The four 6.5b tests stay.</span><span class="vc">The stake stays. The plan records the gap.</span></div><div class="vrow o-b" data-view="G1b" tabindex="0"><button type="button" class="lt disc o-b" data-pick="G1b" aria-label="pick G1b">b</button><span class="vt">The leaf also gets a band inside the window<span class="pmark">✓ picked</span></span><span class="vg">Every paid block has an owner. Reads of <code>pool_list</code> inside a swap window pay the buyer.</span><span class="vc">A new money rule in two crates: one block’s cost splits over two bands.</span></div><div class="vrow none" data-pick="G1n"><button type="button" class="lt disc none" data-pick="G1n" aria-label="pick G1n">n</button><span class="vt">none of these fit<span class="pmark">✓ picked</span></span></div><div class="vfoot"><input class="rnote" data-note="G1" placeholder="note for G1 — anything its answer should carry" aria-label="note for G1"></div></div><div class="compare"><div class="stage-wrap o-a" data-view="today" data-pick="G1a"><div class="stage"><div class="legend"><span style="--k:var(--k-money)"><i></i>money moves</span><span style="--k:var(--k-store)"><i></i>a write that lasts</span></div><div class="scroll"><svg class="seq" viewBox="0 0 1122 350" style="min-width:760px" role="img" aria-label="Today 10 paid leaf blocks have no owner. A read of them pays no holder."><rect class="ledger-bg" x="784" y="8" width="336" height="336" rx="4"/><line class="life" x1="177" y1="56" x2="177" y2="342"/><g class="actor"><rect x="100" y="12" width="154" height="44" rx="4"/><text x="177" y="39" text-anchor="middle">Paul</text></g><line class="life" x1="347" y1="56" x2="347" y2="342"/><g class="actor"><rect x="270" y="12" width="154" height="44" rx="4"/><text x="347" y="39" text-anchor="middle">Daemon</text></g><line class="life" x1="517" y1="56" x2="517" y2="342"/><g class="actor"><rect x="440" y="12" width="154" height="44" rx="4"/><text x="517" y="39" text-anchor="middle">Postgres</text></g><line class="life" x1="687" y1="56" x2="687" y2="342"/><g class="actor"><rect x="610" y="12" width="154" height="44" rx="4"/><text x="687" y="39" text-anchor="middle">Vineet</text></g><text class="balh" x="844" y="32" text-anchor="middle">Leaf blocks</text><text class="balh" x="844" y="46" text-anchor="middle">Paul owns</text><text class="balh" x="952" y="32" text-anchor="middle">Leaf blocks</text><text class="balh" x="952" y="46" text-anchor="middle">nobody owns</text><text class="balh" x="1060" y="32" text-anchor="middle">Paul earns</text><text class="balh" x="1060" y="46" text-anchor="middle">from the read</text><text class="num" x="4" y="90">start</text><text class="bal" x="844" y="90" text-anchor="middle">0</text><text class="bal" x="952" y="90" text-anchor="middle">0</text><text class="bal" x="1060" y="90" text-anchor="middle">0</text><g><text class="num" x="14" y="122" text-anchor="middle">1</text><g class="e k-money"><line x1="177" y1="118" x2="343" y2="118"/><polygon class="head" points="347,118 338,113 338,123"/><text x="262" y="110" text-anchor="middle">pays 2,400 for the reader [40, 50)</text><text class="sub" x="262" y="134" text-anchor="middle">20 blocks: [30, 50)</text></g></g><g><text class="num" x="14" y="176" text-anchor="middle">2</text><g class="e k-store"><line x1="347" y1="172" x2="513" y2="172"/><polygon class="head" points="517,172 508,167 508,177"/><text x="432" y="164" text-anchor="middle">leaf rows land [30, 50)</text><text class="sub" x="432" y="188" text-anchor="middle">band only below the window: [30, 40)</text></g></g><text class="bal chg" x="844" y="176" text-anchor="middle">10</text><text class="bal chg" x="952" y="176" text-anchor="middle">10</text><text class="bal" x="1060" y="176" text-anchor="middle">0</text><g><text class="num" x="14" y="230" text-anchor="middle">3</text><g class="e k-store"><line x1="347" y1="226" x2="513" y2="226"/><polygon class="head" points="517,226 508,221 508,231"/><text x="432" y="218" text-anchor="middle">reader rows land [40, 50)</text><text class="sub" x="432" y="242" text-anchor="middle">band: reader [40, 50)</text></g></g><g><text class="num" x="14" y="284" text-anchor="middle">4</text><g class="e k-money"><line x1="687" y1="280" x2="351" y2="280"/><polygon class="head" points="347,280 356,275 356,285"/><text x="517" y="272" text-anchor="middle">reads leaf rows [40, 50) and pays</text></g></g><g><text class="num" x="14" y="324" text-anchor="middle">5</text><g class="self k-money"><rect x="194.4" y="307" width="305.2" height="26" rx="13"/><text x="347" y="324" text-anchor="middle">holder half: no band, the protocol keeps it</text></g></g><text class="bal" x="844" y="324" text-anchor="middle">10</text><text class="bal" x="952" y="324" text-anchor="middle">10</text><text class="bal" x="1060" y="324" text-anchor="middle">0</text></svg></div><p class="cap"><b>Today 10 paid leaf blocks have no owner.</b> A read of them pays no holder.</p></div></div><div class="stage-wrap o-b" data-view="G1b" data-pick="G1b" hidden><div class="stage"><div class="legend"><span style="--k:var(--k-money)"><i></i>money moves</span><span style="--k:var(--k-store)"><i></i>a write that lasts</span><span><b class="sw"></b>what this option changes</span></div><div class="scroll"><svg class="seq" viewBox="0 0 1122 218" style="min-width:760px" role="img" aria-label="All 20 paid leaf blocks have an owner. The read pays Paul."><rect class="ledger-bg" x="784" y="8" width="336" height="204" rx="4"/><rect class="band" x="4" y="98" width="768" height="66" rx="3"/><rect class="band" x="4" y="168" width="768" height="36" rx="3"/><line class="life" x1="177" y1="56" x2="177" y2="210"/><g class="actor"><rect x="100" y="12" width="154" height="44" rx="4"/><text x="177" y="39" text-anchor="middle">Paul</text></g><line class="life" x1="347" y1="56" x2="347" y2="210"/><g class="actor"><rect x="270" y="12" width="154" height="44" rx="4"/><text x="347" y="39" text-anchor="middle">Daemon</text></g><line class="life" x1="517" y1="56" x2="517" y2="210"/><g class="actor"><rect x="440" y="12" width="154" height="44" rx="4"/><text x="517" y="39" text-anchor="middle">Postgres</text></g><line class="life" x1="687" y1="56" x2="687" y2="210"/><g class="actor"><rect x="610" y="12" width="154" height="44" rx="4"/><text x="687" y="39" text-anchor="middle">Vineet</text></g><text class="balh" x="844" y="32" text-anchor="middle">Leaf blocks</text><text class="balh" x="844" y="46" text-anchor="middle">Paul owns</text><text class="balh" x="952" y="32" text-anchor="middle">Leaf blocks</text><text class="balh" x="952" y="46" text-anchor="middle">nobody owns</text><text class="balh" x="1060" y="32" text-anchor="middle">Paul earns</text><text class="balh" x="1060" y="46" text-anchor="middle">from the read</text><text class="num" x="4" y="90">start</text><text class="bal" x="844" y="90" text-anchor="middle">0</text><text class="bal" x="952" y="90" text-anchor="middle">0</text><text class="bal" x="1060" y="90" text-anchor="middle">0</text><g><text class="num" x="14" y="122" text-anchor="middle">2</text><g class="tg tg-changed"><rect x="26" y="109" width="58" height="18" rx="9"/><text x="55" y="122" text-anchor="middle">changed</text></g><g class="e k-store"><line x1="347" y1="118" x2="513" y2="118"/><polygon class="head" points="517,118 508,113 508,123"/><text x="432" y="110" text-anchor="middle">leaf rows land [30, 50)</text><text class="sub" x="432" y="134" text-anchor="middle">bands [30, 40) and [40, 50)</text></g></g><text class="note" x="432" y="148" text-anchor="middle">the in-window blocks get a leaf band too</text><text class="bal chg" x="844" y="122" text-anchor="middle">20</text><text class="bal" x="952" y="122" text-anchor="middle">0</text><text class="bal" x="1060" y="122" text-anchor="middle">0</text><g><text class="num" x="14" y="192" text-anchor="middle">5</text><g class="tg tg-changed"><rect x="26" y="179" width="58" height="18" rx="9"/><text x="55" y="192" text-anchor="middle">changed</text></g><g class="self k-money"><rect x="216.8" y="175" width="260.4" height="26" rx="13"/><text x="347" y="192" text-anchor="middle">holder half goes to Paul’s leaf band</text></g></g><text class="bal" x="844" y="192" text-anchor="middle">20</text><text class="bal" x="952" y="192" text-anchor="middle">0</text><text class="bal chg" x="1060" y="192" text-anchor="middle">½ fee</text></svg></div><p class="cap"><b>All 20 paid leaf blocks have an owner.</b> The read pays Paul.</p></div></div></div></section><div class="ghead"><h2>A code change</h2></div><section class="ruling" id="r-G2"><div class="rhead"><span class="rid">G2</span><h3>Should core stop replacing a caller’s exit handler?</h3></div><p class="stake"><b>Every subcommand help request in statusline, tokens and zai prints the root usage and exits 1.</b></p><p class="today">Every command first runs through core’s <code>parseQuietly</code>, so a bad flag prints no stack trace. It mutes output and calls <code>exitOverride()</code> on each command.</p><details class="fold"><summary>the rest</summary><p class="today">That call replaces the handler the caller set.</p></details><div class="vtable"><div class="vhead"><span>option</span><span>gain</span><span>cost</span></div><div class="vrow o-a" data-view="G2a" data-needs="G1a" tabindex="0"><button type="button" class="lt disc o-a" data-pick="G2a" aria-label="pick G2a">a</button><span class="vt">Drop the clobbering exitOverride() call<span class="vchips"> <span class="star">★ recommended</span> <span class="dep">needs G1a</span></span><span class="pmark">✓ picked</span></span><span class="vg">The caller’s override fires again; subcommand help prints itself; three red tests pass.</span><span class="vc">The silent default override goes; none of the six parseQuietly callers relies on it.</span></div><div class="vrow o-b" data-view="G2b" tabindex="0"><button type="button" class="lt disc o-b" data-pick="G2b" aria-label="pick G2b">b</button><span class="vt">Keep the clobber; classify the error in recover<span class="pmark">✓ picked</span></span><span class="vg">No shared-code change; statusline’s recover learns the helpDisplayed code on its own.</span><span class="vc">The trap stays set; every future CLI that installs an override re-learns it.</span><span class="how">recover already maps commander error codes to ink replies; this adds one arm — helpDisplayed re-renders the failing command’s own usage instead of the root usage.</span></div><div class="vrow none" data-pick="G2n"><button type="button" class="lt disc none" data-pick="G2n" aria-label="pick G2n">n</button><span class="vt">none of these fit<span class="pmark">✓ picked</span></span></div><div class="vfoot"><input class="rnote" data-note="G2" placeholder="note for G2 — anything its answer should carry" aria-label="note for G2"></div></div><div class="compare"><div class="stage-wrap" data-view="today"><div class="stage"><div class="bodies"><div class="body is-today"><div class="tag"><span>built today</span><b>The quiet walk core runs on every command, today.</b></div><pre><span class="token keyword">function</span> <span class="token function">quiet</span><span class="token punctuation">(</span>
+</header>
+<div class="notes"><p class="note"><b>Not rulings: two findings are decided.</b> Finding 1 is false: a band opens only on landed blocks (<code>store.rs:332-390</code>). Finding 2 is ruled: dev databases reset.</p></div>
+<div class="ghead"><h2>What a buyer is owed</h2><button type="button" class="quick" data-picks="G1a">Accept ★ recommended</button></div><section class="ruling" id="r-G1"><span class="rid">G1</span><h3>Who owns a leaf block inside its reader’s window?</h3><p class="lede"><span class="stake"><b>In every tree, a read of 10 blocks Paul paid for pays no owner, and no surface shows it.</b></span> Paul buys a reader on a leaf. The daemon records an owner for each block it builds, called a <b>band</b>. A read pays half its fee to the band, which stops where the reader’s window starts.</p><div class="decide wide"><div class="opts"><div class="opt o-a" role="button" tabindex="0" aria-pressed="false" data-pick="G1a" data-look="today"><span class="disc">a</span><div class="ot"><span class="ot-t">Keep one band per paid block, as ruled in 6.5</span><span class="tag rec">★ recommended</span><span class="tag">as today</span></div><p class="g">No money rule changes. The four 6.5b tests stay.</p><p class="c">The stake stays. The plan records the gap.</p></div><div class="opt o-b" role="button" tabindex="0" aria-pressed="false" data-pick="G1b" data-look="G1b"><span class="disc">b</span><div class="ot"><span class="ot-t">The leaf also gets a band inside the window</span></div><p class="g">Every paid block has an owner. Reads of <code>pool_list</code> inside a swap window pay the buyer.</p><p class="c">A new money rule in two crates: one block’s cost splits over two bands.</p></div><div class="opt" role="button" tabindex="0" aria-pressed="false" data-pick="G1n"><span class="disc">n</span><div class="ot"><span class="ot-t">None of these fit</span></div></div></div><div class="view"><div class="vw o-a" data-view="today"><div class="vh"><span class="disc o-a">a</span><p class="vcap"><b>Today 10 paid leaf blocks have no owner.</b> A read of them pays no holder.</p></div><div class="pic"><div class="legend"><span style="--k:var(--k-money)"><i></i>money moves</span><span style="--k:var(--k-store)"><i></i>a write that lasts</span></div><div class="scroll"><svg class="seq" viewBox="0 0 1122 350" style="min-width:600px" role="img" aria-label="Today 10 paid leaf blocks have no owner. A read of them pays no holder."><rect class="ledger-bg" x="784" y="8" width="336" height="336" rx="4"/><line class="life" x1="177" y1="56" x2="177" y2="342"/><g class="actor"><rect x="100" y="12" width="154" height="44" rx="4"/><text x="177" y="39" text-anchor="middle">Paul</text></g><line class="life" x1="347" y1="56" x2="347" y2="342"/><g class="actor"><rect x="270" y="12" width="154" height="44" rx="4"/><text x="347" y="39" text-anchor="middle">Daemon</text></g><line class="life" x1="517" y1="56" x2="517" y2="342"/><g class="actor"><rect x="440" y="12" width="154" height="44" rx="4"/><text x="517" y="39" text-anchor="middle">Postgres</text></g><line class="life" x1="687" y1="56" x2="687" y2="342"/><g class="actor"><rect x="610" y="12" width="154" height="44" rx="4"/><text x="687" y="39" text-anchor="middle">Vineet</text></g><text class="balh" x="844" y="32" text-anchor="middle">Leaf blocks</text><text class="balh" x="844" y="46" text-anchor="middle">Paul owns</text><text class="balh" x="952" y="32" text-anchor="middle">Leaf blocks</text><text class="balh" x="952" y="46" text-anchor="middle">nobody owns</text><text class="balh" x="1060" y="32" text-anchor="middle">Paul earns</text><text class="balh" x="1060" y="46" text-anchor="middle">from the read</text><text class="num" x="4" y="90">start</text><text class="bal" x="844" y="90" text-anchor="middle">0</text><text class="bal" x="952" y="90" text-anchor="middle">0</text><text class="bal" x="1060" y="90" text-anchor="middle">0</text><g><text class="num" x="14" y="122" text-anchor="middle">1</text><g class="e k-money"><line x1="177" y1="118" x2="343" y2="118"/><polygon class="head" points="347,118 338,113 338,123"/><text x="262" y="110" text-anchor="middle">pays 2,400 for the reader [40, 50)</text><text class="sub" x="262" y="134" text-anchor="middle">20 blocks: [30, 50)</text></g></g><g><text class="num" x="14" y="176" text-anchor="middle">2</text><g class="e k-store"><line x1="347" y1="172" x2="513" y2="172"/><polygon class="head" points="517,172 508,167 508,177"/><text x="432" y="164" text-anchor="middle">leaf rows land [30, 50)</text><text class="sub" x="432" y="188" text-anchor="middle">band only below the window: [30, 40)</text></g></g><text class="bal chg" x="844" y="176" text-anchor="middle">10</text><text class="bal chg" x="952" y="176" text-anchor="middle">10</text><text class="bal" x="1060" y="176" text-anchor="middle">0</text><g><text class="num" x="14" y="230" text-anchor="middle">3</text><g class="e k-store"><line x1="347" y1="226" x2="513" y2="226"/><polygon class="head" points="517,226 508,221 508,231"/><text x="432" y="218" text-anchor="middle">reader rows land [40, 50)</text><text class="sub" x="432" y="242" text-anchor="middle">band: reader [40, 50)</text></g></g><g><text class="num" x="14" y="284" text-anchor="middle">4</text><g class="e k-money"><line x1="687" y1="280" x2="351" y2="280"/><polygon class="head" points="347,280 356,275 356,285"/><text x="517" y="272" text-anchor="middle">reads leaf rows [40, 50) and pays</text></g></g><g><text class="num" x="14" y="324" text-anchor="middle">5</text><g class="self k-money"><rect x="194.4" y="307" width="305.2" height="26" rx="13"/><text x="347" y="324" text-anchor="middle">holder half: no band, the protocol keeps it</text></g></g><text class="bal" x="844" y="324" text-anchor="middle">10</text><text class="bal" x="952" y="324" text-anchor="middle">10</text><text class="bal" x="1060" y="324" text-anchor="middle">0</text></svg></div></div></div><div class="vw o-b" data-view="G1b" hidden><div class="vh"><span class="disc o-b">b</span><p class="vcap"><b>All 20 paid leaf blocks have an owner.</b> The read pays Paul.</p></div><div class="pic"><div class="legend"><span style="--k:var(--k-money)"><i></i>money moves</span><span style="--k:var(--k-store)"><i></i>a write that lasts</span><span><b class="sw"></b>what this option changes</span></div><div class="scroll"><svg class="seq" viewBox="0 0 1122 218" style="min-width:600px" role="img" aria-label="All 20 paid leaf blocks have an owner. The read pays Paul."><rect class="ledger-bg" x="784" y="8" width="336" height="204" rx="4"/><rect class="band" x="4" y="98" width="768" height="66" rx="3"/><rect class="band" x="4" y="168" width="768" height="36" rx="3"/><line class="life" x1="177" y1="56" x2="177" y2="210"/><g class="actor"><rect x="100" y="12" width="154" height="44" rx="4"/><text x="177" y="39" text-anchor="middle">Paul</text></g><line class="life" x1="347" y1="56" x2="347" y2="210"/><g class="actor"><rect x="270" y="12" width="154" height="44" rx="4"/><text x="347" y="39" text-anchor="middle">Daemon</text></g><line class="life" x1="517" y1="56" x2="517" y2="210"/><g class="actor"><rect x="440" y="12" width="154" height="44" rx="4"/><text x="517" y="39" text-anchor="middle">Postgres</text></g><line class="life" x1="687" y1="56" x2="687" y2="210"/><g class="actor"><rect x="610" y="12" width="154" height="44" rx="4"/><text x="687" y="39" text-anchor="middle">Vineet</text></g><text class="balh" x="844" y="32" text-anchor="middle">Leaf blocks</text><text class="balh" x="844" y="46" text-anchor="middle">Paul owns</text><text class="balh" x="952" y="32" text-anchor="middle">Leaf blocks</text><text class="balh" x="952" y="46" text-anchor="middle">nobody owns</text><text class="balh" x="1060" y="32" text-anchor="middle">Paul earns</text><text class="balh" x="1060" y="46" text-anchor="middle">from the read</text><text class="num" x="4" y="90">start</text><text class="bal" x="844" y="90" text-anchor="middle">0</text><text class="bal" x="952" y="90" text-anchor="middle">0</text><text class="bal" x="1060" y="90" text-anchor="middle">0</text><g><text class="num" x="14" y="122" text-anchor="middle">2</text><g class="tg tg-changed"><rect x="26" y="109" width="58" height="18" rx="9"/><text x="55" y="122" text-anchor="middle">changed</text></g><g class="e k-store"><line x1="347" y1="118" x2="513" y2="118"/><polygon class="head" points="517,118 508,113 508,123"/><text x="432" y="110" text-anchor="middle">leaf rows land [30, 50)</text><text class="sub" x="432" y="134" text-anchor="middle">bands [30, 40) and [40, 50)</text></g></g><text class="note" x="432" y="148" text-anchor="middle">the in-window blocks get a leaf band too</text><text class="bal chg" x="844" y="122" text-anchor="middle">20</text><text class="bal" x="952" y="122" text-anchor="middle">0</text><text class="bal" x="1060" y="122" text-anchor="middle">0</text><g><text class="num" x="14" y="192" text-anchor="middle">5</text><g class="tg tg-changed"><rect x="26" y="179" width="58" height="18" rx="9"/><text x="55" y="192" text-anchor="middle">changed</text></g><g class="self k-money"><rect x="216.8" y="175" width="260.4" height="26" rx="13"/><text x="347" y="192" text-anchor="middle">holder half goes to Paul’s leaf band</text></g></g><text class="bal" x="844" y="192" text-anchor="middle">20</text><text class="bal" x="952" y="192" text-anchor="middle">0</text><text class="bal chg" x="1060" y="192" text-anchor="middle">½ fee</text></svg></div></div></div></div><div class="rfoot"><textarea class="rnote" data-note="G1" rows="1" placeholder="Note on G1 — what your answer should carry" aria-label="note on G1"></textarea></div></div></section><div class="ghead"><h2>A code change</h2></div><section class="ruling" id="r-G2"><span class="rid">G2</span><h3>Should core stop replacing a caller’s exit handler?</h3><p class="lede"><span class="stake"><b>Every subcommand help request in statusline, tokens and zai prints the root usage and exits 1.</b></span> Every command first runs through core’s <code>parseQuietly</code>, so a bad flag prints no stack trace. It mutes output and calls <code>exitOverride()</code> on each command. That call replaces the handler the caller set.</p><div class="decide"><div class="opts"><div class="opt" role="button" tabindex="0" data-look="today" aria-label="Show today’s picture"><span class="disc"></span><div class="ot"><span class="ot-t">Today</span><span class="tag">kept by no option</span></div></div><div class="opt o-a" role="button" tabindex="0" aria-pressed="false" data-pick="G2a" data-look="G2a" data-needs="G1a"><span class="disc">a</span><div class="ot"><span class="ot-t">Drop the clobbering exitOverride() call</span><span class="tag rec">★ recommended</span><span class="tag need">needs G1a</span></div><p class="g">The caller’s override fires again; subcommand help prints itself; three red tests pass.</p><p class="c">The silent default override goes; none of the six parseQuietly callers relies on it.</p></div><div class="opt o-b" role="button" tabindex="0" aria-pressed="false" data-pick="G2b" data-look="G2b"><span class="disc">b</span><div class="ot"><span class="ot-t">Keep the clobber; classify the error in recover</span></div><p class="w">recover already maps commander error codes to ink replies; this adds one arm — helpDisplayed re-renders the failing command’s own usage instead of the root usage.</p><p class="g">No shared-code change; statusline’s recover learns the helpDisplayed code on its own.</p><p class="c">The trap stays set; every future CLI that installs an override re-learns it.</p></div><div class="opt" role="button" tabindex="0" aria-pressed="false" data-pick="G2n"><span class="disc">n</span><div class="ot"><span class="ot-t">None of these fit</span></div></div></div><div class="view"><div class="vw" data-view="today"><div class="vh"><span class="disc"></span><p class="vcap">From <code>core/src/cli.ts:139-189</code>, the walk and its caller. Each option below marks only the lines it changes.</p></div><div class="pic"><div class="btag"><span>built today</span><b>The quiet walk core runs on every command, today.</b></div><pre><span class="token keyword">function</span> <span class="token function">quiet</span><span class="token punctuation">(</span>
   command<span class="token operator">:</span> Command<span class="token punctuation">,</span>
   <span class="token function-variable function">onUsageError</span><span class="token operator">:</span> <span class="token punctuation">(</span>command<span class="token operator">:</span> Command<span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token keyword">void</span><span class="token punctuation">,</span>
 <span class="token punctuation">)</span><span class="token operator">:</span> <span class="token keyword">void</span> <span class="token punctuation">{</span>
@@ -286,7 +252,8 @@ svg text.note { font-size: 11.5px; font-weight: 600; fill: var(--o); }
   command<span class="token punctuation">.</span>commands<span class="token punctuation">.</span><span class="token function">forEach</span><span class="token punctuation">(</span>c <span class="token operator">=></span> <span class="token punctuation">{</span>
     <span class="token function">quiet</span><span class="token punctuation">(</span>c<span class="token punctuation">,</span> onUsageError<span class="token punctuation">)</span><span class="token punctuation">;</span>
   <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token punctuation">}</span></pre><details class="fold"><summary>show all 51 lines</summary><pre>
+<span class="token punctuation">}</span>
+
 <span class="token keyword">export</span> <span class="token keyword">function</span> <span class="token generic-function"><span class="token function">parseCli</span><span class="token generic class-name"><span class="token operator">&lt;</span><span class="token constant">T</span> <span class="token operator">=</span> HelpRequested<span class="token operator">></span></span></span><span class="token punctuation">(</span>
   spec<span class="token operator">:</span> CliSpec<span class="token punctuation">,</span>
   argv<span class="token operator">:</span> <span class="token keyword">readonly</span> <span class="token builtin">string</span><span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
@@ -316,33 +283,34 @@ svg text.note { font-size: 11.5px; font-weight: 600; fill: var(--o); }
       <span class="token operator">:</span> err<span class="token punctuation">;</span>
   <span class="token punctuation">}</span>
   <span class="token keyword">return</span> invocation<span class="token punctuation">;</span>
-<span class="token punctuation">}</span></pre></details><p class="bcap">From <code>core/src/cli.ts:139-189</code>, the walk and its caller. Each option below marks only the lines it changes.</p></div></div></div></div><div class="stage-wrap o-a" data-view="G2a" data-pick="G2a" hidden><div class="stage"><div class="bodies"><div class="body of-option"><div class="tag"><span>planned</span><span class="dleg">diff vs today</span></div><pre class="diff"><span class="dl ctx"><span class="token keyword">function</span> <span class="token function">quiet</span><span class="token punctuation">(</span></span><span class="dl ell">⋯ 6 unchanged lines</span><span class="dl ctx">  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></span><span class="dl del">  command<span class="token punctuation">.</span><span class="token function">exitOverride</span><span class="token punctuation">(</span>err <span class="token operator">=></span> <span class="token punctuation">{</span></span><span class="dl del">    <span class="token keyword">const</span> code <span class="token operator">=</span> <span class="token punctuation">(</span>err <span class="token keyword">as</span> <span class="token punctuation">{</span> code<span class="token operator">?</span><span class="token operator">:</span> <span class="token builtin">string</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span>code<span class="token punctuation">;</span></span><span class="dl del">    <span class="token keyword">if</span> <span class="token punctuation">(</span>code <span class="token operator">===</span> <span class="token string">'commander.help'</span> <span class="token operator">||</span> code <span class="token operator">===</span> <span class="token string">'commander.helpDisplayed'</span><span class="token punctuation">)</span> <span class="token punctuation">{</span></span><span class="dl del">      <span class="token keyword">throw</span> <span class="token keyword">new</span> <span class="token class-name">HelpRequested</span><span class="token punctuation">(</span>command<span class="token punctuation">)</span><span class="token punctuation">;</span></span><span class="dl del">    <span class="token punctuation">}</span></span><span class="dl del">    <span class="token function">onUsageError</span><span class="token punctuation">(</span>command<span class="token punctuation">)</span><span class="token punctuation">;</span></span><span class="dl del">    <span class="token keyword">throw</span> err<span class="token punctuation">;</span></span><span class="dl del">  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></span><span class="dl ctx">  command<span class="token punctuation">.</span>commands<span class="token punctuation">.</span><span class="token function">forEach</span><span class="token punctuation">(</span>c <span class="token operator">=></span> <span class="token punctuation">{</span></span><span class="dl ell">⋯ 33 unchanged lines</span><span class="dl ctx"><span class="token punctuation">}</span></span></pre><p class="bcap">Only the exitOverride block is removed; every other line is unchanged.</p></div></div></div></div><div class="stage-wrap o-b" data-view="G2b" data-pick="G2b" hidden><div class="stage"><div class="bodies"><div class="body of-option"><div class="tag"><span class="state-chip">sketch — feasibility not checked</span></div><pre>parseQuietly(program, args, err =&gt;
+<span class="token punctuation">}</span></pre></div></div><div class="vw o-a" data-view="G2a" hidden><div class="vh"><span class="disc o-a">a</span><p class="vcap">Only the exitOverride block is removed; every other line is unchanged.</p></div><div class="pic"><div class="btag"><span>planned</span><span>diff vs today</span></div><pre class="diff"><span class="dl same"><span class="token keyword">function</span> <span class="token function">quiet</span><span class="token punctuation">(</span></span><span class="dl same">  command<span class="token operator">:</span> Command<span class="token punctuation">,</span></span><span class="dl same">  <span class="token function-variable function">onUsageError</span><span class="token operator">:</span> <span class="token punctuation">(</span>command<span class="token operator">:</span> Command<span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token keyword">void</span><span class="token punctuation">,</span></span><span class="dl same"><span class="token punctuation">)</span><span class="token operator">:</span> <span class="token keyword">void</span> <span class="token punctuation">{</span></span><span class="dl same">  command<span class="token punctuation">.</span><span class="token function">configureOutput</span><span class="token punctuation">(</span><span class="token punctuation">{</span></span><span class="dl same">    <span class="token function-variable function">writeOut</span><span class="token operator">:</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token keyword">undefined</span><span class="token punctuation">,</span></span><span class="dl same">    <span class="token function-variable function">writeErr</span><span class="token operator">:</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token keyword">undefined</span><span class="token punctuation">,</span></span><span class="dl same">  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></span><span class="dl del">  command<span class="token punctuation">.</span><span class="token function">exitOverride</span><span class="token punctuation">(</span>err <span class="token operator">=></span> <span class="token punctuation">{</span></span><span class="dl del">    <span class="token keyword">const</span> code <span class="token operator">=</span> <span class="token punctuation">(</span>err <span class="token keyword">as</span> <span class="token punctuation">{</span> code<span class="token operator">?</span><span class="token operator">:</span> <span class="token builtin">string</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span>code<span class="token punctuation">;</span></span><span class="dl del">    <span class="token keyword">if</span> <span class="token punctuation">(</span>code <span class="token operator">===</span> <span class="token string">'commander.help'</span> <span class="token operator">||</span> code <span class="token operator">===</span> <span class="token string">'commander.helpDisplayed'</span><span class="token punctuation">)</span> <span class="token punctuation">{</span></span><span class="dl del">      <span class="token keyword">throw</span> <span class="token keyword">new</span> <span class="token class-name">HelpRequested</span><span class="token punctuation">(</span>command<span class="token punctuation">)</span><span class="token punctuation">;</span></span><span class="dl del">    <span class="token punctuation">}</span></span><span class="dl del">    <span class="token function">onUsageError</span><span class="token punctuation">(</span>command<span class="token punctuation">)</span><span class="token punctuation">;</span></span><span class="dl del">    <span class="token keyword">throw</span> err<span class="token punctuation">;</span></span><span class="dl del">  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></span><span class="dl same">  command<span class="token punctuation">.</span>commands<span class="token punctuation">.</span><span class="token function">forEach</span><span class="token punctuation">(</span>c <span class="token operator">=></span> <span class="token punctuation">{</span></span><span class="dl same">    <span class="token function">quiet</span><span class="token punctuation">(</span>c<span class="token punctuation">,</span> onUsageError<span class="token punctuation">)</span><span class="token punctuation">;</span></span><span class="dl same">  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></span><span class="dl same"><span class="token punctuation">}</span></span><span class="dl same"></span><span class="dl same"><span class="token keyword">export</span> <span class="token keyword">function</span> <span class="token generic-function"><span class="token function">parseCli</span><span class="token generic class-name"><span class="token operator">&lt;</span><span class="token constant">T</span> <span class="token operator">=</span> HelpRequested<span class="token operator">></span></span></span><span class="token punctuation">(</span></span><span class="dl same">  spec<span class="token operator">:</span> CliSpec<span class="token punctuation">,</span></span><span class="dl same">  argv<span class="token operator">:</span> <span class="token keyword">readonly</span> <span class="token builtin">string</span><span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">,</span></span><span class="dl same">  onHelp<span class="token operator">?</span><span class="token operator">:</span> CliHelpHook<span class="token operator">&lt;</span><span class="token constant">T</span><span class="token operator">></span><span class="token punctuation">,</span></span><span class="dl same">  onUsageError<span class="token operator">?</span><span class="token operator">:</span> <span class="token punctuation">(</span>command<span class="token operator">:</span> Command<span class="token punctuation">,</span> err<span class="token operator">:</span> Error<span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token keyword">void</span><span class="token punctuation">,</span></span><span class="dl same"><span class="token punctuation">)</span><span class="token operator">:</span> CliInvocation <span class="token operator">|</span> HelpRequested <span class="token operator">|</span> <span class="token constant">T</span> <span class="token operator">|</span> <span class="token keyword">undefined</span> <span class="token punctuation">{</span></span><span class="dl same">  <span class="token keyword">let</span> invocation<span class="token operator">:</span> CliInvocation <span class="token operator">|</span> <span class="token keyword">undefined</span><span class="token punctuation">;</span></span><span class="dl same">  <span class="token keyword">const</span> program <span class="token operator">=</span> <span class="token function">materialize</span><span class="token punctuation">(</span>spec<span class="token punctuation">,</span> found <span class="token operator">=></span> <span class="token punctuation">{</span></span><span class="dl same">    invocation <span class="token operator">=</span> found<span class="token punctuation">;</span></span><span class="dl same">  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></span><span class="dl same">  <span class="token keyword">let</span> errored<span class="token operator">:</span> Command <span class="token operator">|</span> <span class="token keyword">undefined</span><span class="token punctuation">;</span></span><span class="dl same">  <span class="token function">quiet</span><span class="token punctuation">(</span>program<span class="token punctuation">,</span> command <span class="token operator">=></span> <span class="token punctuation">{</span></span><span class="dl same">    errored <span class="token operator">=</span> command<span class="token punctuation">;</span></span><span class="dl same">  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></span><span class="dl same">  <span class="token keyword">try</span> <span class="token punctuation">{</span></span><span class="dl same">    program<span class="token punctuation">.</span><span class="token function">parse</span><span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token operator">...</span>argv<span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token punctuation">{</span> from<span class="token operator">:</span> <span class="token string">'user'</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></span><span class="dl same">  <span class="token punctuation">}</span> <span class="token keyword">catch</span> <span class="token punctuation">(</span>err<span class="token punctuation">)</span> <span class="token punctuation">{</span></span><span class="dl same">    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span><span class="token punctuation">(</span>err <span class="token keyword">instanceof</span> <span class="token class-name">HelpRequested</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span></span><span class="dl same">      <span class="token keyword">if</span> <span class="token punctuation">(</span>errored <span class="token operator">!==</span> <span class="token keyword">undefined</span><span class="token punctuation">)</span> <span class="token punctuation">{</span></span><span class="dl same">        <span class="token keyword">const</span> cause <span class="token operator">=</span> err <span class="token keyword">instanceof</span> <span class="token class-name">Error</span> <span class="token operator">?</span> err <span class="token operator">:</span> <span class="token keyword">new</span> <span class="token class-name">Error</span><span class="token punctuation">(</span><span class="token function">String</span><span class="token punctuation">(</span>err<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span></span><span class="dl same">        onUsageError<span class="token operator">?.</span><span class="token punctuation">(</span>errored<span class="token punctuation">,</span> cause<span class="token punctuation">)</span><span class="token punctuation">;</span></span><span class="dl same">      <span class="token punctuation">}</span></span><span class="dl same">      <span class="token keyword">return</span> <span class="token keyword">undefined</span><span class="token punctuation">;</span></span><span class="dl same">    <span class="token punctuation">}</span></span><span class="dl same">    <span class="token keyword">return</span> onHelp <span class="token operator">!==</span> <span class="token keyword">undefined</span></span><span class="dl same">      <span class="token operator">?</span> <span class="token function">onHelp</span><span class="token punctuation">(</span>err<span class="token punctuation">.</span>command<span class="token punctuation">.</span><span class="token function">name</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> err<span class="token punctuation">.</span>command<span class="token punctuation">.</span><span class="token function">helpInformation</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span></span><span class="dl same">      <span class="token operator">:</span> err<span class="token punctuation">;</span></span><span class="dl same">  <span class="token punctuation">}</span></span><span class="dl same">  <span class="token keyword">return</span> invocation<span class="token punctuation">;</span></span><span class="dl same"><span class="token punctuation">}</span></span></pre></div></div><div class="vw o-b" data-view="G2b" hidden><div class="vh"><span class="disc o-b">b</span><p class="vcap">Shown whole rather than marked line by line: it is not the same code as today’s walk.</p></div><div class="pic"><div class="btag"><span>sketch — feasibility not checked</span></div><pre>parseQuietly(program, args, err =&gt;
   err instanceof HelpRequested
     ? { help: err.command }
     : commanderCode(err) === &quot;commander.helpDisplayed&quot;
       ? { help: currentCommand(program) }
       : undefined,
-)</pre><p class="bcap">Shown whole rather than marked line by line: it is not the same code as today’s walk.</p></div></div></div></div></div></section><div class="ghead"><h2>What a restart does</h2></div><section class="ruling" id="r-G4"><div class="rhead"><span class="rid">G4</span><h3>Who re-arms a reader’s window after a daemon restart?</h3></div><p class="stake"><b>Roughly 1 daemon restart a week lands mid-read; each one pays a leaf read’s holder half into the void until a human notices.</b></p><p class="today">The window lives only in the daemon’s memory. After a crash the console shows the reader with no window; whoever is on call reads the ledger, rebuilds the range by hand, and the next read pays the band again.</p><div class="vtable"><div class="vhead"><span>option</span><span>gain</span><span>cost</span></div><div class="vrow o-a" data-view="G4a" tabindex="0"><button type="button" class="lt disc o-a" data-pick="G4a" aria-label="pick G4a">a</button><span class="vt">The daemon re-arms its windows from Postgres on start<span class="vchips"> <span class="star">★ recommended</span></span><span class="pmark">✓ picked</span></span><span class="vg">The window survives a restart; reads never pay into the void and no human is in the loop.</span><span class="vc">One more table the daemon owns and migrates; the start sequence grows a step.</span></div><div class="vrow o-b" data-view="G4b" tabindex="0"><button type="button" class="lt disc o-b" data-pick="G4b" aria-label="pick G4b">b</button><span class="vt">The read re-arms the window before paying<span class="pmark">✓ picked</span></span><span class="vg">The protocol fixes itself; no daemon change at all.</span><span class="vc">Every read pays one extra write — about 40 a day at current traffic.</span><span class="how">The read already opens a transaction on the leaf rows; arming the window there is one more write on the same connection, with no new owner of state.</span></div><div class="vrow none" data-pick="G4n"><button type="button" class="lt disc none" data-pick="G4n" aria-label="pick G4n">n</button><span class="vt">none of these fit<span class="pmark">✓ picked</span></span></div><div class="vfoot"><input class="rnote" data-note="G4" placeholder="note for G4 — anything its answer should carry" aria-label="note for G4"></div></div><div class="compare"><div class="stage-wrap" data-view="today"><div class="stage"><div class="legend"><span style="--k:var(--k-call)"><i></i>a call or a reply</span><span style="--k:var(--k-money)"><i></i>money moves</span><span style="--k:var(--k-store)"><i></i>a write that lasts</span><span style="--k:var(--k-fail)"><i></i>an error</span></div><div class="scroll"><svg class="seq" viewBox="0 0 906 270" style="min-width:760px" role="img" aria-label="Today a crash loses the window; the read pays into the void until a human rebuilds it."><rect class="ledger-bg" x="784" y="8" width="120" height="256" rx="4"/><line class="life" x1="177" y1="56" x2="177" y2="262"/><g class="actor"><rect x="100" y="12" width="154" height="44" rx="4"/><text x="177" y="39" text-anchor="middle">Daemon</text></g><line class="life" x1="347" y1="56" x2="347" y2="262"/><g class="actor"><rect x="270" y="12" width="154" height="44" rx="4"/><text x="347" y="39" text-anchor="middle">Postgres</text></g><line class="life" x1="517" y1="56" x2="517" y2="262"/><g class="actor"><rect x="440" y="12" width="154" height="44" rx="4"/><text x="517" y="39" text-anchor="middle">Reader</text></g><line class="life" x1="687" y1="56" x2="687" y2="262"/><g class="actor"><rect x="610" y="12" width="154" height="44" rx="4"/><text x="687" y="39" text-anchor="middle">On call</text></g><text class="balh" x="844" y="32" text-anchor="middle">Windows</text><text class="balh" x="844" y="46" text-anchor="middle">armed</text><text class="num" x="4" y="90">start</text><text class="bal" x="844" y="90" text-anchor="middle">1</text><g><text class="num" x="14" y="122" text-anchor="middle">1</text><g class="self k-fail"><rect x="92" y="100" width="311.6" height="36" rx="18"/><text x="247.8" y="115" text-anchor="middle">daemon restarts mid-read</text><text class="sub" x="247.8" y="130" text-anchor="middle">the window lives only in the daemon’s memory</text></g></g><text class="bal chg" x="844" y="122" text-anchor="middle">0</text><g class="ghost"><text class="num" x="14" y="168" text-anchor="middle">2</text><text class="ghosttag" x="26" y="167.5">only in a</text><line class="ghostrule" x1="95.4" y1="164" x2="764" y2="164"/></g><g><text class="num" x="14" y="204" text-anchor="middle">3</text><g class="self k-money"><rect x="364.4" y="187" width="305.2" height="26" rx="13"/><text x="517" y="204" text-anchor="middle">the read pays the holder half into the void</text></g></g><g><text class="num" x="14" y="244" text-anchor="middle">4</text><g class="e k-call"><line x1="687" y1="240" x2="181" y2="240"/><polygon class="head" points="177,240 186,235 186,245"/><text x="432" y="232" text-anchor="middle">a human rebuilds the window from the console</text></g></g><text class="bal chg" x="844" y="244" text-anchor="middle">1</text></svg></div><p class="cap"><b>Today a crash loses the window; the read pays into the void until a human rebuilds it.</b></p></div></div><div class="stage-wrap o-a" data-view="G4a" data-pick="G4a" hidden><div class="stage"><div class="legend"><span style="--k:var(--k-call)"><i></i>a call or a reply</span><span style="--k:var(--k-money)"><i></i>money moves</span><span style="--k:var(--k-store)"><i></i>a write that lasts</span><span style="--k:var(--k-fail)"><i></i>an error</span><span><b class="sw"></b>what this option changes</span></div><div class="scroll"><svg class="seq" viewBox="0 0 906 258" style="min-width:760px" role="img" aria-label="The daemon re-arms its windows from Postgres on start. No void window."><rect class="ledger-bg" x="784" y="8" width="120" height="244" rx="4"/><rect class="band" x="4" y="98" width="768" height="50" rx="3"/><rect class="band" x="4" y="152" width="768" height="52" rx="3"/><rect class="band" x="4" y="208" width="768" height="36" rx="3"/><line class="life" x1="177" y1="56" x2="177" y2="250"/><g class="actor"><rect x="100" y="12" width="154" height="44" rx="4"/><text x="177" y="39" text-anchor="middle">Daemon</text></g><line class="life" x1="347" y1="56" x2="347" y2="250"/><g class="actor"><rect x="270" y="12" width="154" height="44" rx="4"/><text x="347" y="39" text-anchor="middle">Postgres</text></g><line class="life" x1="517" y1="56" x2="517" y2="250"/><g class="actor"><rect x="440" y="12" width="154" height="44" rx="4"/><text x="517" y="39" text-anchor="middle">Reader</text></g><line class="life" x1="687" y1="56" x2="687" y2="250"/><g class="actor"><rect x="610" y="12" width="154" height="44" rx="4"/><text x="687" y="39" text-anchor="middle">On call</text></g><text class="balh" x="844" y="32" text-anchor="middle">Windows</text><text class="balh" x="844" y="46" text-anchor="middle">armed</text><text class="num" x="4" y="90">start</text><text class="bal" x="844" y="90" text-anchor="middle">1</text><g><text class="num" x="14" y="122" text-anchor="middle">2</text><g class="tg tg-new"><rect x="26" y="109" width="58" height="18" rx="9"/><text x="55" y="122" text-anchor="middle">new</text></g><g class="e k-store"><line x1="177" y1="118" x2="343" y2="118"/><polygon class="head" points="347,118 338,113 338,123"/><text x="262" y="110" text-anchor="middle">daemon re-arms the window from Postgres</text><text class="sub" x="262" y="134" text-anchor="middle">one more table the daemon owns</text></g></g><text class="bal chg" x="844" y="122" text-anchor="middle">1</text><g><text class="num" x="14" y="176" text-anchor="middle">3</text><g class="tg tg-changed"><rect x="26" y="163" width="58" height="18" rx="9"/><text x="55" y="176" text-anchor="middle">changed</text></g><g class="self k-money"><rect x="431.6" y="159" width="170.8" height="26" rx="13"/><text x="517" y="176" text-anchor="middle">the read pays the band</text></g></g><text class="note" x="517" y="197" text-anchor="middle">the window survived the restart</text><g class="gone"><text class="num" x="14" y="232" text-anchor="middle">4</text><g class="tg tg-gone"><rect x="26" y="219" width="58" height="18" rx="9"/><text x="55" y="232" text-anchor="middle">gone</text></g><g class="e k-call"><line x1="687" y1="228" x2="181" y2="228"/><polygon class="head" points="177,228 186,223 186,233"/><text x="432" y="220" text-anchor="middle">a human rebuilds the window from the console</text></g><line class="strike" x1="286.8" y1="216" x2="577.2" y2="216"/></g></svg></div><p class="cap"><b>The daemon re-arms its windows from Postgres on start.</b> No void window.</p></div></div><div class="stage-wrap o-b" data-view="G4b" data-pick="G4b" hidden><div class="stage"><div class="legend"><span style="--k:var(--k-call)"><i></i>a call or a reply</span><span style="--k:var(--k-money)"><i></i>money moves</span><span style="--k:var(--k-store)"><i></i>a write that lasts</span><span style="--k:var(--k-fail)"><i></i>an error</span><span><b class="sw"></b>what this option changes</span></div><div class="scroll"><svg class="seq" viewBox="0 0 906 204" style="min-width:760px" role="img" aria-label="The read re-arms the window before paying. One extra write per read."><rect class="ledger-bg" x="784" y="8" width="120" height="190" rx="4"/><rect class="band" x="4" y="98" width="768" height="52" rx="3"/><rect class="band" x="4" y="154" width="768" height="36" rx="3"/><line class="life" x1="177" y1="56" x2="177" y2="196"/><g class="actor"><rect x="100" y="12" width="154" height="44" rx="4"/><text x="177" y="39" text-anchor="middle">Daemon</text></g><line class="life" x1="347" y1="56" x2="347" y2="196"/><g class="actor"><rect x="270" y="12" width="154" height="44" rx="4"/><text x="347" y="39" text-anchor="middle">Postgres</text></g><line class="life" x1="517" y1="56" x2="517" y2="196"/><g class="actor"><rect x="440" y="12" width="154" height="44" rx="4"/><text x="517" y="39" text-anchor="middle">Reader</text></g><line class="life" x1="687" y1="56" x2="687" y2="196"/><g class="actor"><rect x="610" y="12" width="154" height="44" rx="4"/><text x="687" y="39" text-anchor="middle">On call</text></g><text class="balh" x="844" y="32" text-anchor="middle">Windows</text><text class="balh" x="844" y="46" text-anchor="middle">armed</text><text class="num" x="4" y="90">start</text><text class="bal" x="844" y="90" text-anchor="middle">1</text><g><text class="num" x="14" y="122" text-anchor="middle">3</text><g class="tg tg-changed"><rect x="26" y="109" width="58" height="18" rx="9"/><text x="55" y="122" text-anchor="middle">changed</text></g><g class="self k-money"><rect x="351.6" y="105" width="330.8" height="26" rx="13"/><text x="517" y="122" text-anchor="middle">the read re-arms the window, then pays the band</text></g></g><text class="note" x="517" y="143" text-anchor="middle">one extra write per read</text><text class="bal chg" x="844" y="122" text-anchor="middle">1</text><g class="gone"><text class="num" x="14" y="178" text-anchor="middle">4</text><g class="tg tg-gone"><rect x="26" y="165" width="58" height="18" rx="9"/><text x="55" y="178" text-anchor="middle">gone</text></g><g class="e k-call"><line x1="687" y1="174" x2="181" y2="174"/><polygon class="head" points="177,174 186,169 186,179"/><text x="432" y="166" text-anchor="middle">a human rebuilds the window from the console</text></g><line class="strike" x1="286.8" y1="162" x2="577.2" y2="162"/></g></svg></div><p class="cap"><b>The read re-arms the window before paying.</b> One extra write per read.</p></div></div></div></section><div class="ghead"><h2>What a start refuses</h2></div><section class="ruling" id="r-G5"><div class="rhead"><span class="rid">G5</span><h3>Should the daemon refuse to serve when its start check fails?</h3></div><p class="stake"><b>Every daemon start runs 1 ledger check whose failure stops nothing: readers pay into a ledger the daemon itself doubted, and a log line is the only sign.</b></p><p class="today">At start the daemon checks its ledger once and logs a line when the check fails. It serves either way; the check decides nothing.</p><div class="vtable"><div class="vhead"><span>option</span><span>gain</span><span>cost</span></div><div class="vrow o-a" data-view="G5a" tabindex="0"><button type="button" class="lt disc o-a" data-pick="G5a" aria-label="pick G5a">a</button><span class="vt">Refuse to serve when the check fails<span class="vchips"> <span class="star">★ recommended</span></span><span class="pmark">✓ picked</span></span><span class="vg">The on-call sees a dead daemon with a reason, not a log line to find.</span><span class="vc">One flaky check now stops every read until a human restarts the daemon.</span></div><div class="vrow o-b" data-view="today" tabindex="0"><button type="button" class="lt disc o-b" data-pick="G5b" aria-label="pick G5b">b</button><span class="vt">Keep serving on a failed check<span class="vchips"> <span class="asr">as today</span></span><span class="pmark">✓ picked</span></span><span class="vg">Reads continue; a flaky check cannot take the daemon down.</span><span class="vc">The only sign of a doubted ledger is a log line nobody is tailing.</span></div><div class="vrow none" data-pick="G5n"><button type="button" class="lt disc none" data-pick="G5n" aria-label="pick G5n">n</button><span class="vt">none of these fit<span class="pmark">✓ picked</span></span></div><div class="vfoot"><input class="rnote" data-note="G5" placeholder="note for G5 — anything its answer should carry" aria-label="note for G5"></div></div></section><div class="ghead"><h2>What a buyer sees</h2></div><section class="ruling" id="r-G6"><div class="rhead"><span class="rid">G6</span><h3>Does a reader’s receipt show the blocks that paid no owner?</h3></div><p class="stake"><b>Paul’s receipt for a 2,400 read says 1,200 went to owners and never says why the other half did not.</b></p><p class="today">A receipt lists the read’s price and what it paid to block owners. Blocks without an owner add nothing to the second line and are not named.</p><div class="vtable"><div class="vhead"><span>option</span><span>gain</span><span>cost</span></div><div class="vrow o-a" data-view="G6a" tabindex="0"><button type="button" class="lt disc o-a" data-pick="G6a" aria-label="pick G6a">a</button><span class="vt">Add an unowned line<span class="vchips"> <span class="star">★ recommended</span></span><span class="pmark">✓ picked</span></span><span class="vg">Paul sees which 10 blocks paid nobody, on the receipt Paul already reads.</span><span class="vc">Every receipt grows a line, zero on most reads.</span></div><div class="vrow o-b" data-view="today" tabindex="0"><button type="button" class="lt disc o-b" data-pick="G6b" aria-label="pick G6b">b</button><span class="vt">Keep the receipt as it is<span class="vchips"> <span class="asr">as today</span></span><span class="pmark">✓ picked</span></span><span class="vg">No receipt change.</span><span class="vc">A buyer finds unowned blocks only by asking.</span></div><div class="vrow none" data-pick="G6n"><button type="button" class="lt disc none" data-pick="G6n" aria-label="pick G6n">n</button><span class="vt">none of these fit<span class="pmark">✓ picked</span></span></div><div class="vfoot"><input class="rnote" data-note="G6" placeholder="note for G6 — anything its answer should carry" aria-label="note for G6"></div></div><div class="compare"><div class="stage-wrap o-b" data-view="today" data-pick="G6b"><div class="stage figure"><div class="fig"><div class="rcpt" style="font: 12.5px var(--mono); color: var(--ink); background: var(--paper); border: 1px solid var(--rule); border-radius: 8px; padding: 12px 16px; min-width: 260px"><div style="display: flex; justify-content: space-between; gap: 24px"><span>Reader [40, 50)</span><span>2,400</span></div><div style="display: flex; justify-content: space-between; gap: 24px; color: var(--muted)"><span>Paid to owners</span><span>1,200</span></div></div></div><p class="cap"><b>Today the receipt has no line for the 10 blocks that paid nobody.</b></p></div></div><div class="stage-wrap o-a" data-view="G6a" data-pick="G6a" hidden><div class="stage figure"><div class="fig"><div class="rcpt" style="font: 12.5px var(--mono); color: var(--ink); background: var(--paper); border: 1px solid var(--rule); border-radius: 8px; padding: 12px 16px; min-width: 260px"><div style="display: flex; justify-content: space-between; gap: 24px"><span>Reader [40, 50)</span><span>2,400</span></div><div style="display: flex; justify-content: space-between; gap: 24px; color: var(--muted)"><span>Paid to owners</span><span>1,200</span></div><div style="display: flex; justify-content: space-between; gap: 24px; color: var(--o); font-weight: 600"><span>10 blocks with no owner</span><span>0</span></div></div></div><p class="cap"><b>The receipt names the 10 blocks that paid nobody.</b></p></div></div></div></section><div class="ghead"><h2>Merged</h2></div><section class="ruling" id="r-G3"><div class="rhead"><span class="rid">G3</span><div><h3>Should the reader’s window mint its own leaf band?</h3><p class="meta-line">Merged into G1</p></div></div><div class="changed">Same money question as G1 — whether the window owns its leaf blocks is what option b there rules.</div></section>
-</main>
-</div>
+)</pre></div></div></div><div class="rfoot"><textarea class="rnote" data-note="G2" rows="1" placeholder="Note on G2 — what your answer should carry" aria-label="note on G2"></textarea></div></div></section><div class="ghead"><h2>What a restart does</h2></div><section class="ruling" id="r-G4"><span class="rid">G4</span><h3>Who re-arms a reader’s window after a daemon restart?</h3><p class="lede"><span class="stake"><b>Roughly 1 daemon restart a week lands mid-read; each one pays a leaf read’s holder half into the void until a human notices.</b></span> The window lives only in the daemon’s memory. After a crash the console shows the reader with no window; whoever is on call reads the ledger, rebuilds the range by hand, and the next read pays the band again.</p><div class="decide wide"><div class="opts"><div class="opt" role="button" tabindex="0" data-look="today" aria-label="Show today’s picture"><span class="disc"></span><div class="ot"><span class="ot-t">Today</span><span class="tag">kept by no option</span></div></div><div class="opt o-a" role="button" tabindex="0" aria-pressed="false" data-pick="G4a" data-look="G4a"><span class="disc">a</span><div class="ot"><span class="ot-t">The daemon re-arms its windows from Postgres on start</span><span class="tag rec">★ recommended</span></div><p class="g">The window survives a restart; reads never pay into the void and no human is in the loop.</p><p class="c">One more table the daemon owns and migrates; the start sequence grows a step.</p></div><div class="opt o-b" role="button" tabindex="0" aria-pressed="false" data-pick="G4b" data-look="G4b"><span class="disc">b</span><div class="ot"><span class="ot-t">The read re-arms the window before paying</span></div><p class="w">The read already opens a transaction on the leaf rows; arming the window there is one more write on the same connection, with no new owner of state.</p><p class="g">The protocol fixes itself; no daemon change at all.</p><p class="c">Every read pays one extra write — about 40 a day at current traffic.</p></div><div class="opt" role="button" tabindex="0" aria-pressed="false" data-pick="G4n"><span class="disc">n</span><div class="ot"><span class="ot-t">None of these fit</span></div></div></div><div class="view"><div class="vw" data-view="today"><div class="vh"><span class="disc"></span><p class="vcap"><b>Today a crash loses the window; the read pays into the void until a human rebuilds it.</b></p></div><div class="pic"><div class="legend"><span style="--k:var(--k-call)"><i></i>a call or a reply</span><span style="--k:var(--k-money)"><i></i>money moves</span><span style="--k:var(--k-store)"><i></i>a write that lasts</span><span style="--k:var(--k-fail)"><i></i>an error</span></div><div class="scroll"><svg class="seq" viewBox="0 0 906 270" style="min-width:600px" role="img" aria-label="Today a crash loses the window; the read pays into the void until a human rebuilds it."><rect class="ledger-bg" x="784" y="8" width="120" height="256" rx="4"/><line class="life" x1="177" y1="56" x2="177" y2="262"/><g class="actor"><rect x="100" y="12" width="154" height="44" rx="4"/><text x="177" y="39" text-anchor="middle">Daemon</text></g><line class="life" x1="347" y1="56" x2="347" y2="262"/><g class="actor"><rect x="270" y="12" width="154" height="44" rx="4"/><text x="347" y="39" text-anchor="middle">Postgres</text></g><line class="life" x1="517" y1="56" x2="517" y2="262"/><g class="actor"><rect x="440" y="12" width="154" height="44" rx="4"/><text x="517" y="39" text-anchor="middle">Reader</text></g><line class="life" x1="687" y1="56" x2="687" y2="262"/><g class="actor"><rect x="610" y="12" width="154" height="44" rx="4"/><text x="687" y="39" text-anchor="middle">On call</text></g><text class="balh" x="844" y="32" text-anchor="middle">Windows</text><text class="balh" x="844" y="46" text-anchor="middle">armed</text><text class="num" x="4" y="90">start</text><text class="bal" x="844" y="90" text-anchor="middle">1</text><g><text class="num" x="14" y="122" text-anchor="middle">1</text><g class="self k-fail"><rect x="92" y="100" width="311.6" height="36" rx="18"/><text x="247.8" y="115" text-anchor="middle">daemon restarts mid-read</text><text class="sub" x="247.8" y="130" text-anchor="middle">the window lives only in the daemon’s memory</text></g></g><text class="bal chg" x="844" y="122" text-anchor="middle">0</text><g class="ghost"><text class="num" x="14" y="168" text-anchor="middle">2</text><text class="ghosttag" x="26" y="167.5">only in a</text><line class="ghostrule" x1="95.4" y1="164" x2="764" y2="164"/></g><g><text class="num" x="14" y="204" text-anchor="middle">3</text><g class="self k-money"><rect x="364.4" y="187" width="305.2" height="26" rx="13"/><text x="517" y="204" text-anchor="middle">the read pays the holder half into the void</text></g></g><g><text class="num" x="14" y="244" text-anchor="middle">4</text><g class="e k-call"><line x1="687" y1="240" x2="181" y2="240"/><polygon class="head" points="177,240 186,235 186,245"/><text x="432" y="232" text-anchor="middle">a human rebuilds the window from the console</text></g></g><text class="bal chg" x="844" y="244" text-anchor="middle">1</text></svg></div></div></div><div class="vw o-a" data-view="G4a" hidden><div class="vh"><span class="disc o-a">a</span><p class="vcap"><b>The daemon re-arms its windows from Postgres on start.</b> No void window.</p></div><div class="pic"><div class="legend"><span style="--k:var(--k-call)"><i></i>a call or a reply</span><span style="--k:var(--k-money)"><i></i>money moves</span><span style="--k:var(--k-store)"><i></i>a write that lasts</span><span style="--k:var(--k-fail)"><i></i>an error</span><span><b class="sw"></b>what this option changes</span></div><div class="scroll"><svg class="seq" viewBox="0 0 906 258" style="min-width:600px" role="img" aria-label="The daemon re-arms its windows from Postgres on start. No void window."><rect class="ledger-bg" x="784" y="8" width="120" height="244" rx="4"/><rect class="band" x="4" y="98" width="768" height="50" rx="3"/><rect class="band" x="4" y="152" width="768" height="52" rx="3"/><rect class="band" x="4" y="208" width="768" height="36" rx="3"/><line class="life" x1="177" y1="56" x2="177" y2="250"/><g class="actor"><rect x="100" y="12" width="154" height="44" rx="4"/><text x="177" y="39" text-anchor="middle">Daemon</text></g><line class="life" x1="347" y1="56" x2="347" y2="250"/><g class="actor"><rect x="270" y="12" width="154" height="44" rx="4"/><text x="347" y="39" text-anchor="middle">Postgres</text></g><line class="life" x1="517" y1="56" x2="517" y2="250"/><g class="actor"><rect x="440" y="12" width="154" height="44" rx="4"/><text x="517" y="39" text-anchor="middle">Reader</text></g><line class="life" x1="687" y1="56" x2="687" y2="250"/><g class="actor"><rect x="610" y="12" width="154" height="44" rx="4"/><text x="687" y="39" text-anchor="middle">On call</text></g><text class="balh" x="844" y="32" text-anchor="middle">Windows</text><text class="balh" x="844" y="46" text-anchor="middle">armed</text><text class="num" x="4" y="90">start</text><text class="bal" x="844" y="90" text-anchor="middle">1</text><g><text class="num" x="14" y="122" text-anchor="middle">2</text><g class="tg tg-new"><rect x="26" y="109" width="58" height="18" rx="9"/><text x="55" y="122" text-anchor="middle">new</text></g><g class="e k-store"><line x1="177" y1="118" x2="343" y2="118"/><polygon class="head" points="347,118 338,113 338,123"/><text x="262" y="110" text-anchor="middle">daemon re-arms the window from Postgres</text><text class="sub" x="262" y="134" text-anchor="middle">one more table the daemon owns</text></g></g><text class="bal chg" x="844" y="122" text-anchor="middle">1</text><g><text class="num" x="14" y="176" text-anchor="middle">3</text><g class="tg tg-changed"><rect x="26" y="163" width="58" height="18" rx="9"/><text x="55" y="176" text-anchor="middle">changed</text></g><g class="self k-money"><rect x="431.6" y="159" width="170.8" height="26" rx="13"/><text x="517" y="176" text-anchor="middle">the read pays the band</text></g></g><text class="note" x="517" y="197" text-anchor="middle">the window survived the restart</text><g class="gone"><text class="num" x="14" y="232" text-anchor="middle">4</text><g class="tg tg-gone"><rect x="26" y="219" width="58" height="18" rx="9"/><text x="55" y="232" text-anchor="middle">gone</text></g><g class="e k-call"><line x1="687" y1="228" x2="181" y2="228"/><polygon class="head" points="177,228 186,223 186,233"/><text x="432" y="220" text-anchor="middle">a human rebuilds the window from the console</text></g><line class="strike" x1="286.8" y1="216" x2="577.2" y2="216"/></g></svg></div></div></div><div class="vw o-b" data-view="G4b" hidden><div class="vh"><span class="disc o-b">b</span><p class="vcap"><b>The read re-arms the window before paying.</b> One extra write per read.</p></div><div class="pic"><div class="legend"><span style="--k:var(--k-call)"><i></i>a call or a reply</span><span style="--k:var(--k-money)"><i></i>money moves</span><span style="--k:var(--k-store)"><i></i>a write that lasts</span><span style="--k:var(--k-fail)"><i></i>an error</span><span><b class="sw"></b>what this option changes</span></div><div class="scroll"><svg class="seq" viewBox="0 0 906 204" style="min-width:600px" role="img" aria-label="The read re-arms the window before paying. One extra write per read."><rect class="ledger-bg" x="784" y="8" width="120" height="190" rx="4"/><rect class="band" x="4" y="98" width="768" height="52" rx="3"/><rect class="band" x="4" y="154" width="768" height="36" rx="3"/><line class="life" x1="177" y1="56" x2="177" y2="196"/><g class="actor"><rect x="100" y="12" width="154" height="44" rx="4"/><text x="177" y="39" text-anchor="middle">Daemon</text></g><line class="life" x1="347" y1="56" x2="347" y2="196"/><g class="actor"><rect x="270" y="12" width="154" height="44" rx="4"/><text x="347" y="39" text-anchor="middle">Postgres</text></g><line class="life" x1="517" y1="56" x2="517" y2="196"/><g class="actor"><rect x="440" y="12" width="154" height="44" rx="4"/><text x="517" y="39" text-anchor="middle">Reader</text></g><line class="life" x1="687" y1="56" x2="687" y2="196"/><g class="actor"><rect x="610" y="12" width="154" height="44" rx="4"/><text x="687" y="39" text-anchor="middle">On call</text></g><text class="balh" x="844" y="32" text-anchor="middle">Windows</text><text class="balh" x="844" y="46" text-anchor="middle">armed</text><text class="num" x="4" y="90">start</text><text class="bal" x="844" y="90" text-anchor="middle">1</text><g><text class="num" x="14" y="122" text-anchor="middle">3</text><g class="tg tg-changed"><rect x="26" y="109" width="58" height="18" rx="9"/><text x="55" y="122" text-anchor="middle">changed</text></g><g class="self k-money"><rect x="351.6" y="105" width="330.8" height="26" rx="13"/><text x="517" y="122" text-anchor="middle">the read re-arms the window, then pays the band</text></g></g><text class="note" x="517" y="143" text-anchor="middle">one extra write per read</text><text class="bal chg" x="844" y="122" text-anchor="middle">1</text><g class="gone"><text class="num" x="14" y="178" text-anchor="middle">4</text><g class="tg tg-gone"><rect x="26" y="165" width="58" height="18" rx="9"/><text x="55" y="178" text-anchor="middle">gone</text></g><g class="e k-call"><line x1="687" y1="174" x2="181" y2="174"/><polygon class="head" points="177,174 186,169 186,179"/><text x="432" y="166" text-anchor="middle">a human rebuilds the window from the console</text></g><line class="strike" x1="286.8" y1="162" x2="577.2" y2="162"/></g></svg></div></div></div></div><div class="rfoot"><textarea class="rnote" data-note="G4" rows="1" placeholder="Note on G4 — what your answer should carry" aria-label="note on G4"></textarea></div></div></section><div class="ghead"><h2>What a start refuses</h2></div><section class="ruling" id="r-G5"><span class="rid">G5</span><h3>Should the daemon refuse to serve when its start check fails?</h3><p class="lede"><span class="stake"><b>Every daemon start runs 1 ledger check whose failure stops nothing: readers pay into a ledger the daemon itself doubted, and a log line is the only sign.</b></span> At start the daemon checks its ledger once and logs a line when the check fails. It serves either way; the check decides nothing.</p><div class="decide bare"><div class="opts"><div class="opt o-a" role="button" tabindex="0" aria-pressed="false" data-pick="G5a"><span class="disc">a</span><div class="ot"><span class="ot-t">Refuse to serve when the check fails</span><span class="tag rec">★ recommended</span></div><p class="g">The on-call sees a dead daemon with a reason, not a log line to find.</p><p class="c">One flaky check now stops every read until a human restarts the daemon.</p></div><div class="opt o-b" role="button" tabindex="0" aria-pressed="false" data-pick="G5b"><span class="disc">b</span><div class="ot"><span class="ot-t">Keep serving on a failed check</span><span class="tag">as today</span></div><p class="g">Reads continue; a flaky check cannot take the daemon down.</p><p class="c">The only sign of a doubted ledger is a log line nobody is tailing.</p></div><div class="opt" role="button" tabindex="0" aria-pressed="false" data-pick="G5n"><span class="disc">n</span><div class="ot"><span class="ot-t">None of these fit</span></div></div></div><div class="rfoot"><textarea class="rnote" data-note="G5" rows="1" placeholder="Note on G5 — what your answer should carry" aria-label="note on G5"></textarea></div></div></section><div class="ghead"><h2>What a buyer sees</h2></div><section class="ruling" id="r-G6"><span class="rid">G6</span><h3>Does a reader’s receipt show the blocks that paid no owner?</h3><p class="lede"><span class="stake"><b>Paul’s receipt for a 2,400 read says 1,200 went to owners and never says why the other half did not.</b></span> A receipt lists the read’s price and what it paid to block owners. Blocks without an owner add nothing to the second line and are not named.</p><div class="decide"><div class="opts"><div class="opt o-a" role="button" tabindex="0" aria-pressed="false" data-pick="G6a" data-look="G6a"><span class="disc">a</span><div class="ot"><span class="ot-t">Add an unowned line</span><span class="tag rec">★ recommended</span></div><p class="g">Paul sees which 10 blocks paid nobody, on the receipt Paul already reads.</p><p class="c">Every receipt grows a line, zero on most reads.</p></div><div class="opt o-b" role="button" tabindex="0" aria-pressed="false" data-pick="G6b" data-look="today"><span class="disc">b</span><div class="ot"><span class="ot-t">Keep the receipt as it is</span><span class="tag">as today</span></div><p class="g">No receipt change.</p><p class="c">A buyer finds unowned blocks only by asking.</p></div><div class="opt" role="button" tabindex="0" aria-pressed="false" data-pick="G6n"><span class="disc">n</span><div class="ot"><span class="ot-t">None of these fit</span></div></div></div><div class="view"><div class="vw o-b" data-view="today"><div class="vh"><span class="disc o-b">b</span><p class="vcap"><b>Today the receipt has no line for the 10 blocks that paid nobody.</b></p></div><div class="pic"><div class="fig"><div style="font: var(--s)/1.5 var(--mono); width: 300px"><div style="font: 600 var(--s) var(--sans); color: var(--muted); padding-bottom: 6px">Receipt</div><div style="display: flex; justify-content: space-between; gap: 32px; padding: 6px 0; border-top: 1px solid var(--rule)"><span>Reader [40, 50)</span><span>2,400</span></div><div style="display: flex; justify-content: space-between; gap: 32px; padding: 6px 0; border-top: 1px solid var(--rule); color: var(--muted)"><span>Paid to owners</span><span>1,200</span></div></div></div></div></div><div class="vw o-a" data-view="G6a" hidden><div class="vh"><span class="disc o-a">a</span><p class="vcap"><b>The receipt names the 10 blocks that paid nobody.</b></p></div><div class="pic"><div class="fig"><div style="font: var(--s)/1.5 var(--mono); width: 300px"><div style="font: 600 var(--s) var(--sans); color: var(--muted); padding-bottom: 6px">Receipt</div><div style="display: flex; justify-content: space-between; gap: 32px; padding: 6px 0; border-top: 1px solid var(--rule)"><span>Reader [40, 50)</span><span>2,400</span></div><div style="display: flex; justify-content: space-between; gap: 32px; padding: 6px 0; border-top: 1px solid var(--rule); color: var(--muted)"><span>Paid to owners</span><span>1,200</span></div><div style="display: flex; justify-content: space-between; gap: 32px; padding: 6px 0; border-top: 1px solid var(--rule); color: var(--o); font-weight: 600"><span>10 blocks with no owner</span><span>0</span></div></div></div></div></div></div><div class="rfoot"><textarea class="rnote" data-note="G6" rows="1" placeholder="Note on G6 — what your answer should carry" aria-label="note on G6"></textarea></div></div></section><div class="ghead"><h2>Merged</h2></div><section class="ruling" id="r-G3"><span class="rid">G3</span><h3>Should the reader’s window mint its own leaf band?</h3><p class="lede">Merged into G1. Same money question as G1 — whether the window owns its leaf blocks is what option b there rules.</p></section>
+</div></main>
 <footer class="bar" id="rulings-bar">
 <div class="bar-in" id="rulings-bar-in">
 <div class="chips" id="picks" aria-live="polite"></div>
-<textarea id="rulings-notes" rows="1" placeholder="page note — anything the answer should carry"></textarea>
+<textarea id="rulings-notes" rows="1" placeholder="Page note — anything the answer should carry"></textarea>
 <button type="button" class="go" id="copy-answer">Copy answer</button>
 </div>
-<button type="button" class="bar-tab" id="bar-tab" aria-expanded="false" aria-controls="rulings-bar-in">no picks yet</button>
+<button type="button" class="bar-tab" id="bar-tab" aria-expanded="false" aria-controls="rulings-bar-in">No picks yet</button>
 </footer>
 <script>
 (function () {
   'use strict';
   var KEY = document.body.getAttribute('data-key');
   var REF = /^(G\\d+)([a-z])$/;
-  var cards = Array.prototype.slice.call(document.querySelectorAll('[data-pick]'));
-  var tracked = Array.prototype.slice.call(document.querySelectorAll('[data-needs]'));
-  var wraps = Array.prototype.slice.call(document.querySelectorAll('.stage-wrap'));
-  var vrows = Array.prototype.slice.call(document.querySelectorAll('.vrow'));
-  var noteIns = Array.prototype.slice.call(document.querySelectorAll('.rnote'));
+  function all(sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); }
+  function words(s) { return (s || '').split(/\\s+/).filter(Boolean); }
+  function store(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  function stored(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+
+  var pickers = all('[data-pick]');
+  var sections = all('section.ruling');
   var sum = document.getElementById('picks');
   var notesIn = document.getElementById('rulings-notes');
   var copyBtn = document.getElementById('copy-answer');
@@ -350,267 +318,212 @@ svg text.note { font-size: 11.5px; font-weight: 600; fill: var(--o); }
   var tab = document.getElementById('bar-tab');
   var countEl = document.getElementById('ruled-count');
   var where = document.getElementById('rulings-where');
+  var links = {};
+  all('.side a.rl').forEach(function (a) { links[a.getAttribute('href').slice(1)] = a; });
+
+  var LIVE = {};
+  var ORDER = [];
+  pickers.forEach(function (d) {
+    var m = REF.exec(d.getAttribute('data-pick'));
+    if (!LIVE[m[1]]) { LIVE[m[1]] = {}; ORDER.push(m[1]); }
+    LIVE[m[1]][m[2]] = true;
+  });
   var pick = {};
   var onotes = {};
   var note = '';
 
-  var LIVE = {};
-  var CARD = {};
-  var ORDER = [];
-  cards.forEach(function (c) {
-    var m = REF.exec(c.getAttribute('data-pick'));
-    if (!m) return;
-    if (!LIVE[m[1]]) { LIVE[m[1]] = { n: true }; ORDER.push(m[1]); }
-    LIVE[m[1]][m[2]] = true;
-  });
-  tracked.forEach(function (el) {
-    var d = el.getAttribute('data-pick') ? el : el.querySelector('.disc');
-    var m = d && REF.exec(d.getAttribute('data-pick'));
-    if (m) CARD[m[0]] = (el.getAttribute('data-needs') || '').split(/\\s+/).filter(Boolean);
-  });
-
-  function flip(el) {
-    var d = el.getAttribute('data-pick') ? el : el.querySelector('.disc');
-    var m = d && REF.exec(d.getAttribute('data-pick'));
-    if (m) { if (pick[m[1]] === m[2]) delete pick[m[1]]; else pick[m[1]] = m[2]; }
+  function load() {
+    if (!KEY) return;
+    var s;
+    try { s = JSON.parse(stored(KEY) || 'null'); } catch (e) { return; }
+    if (!s || typeof s !== 'object') return;
+    var p = s.picks || {};
+    for (var k in p) if (LIVE[k] && LIVE[k][p[k]]) pick[k] = p[k];
+    var on = s.onotes || {};
+    for (var t in on) if (typeof on[t] === 'string' && LIVE[t]) onotes[t] = on[t];
+    if (typeof s.note === 'string') note = s.note;
+  }
+  function save() {
+    if (KEY) store(KEY, JSON.stringify({ picks: pick, onotes: onotes, note: note }));
   }
 
-  var views = {};
-  function rulingViews(el) {
-    var sec = el.closest('section');
-    var id = sec && sec.getAttribute('id');
-    if (!id) return null;
-    if (!views[id]) views[id] = { w: [], r: [] };
-    return views[id];
+  function setLayout(v) {
+    document.body.classList.toggle('stacked', v === 'stacked');
+    all('[data-layout]').forEach(function (b) {
+      b.setAttribute('aria-pressed', b.getAttribute('data-layout') === v ? 'true' : 'false');
+    });
   }
-  wraps.forEach(function (w) { var u = rulingViews(w); if (u) u.w.push(w); });
-  vrows.forEach(function (r) { var u = rulingViews(r); if (u) u.r.push(r); });
 
-  function show(id, view) {
-    var u = views[id];
-    if (!u || !view || u.w.length === 0) return;
-    u.w.forEach(function (w) {
+  function look(section, view) {
+    all('.vw', section).forEach(function (w) {
       if (w.getAttribute('data-view') === view) w.removeAttribute('hidden');
       else w.setAttribute('hidden', '');
     });
-    u.r.forEach(function (r) {
-      var on = r.getAttribute('data-view') === view;
-      r.classList.toggle('shown', on);
+    all('.opt[data-look]', section).forEach(function (r) {
+      var on = r.getAttribute('data-look') === view;
+      r.classList.toggle('looked', on);
       if (on) r.setAttribute('aria-current', 'true');
       else r.removeAttribute('aria-current');
     });
   }
-  function restoreViews() {
-    for (var id in views) {
-      var u = views[id];
-      var rid = id.slice(2);
-      var p = pick[rid];
-      var view = null;
-      if (p && p !== 'n' && LIVE[rid] && LIVE[rid][p]) {
-        u.w.forEach(function (w) {
-          if (w.getAttribute('data-pick') === rid + p) view = w.getAttribute('data-view');
-        });
-      }
-      show(id, view || (u.w[0] && u.w[0].getAttribute('data-view')) || null);
-    }
+  function pickedView(section) {
+    var p = pick[section.id.slice(2)];
+    var row = p && section.querySelector('.opt[data-look][data-pick="' + section.id.slice(2) + p + '"]');
+    return row ? row.getAttribute('data-look') : null;
+  }
+  function restoreViews(list) {
+    list.forEach(function (s) {
+      var first = s.querySelector('.vw');
+      if (first) look(s, pickedView(s) || first.getAttribute('data-view'));
+    });
   }
 
-  function load() {
-    if (!KEY) return;
-    var raw;
-    try { raw = localStorage.getItem(KEY); } catch (e) { return; }
-    if (!raw) return;
-    var s;
-    try { s = JSON.parse(raw); } catch (e) { return; }
-    if (!s || typeof s !== 'object') return;
-    var p = s.picks || {};
-    for (var k in p) if (LIVE[k] && typeof p[k] === 'string' && LIVE[k][p[k]]) pick[k] = p[k];
-    var on = s.onotes || {};
-    for (var t in on) if (typeof on[t] === 'string' && ORDER.indexOf(t) !== -1) onotes[t] = on[t];
-    if (typeof s.note === 'string') note = s.note;
-    else if (typeof s.notes === 'string') note = s.notes;
+  function flip(ref) {
+    var m = REF.exec(ref);
+    if (pick[m[1]] === m[2]) delete pick[m[1]];
+    else pick[m[1]] = m[2];
   }
-  function save() {
-    if (!KEY) return;
-    try { localStorage.setItem(KEY, JSON.stringify({ picks: pick, onotes: onotes, note: note })); } catch (e) {}
-  }
-  function unmetOf(list) {
-    return list.filter(function (t) {
-      var m = REF.exec(t);
-      return !m || pick[m[1]] !== m[2];
-    });
+  function unmet(needs) {
+    return needs.filter(function (t) { var m = REF.exec(t); return !m || pick[m[1]] !== m[2]; });
   }
   function entries() {
-    var out = [];
-    ORDER.forEach(function (id) {
-      if (!pick[id]) return;
-      var bad = pick[id] === 'n' ? [] : unmetOf(CARD[id + pick[id]] || []);
-      out.push({ label: id + pick[id], rid: id, bad: bad });
+    return ORDER.filter(function (id) { return pick[id]; }).map(function (id) {
+      var row = document.querySelector('[data-pick="' + id + pick[id] + '"]');
+      return { label: id + pick[id], rid: id, bad: unmet(words(row.getAttribute('data-needs'))), hue: row.className.match(/\\bo-[a-d]\\b/) };
     });
-    return out;
   }
-  function chipHue(id) {
-    var c = document.querySelector('[data-pick="' + id + '"]');
-    if (!c) return 'var(--ink)';
-    for (var i = 0; i < c.classList.length; i++) {
-      if (c.classList[i].indexOf('o-') === 0) return 'var(--opt-' + c.classList[i].slice(2) + ')';
-    }
-    return 'var(--ink)';
-  }
+
   function render() {
-    cards.forEach(function (c) {
-      var m = REF.exec(c.getAttribute('data-pick'));
-      if (m) c.setAttribute('aria-pressed', pick[m[1]] === m[2] ? 'true' : 'false');
+    pickers.forEach(function (d) {
+      var m = REF.exec(d.getAttribute('data-pick'));
+      d.setAttribute('aria-pressed', pick[m[1]] === m[2] ? 'true' : 'false');
     });
-    tracked.forEach(function (el) {
-      el.classList.toggle('unmet', unmetOf((el.getAttribute('data-needs') || '').split(/\\s+/).filter(Boolean)).length > 0);
+    all('.opt[data-needs]').forEach(function (r) {
+      r.classList.toggle('unmet', unmet(words(r.getAttribute('data-needs'))).length > 0);
     });
-    if (!sum) return;
     var es = entries();
-    if (bar) bar.classList.toggle('rest', es.length === 0 && (notesIn ? note : '') === '');
+    if (bar) bar.classList.toggle('rest', es.length === 0 && note === '');
     if (tab) {
-      var open = bar !== null && bar.classList.contains('open');
+      var open = bar.classList.contains('open');
       tab.setAttribute('aria-expanded', open ? 'true' : 'false');
-      tab.textContent = open ? 'close'
-        : es.length === 0 ? 'no picks yet'
-        : es.length + (es.length === 1 ? ' pick' : ' picks');
+      tab.textContent = open ? 'Close' : es.length === 0 ? 'No picks yet' : es.length + (es.length === 1 ? ' pick' : ' picks');
     }
-    if (countEl) {
-      var ruled = 0;
-      ORDER.forEach(function (id) { if (pick[id]) ruled++; });
-      countEl.textContent = ruled + ' of ' + ORDER.length + ' ruled';
-    }
-    for (var rk in links) links[rk].classList.toggle('ruled', !!pick[rk.slice(2)]);
-    if (es.length === 0) {
-      sum.innerHTML = '<span class="empty">no picks yet — pick a letter</span>';
-      return;
-    }
-    sum.innerHTML = es.map(function (e) {
-      return '<span class="chip' + (e.bad.length ? ' unmet' : '') + '">' +
-        '<span class="d" style="background:' + chipHue(e.label) + '">' + e.label.slice(-1) + '</span>' +
-        e.label.slice(0, -1) +
-        (e.bad.length ? '<span class="need">needs ' + e.bad.join(' ') + '</span>' : '') +
-        '<button type="button" class="x" data-unpick="' + e.label + '" aria-label="unpick ' + e.label + '">×</button>' +
-        '</span>';
-    }).join('');
+    if (countEl) countEl.textContent = es.length + ' of ' + ORDER.length + ' ruled';
+    for (var h in links) links[h].classList.toggle('ruled', !!pick[h.slice(2)]);
+    if (!sum) return;
+    sum.innerHTML = es.length === 0
+      ? '<span class="empty">No picks yet — click an option</span>'
+      : es.map(function (e) {
+        return '<span class="chip' + (e.hue ? ' ' + e.hue[0] : '') + (e.bad.length ? ' unmet' : '') + '"><i></i>' + e.label +
+          (e.bad.length ? '<span class="need">needs ' + e.bad.join(' ') + '</span>' : '') +
+          '<button type="button" class="x" data-unpick="' + e.label + '" aria-label="unpick ' + e.label + '">×</button></span>';
+      }).join('');
   }
   function commit() { render(); save(); }
-
-  function exempt(t) {
-    return t.closest('.rnote, a, textarea, summary');
-  }
-
   function endsDragSelect(e) {
-    var sel = window.getSelection ? window.getSelection() : null;
-    return Boolean(sel && String(sel) && e.detail);
+    return e.detail > 0 && String(window.getSelection ? window.getSelection() : '') !== '';
   }
 
   document.addEventListener('click', function (e) {
-    var x = e.target.closest('[data-unpick]');
-    if (x) {
-      var xm = REF.exec(x.getAttribute('data-unpick'));
-      if (xm) delete pick[xm[1]];
+    var t = e.target;
+    var x = t.closest('[data-unpick]');
+    if (x) { delete pick[REF.exec(x.getAttribute('data-unpick'))[1]]; commit(); return; }
+    var lay = t.closest('[data-layout]');
+    if (lay) { setLayout(lay.getAttribute('data-layout')); store('rulings-layout', lay.getAttribute('data-layout')); return; }
+    var quick = t.closest('[data-picks]');
+    if (quick) {
+      words(quick.getAttribute('data-picks')).forEach(function (r) { var m = REF.exec(r); if (m) pick[m[1]] = m[2]; });
+      restoreViews(sections);
       commit();
       return;
     }
-    if (exempt(e.target)) return;
-    var quickBtn = e.target.closest('[data-picks]');
-    if (quickBtn) {
-      quickBtn.getAttribute('data-picks').split(/\\s+/).filter(Boolean).forEach(function (t) {
-        var q = REF.exec(t);
-        if (q) pick[q[1]] = q[2];
-      });
-      commit();
-      return;
-    }
-    var row = e.target.closest('.vrow');
-    if (row) {
+    if (t.closest('input, textarea, a')) return;
+    var picker = t.closest('[data-pick]');
+    if (picker) {
       if (endsDragSelect(e)) return;
-      flip(row);
-      var v = row.getAttribute('data-view');
-      var sec = v && row.closest('section');
-      var sid = sec && sec.getAttribute('id');
-      if (sid) show(sid, v);
-      commit();
-      return;
-    }
-    var card = e.target.closest('[data-pick]');
-    if (card) {
-      if (endsDragSelect(e)) return;
-      flip(card);
+      flip(picker.getAttribute('data-pick'));
       commit();
     }
+    var row = t.closest('.opt[data-look]');
+    if (row) look(row.closest('section'), row.getAttribute('data-look'));
   });
   document.addEventListener('keydown', function (e) {
     if (e.key !== 'Enter' && e.key !== ' ') return;
-    if (exempt(e.target)) return;
-    var card = e.target.closest('[data-pick]');
-    if (card) { e.preventDefault(); card.click(); return; }
-    var row = e.target.closest('[data-view]');
-    if (row) { e.preventDefault(); row.click(); }
+    var row = e.target.closest && e.target.closest('.opt');
+    if (!row || e.target !== row) return;
+    e.preventDefault();
+    row.click();
   });
+  function preview(e) {
+    var row = e.target.closest && e.target.closest('.opts .opt');
+    if (!row) return;
+    var section = row.closest('section');
+    if (row.hasAttribute('data-look')) look(section, row.getAttribute('data-look'));
+    else restoreViews([section]);
+  }
+  document.addEventListener('mouseover', preview);
+  document.addEventListener('focusin', preview);
+  all('.opts').forEach(function (list) {
+    var section = list.closest('section');
+    list.addEventListener('mouseleave', function () { restoreViews([section]); });
+    list.addEventListener('focusout', function (e) {
+      if (!e.relatedTarget || !list.contains(e.relatedTarget)) restoreViews([section]);
+    });
+  });
+
   function sizeNote() {
-    if (!notesIn) return;
     var cap = Math.max(120, (window.innerHeight || 640) - 220);
     notesIn.style.height = 'auto';
-    notesIn.style.height = Math.min(notesIn.scrollHeight, cap) + 'px';
+    notesIn.style.height = Math.min(notesIn.scrollHeight + notesIn.offsetHeight - notesIn.clientHeight, cap) + 'px';
   }
-  if (tab && bar) tab.addEventListener('click', function () {
+  if (tab) tab.addEventListener('click', function () {
     var open = !bar.classList.contains('open');
     bar.classList.toggle('open', open);
     if (open) sizeNote();
     render();
   });
-  if (notesIn) notesIn.addEventListener('input', function () { note = notesIn.value; save(); sizeNote(); });
-  noteIns.forEach(function (inp) {
+  if (notesIn) notesIn.addEventListener('input', function () { note = notesIn.value; commit(); sizeNote(); });
+  all('.rnote').forEach(function (inp) {
     inp.addEventListener('input', function () { onotes[inp.getAttribute('data-note')] = inp.value; save(); });
   });
 
-  var links = {};
-  var titles = {};
-  var sideLinks = document.querySelectorAll('.side a.rl');
-  for (var si = 0; si < sideLinks.length; si++) {
-    var h = (sideLinks[si].getAttribute('href') || '').slice(1);
-    if (!h) continue;
-    links[h] = sideLinks[si];
-    var t = sideLinks[si].querySelector('.t');
-    titles[h] = t ? t.textContent : '';
-  }
-  var hereId = null;
   function setWhere(id) {
     if (!where) return;
     if (!id) { where.setAttribute('hidden', ''); return; }
+    var l = links['r-' + id];
     where.removeAttribute('hidden');
     where.setAttribute('href', '#r-' + id);
-    where.textContent = id + ' · ' + (titles['r-' + id] || '');
+    where.textContent = id + ' · ' + (l ? l.querySelector('.t').textContent : '');
   }
-  if ('IntersectionObserver' in window && Object.keys(links).length) {
+  if ('IntersectionObserver' in window) {
+    var here = null;
     var io = new IntersectionObserver(function (ents) {
       ents.forEach(function (en) {
         var l = links[en.target.id];
         if (!l) return;
         if (!en.isIntersecting) {
           l.classList.remove('here');
-          if (hereId === en.target.id) { hereId = null; setWhere(null); }
+          if (here === en.target.id) { here = null; setWhere(null); }
           return;
         }
         for (var k in links) links[k].classList.remove('here');
         l.classList.add('here');
-        hereId = en.target.id;
-        setWhere(en.target.id.slice(2));
+        here = en.target.id;
+        setWhere(here.slice(2));
       });
     }, { rootMargin: '-12% 0px -78% 0px' });
-    var secs = document.querySelectorAll('section[id]');
-    for (var sj = 0; sj < secs.length; sj++) io.observe(secs[sj]);
+    sections.forEach(function (s) { io.observe(s); });
   }
 
   function answerText() {
-    var line = entries().map(function (e) {
-      var t = e.label + (e.bad.length ? ' (needs ' + e.bad.join(' ') + ')' : '');
-      var n = (onotes[e.rid] || '').replace(/^\\s+|\\s+$/g, '');
-      return n ? t + ' — ' + n : t;
-    }).join(', ');
-    var extra = (notesIn ? notesIn.value : note).replace(/^\\s+|\\s+$/g, '');
+    var es = entries();
+    var line = ORDER.map(function (id) {
+      var e = es.filter(function (x) { return x.rid === id; })[0];
+      var t = e ? e.label + (e.bad.length ? ' (needs ' + e.bad.join(' ') + ')' : '') : id;
+      var n = (onotes[id] || '').trim();
+      return n ? t + ' — ' + n : e ? t : '';
+    }).filter(Boolean).join(', ');
+    var extra = note.trim();
     return extra ? line + '\\n\\n' + extra : line;
   }
   function fallbackCopy(t) {
@@ -627,36 +540,28 @@ svg text.note { font-size: 11.5px; font-weight: 600; fill: var(--o); }
   }
   function within(p, ms) {
     return new Promise(function (res) {
-      var over = false;
-      var t = setTimeout(function () { if (!over) { over = true; res(false); } }, ms);
-      p.then(
-        function () { if (!over) { over = true; clearTimeout(t); res(true); } },
-        function () { if (!over) { over = true; clearTimeout(t); res(false); } }
-      );
+      var t = setTimeout(function () { res(false); }, ms);
+      p.then(function () { clearTimeout(t); res(true); }, function () { clearTimeout(t); res(false); });
     });
   }
+  function say(text) {
+    copyBtn.textContent = text;
+    setTimeout(function () { copyBtn.textContent = 'Copy answer'; }, 1800);
+  }
   if (copyBtn) copyBtn.addEventListener('click', function () {
-    var done = function (ok) {
-      copyBtn.textContent = ok ? 'Copied' : 'Copy failed — copy the summary by hand';
-      setTimeout(function () { copyBtn.textContent = 'Copy answer'; }, 1800);
-    };
-    if (entries().length === 0) {
-      copyBtn.textContent = 'No picks yet — pick a letter first';
-      setTimeout(function () { copyBtn.textContent = 'Copy answer'; }, 1800);
-      return;
-    }
     var t = answerText();
+    if (t === '') { say('Nothing to copy yet — pick an option or write a note'); return; }
+    var done = function (ok) { say(ok ? 'Copied' : 'Copy failed — copy the summary by hand'); };
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      within(navigator.clipboard.writeText(t), 1500).then(function (ok) {
-        done(ok ? true : fallbackCopy(t));
-      });
+      within(navigator.clipboard.writeText(t), 1500).then(function (ok) { done(ok || fallbackCopy(t)); });
     } else done(fallbackCopy(t));
   });
 
+  setLayout(stored('rulings-layout') === 'stacked' ? 'stacked' : 'side');
   load();
-  restoreViews();
+  restoreViews(sections);
   if (notesIn) { notesIn.value = note; sizeNote(); }
-  noteIns.forEach(function (inp) { inp.value = onotes[inp.getAttribute('data-note')] || ''; });
+  all('.rnote').forEach(function (inp) { inp.value = onotes[inp.getAttribute('data-note')] || ''; });
   render();
 })();
 </script>

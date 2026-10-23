@@ -7,7 +7,7 @@ import 'prismjs/components/prism-typescript.js';
 
 import type { Body, Ruling } from './schema.ts';
 
-import { esc } from './html.ts';
+import { esc, type Stage } from './html.ts';
 
 const LANG_ALIAS: Record<string, string> = {
   bash: 'bash',
@@ -31,147 +31,51 @@ function hlBlock(code: string, lang: string | undefined): string {
   }
 }
 
-interface Row {
-  s: 'add' | 'ctx' | 'del' | 'ell';
-  t: string;
-}
-
-const RUN = 7;
-const TODAY_FOLD = 20;
-
 function diffHtml(
   before: string,
   after: string,
   lang: string | undefined,
 ): string {
-  const rows: Row[] = [];
-  for (const part of diffLines(before, after)) {
-    for (const line of part.value.replace(/\n$/, '').split('\n')) {
-      rows.push({
-        s: part.added ? 'add' : part.removed ? 'del' : 'ctx',
-        t: line,
-      });
-    }
-  }
-  const out: Row[] = [];
-  let i = 0;
-  while (i < rows.length) {
-    if (rows[i].s === 'ctx') {
-      let j = i;
-      while (j < rows.length && rows[j].s === 'ctx') {
-        j++;
-      }
-      if (j - i >= RUN) {
-        out.push(
-          rows[i],
-          { s: 'ell', t: `⋯ ${j - i - 2} unchanged lines` },
-          rows[j - 1],
-        );
-        i = j;
-        continue;
-      }
-    }
-    out.push(rows[i]);
-    i++;
-  }
-  return out
-    .map(r => {
-      if (r.s === 'add') {
-        return `<span class="dl add">${hlBlock(r.t, lang)}</span>`;
-      }
-      if (r.s === 'del') {
-        return `<span class="dl del">${hlBlock(r.t, lang)}</span>`;
-      }
-      if (r.s === 'ell') {
-        return `<span class="dl ell">${esc(r.t)}</span>`;
-      }
-      return `<span class="dl ctx">${hlBlock(r.t, lang)}</span>`;
+  return diffLines(before, after)
+    .flatMap(part => {
+      const kind = part.added ? 'add' : part.removed ? 'del' : 'same';
+      return part.value
+        .replace(/\n$/, '')
+        .split('\n')
+        .map(line => `<span class="dl ${kind}">${hlBlock(line, lang)}</span>`);
     })
     .join('');
 }
 
-function splitAtLine(highlighted: string, line: number): [string, string] {
-  let cut = highlighted.indexOf('\n');
-  for (let seen = 1; seen < line && cut !== -1; seen++) {
-    cut = highlighted.indexOf('\n', cut + 1);
-  }
-  const opens: string[] = [];
-  for (const tag of highlighted.slice(0, cut).matchAll(/<span [^>]*>|<\/span>/g)) {
-    if (tag[0] === '</span>') {
-      opens.pop();
-    } else {
-      opens.push(tag[0]);
-    }
-  }
-  return [
-    highlighted.slice(0, cut) + '</span>'.repeat(opens.length),
-    opens.join('') + highlighted.slice(cut + 1),
-  ];
-}
-
-function todayPre(code: string, lang: string | undefined): string {
-  const lines = code.split('\n');
-  if (lines.length <= TODAY_FOLD) {
-    return `<pre>${hlBlock(code, lang)}</pre>`;
-  }
-  const [head, tail] = splitAtLine(hlBlock(code, lang), TODAY_FOLD);
-  return (
-    `<pre>${head}</pre>` +
-    `<details class="fold"><summary>show all ${lines.length} lines</summary>` +
-    `<pre>${tail}</pre></details>`
-  );
-}
-
-function bodyHtml(
-  b: Body,
-  isToday: boolean,
-  todayCode?: string,
-): string {
+function bodyStage(b: Body, isToday: boolean, todayCode?: string): Stage {
   const asDiff = !isToday && todayCode !== undefined && b.diff !== false;
   const state =
     b.state === 'sketch'
-      ? '<span class="state-chip">sketch — feasibility not checked</span>'
-      : `<span>${b.state ?? (isToday ? 'built today' : 'planned')}</span>`;
-  return (
-    `<div class="body ${isToday ? 'is-today' : 'of-option'}"><div class="tag">` +
-    state +
-    (asDiff ? '<span class="dleg">diff vs today</span>' : '') +
-    (b.what ? `<b>${b.what}</b>` : '') +
-    '</div>' +
-    (isToday
-      ? todayPre(b.code ?? '', b.lang)
-      : asDiff
-        ? `<pre class="diff">${diffHtml(todayCode ?? '', b.code ?? '', b.lang)}</pre>`
-        : `<pre>${hlBlock(b.code ?? '', b.lang)}</pre>`) +
-    (b.cap ? `<p class="bcap">${b.cap}</p>` : '') +
-    '</div>'
-  );
+      ? 'sketch — feasibility not checked'
+      : (b.state ?? (isToday ? 'built today' : 'planned'));
+  return {
+    body:
+      `<div class="btag"><span>${state}</span>` +
+      (asDiff ? '<span>diff vs today</span>' : '') +
+      (b.what ? `<b>${b.what}</b>` : '') +
+      '</div>' +
+      (asDiff
+        ? `<pre class="diff">${diffHtml(todayCode, b.code ?? '', b.lang)}</pre>`
+        : `<pre>${hlBlock(b.code ?? '', b.lang)}</pre>`),
+    cap: b.cap ?? '',
+  };
 }
 
-export function bodiesToday(q: Ruling): string {
+export function bodiesToday(q: Ruling): Stage | undefined {
   const B = q.bodies;
-  if (B === undefined || !('today' in B)) {
-    return '';
-  }
-  return (
-    `<div class="stage"><div class="bodies">${bodyHtml(B.today, true)}</div>` +
-    '</div>'
-  );
+  return B !== undefined && 'today' in B ? bodyStage(B.today, true) : undefined;
 }
 
-export function bodiesOption(q: Ruling, view: string): string {
+export function bodiesOption(q: Ruling, view: string): Stage | undefined {
   const B = q.bodies;
-  if (B === undefined) {
-    return '';
-  }
   const letter = view.slice(-1);
-  if (!(letter in B)) {
-    return '';
+  if (B === undefined || !(letter in B)) {
+    return undefined;
   }
-  const todayCode = 'today' in B ? B.today.code : undefined;
-  return (
-    '<div class="stage"><div class="bodies">' +
-    bodyHtml(B[letter], false, todayCode) +
-    '</div></div>'
-  );
+  return bodyStage(B[letter], false, 'today' in B ? B.today.code : undefined);
 }
