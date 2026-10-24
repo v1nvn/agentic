@@ -57,6 +57,7 @@ npx -y @v1nvn/statusline@0.54.0 restore
 
 ```sh
 yarn workspace @v1nvn/statusline test     # vitest
+yarn workspace @v1nvn/statusline bench    # median paint cost over assets/payloads
 yarn lint && yarn typecheck               # from the repo root
 ```
 
