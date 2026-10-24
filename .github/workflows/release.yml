@@ -20,19 +20,32 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Nothing publishes from a tree that has not passed the full suite. On a
+  # bump, prepare re-runs the gate on the bumped tree — the exact bytes being
+  # pushed — and publish rides that same green gate.
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Run the gate
+        uses: ./.github/actions/gate
+
   prepare:
+    needs: gate
     if: github.event_name == 'workflow_dispatch' && inputs.bump != 'none'
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     outputs:
       sha: ${{ steps.push.outputs.sha }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Enable Corepack
         # Node 26 distributions no longer bundle corepack.
         run: |
           npm install -g corepack
           corepack enable
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: '26'
           registry-url: 'https://registry.npmjs.org'
@@ -52,7 +65,11 @@ jobs:
 
       # The lockfiles pin the train's own core version with its registry
       # integrity hash, so core must be on npm before they regenerate — the
-      # release job's per-package skip then publishes only the remaining homes.
+      # publish job's per-package skip then publishes only the remaining homes.
+      # Core is the one package that goes out before the re-gate below: the
+      # lock regen that completes the bumped tree needs it on the registry, so
+      # its gate is this job's needs.gate on the pre-bump tree plus the bump
+      # scripts' own --check runs.
       - name: Publish core at the new version
         run: |
           version="$(jq -r .version .claude-plugin/marketplace.json)"
@@ -82,8 +99,8 @@ jobs:
 
       - name: Regenerate lockfiles against the published core
         run: node .github/scripts/set-version.mjs "$(jq -r .version .claude-plugin/marketplace.json)"
-      - name: Check package versions ride the repo version
-        run: node .github/scripts/set-version.mjs --check
+      - name: Re-run the gate on the bumped tree
+        uses: ./.github/actions/gate
       - name: Commit and push the bump
         id: push
         run: |
@@ -94,16 +111,18 @@ jobs:
           git push
           echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
-  release:
-    needs: [prepare]
+  publish:
+    needs: [gate, prepare]
     if: (!failure() && !cancelled())
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: ${{ needs.prepare.outputs.sha || github.ref }}
 
-      # Every package rides this version; build.yml enforces the mirrors agree.
+      # Every package rides this version; the gate's version check enforces
+      # the mirrors agree.
       - name: Resolve release tag
         id: version
         run: echo "tag=v$(jq -r .version .claude-plugin/marketplace.json)" >> "$GITHUB_OUTPUT"
@@ -126,7 +145,7 @@ jobs:
         run: |
           npm install -g corepack
           corepack enable
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         if: steps.check.outputs.skip == 'false'
         with:
           node-version: '26'
