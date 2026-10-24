@@ -27,6 +27,8 @@ Tactical map:
 - u3 — `src/configure.ts` (the key object write) with the resolved state pick from `resolvePaint`; tests `configure.test.ts`, `restore.test.ts`, `key-e2e.test.ts`; the README's key-contract line.
 - u4 — a `bench` package script over a plain-node script that imports the in-process barrel and renders `assets/payloads/*.json` N times.
 
+Run mechanics: the scoped gate line is `yarn workspace @v1nvn/statusline test`; the workspace gate line is `yarn workspace @v1nvn/statusline test && yarn lint && yarn typecheck`, ceiling 1 minute (pre-flight 48s, green) — the builder fires it per unit in the foreground.
+
 Enforcement inventory:
 
 - Goldens are byte-for-byte for every unit here — no unit may move one; if `-uall` parity fails a golden, u2 stops and consults rather than regenerating.
