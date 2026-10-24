@@ -33,7 +33,7 @@ export interface Row {
 
 const CONTROL_TEXT =
   // eslint-disable-next-line no-control-regex -- a sanitizer: control bytes are its subject
-  /\x1b(?:\[[0-?]*[ -/]*[@-~]|\][^\u0007]*(?:\u0007|\x1b\\)?|[ -/]*[0-~])|[\u0000-\u001f\u007f-\u009f]/gu;
+  /\x1b(?:\[[0-?]*[ -/]*[@-~]|\][^\u0007\x1b]*(?:\u0007|\x1b\\)?|[ -/]*[0-~])|[\u0000-\u001f\u007f-\u009f]/gu;
 
 export function stripControls(text: string): string {
   return text.replace(CONTROL_TEXT, '');
@@ -51,8 +51,7 @@ function field(source: unknown, path: string): unknown {
   return current;
 }
 
-// The line's bash side never saw a container in a scalar field; one reads
-// as empty text, not as JSON.
+// A container in a scalar field reads as empty text, never as JSON.
 function fieldText(value: unknown): string {
   if (typeof value === 'string') {
     return stripControls(value);

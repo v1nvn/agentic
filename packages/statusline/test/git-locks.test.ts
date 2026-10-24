@@ -56,9 +56,7 @@ describe('readGit', () => {
     const home = mkdtempSync(join(tmpdir(), 'statusline-locks-'));
     const dir = makeRepo(home);
 
-    // A stale cached stat is what tempts `git status` into rewriting the
-    // index — the state of every repo the statusline polls while its
-    // session is editing files and about to commit.
+    // A stale cached stat tempts `git status` into rewriting the index.
     utimesSync(join(dir, 'tracked.txt'), new Date(0), new Date(0));
     const index = join(dir, '.git', 'index');
     const before = statSync(index);
@@ -86,8 +84,7 @@ describe('readGit', () => {
     const lines = others.trimEnd();
     const expected = lines === '' ? 0 : lines.split('\n').length;
     expect(facts.untracked).toBe(expected);
-    // Two extra files inside one untracked directory: collapsed-directory
-    // counting (-unormal) would read 5, file-level (-uall) reads 7.
+    // -unormal would collapse the extras' directory and read 5; -uall reads 7.
     expect(facts.untracked).toBe(7);
   });
 

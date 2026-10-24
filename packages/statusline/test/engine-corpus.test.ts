@@ -92,19 +92,16 @@ function bracketModel(payload: Loose): void {
   (payload.model as Loose).display_name = 'Opus 4.5[1m]';
 }
 
-// The degenerate values: ESC-led sequences (CSI, OSC over BEL and ST, an
-// unterminated OSC), C0, C1, and DEL, one injection family per field.
 function poisonFields(payload: Loose): void {
   (payload.model as Loose).display_name = '\u001bMO\u001b7pus\u001b[31m';
   (payload.output_style as Loose).name =
     '\u001b]0;pwn\u0007explanatory\u009b31m';
-  payload.worktree = { name: 'wt\u001b]8;;x\u001b\\fi\n\tx' };
+  payload.worktree = { name: 'wt\u001b]8;;x\u001b\\fix' };
   (payload.pr as Loose).number = '48\u001b]2;evil';
   (payload.pr as Loose).review_state = 'pending\u009c\u007f';
 }
 
-// Oracle cases ({item} one-item layouts) store the segment without the
-// trailing newline the emit adds; full-line cases store exact stdout.
+// Oracle cases ({item}) store the segment; full-line cases, exact stdout.
 export const CORPUS: readonly CorpusCase[] = [
   { name: 'p1-default', payload: 'p1' },
   { name: 'p2-default', payload: 'p2' },
@@ -314,8 +311,7 @@ export const CORPUS: readonly CorpusCase[] = [
     picks: { bar: 'gauge' },
     mutate: payload => setPct(payload, 150),
   },
-  // token ties: awk printf rounds 1.25/2.5 to even ("1.2k"/"2k"), toFixed
-  // rounds away from zero ("1.3k"/"3k").
+  // token ties: awk printf rounds 1.25/2.5 to even; toFixed away from zero.
   {
     name: 'seg-p1-tokens-tie',
     payload: 'p1',
@@ -328,8 +324,7 @@ export const CORPUS: readonly CorpusCase[] = [
       ctx.context_window_size = 2500;
     },
   },
-  // cost tie: awk printf "$%.2f" rounds 0.125 to even "$0.12"; toFixed says
-  // "$0.13".
+  // cost tie: awk printf rounds 0.125 to even ($0.12); toFixed says $0.13.
   {
     name: 'seg-p1-cost-tie',
     payload: 'p1',

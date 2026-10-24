@@ -147,21 +147,22 @@ function planSettings(
   return { adds, file, raw, repoints };
 }
 
-export function settingsValue(
-  key: SettingsKey,
-  command: string,
-  vimPills: boolean,
-): string {
-  const value: Record<string, unknown> = { command, type: 'command' };
-  if (key === 'statusLine') {
-    value.refreshInterval = 10;
-    if (vimPills) {
-      // Absent, never false: the host keeps its own indicator unless ours
-      // shows the mode.
-      value.hideVimModeIndicator = true;
-    }
+function mainSettingsValue(command: string, vimPills: boolean): string {
+  const value: Record<string, unknown> = {
+    command,
+    type: 'command',
+    refreshInterval: 10,
+  };
+  if (vimPills) {
+    // Absent, never false: the host keeps its own indicator unless ours
+    // shows the mode.
+    value.hideVimModeIndicator = true;
   }
   return JSON.stringify(value);
+}
+
+function subagentSettingsValue(command: string): string {
+  return JSON.stringify({ command, type: 'command' });
 }
 
 function skipString(raw: string, at: number): number {
@@ -323,7 +324,6 @@ function renderMembers(
   return members.map(([key, value]) => `"${key}": ${value}`).join(',\n  ');
 }
 
-/** Splice each rendered value over its root member. */
 export function repointRootMembers(
   raw: string,
   entries: readonly { key: string; value: string }[],
@@ -411,11 +411,9 @@ function themeNamed(
   return theme;
 }
 
-// Validation only: the theme name is in the table, the overrides are picks
-// the registry offers, the layout's items are known — and some layout source
-// exists. The renderer resolves theme plus overrides at paint
-// (src/render/theme.ts); the writer below records the decisions, never
-// resolved output. Returns the named theme so its caller resolves it once.
+// Validation only — the renderer resolves theme plus overrides at paint
+// (src/render/theme.ts); this returns the named theme for its caller to
+// resolve once, and records decisions, never resolved output.
 export function validateSelection(
   options: Pick<ConfigureOptions, 'layout' | 'theme' | 'variants'>,
 ): Theme | undefined {
@@ -443,9 +441,8 @@ export function validateSelection(
   return theme;
 }
 
-// A key records only the decisions that differ from the picks its base
-// already carries — registry defaults with the theme's variants over them;
-// the renderer resolves absent picks at paint.
+// A key records only decisions that differ from its base picks — registry
+// defaults with the theme's variants; the renderer resolves the rest at paint.
 function decisionFlags(
   base: Readonly<Record<string, string>>,
   decisions: Readonly<Partial<Record<string, string>>>,
@@ -479,27 +476,17 @@ export function configure(options: ConfigureOptions): void {
       : options.layout;
   const flags = decisionFlags(base, decisions);
   const vimPills =
-    resolvePaint({
-      ...(options.theme === undefined ? {} : { theme: options.theme }),
-      picks: Object.fromEntries(
-        flags.map(flag => {
-          const eq = flag.indexOf('=');
-          return [flag.slice(2, eq), flag.slice(eq + 1)];
-        }),
-      ),
-    }).picks.state === 'pills';
+    resolvePaint({ theme: options.theme, picks: decisions }).picks.state ===
+    'pills';
   const plan = planSettings(
     options.home,
     {
-      statusLine: settingsValue(
-        'statusLine',
+      statusLine: mainSettingsValue(
         mainKeyValue(options.theme ?? null, layout, flags),
         vimPills,
       ),
-      subagentStatusLine: settingsValue(
-        'subagentStatusLine',
+      subagentStatusLine: subagentSettingsValue(
         subagentKeyValue(options.theme ?? null, flags),
-        vimPills,
       ),
     },
     options.force ?? false,
