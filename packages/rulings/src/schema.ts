@@ -179,7 +179,7 @@ export function figureFaults(html: string): string[] {
   for (const [, value] of html.matchAll(PAINTED_ATTR)) {
     if (LITERAL_COLOUR.test(value)) {
       faults.push(
-        'paints a literal colour, which steps outside the page\'s tokens; use them (var(--ink), var(--o), …)',
+        "paints a literal colour, which steps outside the page's tokens; use them (var(--ink), var(--o), …)",
       );
       break;
     }
