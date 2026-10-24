@@ -32,10 +32,12 @@ local cuts.
 
 ## Keyless publishing
 
-Yarn ≥ 4.10 exchanges the Actions OIDC token itself (repo pins ≥ 4.17.1).
-Auth order is npmAuthToken before OIDC — **no npm token may ever sit in
-`.yarnrc.yml` or CI env on the publish path.** Trusted publishers are added
-with npm ≥ 11.15.0:
+The publish door is npm's CLI — berry's publish body omits the `readme`
+field, so every npm page it publishes renders bare
+(`references/discoverability.md`). npm ≥ 11.5 (bundled with Node 26)
+exchanges the Actions OIDC token itself — **no npm token may ever sit in
+CI env on the publish path.** Trusted publishers are added with
+npm ≥ 11.15.0:
 
 ```sh
 npm trust github @v1nvn/<name> --file release.yml --repo v1nvn/agentic --allow-publish --yes
@@ -52,15 +54,14 @@ require the package to exist (npm/cli#8544). One-time manual pass, then every
 later release is keyless:
 
 1. Current checkout, `yarn install`.
-2. Compile the registry face, publish from a **real terminal** — in a
-   non-TTY shell yarn prints the login URL and dies ("unexpected empty
-   event loop") — then revert the face. Browser 2FA **per publish**;
-   `--otp <code>` works for exactly one publish; reusing a code trips a 429
-   OTP rate limit.
+2. Compile the registry face, publish from a **real terminal** — npm needs a
+   logged-in session; `npm login` itself is interactive — then revert the
+   face. Browser 2FA **per publish**; `--otp <code>` works for exactly one
+   publish; reusing a code trips a 429 OTP rate limit.
 
    ```sh
    node .github/scripts/publish-face.mjs packages/<name>
-   (cd packages/<name> && yarn npm publish)
+   (cd packages/<name> && npm publish)
    node .github/scripts/publish-face.mjs --revert packages/<name>
    ```
 3. Add the trusted publisher (command above). The first call browser-2FAs —

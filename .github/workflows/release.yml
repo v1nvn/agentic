@@ -60,7 +60,7 @@ jobs:
             echo "::notice::@v1nvn/agentic-core@$version already on npm; skipping."
           else
             node .github/scripts/publish-face.mjs packages/core
-            (cd packages/core && yarn npm publish --provenance)
+            (cd packages/core && npm publish --provenance)
             node .github/scripts/publish-face.mjs --revert packages/core
           fi
       # Post-publish visibility is asynchronous on the registry's side: the
@@ -162,7 +162,7 @@ jobs:
               # Node will not type-strip .ts under node_modules — the registry
               # face is compiled .js, the git/plugin face stays .ts source.
               node .github/scripts/publish-face.mjs "$pkg"
-              (cd "$pkg" && yarn npm publish --provenance) && continue
+              (cd "$pkg" && npm publish --provenance) && continue
               wait_landed "$name" || {
                 echo "::error::$name@$version publish failed and never resolved on the registry"
                 exit 1
