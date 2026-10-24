@@ -57,7 +57,7 @@ re-read the source behind any anchor before relying on it.
 
 ## Deviations
 
-A mechanical pick inside the thread file's named scope — no money, no name a caller
+A line the thread file marks proposed is a pick, not a decision. A mechanical pick inside the thread file's named scope — no money, no name a caller
 sees, no file the thread file doesn't name, none that forces a second deviation — you take,
 note in your scratch file and list under deviations; under a `**Run:** ask: all` line
 every pick stops. Any other pick stops the unit: report the finding and the options with
@@ -72,4 +72,3 @@ unit's diff and fix what they catch. Report once per unit — when it stops gree
 fix; each report wakes the orchestrator, so never send progress. Under
 ~20 lines, in this order: diff stat; gate tail, pasted raw; per close criterion, its
 proof; the A/B verdict where the unit calls for one; deviations; surprises.
-

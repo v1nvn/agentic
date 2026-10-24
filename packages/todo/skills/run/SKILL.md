@@ -17,7 +17,8 @@ decision into it — inside the deviation law below.
 
 ## Deviations
 
-Every pick the thread file's text does not name is either taken or stopped on. A pick is
+Every pick the thread file's text does not name is either taken or stopped on; a line it
+marks proposed names no decision and is a pick like any other. A pick is
 written down — the options, a recommendation — and the run takes the recommendation and
 continues: the pick is said in one line as it is taken, written into the thread file, and
 listed in the veto table; no pick is ruled silently. A protected test or snapshot that

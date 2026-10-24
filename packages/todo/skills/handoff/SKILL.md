@@ -39,6 +39,9 @@ a cold session cannot reconstruct from the target repo in under a minute:
   commands that work, the trap that was hit, the approach that was rejected and why.
 - Open questions for the user.
 
+A brainstorm's notes (`progress/.scratch/brainstorm-*.md`) stay where they are: name the
+file at the top of the block, so the fresh session resumes it with `/todo:brainstorm`.
+
 Keep it tight. Never invent next steps that were not agreed — if the next step is
 undecided, say so and list the options with a recommendation.
 
