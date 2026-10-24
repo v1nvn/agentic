@@ -20,3 +20,8 @@ updates:
     groups:
       toolchain:
         patterns: ['*']
+    ignore:
+      # typescript-eslint lags TS majors — take TS minors and patches until it
+      # declares support for the next major.
+      - dependency-name: typescript
+        update-types: ['version-update:semver-major']
