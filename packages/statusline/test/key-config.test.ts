@@ -17,6 +17,12 @@ const GOLDEN_MAIN = `node "$HOME/.claude/plugins/data/statusline-agentic/render.
 
 const GOLDEN_SUB = `node "$HOME/.claude/plugins/data/statusline-agentic/render.mjs" --subagent || true`;
 
+const GOLDEN_THEME_RICH = `node "$HOME/.claude/plugins/data/statusline-agentic/render.mjs" --theme=rich || true`;
+
+const GOLDEN_THEME_RICH_SUB = `node "$HOME/.claude/plugins/data/statusline-agentic/render.mjs" --subagent --theme=rich || true`;
+
+const GOLDEN_THEME_QUIET = `node "$HOME/.claude/plugins/data/statusline-agentic/render.mjs" --theme=quiet || true`;
+
 const GOLDEN_SUB_SWAPS = `node "$HOME/.claude/plugins/data/statusline-agentic/render.mjs" --subagent --model=block --effort=dim || true`;
 
 const GOLDEN_THEME = `node "$HOME/.claude/plugins/data/statusline-agentic/render.mjs" --theme=lean || true`;
@@ -47,6 +53,7 @@ describe('configure: golden key values (ruling 1)', () => {
     expect(settings.statusLine).toEqual({
       type: 'command',
       command: GOLDEN_MAIN,
+      refreshInterval: 10,
     });
     expect(settings.subagentStatusLine).toEqual({
       type: 'command',
@@ -78,6 +85,58 @@ describe('configure: golden key values (ruling 1)', () => {
     expect(subagentKeyValue('lean', ['--bar=gauge'])).toBe(
       GOLDEN_THEME_SUB_SWAP,
     );
+  });
+});
+
+describe('configure: the statusLine key official fields', () => {
+  it('refreshInterval rides always; hideVimModeIndicator exactly when the resolved state renders vim pills', () => {
+    const home = homes.newHome();
+
+    configure({ home, theme: 'rich' });
+    const settings = JSON.parse(readFileSync(settingsPath(home), 'utf8'));
+    expect(settings.statusLine).toEqual({
+      type: 'command',
+      command: GOLDEN_THEME_RICH,
+      hideVimModeIndicator: true,
+      refreshInterval: 10,
+    });
+    expect(settings.subagentStatusLine).toEqual({
+      type: 'command',
+      command: GOLDEN_THEME_RICH_SUB,
+    });
+  });
+
+  it('quiet and lean keep the host indicator — a swap recomputes the flag on every write', () => {
+    const home = homes.newHome();
+    const member = (): Record<string, unknown> =>
+      JSON.parse(readFileSync(settingsPath(home), 'utf8')).statusLine as Record<
+        string,
+        unknown
+      >;
+
+    configure({ home, theme: 'quiet' });
+    expect(member()).toEqual({
+      type: 'command',
+      command: GOLDEN_THEME_QUIET,
+      refreshInterval: 10,
+    });
+
+    configure({ home, theme: 'lean' });
+    expect(member()).toEqual({
+      type: 'command',
+      command: GOLDEN_THEME,
+      refreshInterval: 10,
+    });
+
+    configure({ home, theme: 'rich' });
+    expect(member().hideVimModeIndicator).toBe(true);
+
+    configure({ home, theme: 'lean' });
+    expect(member()).toEqual({
+      type: 'command',
+      command: GOLDEN_THEME,
+      refreshInterval: 10,
+    });
   });
 });
 

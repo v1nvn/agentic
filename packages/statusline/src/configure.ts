@@ -17,6 +17,7 @@ import {
 } from './render/index.ts';
 import { isRecord } from './render/jq.ts';
 import { layoutItems } from './render/layout.ts';
+import { resolvePaint } from './render/theme.ts';
 import {
   backupPath,
   isOurMainCommand,
@@ -113,11 +114,10 @@ interface SettingsPlan {
 
 function planSettings(
   home: string,
-  commands: Readonly<Record<SettingsKey, string>>,
+  wanted: Readonly<Record<SettingsKey, string>>,
   force: boolean,
 ): SettingsPlan {
   const file = join(home, '.claude', 'settings.json');
-  const wanted = commands;
   const raw = readOrNull(file);
   if (raw === null) {
     return {
@@ -131,14 +131,13 @@ function planSettings(
   const adds: (readonly [SettingsKey, string])[] = [];
   const repoints: (readonly [SettingsKey, string])[] = [];
   for (const key of SETTINGS_KEYS) {
-    const command = wanted[key];
     const value = parsed[key];
     if (value === undefined) {
-      adds.push([key, command]);
-    } else if (memberCommand(value) === command) {
+      adds.push([key, wanted[key]]);
+    } else if (JSON.stringify(value) === wanted[key]) {
       continue;
     } else if (isOurMember(key, value) || force) {
-      repoints.push([key, command]);
+      repoints.push([key, wanted[key]]);
     } else {
       throw new Error(
         `settings.json ${key} is foreign — rerun with --force added to your configuration flags to take it over`,
@@ -148,8 +147,21 @@ function planSettings(
   return { adds, file, raw, repoints };
 }
 
-export function settingsValue(command: string): string {
-  return JSON.stringify({ command, type: 'command' });
+export function settingsValue(
+  key: SettingsKey,
+  command: string,
+  vimPills: boolean,
+): string {
+  const value: Record<string, unknown> = { command, type: 'command' };
+  if (key === 'statusLine') {
+    value.refreshInterval = 10;
+    if (vimPills) {
+      // Absent, never false: the host keeps its own indicator unless ours
+      // shows the mode.
+      value.hideVimModeIndicator = true;
+    }
+  }
+  return JSON.stringify(value);
 }
 
 function skipString(raw: string, at: number): number {
@@ -308,9 +320,7 @@ export function insertMembers(
 function renderMembers(
   members: readonly (readonly [string, string])[],
 ): string {
-  return members
-    .map(([key, command]) => `"${key}": ${settingsValue(command)}`)
-    .join(',\n  ');
+  return members.map(([key, value]) => `"${key}": ${value}`).join(',\n  ');
 }
 
 /** Splice each rendered value over its root member. */
@@ -333,10 +343,7 @@ function splicedSettings(raw: string, plan: SettingsPlan): string {
   const text = plan.adds.length > 0 ? insertMembers(raw, plan.adds) : raw;
   return repointRootMembers(
     text,
-    plan.repoints.map(([key, command]) => ({
-      key,
-      value: settingsValue(command),
-    })),
+    plan.repoints.map(([key, value]) => ({ key, value })),
   );
 }
 
@@ -378,7 +385,7 @@ function commitSettings(plan: SettingsPlan): void {
   if (plan.raw === null) {
     mkdirSync(dirname(plan.file), { recursive: true });
     const members = plan.adds
-      .map(([key, command]) => `"${key}": ${settingsValue(command)}`)
+      .map(([key, value]) => `"${key}": ${value}`)
       .join(',\n  ');
     writeFileSync(plan.file, `{\n  ${members}\n}\n`);
     return;
@@ -471,11 +478,29 @@ export function configure(options: ConfigureOptions): void {
       ? null
       : options.layout;
   const flags = decisionFlags(base, decisions);
+  const vimPills =
+    resolvePaint({
+      ...(options.theme === undefined ? {} : { theme: options.theme }),
+      picks: Object.fromEntries(
+        flags.map(flag => {
+          const eq = flag.indexOf('=');
+          return [flag.slice(2, eq), flag.slice(eq + 1)];
+        }),
+      ),
+    }).picks.state === 'pills';
   const plan = planSettings(
     options.home,
     {
-      statusLine: mainKeyValue(options.theme ?? null, layout, flags),
-      subagentStatusLine: subagentKeyValue(options.theme ?? null, flags),
+      statusLine: settingsValue(
+        'statusLine',
+        mainKeyValue(options.theme ?? null, layout, flags),
+        vimPills,
+      ),
+      subagentStatusLine: settingsValue(
+        'subagentStatusLine',
+        subagentKeyValue(options.theme ?? null, flags),
+        vimPills,
+      ),
     },
     options.force ?? false,
   );
