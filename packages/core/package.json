@@ -1,7 +1,7 @@
 {
   "name": "@v1nvn/agentic-core",
   "version": "0.54.0",
-  "description": "Shared source home for the @v1nvn agent tools — runtime helpers and the drawing kit every process-side surface imports.",
+  "description": "Shared source home for the @v1nvn agent tools \u2014 runtime helpers and the drawing kit every process-side surface imports.",
   "type": "module",
   "main": "./src/index.ts",
   "exports": {
@@ -28,6 +28,7 @@
     "url": "git+https://github.com/v1nvn/agentic.git",
     "directory": "packages/core"
   },
+  "homepage": "https://github.com/v1nvn/agentic/tree/main/packages/core",
   "files": [
     "src"
   ],

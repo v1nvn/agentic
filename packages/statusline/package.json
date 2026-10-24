@@ -1,7 +1,7 @@
 {
   "name": "@v1nvn/statusline",
   "version": "0.54.0",
-  "description": "Browse statusline variants and configure the live status line and agent panel — the statusline CLI behind the statusline plugin.",
+  "description": "Browse statusline variants and configure the live status line and agent panel \u2014 the statusline CLI behind the statusline plugin.",
   "type": "module",
   "bin": "./src/index.ts",
   "scripts": {
@@ -11,6 +11,9 @@
   "keywords": [
     "claude-code",
     "statusline",
+    "status-line",
+    "themes",
+    "agent-panel",
     "cli"
   ],
   "author": {
@@ -23,6 +26,7 @@
     "url": "git+https://github.com/v1nvn/agentic.git",
     "directory": "packages/statusline"
   },
+  "homepage": "https://github.com/v1nvn/agentic/tree/main/packages/statusline",
   "files": [
     "src",
     "assets"

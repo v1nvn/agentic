@@ -17,6 +17,7 @@
   "keywords": [
     "mcp",
     "readability",
+    "url-to-markdown",
     "markdown",
     "turndown",
     "model-context-protocol"
@@ -31,6 +32,7 @@
     "url": "git+https://github.com/v1nvn/agentic.git",
     "directory": "packages/readability"
   },
+  "homepage": "https://github.com/v1nvn/agentic/tree/main/packages/readability",
   "files": [
     "src"
   ],

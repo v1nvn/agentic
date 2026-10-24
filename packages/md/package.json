@@ -1,7 +1,7 @@
 {
   "name": "@v1nvn/md",
   "version": "0.54.0",
-  "description": "Send a Markdown reply to the Markdown-Viewer as a #share= URL — the md-send CLI behind the md plugin.",
+  "description": "Send a Markdown reply to the Markdown-Viewer as a #share= URL \u2014 the md-send CLI behind the md plugin.",
   "type": "module",
   "bin": {
     "md-send": "./src/index.ts"
@@ -11,7 +11,9 @@
     "test:watch": "yarn run -T vitest"
   },
   "keywords": [
-    "Markdown-Viewer",
+    "markdown-viewer",
+    "markdown",
+    "share",
     "claude-code"
   ],
   "author": {
@@ -24,6 +26,7 @@
     "url": "git+https://github.com/v1nvn/agentic.git",
     "directory": "packages/md"
   },
+  "homepage": "https://github.com/v1nvn/agentic/tree/main/packages/md",
   "files": [
     "src"
   ],
