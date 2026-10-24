@@ -1,6 +1,10 @@
 {
   "name": "md",
   "version": "0.54.0",
-  "description": "Send the last Claude reply to the self-hosted Markdown-Viewer as a #share= URL — zero-token /md-edit and /md-view.",
-  "author": { "name": "v1nvn", "email": "v1n@outlook.com" }
+  "description": "Send the last Claude reply to the self-hosted Markdown-Viewer as a #share= URL \u2014 zero-token /md-edit and /md-view.",
+  "author": {
+    "name": "v1nvn",
+    "email": "v1n@outlook.com"
+  },
+  "license": "MIT"
 }

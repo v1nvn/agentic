@@ -1,6 +1,10 @@
 {
   "name": "todo",
   "version": "0.54.0",
-  "description": "Work tracking — the rules plus eight verbs (init, brainstorm, new, run, review, status, handoff, postmortem) over TODO.md, progress/, references/, archive/, and the builder, reviewer and auditor agents the verbs dispatch.",
-  "author": { "name": "v1nvn", "email": "v1n@outlook.com" }
+  "description": "Work tracking \u2014 the rules plus eight verbs (init, brainstorm, new, run, review, status, handoff, postmortem) over TODO.md, progress/, references/, archive/, and the builder, reviewer and auditor agents the verbs dispatch.",
+  "author": {
+    "name": "v1nvn",
+    "email": "v1n@outlook.com"
+  },
+  "license": "MIT"
 }
