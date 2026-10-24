@@ -6,7 +6,7 @@ import {
   toSgr,
 } from '@v1nvn/agentic-core/draw';
 
-import { readGit } from './git.ts';
+import { readGit, unmeasuredFacts } from './git.ts';
 import {
   DEFAULT_LAYOUT,
   type FitStep,
@@ -70,14 +70,20 @@ function resolvePicks(
   return resolved;
 }
 
+const GIT_ITEMS = new Set(['ahead', 'branch', 'status']);
+
 export function renderStatusline(input: RenderInput): string {
   const row = parseRow(input.payload);
-  const git = readGit(row.dir, { home: input.home });
   const picks = resolvePicks(input.picks);
   const clusters = parseLayout(
     input.layout ?? DEFAULT_LAYOUT,
     new Set(ITEMS.map(spec => spec.item)),
   );
+  const git = clusters.some(cluster =>
+    cluster.some(item => GIT_ITEMS.has(item)),
+  )
+    ? readGit(row.dir, { home: input.home })
+    : unmeasuredFacts();
   const wrapAt = clusters.length > 2 ? 2 : 1;
 
   let width = input.columns;
