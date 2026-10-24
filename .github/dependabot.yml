@@ -1,0 +1,22 @@
+version: 2
+
+updates:
+  # Keeps the SHA-pinned actions moving; without it the pins go stale.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: chore(deps)
+    groups:
+      actions:
+        patterns: ['*']
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: chore(deps)
+    groups:
+      toolchain:
+        patterns: ['*']
