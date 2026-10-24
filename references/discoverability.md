@@ -154,7 +154,7 @@ Surfaces plugins in Claude Code's in-product Discover tab.
   changes. First-scan failure is rejection — each README discloses everything
   the plugin runs, sends and fetches; source stays readable, never compiled or
   minified.
-- Icons and screenshots: not required anywhere. No documented description cap.
+- Icons and screenshots: not required anywhere. Every home ships `.claude-plugin/icon.png` (1024px, amber-on-dark family); the icon locks at the first portal save or submission, so it is final before any submission. No documented description cap.
 
 ### awesome-claude-code
 
