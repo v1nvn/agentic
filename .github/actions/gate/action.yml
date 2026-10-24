@@ -41,9 +41,9 @@ runs:
       shell: bash
     - name: Validate plugin + marketplace manifests
       run: |
-        claude plugin validate .claude-plugin/marketplace.json
+        claude plugin validate --strict .claude-plugin/marketplace.json
         for m in packages/*/.claude-plugin/plugin.json; do
-          claude plugin validate "$m"
+          claude plugin validate --strict "$m"
         done
       shell: bash
     - name: Check package versions ride the repo version
