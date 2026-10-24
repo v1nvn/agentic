@@ -81,7 +81,11 @@ describe('configure: the settings splice preserves owner bytes', () => {
       spinnerTipsEnabled: false,
       permissions: { allow: ['Bash(git status:ro)'] },
       env: {},
-      statusLine: { command: MAIN_COMMAND, refreshInterval: 10, type: 'command' },
+      statusLine: {
+        command: MAIN_COMMAND,
+        refreshInterval: 10,
+        type: 'command',
+      },
       subagentStatusLine: { command: SUB_COMMAND, type: 'command' },
     });
   });
