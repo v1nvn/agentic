@@ -1,7 +1,7 @@
 {
   "name": "@v1nvn/rm",
   "version": "0.54.0",
-  "description": "Beam a Markdown reply to a reMarkable as EPUB \u2014 the rm-send CLI behind the rm plugin.",
+  "description": "Beam a Markdown reply to a reMarkable as EPUB — the rm-send CLI behind the rm plugin.",
   "type": "module",
   "bin": {
     "rm-send": "./src/index.ts"

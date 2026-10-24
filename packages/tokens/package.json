@@ -1,7 +1,7 @@
 {
   "name": "@v1nvn/tokens",
   "version": "0.54.0",
-  "description": "Per-model token usage and cache hit rate from local transcripts \u2014 the tokens-report CLI behind the tokens plugin.",
+  "description": "Per-model token usage and cache hit rate from local transcripts — the tokens-report CLI behind the tokens plugin.",
   "type": "module",
   "bin": {
     "tokens-report": "./src/index.ts"
