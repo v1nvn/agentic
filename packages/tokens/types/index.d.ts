@@ -34,7 +34,11 @@ declare module 'claude-code' {
         } | null;
         notices: {
           arrival: { at: number; kind: string; source: string } | null;
-          compact: { after: number | null; at: number; before: number | null } | null;
+          compact: {
+            after: number | null;
+            at: number;
+            before: number | null;
+          } | null;
         };
         running: {
           calls: { at: number; id: string; label: string; tool: string }[];

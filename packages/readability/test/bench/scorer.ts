@@ -1,9 +1,19 @@
 import type { TraceStage } from '../../src/pipeline/context.ts';
 import { buildDocument } from '../../src/pipeline/dom.ts';
-import { normalizeDocument, resolveLazyImages } from '../../src/pipeline/normalize.ts';
-import { addPreset, resetPresets, type SitePreset } from '../../src/policy/presets.ts';
+import {
+  normalizeDocument,
+  resolveLazyImages,
+} from '../../src/pipeline/normalize.ts';
+import {
+  addPreset,
+  resetPresets,
+  type SitePreset,
+} from '../../src/policy/presets.ts';
 import { lintSelectorText } from '../../src/policy/selector-lint.ts';
-import { buildChainOutline, OUTLINE_MAX_CHARS } from '../../src/policy/outline-chains.ts';
+import {
+  buildChainOutline,
+  OUTLINE_MAX_CHARS,
+} from '../../src/policy/outline-chains.ts';
 import { extractArticleFromHtml } from '../../src/tools/extract.ts';
 import type { StructuredContent } from '../../src/tools/output-schema.ts';
 
@@ -67,7 +77,10 @@ export function scorePrecisionRecall(
   const shared = overlap(ext, lbl);
   const precision = shared / tokenTotal(ext);
   const recall = shared / tokenTotal(lbl);
-  const f1 = precision + recall === 0 ? 0 : (2 * precision * recall) / (precision + recall);
+  const f1 =
+    precision + recall === 0
+      ? 0
+      : (2 * precision * recall) / (precision + recall);
   return { f1, precision, recall };
 }
 
@@ -76,19 +89,29 @@ export function scoreFixture(
   url: string,
   selector: string,
 ): FixtureScore {
-  const labeledElement = buildDocument(html, url).document.querySelector(selector);
+  const labeledElement = buildDocument(html, url).document.querySelector(
+    selector,
+  );
   if (!labeledElement) {
     throw new Error(`main-content selector did not resolve: ${selector}`);
   }
   const labeledText = labeledElement.textContent ?? '';
-  const result = extractArticleFromHtml({ debug: true, format: 'text', html, baseUrl: url });
+  const result = extractArticleFromHtml({
+    debug: true,
+    format: 'text',
+    html,
+    baseUrl: url,
+  });
   const first = result.content[0];
   const extractedText = first && 'text' in first ? first.text : '';
   const trace =
     (result.structuredContent as StructuredContent).diagnostics.trace ?? [];
   const extTokens = tokenize(extractedText);
   const lblTokens = tokenize(labeledText);
-  const { f1, precision, recall } = scorePrecisionRecall(extractedText, labeledText);
+  const { f1, precision, recall } = scorePrecisionRecall(
+    extractedText,
+    labeledText,
+  );
   return {
     extractedText,
     extractedTokens: tokenTotal(extTokens),
@@ -135,7 +158,11 @@ export function scoreFixtureWithSuggest(
   normalizeDocument(document, { cleanChrome: true });
   resolveLazyImages(document);
   const problems: string[] = [];
-  const selectors = [...preset.detectors, ...(preset.scope.include ? [preset.scope.include] : []), ...(preset.scope.exclude ?? [])];
+  const selectors = [
+    ...preset.detectors,
+    ...(preset.scope.include ? [preset.scope.include] : []),
+    ...(preset.scope.exclude ?? []),
+  ];
   for (const candidate of selectors) {
     const violation = lintSelectorText(candidate);
     if (violation) {
@@ -147,7 +174,10 @@ export function scoreFixtureWithSuggest(
       problems.push(`no-match detector: ${detector}`);
     }
   }
-  if (preset.scope.include && document.body.querySelector(preset.scope.include) === null) {
+  if (
+    preset.scope.include &&
+    document.body.querySelector(preset.scope.include) === null
+  ) {
     problems.push(`no-match include: ${preset.scope.include}`);
   }
   for (const candidate of preset.scope.exclude ?? []) {
@@ -158,11 +188,20 @@ export function scoreFixtureWithSuggest(
     }
   }
   if (problems.length > 0) {
-    throw new Error(`recorded proposal is not a valid preset here: ${problems.join('; ')}`);
+    throw new Error(
+      `recorded proposal is not a valid preset here: ${problems.join('; ')}`,
+    );
   }
-  const outline = buildChainOutline({ baseUrl: url, cleanChrome: true, html, mode: 'page' });
+  const outline = buildChainOutline({
+    baseUrl: url,
+    cleanChrome: true,
+    html,
+    mode: 'page',
+  });
   if (outline.text.length > OUTLINE_MAX_CHARS) {
-    throw new Error(`round-one material exceeds the budget: ${outline.text.length} chars`);
+    throw new Error(
+      `round-one material exceeds the budget: ${outline.text.length} chars`,
+    );
   }
   return scoreFixtureWithPreset(html, url, selector, preset);
 }

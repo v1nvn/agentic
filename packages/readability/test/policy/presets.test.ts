@@ -109,7 +109,9 @@ describe('policy.presets resolvePreset', () => {
 
   it('applies the preset when every detector and the include hit', () => {
     addPreset(PRESET);
-    expect(resolvePreset(doc(ARTICLE_HTML), 'https://www.example.com/a', false)).toEqual({
+    expect(
+      resolvePreset(doc(ARTICLE_HTML), 'https://www.example.com/a', false),
+    ).toEqual({
       scope: PRESET.scope,
       signal: { applied: true, site: 'example.com' },
     });
@@ -120,7 +122,11 @@ describe('policy.presets resolvePreset', () => {
     expect(
       resolvePreset(doc(ARTICLE_HTML), 'https://www.example.com/a', false),
     ).toEqual({
-      signal: { applied: false, reason: 'detectors-missed', site: 'example.com' },
+      signal: {
+        applied: false,
+        reason: 'detectors-missed',
+        site: 'example.com',
+      },
     });
   });
 
@@ -129,7 +135,11 @@ describe('policy.presets resolvePreset', () => {
     expect(
       resolvePreset(doc(ARTICLE_HTML), 'https://www.example.com/a', false),
     ).toEqual({
-      signal: { applied: false, reason: 'detectors-missed', site: 'example.com' },
+      signal: {
+        applied: false,
+        reason: 'detectors-missed',
+        site: 'example.com',
+      },
     });
   });
 
@@ -137,7 +147,8 @@ describe('policy.presets resolvePreset', () => {
     const scope = { ...PRESET.scope, exclude: ['.never-there'] };
     addPreset({ ...PRESET, scope });
     expect(
-      resolvePreset(doc(ARTICLE_HTML), 'https://www.example.com/a', false)?.scope,
+      resolvePreset(doc(ARTICLE_HTML), 'https://www.example.com/a', false)
+        ?.scope,
     ).toEqual(scope);
   });
 
@@ -146,13 +157,21 @@ describe('policy.presets resolvePreset', () => {
     expect(
       resolvePreset(doc(ARTICLE_HTML), 'https://www.example.com/a', false),
     ).toEqual({
-      signal: { applied: false, reason: 'detectors-missed', site: 'example.com' },
+      signal: {
+        applied: false,
+        reason: 'detectors-missed',
+        site: 'example.com',
+      },
     });
     addPreset({ ...PRESET, scope: { ...PRESET.scope, exclude: ['div['] } });
     expect(
       resolvePreset(doc(ARTICLE_HTML), 'https://www.example.com/a', false),
     ).toEqual({
-      signal: { applied: false, reason: 'detectors-missed', site: 'example.com' },
+      signal: {
+        applied: false,
+        reason: 'detectors-missed',
+        site: 'example.com',
+      },
     });
   });
 

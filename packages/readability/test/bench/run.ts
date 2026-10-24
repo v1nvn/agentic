@@ -83,7 +83,11 @@ function updateBaselines(): void {
       recall: score.recall,
     };
     if (Number.isNaN(score.precision)) continue;
-    aggregate.push({ f1: score.f1, precision: score.precision, recall: score.recall });
+    aggregate.push({
+      f1: score.f1,
+      precision: score.precision,
+      recall: score.recall,
+    });
   }
   for (const scenario of PRESET_SCENARIOS) {
     const fixture = scenarioFixture(scenario.fixtureId);
@@ -112,7 +116,9 @@ function updateBaselines(): void {
   scores.aggregate = macroAverage(aggregate);
   writeFileSync(metricsPath, serializeJson(metrics));
   writeFileSync(scoresPath, serializeJson(scores));
-  console.log(`Updated ${BENCH_FIXTURES.length} baselines under ${baselineDir}`);
+  console.log(
+    `Updated ${BENCH_FIXTURES.length} baselines under ${baselineDir}`,
+  );
 }
 
 function macroAverage(scores: readonly PrecisionRecall[]): PrecisionRecall {
@@ -288,7 +294,12 @@ function run(): void {
     } catch {
       delta = '';
     }
-    reports.push({ category: fixture.category, delta, id: fixture.id, metrics });
+    reports.push({
+      category: fixture.category,
+      delta,
+      id: fixture.id,
+      metrics,
+    });
     if (!(fixture.id in baseline)) {
       console.warn(
         `warning: no metrics baseline for ${fixture.id}; run BENCH_UPDATE=1`,
@@ -297,7 +308,10 @@ function run(): void {
 
     const selector = MAIN_CONTENT_SELECTORS[fixture.id];
     if (!selector) continue;
-    scores.push({ ...scoreFixture(html, fixture.url, selector), id: fixture.id });
+    scores.push({
+      ...scoreFixture(html, fixture.url, selector),
+      id: fixture.id,
+    });
   }
   const presetScores: ScoredFixture[] = [];
   for (const scenario of PRESET_SCENARIOS) {

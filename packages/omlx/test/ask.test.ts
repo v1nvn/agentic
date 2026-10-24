@@ -26,7 +26,9 @@ beforeEach(() => {
   vi.stubEnv('OMLX_SETTINGS', MISSING_SETTINGS);
   stub = stubFetch(() =>
     jsonResponse({
-      choices: [{ message: { content: 'the answer', reasoning_content: 'why' } }],
+      choices: [
+        { message: { content: 'the answer', reasoning_content: 'why' } },
+      ],
     }),
   );
   imageDir = mkdtempSync(join(tmpdir(), 'omlx-test-'));
@@ -126,7 +128,9 @@ describe('ask', () => {
   it('falls back to the reasoning tail when content is empty', async () => {
     const reasoning = 'x'.repeat(3000);
     stubFetch(() =>
-      jsonResponse({ choices: [{ message: { content: null, reasoning_content: reasoning } }] }),
+      jsonResponse({
+        choices: [{ message: { content: null, reasoning_content: reasoning } }],
+      }),
     );
     const result = await askHandler({ prompt: 'hi' });
     expect(result.structuredContent).toMatchObject({
@@ -162,7 +166,9 @@ describe('ask', () => {
   it('names the api-key remedy on 401', async () => {
     stubFetch(() =>
       jsonResponse(
-        { error: { message: 'API key required', type: 'authentication_error' } },
+        {
+          error: { message: 'API key required', type: 'authentication_error' },
+        },
         401,
       ),
     );

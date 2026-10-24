@@ -31,7 +31,10 @@ describe('unknown keys reject', () => {
     ['ruling odds', (P: any) => (P.rulings.G1.odds = 'x')],
     ['ruling extra', (P: any) => (P.rulings.G1.extra = 'x')],
     ['ruling before', (P: any) => (P.rulings.G1.before = 'x')],
-    ['body from', (P: any) => (P.rulings.G2.bodies.today.from = 'src/cli.ts:8')],
+    [
+      'body from',
+      (P: any) => (P.rulings.G2.bodies.today.from = 'src/cli.ts:8'),
+    ],
   ])('%s', (_name, mutate) => {
     const P = loadExample();
     (mutate as (page: any) => void)(P);
@@ -98,31 +101,41 @@ describe('refinements fire on crafted-red fixtures', () => {
       delete clone.rec;
       Q.rulings.G1.opts.push(clone);
     }
-    expect(allText(validatePage(Q))).toContain('G1 has 5 live options; four is the limit');
+    expect(allText(validatePage(Q))).toContain(
+      'G1 has 5 live options; four is the limit',
+    );
   });
 
   it('at most one option is today', () => {
     const P = loadExample();
     P.rulings.G1.opts[1].today = true;
-    expect(allText(validatePage(P))).toContain('G1: only one option can be today');
+    expect(allText(validatePage(P))).toContain(
+      'G1: only one option can be today',
+    );
   });
 
   it('title ends in a question mark', () => {
     const P = loadExample();
     P.rulings.G1.title = 'Who owns a leaf block inside its reader’s window';
-    expect(allText(validatePage(P))).toContain('G1.title must be the decision as a question');
+    expect(allText(validatePage(P))).toContain(
+      'G1.title must be the decision as a question',
+    );
   });
 
   it('stake names no code internal', () => {
     const P = loadExample();
     P.rulings.G1.stake += ' It shows in <code>pool_list</code>.';
-    expect(allText(validatePage(P))).toContain('G1.stake names an internal thing');
+    expect(allText(validatePage(P))).toContain(
+      'G1.stake names an internal thing',
+    );
   });
 
   it('vague words in gain and cost', () => {
     const P = loadExample();
     P.rulings.G1.opts[0].g = 'cleaner and more robust';
-    expect(allText(validatePage(P))).toContain('uses a word the owner cannot check');
+    expect(allText(validatePage(P))).toContain(
+      'uses a word the owner cannot check',
+    );
   });
 
   it('every caption opens with its conclusion', () => {
@@ -176,17 +189,28 @@ describe('refinements fire on crafted-red fixtures', () => {
   it.each([
     ['<p>ok<script>alert(1)</script></p>', 'runs script'],
     ['<svg><rect onclick="x()"/></svg>', 'runs script'],
-    ['<style>.vrow { display: none }</style>', 'carries a <style> block, which restyles the whole page'],
+    [
+      '<style>.vrow { display: none }</style>',
+      'carries a <style> block, which restyles the whole page',
+    ],
     ['<img src="https://example.com/a.png">', 'loads from outside the page'],
-    ['<svg><image href="//cdn.example/a.svg"/></svg>', 'loads from outside the page'],
+    [
+      '<svg><image href="//cdn.example/a.svg"/></svg>',
+      'loads from outside the page',
+    ],
     ['<svg><rect fill="#1b2130"/></svg>', 'paints a literal colour'],
-    ['<div style="border: 1px solid rgb(0, 0, 0)">x</div>', 'paints a literal colour'],
+    [
+      '<div style="border: 1px solid rgb(0, 0, 0)">x</div>',
+      'paints a literal colour',
+    ],
     ['<div><p>left open</div>', 'breaks the page layout: </div> closes <p>'],
     ['<div>x', 'breaks the page layout: <div> is never closed'],
   ])('a figure view %s is refused', (html, said) => {
     const P = loadExample();
     P.rulings.G6.figure.views.a.html = html;
-    expect(allText(validatePage(P))).toContain(`G6.figure.views.a.html ${said}`);
+    expect(allText(validatePage(P))).toContain(
+      `G6.figure.views.a.html ${said}`,
+    );
   });
 
   it('a figure view using tokens, void tags, self-closing SVG and data: URIs passes', () => {
@@ -217,7 +241,9 @@ describe('refinements fire on crafted-red fixtures', () => {
   it('an option body identical to today changes nothing', () => {
     const P = loadExample();
     P.rulings.G2.bodies.a.code = P.rulings.G2.bodies.today.code;
-    expect(allText(validatePage(P))).toContain('G2.bodies.a is identical to today');
+    expect(allText(validatePage(P))).toContain(
+      'G2.bodies.a is identical to today',
+    );
   });
 
   it('every live option has a picture', () => {
@@ -233,8 +259,20 @@ describe('refinements fire on crafted-red fixtures', () => {
       stake: '<b>Roughly 1 daemon restart a week lands mid-read.</b>',
       today: 'The window lives only in the daemon’s memory.',
       opts: [
-        { k: 'a', rec: true, t: 'Re-arm on start', g: 'The window survives a restart.', c: 'One more table the daemon owns.' },
-        { k: 'b', today: true, t: 'Re-arm in the read', g: 'No daemon change at all.', c: 'Every read pays one extra write.' },
+        {
+          k: 'a',
+          rec: true,
+          t: 'Re-arm on start',
+          g: 'The window survives a restart.',
+          c: 'One more table the daemon owns.',
+        },
+        {
+          k: 'b',
+          today: true,
+          t: 'Re-arm in the read',
+          g: 'No daemon change at all.',
+          c: 'Every read pays one extra write.',
+        },
       ],
       figure: {
         cap: '<b>Today a crash loses the window.</b>',
@@ -264,10 +302,14 @@ describe('refinements fire on crafted-red fixtures', () => {
   it('ruling ids and group references close', () => {
     const P = loadExample();
     P.groups = [P.groups[0]];
-    expect(allText(validatePage(P))).toContain('G2 is in PAGE.rulings but in no group');
+    expect(allText(validatePage(P))).toContain(
+      'G2 is in PAGE.rulings but in no group',
+    );
     const Q = loadExample();
     Q.groups[1].rulings = ['G9'];
-    expect(allText(validatePage(Q))).toContain('G9 is in group code but not in PAGE.rulings');
+    expect(allText(validatePage(Q))).toContain(
+      'G9 is in group code but not in PAGE.rulings',
+    );
     const M = loadExample();
     M.groups[0].rulings = ['G1', 'G3', 'G1'];
     expect(allText(validatePage(M))).toContain('G1 is in two groups');
@@ -338,20 +380,25 @@ describe('refinements fire on crafted-red fixtures', () => {
       P.rulings[`G${i}`] = structuredClone(P.rulings.G2);
       P.groups[1].rulings.push(`G${i}`);
     }
-    expect(allText(validatePage(P))).toContain('11 rulings on one page; past ten');
+    expect(allText(validatePage(P))).toContain(
+      '11 rulings on one page; past ten',
+    );
   });
 });
 
 describe('shape rejects at the schema door', () => {
   it('a bad group id, ruling id, option letter, overlay tag, state and lang all reject', () => {
     const cases: [(P: any) => void, string][] = [
-      [(P) => (P.groups[0].id = 'Money'), 'slug'],
-      [(P) => (P.rulings.X1 = { title: 'x', stake: 's', today: 't', opts: [] }), 'G1'],
-      [(P) => (P.rulings.G1.opts[0].k = 'A'), 'letter'],
-      [(P) => (P.rulings.G1.seq.steps[1].o.b.a = 'swap'), 'chg'],
-      [(P) => (P.rulings.G2.bodies.b.state = 'dream'), 'state'],
-      [(P) => (P.rulings.G2.bodies.today.lang = 'rust'), 'lang'],
-      [(P) => (P.rulings.G2.opts[0].needs = 7), 'needs'],
+      [P => (P.groups[0].id = 'Money'), 'slug'],
+      [
+        P => (P.rulings.X1 = { title: 'x', stake: 's', today: 't', opts: [] }),
+        'G1',
+      ],
+      [P => (P.rulings.G1.opts[0].k = 'A'), 'letter'],
+      [P => (P.rulings.G1.seq.steps[1].o.b.a = 'swap'), 'chg'],
+      [P => (P.rulings.G2.bodies.b.state = 'dream'), 'state'],
+      [P => (P.rulings.G2.bodies.today.lang = 'rust'), 'lang'],
+      [P => (P.rulings.G2.opts[0].needs = 7), 'needs'],
     ];
     for (const [mutate] of cases) {
       const P = loadExample();

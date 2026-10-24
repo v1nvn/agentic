@@ -20,7 +20,9 @@ export interface ExtractionSample {
   readonly metrics: FixtureMetrics;
 }
 
-function payloadText(result: ReturnType<typeof extractArticleFromHtml>): string {
+function payloadText(
+  result: ReturnType<typeof extractArticleFromHtml>,
+): string {
   const first = result.content[0];
   return first && 'text' in first ? first.text : '';
 }
@@ -33,15 +35,23 @@ function round2(value: number): number {
 // Counting those rows is cheaper and less false-positive than counting every
 // pipe-leading line, which also catches code that happens to start with `|`.
 function countTables(markdown: string): number {
-  return markdown.split('\n').filter(line => /^\|[\s:|-]+\|$/.test(line)).length;
+  return markdown.split('\n').filter(line => /^\|[\s:|-]+\|$/.test(line))
+    .length;
 }
 
 export function sampleExtraction(html: string, url: string): ExtractionSample {
-  const inputNodes = buildDocument(html, url).document.querySelectorAll('*').length;
+  const inputNodes = buildDocument(html, url).document.querySelectorAll(
+    '*',
+  ).length;
 
-  const result = extractArticleFromHtml({ format: 'markdown', html, baseUrl: url });
+  const result = extractArticleFromHtml({
+    format: 'markdown',
+    html,
+    baseUrl: url,
+  });
   const markdown = payloadText(result);
-  const diagnostics = (result.structuredContent as StructuredContent).diagnostics;
+  const diagnostics = (result.structuredContent as StructuredContent)
+    .diagnostics;
 
   const images = (markdown.match(/!\[/g) ?? []).length;
   // `](` closes both [text](href) links and ![alt](src) images; subtracting the

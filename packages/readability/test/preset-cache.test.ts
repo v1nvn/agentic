@@ -48,7 +48,9 @@ function writePreset(dir: string, name: string, value: unknown): string {
 describe('preset-cache resolvePresetsDir', () => {
   it('prefers the override, treats empty as disabled', () => {
     expect(
-      resolvePresetsDir({ [PRESETS_DIR_ENV]: '/tmp/presets' } as NodeJS.ProcessEnv),
+      resolvePresetsDir({
+        [PRESETS_DIR_ENV]: '/tmp/presets',
+      } as NodeJS.ProcessEnv),
     ).toBe('/tmp/presets');
     expect(
       resolvePresetsDir({ [PRESETS_DIR_ENV]: '' } as NodeJS.ProcessEnv),
@@ -56,7 +58,9 @@ describe('preset-cache resolvePresetsDir', () => {
   });
 
   it('falls back to XDG, then the platform cache root', () => {
-    const xdg = resolvePresetsDir({ XDG_CACHE_HOME: '/xdg' } as NodeJS.ProcessEnv);
+    const xdg = resolvePresetsDir({
+      XDG_CACHE_HOME: '/xdg',
+    } as NodeJS.ProcessEnv);
     expect(xdg).toBe(join('/xdg', 'readability', 'presets'));
     const fallback = resolvePresetsDir({} as NodeJS.ProcessEnv);
     expect(fallback).toMatch(/readability[/\\]presets$/);
@@ -81,7 +85,10 @@ describe('preset-cache loadPresetDir', () => {
   });
 
   it('feeds extraction through the real pipeline', () => {
-    const html = readFileSync(join(fixturesDir, 'dailymail-a66', 'saved.html'), 'utf8');
+    const html = readFileSync(
+      join(fixturesDir, 'dailymail-a66', 'saved.html'),
+      'utf8',
+    );
     const baseline = extractArticleFromHtml({
       html,
       baseUrl: A66_URL,
@@ -109,12 +116,18 @@ describe('preset-cache loadPresetDir', () => {
   it('skips broken files without losing the rest', () => {
     writePreset(dir, 'dailymail.com.json', DAILYMAIL_PRESET);
     writeFileSync(join(dir, 'broken.json'), '{not json');
-    writePreset(dir, 'no-detectors.json', { ...DAILYMAIL_PRESET, detectors: [] });
+    writePreset(dir, 'no-detectors.json', {
+      ...DAILYMAIL_PRESET,
+      detectors: [],
+    });
     writePreset(dir, 'empty-scope.json', {
       ...DAILYMAIL_PRESET,
       scope: {},
     });
-    writePreset(dir, 'bad-site.json', { ...DAILYMAIL_PRESET, site: 'not a host!' });
+    writePreset(dir, 'bad-site.json', {
+      ...DAILYMAIL_PRESET,
+      site: 'not a host!',
+    });
     expect(loadPresetDir(dir)).toEqual({ loaded: 1, pruned: 0, skipped: 4 });
     expect(presetForSite('https://www.dailymail.com/')).toBeDefined();
   });
@@ -182,10 +195,14 @@ describe('preset-cache savePreset', () => {
   });
 
   it('writes the documented file shape and loads it back', () => {
-    const report = savePreset(DAILYMAIL_PRESET, { [PRESETS_DIR_ENV]: dir } as NodeJS.ProcessEnv);
+    const report = savePreset(DAILYMAIL_PRESET, {
+      [PRESETS_DIR_ENV]: dir,
+    } as NodeJS.ProcessEnv);
     expect(report.persisted).toBe(true);
     expect(report.path).toBe(join(dir, 'dailymail.com.json'));
-    const onDisk = JSON.parse(readFileSync(join(dir, 'dailymail.com.json'), 'utf8'));
+    const onDisk = JSON.parse(
+      readFileSync(join(dir, 'dailymail.com.json'), 'utf8'),
+    );
     expect(onDisk).toEqual(DAILYMAIL_PRESET);
     resetPresets();
     expect(loadPresetDir(dir).loaded).toBe(1);
@@ -194,27 +211,32 @@ describe('preset-cache savePreset', () => {
 
   it('creates a missing directory', () => {
     const nested = join(dir, 'one', 'two');
-    const report = savePreset(DAILYMAIL_PRESET, { [PRESETS_DIR_ENV]: nested } as NodeJS.ProcessEnv);
+    const report = savePreset(DAILYMAIL_PRESET, {
+      [PRESETS_DIR_ENV]: nested,
+    } as NodeJS.ProcessEnv);
     expect(report.persisted).toBe(true);
     expect(existsSync(join(nested, 'dailymail.com.json'))).toBe(true);
   });
 
   it('writes nothing when the directory is disabled by an empty env value', () => {
-    const report = savePreset(DAILYMAIL_PRESET, { [PRESETS_DIR_ENV]: '' } as NodeJS.ProcessEnv);
-    expect(report).toEqual({ persisted: false, reason: 'preset-directory-disabled' });
+    const report = savePreset(DAILYMAIL_PRESET, {
+      [PRESETS_DIR_ENV]: '',
+    } as NodeJS.ProcessEnv);
+    expect(report).toEqual({
+      persisted: false,
+      reason: 'preset-directory-disabled',
+    });
     expect(readdirSync(dir)).toHaveLength(0);
   });
 
   it('refuses a preset the loader would skip', () => {
-    const noDetectors = savePreset(
-      { ...DAILYMAIL_PRESET, detectors: [] },
-      { [PRESETS_DIR_ENV]: dir } as NodeJS.ProcessEnv,
-    );
+    const noDetectors = savePreset({ ...DAILYMAIL_PRESET, detectors: [] }, {
+      [PRESETS_DIR_ENV]: dir,
+    } as NodeJS.ProcessEnv);
     expect(noDetectors.persisted).toBe(false);
-    const badSite = savePreset(
-      { ...DAILYMAIL_PRESET, site: 'not a host!' },
-      { [PRESETS_DIR_ENV]: dir } as NodeJS.ProcessEnv,
-    );
+    const badSite = savePreset({ ...DAILYMAIL_PRESET, site: 'not a host!' }, {
+      [PRESETS_DIR_ENV]: dir,
+    } as NodeJS.ProcessEnv);
     expect(badSite.persisted).toBe(false);
     expect(loadPresetDir(dir).loaded).toBe(0);
   });
@@ -228,10 +250,9 @@ describe('preset-cache savePreset', () => {
       const t = new Date(Date.UTC(2026, 0, 1, 0, 0, i));
       utimesSync(path, t, t);
     }
-    savePreset(
-      { ...DAILYMAIL_PRESET, site: 'newest.example' },
-      { [PRESETS_DIR_ENV]: dir } as NodeJS.ProcessEnv,
-    );
+    savePreset({ ...DAILYMAIL_PRESET, site: 'newest.example' }, {
+      [PRESETS_DIR_ENV]: dir,
+    } as NodeJS.ProcessEnv);
     expect(existsSync(join(dir, 'newest.example.json'))).toBe(true);
     expect(existsSync(join(dir, 'site-00.json'))).toBe(false);
     expect(

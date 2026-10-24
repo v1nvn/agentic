@@ -28,15 +28,18 @@ export function stubFetch(
   handler: (call: FetchCall) => Response | Promise<Response>,
 ): FetchStub {
   const calls: FetchCall[] = [];
-  const fetch = vi.fn(async (url: string | URL | Request, init?: RequestInit) => {
-    const call: FetchCall = {
-      body: typeof init?.body === 'string' ? JSON.parse(init.body) : init?.body,
-      init,
-      url: String(url),
-    };
-    calls.push(call);
-    return handler(call);
-  });
+  const fetch = vi.fn(
+    async (url: string | URL | Request, init?: RequestInit) => {
+      const call: FetchCall = {
+        body:
+          typeof init?.body === 'string' ? JSON.parse(init.body) : init?.body,
+        init,
+        url: String(url),
+      };
+      calls.push(call);
+      return handler(call);
+    },
+  );
   vi.stubGlobal('fetch', fetch);
   return { calls, fetch };
 }

@@ -142,7 +142,8 @@ describe('policy.metadata token estimate', () => {
   }
 
   it('estimates prose textContent at chars/4', () => {
-    const textContent = 'The quick brown fox jumps over the lazy dog near the riverbank.';
+    const textContent =
+      'The quick brown fox jumps over the lazy dog near the riverbank.';
     const m = resolveWith(textContent);
     expect(m.tokenEstimate).toBe(Math.round(textContent.length / 4));
     expect(m.estimator).toBe('chars/4');

@@ -64,6 +64,7 @@ later release is keyless:
    (cd packages/<name> && npm publish)
    node .github/scripts/publish-face.mjs --revert packages/<name>
    ```
+
 3. Add the trusted publisher (command above). The first call browser-2FAs —
    take the 5-minute skip it offers.
 4. Re-run the release workflow.
@@ -74,7 +75,7 @@ bootstrap publishes.
 ## Partial release failures
 
 - The known keyless failure is Rekor/tlog `409 — equivalent entry already
-  exists`: the publish exits red with the version on npm. After a red publish
+exists`: the publish exits red with the version on npm. After a red publish
   the job polls `npm view <name>@<version> --prefer-online` for ten minutes
   and continues once the registry serves it; a version that never appears
   fails the run — recover with `gh run rerun <id> --failed`.

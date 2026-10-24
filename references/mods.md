@@ -57,13 +57,13 @@ Every hooks module is thin over its home's `hooks/support.ts`; the helpers are
 JSX-free `.ts` — panes stay the home's `.tsx`, event-fed state stays the
 engine's own `on()` with the home's reducers feeding pane renders.
 
-| Helper | Owns |
-| ------ | ---- |
-| `lineOf` | the one line an exec shows: refusal, stdout, stderr, fallback |
-| `acceptJson` | the exec/accept/parse door: stdout parsed and accepted, or the failure line — a refused door keeps the pane's last good value |
-| `PaneSpec` | pane chrome as fields: `frame` (sizing via `paneRows`), `empty`, `refreshMs` (the re-scan cadence, gated by `showsPane`) |
-| `CommandSpec` | the exec command's descriptor; the home's one `session.start` loops over its declared list |
-| `ageAgents`/`cellAt` | per-agent tick bookkeeping in one lifetime: ids leave with the roster (tokens only) |
+| Helper               | Owns                                                                                                                          |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `lineOf`             | the one line an exec shows: refusal, stdout, stderr, fallback                                                                 |
+| `acceptJson`         | the exec/accept/parse door: stdout parsed and accepted, or the failure line — a refused door keeps the pane's last good value |
+| `PaneSpec`           | pane chrome as fields: `frame` (sizing via `paneRows`), `empty`, `refreshMs` (the re-scan cadence, gated by `showsPane`)      |
+| `CommandSpec`        | the exec command's descriptor; the home's one `session.start` loops over its declared list                                    |
+| `ageAgents`/`cellAt` | per-agent tick bookkeeping in one lifetime: ids leave with the roster (tokens only)                                           |
 
 `$` never crosses a file: the validator refuses `$` (or a noun of it) passed,
 bound or read as a value, and a hook must be a function literal or a same-file
@@ -117,11 +117,11 @@ values, hooks and `on` only. Engine tests ride the home's `tests/stub.ts`:
 
 ## Surfaces this repo uses
 
-| Surface     | How                                                                                                                                                                                                                      |
-| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| pane        | `$.ui.open({ id, title })` from something the person did (a command); `on('ui.render', { component: 'Pane', requestId: id })` draws it with elements from `$.ui.resolve(e)`; Esc/dismiss closes; zero space until opened |
-| command     | `$.command.register` in `session.start` + `on('command.run', { command })`; return `{}` to print nothing (a pane's command answers nothing — `text` would be model-read)                                                 |
-| timers      | `$.clock.every(ms, fn)` from `session.start`; the handle lives until the module reloads                                                                                                                                  |
+| Surface | How                                                                                                                                                                                                                      |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| pane    | `$.ui.open({ id, title })` from something the person did (a command); `on('ui.render', { component: 'Pane', requestId: id })` draws it with elements from `$.ui.resolve(e)`; Esc/dismiss closes; zero space until opened |
+| command | `$.command.register` in `session.start` + `on('command.run', { command })`; return `{}` to print nothing (a pane's command answers nothing — `text` would be model-read)                                                 |
+| timers  | `$.clock.every(ms, fn)` from `session.start`; the handle lives until the module reloads                                                                                                                                  |
 
 A pane report draws through one `<Text>{...}</Text>` carrying the same
 plain-text body the CLI prints — `Text` draws the string verbatim, so a

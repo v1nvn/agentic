@@ -66,17 +66,25 @@ describe('policy.outline-chains round-two scope view', () => {
   });
 
   it('anchors chains at the include root', () => {
-    expect(withScope.text).toMatch(/p\.mol-para-with-font > div\[itemprop="articleBody"\]/);
+    expect(withScope.text).toMatch(
+      /p\.mol-para-with-font > div\[itemprop="articleBody"\]/,
+    );
   });
 
   it('groups prose paragraphs into one line with a count and a range', () => {
-    expect(withScope.text).toMatch(/p\.mol-para-with-font > div\[itemprop="articleBody"\] \(own:\d+\.\.\d+, ×\d+\)/);
+    expect(withScope.text).toMatch(
+      /p\.mol-para-with-font > div\[itemprop="articleBody"\] \(own:\d+\.\.\d+, ×\d+\)/,
+    );
   });
 
   it('surfaces the embedded related headline and the caption figures as their own groups', () => {
     expect(withScope.text).toContain('div.vjs-title-text');
-    expect(withScope.text).toContain('sample: "Inside the gang warfare turning Middlesbrough into a nightmare"');
-    expect(withScope.text).toContain('p.imageCaption > div.artSplitter.mol-img-group');
+    expect(withScope.text).toContain(
+      'sample: "Inside the gang warfare turning Middlesbrough into a nightmare"',
+    );
+    expect(withScope.text).toContain(
+      'p.imageCaption > div.artSplitter.mol-img-group',
+    );
   });
 
   it('keeps the block sweep below the page-view budget', () => {

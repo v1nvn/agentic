@@ -23,9 +23,9 @@ describe('loggerFromEnv', () => {
     expect(loggerFromEnv({ LEVEL: 'verbose' }, 'LEVEL').activeLevel).toBe(
       'info',
     );
-    expect(loggerFromEnv({ LEVEL: 'verbose' }, 'LEVEL', 'warn').activeLevel).toBe(
-      'warn',
-    );
+    expect(
+      loggerFromEnv({ LEVEL: 'verbose' }, 'LEVEL', 'warn').activeLevel,
+    ).toBe('warn');
     expect(loggerFromEnv({}, 'LEVEL', 'debug').activeLevel).toBe('debug');
   });
 

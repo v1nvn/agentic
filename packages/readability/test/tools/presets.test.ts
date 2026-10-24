@@ -41,7 +41,12 @@ function extract(
   url: string,
   selectors?: ExtractSelectors,
 ): StructuredContent {
-  const result = extractArticleFromHtml({ html, baseUrl: url, format: 'markdown', selectors });
+  const result = extractArticleFromHtml({
+    html,
+    baseUrl: url,
+    format: 'markdown',
+    selectors,
+  });
   expect(result.isError).toBeFalsy();
   return result.structuredContent as StructuredContent;
 }
@@ -168,19 +173,36 @@ describe('extract resolves a stored site preset', () => {
     expect(sectioned.content).toContain('Hundreds of mourners have gathered');
 
     const fragment = htmlToMarkdownFromHtml({ html, baseUrl: A66_URL });
-    expect('preset' in (fragment.structuredContent as StructuredContent).diagnostics).toBe(false);
+    expect(
+      'preset' in (fragment.structuredContent as StructuredContent).diagnostics,
+    ).toBe(false);
   });
 
   it('invalidates cached baseline entries when a preset lands mid-session', () => {
     const html = readFixture('dailymail-a66');
-    const before = extractArticleFromHtml({ html, baseUrl: A66_URL, cache: true });
-    const beforeCache = (before.structuredContent as StructuredContent).diagnostics.cache;
+    const before = extractArticleFromHtml({
+      html,
+      baseUrl: A66_URL,
+      cache: true,
+    });
+    const beforeCache = (before.structuredContent as StructuredContent)
+      .diagnostics.cache;
     expect(beforeCache?.hit).toBe(false);
-    const cached = extractArticleFromHtml({ html, baseUrl: A66_URL, cache: true });
-    expect((cached.structuredContent as StructuredContent).diagnostics.cache?.hit).toBe(true);
+    const cached = extractArticleFromHtml({
+      html,
+      baseUrl: A66_URL,
+      cache: true,
+    });
+    expect(
+      (cached.structuredContent as StructuredContent).diagnostics.cache?.hit,
+    ).toBe(true);
 
     addPreset(DAILYMAIL_PRESET);
-    const after = extractArticleFromHtml({ html, baseUrl: A66_URL, cache: true });
+    const after = extractArticleFromHtml({
+      html,
+      baseUrl: A66_URL,
+      cache: true,
+    });
     const structured = after.structuredContent as StructuredContent;
     expect(structured.diagnostics.cache?.hit).toBe(false);
     expect(structured.diagnostics.preset).toEqual({

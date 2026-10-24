@@ -5,7 +5,14 @@
 // --check so a missed mirror, stale pin, name fragment, or unpinned registry
 // invocation fails the build.
 import { spawnSync } from 'node:child_process';
-import { cpSync, globSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  cpSync,
+  globSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -210,7 +217,9 @@ const LOCKS = discover(['packages/*/package-lock.json']);
 function regenLocks() {
   for (const lock of LOCKS) {
     const home = lock.replace('/package-lock.json', '');
-    const manifest = JSON.parse(readFileSync(join(home, 'package.json'), 'utf8'));
+    const manifest = JSON.parse(
+      readFileSync(join(home, 'package.json'), 'utf8'),
+    );
     const scratch = mkdtempSync(join(tmpdir(), 'agentic-lock-'));
     try {
       writeFileSync(

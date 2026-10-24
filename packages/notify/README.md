@@ -20,10 +20,10 @@ run, the banners fire on the two events.
 
 ## The banner
 
-| Event | Title | Subtitle | Body | Sound |
-| --- | --- | --- | --- | --- |
-| permission prompt | `<repo> · permission` | the session's title | the engine's message ("Claude needs your permission to use Bash") | Funk |
-| turn done | `<repo> · done` | the session's title | the reply's first non-empty line, capped at 120 chars | Glass |
+| Event             | Title                 | Subtitle            | Body                                                              | Sound |
+| ----------------- | --------------------- | ------------------- | ----------------------------------------------------------------- | ----- |
+| permission prompt | `<repo> · permission` | the session's title | the engine's message ("Claude needs your permission to use Bash") | Funk  |
+| turn done         | `<repo> · done`       | the session's title | the reply's first non-empty line, capped at 120 chars             | Glass |
 
 The subtitle is the title the engine itself shows — read live from its session
 registry (`~/.claude/sessions/`, freshest entry for the session). No entry or

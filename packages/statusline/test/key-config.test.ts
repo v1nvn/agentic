@@ -4,12 +4,12 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import { configure } from '../src/configure.ts';
 import { ITEMS } from '../src/render/index.ts';
-import { mainKeyValue, subagentKeyValue, readKeyConfig } from '../src/resolve.ts';
 import {
-  createHomes,
-  settingsCommand,
-  settingsPath,
-} from './fixtures.ts';
+  mainKeyValue,
+  subagentKeyValue,
+  readKeyConfig,
+} from '../src/resolve.ts';
+import { createHomes, settingsCommand, settingsPath } from './fixtures.ts';
 
 // The Goal's canonical bytes, typed in full — the golden the writer is pinned
 // against. The program itself is the prefix; decisions ride argv as flags.
@@ -85,7 +85,12 @@ describe('configure: key parse-back roundtrip (contract 2)', () => {
   it('readKeyConfig returns the layout and variants the main key holds', () => {
     const home = homes.newHome();
     const layout = '{cwd branch} {model effort}';
-    const variants = { branch: 'last', cwd: 'full', effort: 'dim', model: 'block' };
+    const variants = {
+      branch: 'last',
+      cwd: 'full',
+      effort: 'dim',
+      model: 'block',
+    };
 
     configure({ home, layout, variants });
 

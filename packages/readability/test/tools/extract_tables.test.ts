@@ -48,7 +48,9 @@ function finologyTable(id: number): string {
     `<tr>${tooltipLabel(label)}${vals.map(paddedNumber).join('')}</tr>`;
   const linkRow =
     `<tr>${tooltipLabel('Annual Report')}` +
-    months.map((_, k) => iconLink(`https://example.com/r${id}-${k}.pdf`)).join('') +
+    months
+      .map((_, k) => iconLink(`https://example.com/r${id}-${k}.pdf`))
+      .join('') +
     '</tr>';
   return (
     `<table id="t${id}">${head}<tbody>` +
@@ -297,7 +299,10 @@ describe('extract_tables tool', () => {
     // isolated-vs-batch differential a count guard would trip.
     const isolated = extractTablesOutput.parse(
       extractTablesFromHtml({
-        html: '<!doctype html><html><body>' + finologyTable(N - 1) + '</body></html>',
+        html:
+          '<!doctype html><html><body>' +
+          finologyTable(N - 1) +
+          '</body></html>',
         format: 'json',
       }).structuredContent,
     );

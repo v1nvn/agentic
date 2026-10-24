@@ -30,14 +30,14 @@ npx -y @v1nvn/md@0.54.0 reply.md
 
 ## Usage
 
-| Invocation | Does |
-|---|---|
-| `/md-edit` | the previous assistant reply → viewer, edit pane enabled, one dim status row |
-| `/md-view` | the same share read-only — preview pane only |
-| `npx -y @v1nvn/md@0.54.0` | the same share, printed bare |
-| `npx -y @v1nvn/md@0.54.0 --view` | read-only share |
-| `npx -y @v1nvn/md@0.54.0 reply.md` | that file instead of the last reply |
-| `npx -y @v1nvn/md@0.54.0 -` | Markdown from stdin |
+| Invocation                         | Does                                                                         |
+| ---------------------------------- | ---------------------------------------------------------------------------- |
+| `/md-edit`                         | the previous assistant reply → viewer, edit pane enabled, one dim status row |
+| `/md-view`                         | the same share read-only — preview pane only                                 |
+| `npx -y @v1nvn/md@0.54.0`          | the same share, printed bare                                                 |
+| `npx -y @v1nvn/md@0.54.0 --view`   | read-only share                                                              |
+| `npx -y @v1nvn/md@0.54.0 reply.md` | that file instead of the last reply                                          |
+| `npx -y @v1nvn/md@0.54.0 -`        | Markdown from stdin                                                          |
 
 `MD_VIEWER_URL` sets the viewer (default `https://md.v1n.space`); any set
 `MD_NO_OPEN` value (not just `1`) skips opening the browser.
@@ -59,20 +59,19 @@ and re-vendor `types/claude-code.d.ts` (repo root) from the engine-laid
 
 ## Modules
 
-| File | Role |
-|---|---|
-| `src/index.ts` | bin entry (`md-send`) — dispatch, exit codes |
-| `src/share.ts` | the `#share=` URL, browser open, clipboard, status line |
+| File                | Role                                                                        |
+| ------------------- | --------------------------------------------------------------------------- |
+| `src/index.ts`      | bin entry (`md-send`) — dispatch, exit codes                                |
+| `src/share.ts`      | the `#share=` URL, browser open, clipboard, status line                     |
 | `hooks/register.ts` | the mod: registers `/md-edit` and `/md-view`, execs the CLI, shows its line |
-| `src/index.ts` | the CLI source the mod execs — node runs it directly, nothing built |
+| `src/index.ts`      | the CLI source the mod execs — node runs it directly, nothing built         |
 
 ## Contracts
 
 - One status line of output (e.g. `Opened in Markdown-Viewer (link copied).`).
 - The document reaches only the configured viewer — no third-party service.
 - `/md-edit` and `/md-view` are each one `node <plugin root>/src/index.ts
-  exec through the session's Bash tool (`/md-view` adds `--view`) — the same
-  share `npx md-send` runs. The one allow rule both need is
-  `Bash(node <plugin root>/src/index.ts:*)`; the first run asks for it once,
+exec through the session's Bash tool (`/md-view`adds`--view`) — the same
+share `npx md-send`runs. The one allow rule both need is`Bash(node <plugin root>/src/index.ts:*)`; the first run asks for it once,
   then it is remembered. Its status line is a dim transcript row the model
   never reads.

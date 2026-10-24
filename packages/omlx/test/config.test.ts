@@ -89,7 +89,9 @@ describe('loadConfig', () => {
 
   it('parses OMLX_TIMEOUT_MS and falls back when invalid', () => {
     const env = { OMLX_SETTINGS: MISSING_SETTINGS };
-    expect(loadConfig({ ...env, OMLX_TIMEOUT_MS: '2500' }).timeoutMs).toBe(2500);
+    expect(loadConfig({ ...env, OMLX_TIMEOUT_MS: '2500' }).timeoutMs).toBe(
+      2500,
+    );
     expect(loadConfig({ ...env, OMLX_TIMEOUT_MS: 'nope' }).timeoutMs).toBe(
       600_000,
     );

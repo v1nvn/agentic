@@ -10,7 +10,10 @@ import { seqView } from '../src/seq.ts';
 import { validatePage, type Page, type Ruling } from '../src/schema.ts';
 import { pageCss } from '../src/style.ts';
 
-function drawn<A extends unknown[]>(emit: (...a: A) => Stage | undefined, ...a: A): string {
+function drawn<A extends unknown[]>(
+  emit: (...a: A) => Stage | undefined,
+  ...a: A
+): string {
   const s = emit(...a);
   return s === undefined ? '' : `${s.cap}\n${s.body}`;
 }
@@ -75,7 +78,13 @@ describe('seq view', () => {
     expect(nums(a)).toEqual(['1', '2', '3', '4']);
     expect(a).toContain('class="ghost"');
     expect(a).toContain('as today');
-    expect(nums(drawn(seqView, P.rulings.G1, 'G1', 'G1b'))).toEqual(['1', '2', '3', '4', '5']);
+    expect(nums(drawn(seqView, P.rulings.G1, 'G1', 'G1b'))).toEqual([
+      '1',
+      '2',
+      '3',
+      '4',
+      '5',
+    ]);
   });
 
   it('draws only an option’s delta rows, at their true chain numbers', () => {
@@ -170,7 +179,9 @@ describe('bodies view', () => {
     expect(html).toMatchSnapshot();
     expect(html).toContain('token keyword');
     expect(html).toContain('diff vs today');
-    expect(html).toContain('<div class="btag"><span>planned</span><span>diff vs today</span>');
+    expect(html).toContain(
+      '<div class="btag"><span>planned</span><span>diff vs today</span>',
+    );
     expect(html).not.toContain('unchanged lines');
     expect(html.match(/class="dl same"/g)?.length).toBeGreaterThan(30);
     expect(html).not.toContain('The quiet walk core runs on every command');
@@ -183,8 +194,6 @@ describe('bodies view', () => {
     expect(html).toContain('sketch (feasibility not checked)');
     expect(html).not.toContain('diff vs today');
   });
-
-
 });
 
 describe('figure view', () => {
@@ -193,7 +202,9 @@ describe('figure view', () => {
     expect(drawn(figureView, q, 'today')).toMatchSnapshot();
     const a = drawn(figureView, q, 'G6a');
     expect(a).toMatchSnapshot();
-    expect(a).toContain('<b>The receipt names the 10 blocks that paid nobody.</b>\n<div class="fig"><div style=');
+    expect(a).toContain(
+      '<b>The receipt names the 10 blocks that paid nobody.</b>\n<div class="fig"><div style=',
+    );
     expect(a).not.toContain('data-pick');
   });
 });
@@ -224,12 +235,20 @@ describe('the picture surfaces', () => {
       ],
       seq: {
         lanes: ['l', 'r'],
-        steps: [{ f: 0, k: 'call', o: { a: { x: 'only a changes' } }, t: 1, x: 'hi' }],
+        steps: [
+          { f: 0, k: 'call', o: { a: { x: 'only a changes' } }, t: 1, x: 'hi' },
+        ],
       },
     };
-    expect(drawn(seqView, q, 'G9', 'G9a')).toContain('what this option changes');
-    expect(drawn(seqView, q, 'G9', 'G9b')).not.toContain('what this option changes');
-    expect(drawn(seqView, q, 'G9', 'today')).not.toContain('what this option changes');
+    expect(drawn(seqView, q, 'G9', 'G9a')).toContain(
+      'what this option changes',
+    );
+    expect(drawn(seqView, q, 'G9', 'G9b')).not.toContain(
+      'what this option changes',
+    );
+    expect(drawn(seqView, q, 'G9', 'today')).not.toContain(
+      'what this option changes',
+    );
   });
 });
 

@@ -36,7 +36,12 @@ afterEach(() => {
 });
 
 function takeover(home: string): void {
-  configure({ force: true, home, layout: '{model}', variants: { model: 'block' } });
+  configure({
+    force: true,
+    home,
+    layout: '{model}',
+    variants: { model: 'block' },
+  });
 }
 
 describe('restore: flagship roundtrip (contract 4)', () => {

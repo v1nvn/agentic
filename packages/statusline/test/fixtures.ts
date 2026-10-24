@@ -72,7 +72,8 @@ export function plantRendererRecord(
   const file = join(home, '.claude', 'plugins', 'installed_plugins.json');
   const entries = plantedEntries(file);
   entries.push({
-    installPath: seed.installPath ?? join(dirname(fileURLToPath(import.meta.url)), '..'),
+    installPath:
+      seed.installPath ?? join(dirname(fileURLToPath(import.meta.url)), '..'),
     installedAt: seed.lastUpdated,
     lastUpdated: seed.lastUpdated,
     version: seed.version,

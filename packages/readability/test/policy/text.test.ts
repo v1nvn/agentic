@@ -7,7 +7,8 @@ import {
 
 describe('estimateTokens', () => {
   it('returns chars/4 for prose and names the estimator', () => {
-    const textContent = 'The quick brown fox jumps over the lazy dog near the riverbank.';
+    const textContent =
+      'The quick brown fox jumps over the lazy dog near the riverbank.';
     expect(estimateTokens(textContent)).toEqual({
       tokenEstimate: Math.round(textContent.length / 4),
       estimator: 'chars/4',
@@ -15,7 +16,10 @@ describe('estimateTokens', () => {
   });
 
   it('returns zero for empty textContent', () => {
-    expect(estimateTokens('')).toEqual({ tokenEstimate: 0, estimator: 'chars/4' });
+    expect(estimateTokens('')).toEqual({
+      tokenEstimate: 0,
+      estimator: 'chars/4',
+    });
   });
 });
 

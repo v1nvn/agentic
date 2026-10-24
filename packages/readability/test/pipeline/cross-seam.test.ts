@@ -19,7 +19,9 @@ function loadFixture(): string {
   return readFileSync(fixturePath, 'utf8');
 }
 
-function payloadText(result: ReturnType<typeof extractArticleFromHtml>): string {
+function payloadText(
+  result: ReturnType<typeof extractArticleFromHtml>,
+): string {
   const first = result.content[0];
   return first && 'text' in first ? first.text : '';
 }
@@ -27,7 +29,12 @@ function payloadText(result: ReturnType<typeof extractArticleFromHtml>): string 
 describe('cross-seam: SPA end-to-end', () => {
   it('preserves content, absolutizes the relative image, keeps the table and code block', () => {
     const html = loadFixture();
-    const result = extractArticleFromHtml({ html, baseUrl: pageUrl, format: 'markdown', gfm: true });
+    const result = extractArticleFromHtml({
+      html,
+      baseUrl: pageUrl,
+      format: 'markdown',
+      gfm: true,
+    });
 
     expect(result.isError).toBeFalsy();
     const text = payloadText(result);
@@ -50,7 +57,10 @@ describe('cross-seam: SPA end-to-end', () => {
 
 describe('dom.buildDocument', () => {
   it('builds a jsdom document with the given url', () => {
-    const { document, window } = buildDocument('<html><body><p>hi</p></body></html>', pageUrl);
+    const { document, window } = buildDocument(
+      '<html><body><p>hi</p></body></html>',
+      pageUrl,
+    );
     expect(document.querySelector('p')?.textContent).toBe('hi');
     expect(window.document).toBe(document);
   });
@@ -79,14 +89,17 @@ describe('readability', () => {
     const article = parseArticle(document, resolveReadabilityOptions({}));
     expect(article).not.toBeNull();
     expect(article?.content).toBeTruthy();
-    expect(article?.content).toContain('https://example.com/static/architecture.png');
+    expect(article?.content).toContain(
+      'https://example.com/static/architecture.png',
+    );
   });
 });
 
 describe('sanitize.sanitizeHtml', () => {
   it('removes a script and an iframe and counts both', () => {
     const { window } = buildDocument('<html></html>', pageUrl);
-    const dirty = '<p>ok</p><script>alert(1)</script><iframe src="evil"></iframe>';
+    const dirty =
+      '<p>ok</p><script>alert(1)</script><iframe src="evil"></iframe>';
     const res = sanitizeHtml(dirty, window);
     expect(res.html).toContain('<p>ok</p>');
     expect(res.html).not.toContain('<script');
@@ -109,7 +122,9 @@ describe('turndown.toMarkdown', () => {
   });
 
   it('drops images when images: "drop"', () => {
-    const md = toMarkdown('<p>x</p><img src="/i.png" alt="d">', { images: 'drop' });
+    const md = toMarkdown('<p>x</p><img src="/i.png" alt="d">', {
+      images: 'drop',
+    });
     expect(md).not.toContain('![d]');
   });
 });

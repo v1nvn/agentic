@@ -9,7 +9,9 @@ import { JSDOM, VirtualConsole } from 'jsdom';
 
 const [input, output] = process.argv.slice(2);
 if (!input || !output) {
-  console.error('usage: node scripts/trim-capture.mjs <capture.html> <fixture.html>');
+  console.error(
+    'usage: node scripts/trim-capture.mjs <capture.html> <fixture.html>',
+  );
   process.exit(1);
 }
 
@@ -27,7 +29,11 @@ for (const el of document.querySelectorAll(
 
 for (const el of document.querySelectorAll('*')) {
   for (const attr of el.attributes) {
-    if (/(?:^|["\s,])data:[a-z0-9.+-]+;base64,[A-Za-z0-9+/=]{64,}/.test(attr.value)) {
+    if (
+      /(?:^|["\s,])data:[a-z0-9.+-]+;base64,[A-Za-z0-9+/=]{64,}/.test(
+        attr.value,
+      )
+    ) {
       attr.value = 'data:stripped';
     }
   }
@@ -35,4 +41,6 @@ for (const el of document.querySelectorAll('*')) {
 
 const html = `<!DOCTYPE html>\n${document.documentElement.outerHTML}`;
 writeFileSync(output, html);
-console.log(`${input} (${readFileSync(input, 'utf8').length}) -> ${output} (${html.length})`);
+console.log(
+  `${input} (${readFileSync(input, 'utf8').length}) -> ${output} (${html.length})`,
+);

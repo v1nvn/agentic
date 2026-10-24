@@ -14,12 +14,14 @@ page HTML into the conversation; only the `localPath` crosses to `extract`.
 
 1. **Fetch to a fresh temp dir** (host shell) — one per read, so parallel reads never
    overwrite each other:
+
    ```
    d=$(mktemp -d) && curl -fsSL -o "$d/page.html" '<URL>' && echo "$d"
    ```
+
    Shell state does not carry between calls: write the printed dir in place of `$d` below.
    A curl failure (non-2xx status, connection refused, DNS) is a hard error — report it and
-   stop. That is *not* "needs JS"; it's a dead fetch, and a browser won't save it.
+   stop. That is _not_ "needs JS"; it's a dead fetch, and a browser won't save it.
 
 2. **Extract**, passing the path and the URL as origin context:
    - tool: `extract`

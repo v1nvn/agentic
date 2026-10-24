@@ -1,4 +1,7 @@
-import { gibberishScore, isGeneratedIdentifier } from '../../src/policy/identifiers.ts';
+import {
+  gibberishScore,
+  isGeneratedIdentifier,
+} from '../../src/policy/identifiers.ts';
 
 // The labeled corpus transplanted from the readweb comparison project
 // (tmp/readweb/test/identifiers.test.ts): the score table was measured against
@@ -44,7 +47,14 @@ describe('policy.identifiers compound tokens', () => {
   });
 
   it('keeps the measured Daily Mail preset selectors', () => {
-    for (const token of ['js-article-text', 'mol-para-with-font', 'artSplitter', 'mol-video', 'vjs-video-container', 'articleBody']) {
+    for (const token of [
+      'js-article-text',
+      'mol-para-with-font',
+      'artSplitter',
+      'mol-video',
+      'vjs-video-container',
+      'articleBody',
+    ]) {
       expect(isGeneratedIdentifier(token)).toBe(false);
     }
   });

@@ -138,7 +138,8 @@ describe('policy.images collectImageInventory', () => {
       baseUrl: 'https://x.example/article',
       imageInventory: true,
     });
-    const images = (result.structuredContent as { images?: unknown }).images as Array<{
+    const images = (result.structuredContent as { images?: unknown })
+      .images as Array<{
       src: string;
       alt: string;
       caption: string;

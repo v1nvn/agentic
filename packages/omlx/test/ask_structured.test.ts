@@ -64,7 +64,9 @@ describe('ask_structured', () => {
 
   it('surfaces non-JSON output with the raw excerpt', async () => {
     stubFetch(() =>
-      jsonResponse({ choices: [{ message: { content: '```json\n{"a":1}\n```' } }] }),
+      jsonResponse({
+        choices: [{ message: { content: '```json\n{"a":1}\n```' } }],
+      }),
     );
     const result = await askStructuredHandler({
       prompt: 'x',

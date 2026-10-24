@@ -19,7 +19,8 @@ const RULE = {
   stalled: 'a stalled host, not a rule',
   reviewerSuite: 'reviewer: never run a build or a test suite',
   sleepPoll: 'builder: never poll with `sleep`',
-  orchSleep: 'run: the orchestrator sets no timer — a report, a background exit or the owner is what wakes it',
+  orchSleep:
+    'run: the orchestrator sets no timer — a report, a background exit or the owner is what wakes it',
   reshape: 'builder: never re-run a suite to re-shape its output',
   coldResume: 'run: a worker idle five minutes is never resumed',
   serializedTail: 'a lever, not a rule: other work could have run beside it',

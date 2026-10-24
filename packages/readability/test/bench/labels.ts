@@ -7,10 +7,10 @@
 export const MAIN_CONTENT_SELECTORS: Readonly<Record<string, string>> = {
   'code-langs': 'main article',
   'consent-banner': 'main article',
-  'documentation': 'main article',
-  'fallback': 'main',
+  documentation: 'main article',
+  fallback: 'main',
   'lazy-images': 'main',
-  'outline': 'main',
+  outline: 'main',
   'react-spa': 'main article',
   'dailymail-a66': 'div[itemprop="articleBody"]',
   'dailymail-gatwick': 'div[itemprop="articleBody"]',
@@ -31,13 +31,13 @@ export const MAIN_CONTENT_NOTES: Readonly<Record<string, string>> = {
     '<article> inside <main> holds the prose plus the canonicalized code blocks; <aside class="sidebar"> and the footer are chrome.',
   'consent-banner':
     '<article> inside <main> is the prose past the fixed header and the OneTrust banner; both are stripped before scoring.',
-  'documentation':
+  documentation:
     '<article> inside <main> holds the title, prose, and the two code blocks; nothing else on the page is content.',
-  'fallback':
+  fallback:
     '<main> is the image-only gallery — no prose, only alt text — so word-based precision/recall is degenerate (NaN) and the scorer excludes it from aggregates.',
   'lazy-images':
     '<main> carries the only prose plus the lazy <picture>/<img> demo; there is no <article> wrapper, so main is the tightest container.',
-  'outline':
+  outline:
     '<main> carries the only prose; there is no <article> wrapper, so main is the tightest container.',
   'react-spa':
     '<article class="post"> inside <main class="content"> is the post; the sibling <aside class="sidebar"> (newsletter, related posts) is chrome.',
@@ -46,7 +46,7 @@ export const MAIN_CONTENT_NOTES: Readonly<Record<string, string>> = {
   'dailymail-gatwick':
     'The itemprop="articleBody" div is the article; the obvious #js-article-text also contains #reader-comments, and the channel-feed puffs dominate the rest of the capture.',
   'corriere-afd':
-    'The site\'s own #content-to-read container holds the full article behind the consent-wall overlay; everything else on the capture is wall text, navigation, and offer modules.',
+    "The site's own #content-to-read container holds the full article behind the consent-wall overlay; everything else on the capture is wall text, navigation, and offer modules.",
   'mirror-costa-dorada':
     'Reach\'s article#article-body is the article; the breadcrumb nav and the "Preferred Source" promo are siblings inside the wrapper, and the commercial "Article continues below" boxes sit inside the container itself.',
   'mirror-ecoli':

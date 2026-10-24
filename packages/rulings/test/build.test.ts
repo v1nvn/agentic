@@ -16,7 +16,9 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { main } from '../src/cli.ts';
 import { buildPage, loadPageFile, PAGE_FILE } from '../src/page.ts';
 
-const EXAMPLE = fileURLToPath(new URL('../src/example.page.js', import.meta.url));
+const EXAMPLE = fileURLToPath(
+  new URL('../src/example.page.js', import.meta.url),
+);
 
 const PLAIN_PAGE = `var PAGE = {
   title: "One small ruling?",
@@ -116,18 +118,25 @@ describe('the emitted page', () => {
 
   it('draws a view per live option beside the options, one shown per card', () => {
     const g1 = sectionOf(buildPage(loadPageFile(EXAMPLE)), 'G1');
-    expect([...g1.matchAll(/<div class="vw[^"]*" data-view="([^"]+)"/g)].map(m => m[1])).toEqual([
-      'today',
-      'G1b',
-    ]);
-    expect(g1.match(/<div class="vw[^"]*" data-view="[^"]+">/g)).toHaveLength(1);
-    expect(g1).toContain('<label class="opt" data-pick="G1a" data-look="today">');
+    expect(
+      [...g1.matchAll(/<div class="vw[^"]*" data-view="([^"]+)"/g)].map(
+        m => m[1],
+      ),
+    ).toEqual(['today', 'G1b']);
+    expect(g1.match(/<div class="vw[^"]*" data-view="[^"]+">/g)).toHaveLength(
+      1,
+    );
+    expect(g1).toContain(
+      '<label class="opt" data-pick="G1a" data-look="today">',
+    );
     expect(g1).toContain('<label class="opt" data-pick="G1b" data-look="G1b">');
   });
 
   it('options are one radio group per ruling, the none row included', () => {
     const g1 = sectionOf(buildPage(loadPageFile(EXAMPLE)), 'G1');
-    const names = [...g1.matchAll(/<input type="radio" name="([^"]+)"/g)].map(m => m[1]);
+    const names = [...g1.matchAll(/<input type="radio" name="([^"]+)"/g)].map(
+      m => m[1],
+    );
     expect(names.length).toBeGreaterThan(1);
     expect(new Set(names)).toEqual(new Set(['G1']));
   });
@@ -141,8 +150,12 @@ describe('the emitted page', () => {
 
   it('adds a Today row only when no option keeps today', () => {
     const html = buildPage(loadPageFile(EXAMPLE));
-    expect(sectionOf(html, 'G2')).toContain('aria-label="Show today’s picture"');
-    expect(sectionOf(html, 'G1')).not.toContain('aria-label="Show today’s picture"');
+    expect(sectionOf(html, 'G2')).toContain(
+      'aria-label="Show today’s picture"',
+    );
+    expect(sectionOf(html, 'G1')).not.toContain(
+      'aria-label="Show today’s picture"',
+    );
   });
 
   it('builds a table-only ruling bare: no view, rows that only pick', () => {
@@ -152,7 +165,9 @@ describe('the emitted page', () => {
     expect(html).toContain('<div class="decide bare">');
     expect(html).not.toContain('class="view"');
     expect(html).not.toMatch(/class="opt"[^>]*data-look/);
-    expect(html).toContain('<span class="w">the gain names the file, the row says why</span>');
+    expect(html).toContain(
+      '<span class="w">the gain names the file, the row says why</span>',
+    );
   });
 
   it('a figure ruling inlines its markup and writes nothing beside index.html', () => {
@@ -160,7 +175,9 @@ describe('the emitted page', () => {
     expect(main([dir, '--no-open'])).toBe(0);
     expect(readdirSync(dir).sort()).toEqual(['index.html', 'page.js']);
     const html = readFileSync(join(dir, 'index.html'), 'utf8');
-    expect(html).toContain('<div class="fig"><svg viewBox="0 0 200 40"><text x="8" y="24" fill="var(--o)">start → exit non-zero</text></svg></div>');
+    expect(html).toContain(
+      '<div class="fig"><svg viewBox="0 0 200 40"><text x="8" y="24" fill="var(--o)">start → exit non-zero</text></svg></div>',
+    );
     expect(html).not.toMatch(/<script src=|https?:\/\/|src="\/|href="\//);
   });
 });
@@ -254,9 +271,13 @@ describe('the bin door', () => {
     open.push(dir);
     mkdirSync(dir, { recursive: true });
     writeFileSync(join(dir, PAGE_FILE), PLAIN_PAGE);
-    const ran = spawnSync(process.execPath, ['src/index.ts', dir, '--no-open'], {
-      cwd: fileURLToPath(new URL('..', import.meta.url)),
-    });
+    const ran = spawnSync(
+      process.execPath,
+      ['src/index.ts', dir, '--no-open'],
+      {
+        cwd: fileURLToPath(new URL('..', import.meta.url)),
+      },
+    );
     expect(ran.status).toBe(0);
     expect(existsSync(join(dir, 'index.html'))).toBe(true);
   });

@@ -9,7 +9,12 @@ import { materializeDemoRepo } from '../src/demo-repo.ts';
 import { ITEMS } from '../src/render/index.ts';
 import { renderPreview, type PreviewRender } from '../src/payloads.ts';
 import { preview, type PreviewOptions } from '../src/preview.ts';
-import { THEMES, createHomes, settingsPath, writeSettings } from './fixtures.ts';
+import {
+  THEMES,
+  createHomes,
+  settingsPath,
+  writeSettings,
+} from './fixtures.ts';
 import { backupPath } from '../src/resolve.ts';
 import { DEFAULT_NOW } from './runtime.ts';
 

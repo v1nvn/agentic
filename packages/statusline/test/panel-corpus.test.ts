@@ -21,11 +21,7 @@ import { describe, expect, it } from 'vitest';
 // rewrites the .ans files instead of comparing.
 import { renderPanel } from '../src/render/panel.ts';
 import { THEMES, THEME_NAMES } from '../src/themes.ts';
-import {
-  DEFAULT_LAYOUT,
-  DEFAULT_PICKS,
-  specFor,
-} from '../src/render/items.ts';
+import { DEFAULT_LAYOUT, DEFAULT_PICKS, specFor } from '../src/render/items.ts';
 import { DEFAULT_NOW, GOLDENS_DIR, golden, loadTick } from './runtime.ts';
 
 type Loose = Record<string, unknown>;

@@ -99,8 +99,12 @@ describe('extract_grid tool', () => {
     expect(parsed.diagnostics.rowCount).toBe(6);
     expect(parsed.diagnostics.colCount).toBe(4);
     expect(parsed.diagnostics.confidence).toBe('high');
-    expect(parsed.grid.markdown).toContain('| Line Item | 2027E | 2028E | 2029E |');
-    expect(parsed.grid.markdown).toContain('| Revenue | $1,200M | $1,500M | $1,800M |');
+    expect(parsed.grid.markdown).toContain(
+      '| Line Item | 2027E | 2028E | 2029E |',
+    );
+    expect(parsed.grid.markdown).toContain(
+      '| Revenue | $1,200M | $1,500M | $1,800M |',
+    );
 
     const json = extractGridFromHtml({ html, baseUrl: ORIGIN, format: 'json' });
     const jsonParsed = extractGridOutput.parse(json.structuredContent);

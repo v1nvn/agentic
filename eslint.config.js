@@ -109,7 +109,11 @@ export default defineConfig([
       perfectionist.configs['recommended-natural'],
       eslintConfigPrettier,
     ],
-    files: ['packages/*/hooks/**/*.{ts,tsx}', 'packages/*/tests/**/*.{ts,tsx}', modIsland],
+    files: [
+      'packages/*/hooks/**/*.{ts,tsx}',
+      'packages/*/tests/**/*.{ts,tsx}',
+      modIsland,
+    ],
     languageOptions: {
       ecmaVersion: 2020,
       globals: globals.node,

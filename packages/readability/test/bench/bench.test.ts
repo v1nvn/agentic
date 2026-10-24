@@ -13,7 +13,11 @@ import {
   resolveFixturePath,
 } from './fixtures.ts';
 import { SUGGEST_SCENARIOS } from './suggest-scenarios.ts';
-import { computeMetrics, sampleExtraction, type FixtureMetrics } from './metrics.ts';
+import {
+  computeMetrics,
+  sampleExtraction,
+  type FixtureMetrics,
+} from './metrics.ts';
 import {
   scoreFixture,
   scoreFixtureWithPreset,
@@ -139,8 +143,13 @@ describe('bench: main-content labels resolve', () => {
       const selector = MAIN_CONTENT_SELECTORS[fixture.id];
       expect(selector, `no selector labeled for ${fixture.id}`).toBeDefined();
       const html = readFileSync(resolveFixturePath(fixture), 'utf8');
-      const el = buildDocument(html, fixture.url).document.querySelector(selector);
-      expect(el, `${fixture.id}: selector "${selector}" did not resolve`).not.toBeNull();
+      const el = buildDocument(html, fixture.url).document.querySelector(
+        selector,
+      );
+      expect(
+        el,
+        `${fixture.id}: selector "${selector}" did not resolve`,
+      ).not.toBeNull();
     });
 
     it(`${fixture.id}: has a self-contained MAIN_CONTENT_NOTES entry`, () => {
@@ -231,9 +240,15 @@ describe('bench: preset scenarios regression guard', () => {
 
   for (const scenario of PRESET_SCENARIOS) {
     const fixture = BENCH_FIXTURES.find(f => f.id === scenario.fixtureId);
-    expect(fixture, `unknown preset fixture: ${scenario.fixtureId}`).toBeDefined();
+    expect(
+      fixture,
+      `unknown preset fixture: ${scenario.fixtureId}`,
+    ).toBeDefined();
     const selector = MAIN_CONTENT_SELECTORS[scenario.fixtureId];
-    expect(selector, `no main-content label for ${scenario.fixtureId}`).toBeDefined();
+    expect(
+      selector,
+      `no main-content label for ${scenario.fixtureId}`,
+    ).toBeDefined();
 
     const html = readFileSync(resolveFixturePath(fixture!), 'utf8');
     const presetScore = scoreFixtureWithPreset(
@@ -260,7 +275,9 @@ describe('bench: preset scenarios regression guard', () => {
       // label) for precision — the invariant is that preset application never
       // introduces text outside the label.
       const defaultScore = scoreFixture(html, fixture!.url, selector!);
-      expect(presetScore.precision).toBeGreaterThanOrEqual(defaultScore.precision);
+      expect(presetScore.precision).toBeGreaterThanOrEqual(
+        defaultScore.precision,
+      );
     });
   }
 });
@@ -272,9 +289,15 @@ describe('bench: suggest-loop scenarios regression guard', () => {
 
   for (const scenario of SUGGEST_SCENARIOS) {
     const fixture = BENCH_FIXTURES.find(f => f.id === scenario.fixtureId);
-    expect(fixture, `unknown suggest fixture: ${scenario.fixtureId}`).toBeDefined();
+    expect(
+      fixture,
+      `unknown suggest fixture: ${scenario.fixtureId}`,
+    ).toBeDefined();
     const selector = MAIN_CONTENT_SELECTORS[scenario.fixtureId];
-    expect(selector, `no main-content label for ${scenario.fixtureId}`).toBeDefined();
+    expect(
+      selector,
+      `no main-content label for ${scenario.fixtureId}`,
+    ).toBeDefined();
 
     const html = readFileSync(resolveFixturePath(fixture!), 'utf8');
     // Throws when a recorded proposal no longer lints clean or the round-one
@@ -303,7 +326,9 @@ describe('bench: suggest-loop scenarios regression guard', () => {
       // ("her son" + "07:47" → one token on one side), so a small tolerance
       // absorbs boundary noise. The invariant stands: the replayed scope never
       // introduces junk the default pipeline did not already carry.
-      expect(suggestScore.precision + 0.01).toBeGreaterThanOrEqual(defaultScore.precision);
+      expect(suggestScore.precision + 0.01).toBeGreaterThanOrEqual(
+        defaultScore.precision,
+      );
     });
   }
 });

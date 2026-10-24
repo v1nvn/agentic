@@ -12,16 +12,16 @@ Each surface competes in an existing demand pool. Launch where the pool's
 audience already gathers; the marketplace is the install path, not the
 discovery surface.
 
-| Surface | Pool | Incumbents (verified stars) | Launch venue |
-| --- | --- | --- | --- |
-| `tokens` | claude code usage | Usage-Monitor 8.8k★, Clawdmeter 2.3k★, ccseva 806★, ccusage (npm) | r/ClaudeAI |
-| `statusline` | claude code statusline | CCometixLine 3.5k★, claude-statusline 1.4k★, best-claude-hud 998★ | r/ClaudeAI |
-| `zai` | GLM Coding Plan quota | official `glm-plan-usage` plugin, opencode-glm-quota, VS Code tracker — young | r/ZaiGLM, V2EX, r/ChatGPTCoding |
-| `readability` | url → markdown MCP | Firecrawl, Jina Reader (both commercial) | MCP Registry, Glama, mcp.so |
-| `omlx` | local-LLM delegation MCP | none dominant | MCP directories |
-| `rm` | reMarkable tooling | awesome-reMarkable 7.8k★, rmapi 1k★ (frozen by an unmaintained banner) | r/RemarkableTablet, awesome-reMarkable |
-| `todo` | claude code todo — empty pool (top repo 5★) | none | HN Show HN, as the story |
-| `md`, `notify`, `rulings`, `enhansome` | no pool of their own | — | ride the marketplace page |
+| Surface                                | Pool                                        | Incumbents (verified stars)                                                   | Launch venue                           |
+| -------------------------------------- | ------------------------------------------- | ----------------------------------------------------------------------------- | -------------------------------------- |
+| `tokens`                               | claude code usage                           | Usage-Monitor 8.8k★, Clawdmeter 2.3k★, ccseva 806★, ccusage (npm)             | r/ClaudeAI                             |
+| `statusline`                           | claude code statusline                      | CCometixLine 3.5k★, claude-statusline 1.4k★, best-claude-hud 998★             | r/ClaudeAI                             |
+| `zai`                                  | GLM Coding Plan quota                       | official `glm-plan-usage` plugin, opencode-glm-quota, VS Code tracker — young | r/ZaiGLM, V2EX, r/ChatGPTCoding        |
+| `readability`                          | url → markdown MCP                          | Firecrawl, Jina Reader (both commercial)                                      | MCP Registry, Glama, mcp.so            |
+| `omlx`                                 | local-LLM delegation MCP                    | none dominant                                                                 | MCP directories                        |
+| `rm`                                   | reMarkable tooling                          | awesome-reMarkable 7.8k★, rmapi 1k★ (frozen by an unmaintained banner)        | r/RemarkableTablet, awesome-reMarkable |
+| `todo`                                 | claude code todo — empty pool (top repo 5★) | none                                                                          | HN Show HN, as the story               |
+| `md`, `notify`, `rulings`, `enhansome` | no pool of their own                        | —                                                                             | ride the marketplace page              |
 
 ## The npm face
 
@@ -61,7 +61,7 @@ discovery surface.
   description.
 - Keywords: 3–6 real search nouns. Winner sets: @cometix/ccline
   `claude, statusline, claude-code, rust, cli`; glm-review `claude-code,
-  code-review, glm, zhipu, ai, cli, agent-skills`. No documented count cap;
+code-review, glm, zhipu, ai, cli, agent-skills`. No documented count cap;
   stuffing reads as the spam signal the docs name.
 - `homepage` and `repository` set on every package.
 - Install commands stay exactly version-pinned — the npx-cache-staleness law
@@ -183,7 +183,7 @@ Frame rm as a reMarkable workflow tool.
 - **Smithery — skip**: local stdio servers must ship as MCPB bundles
   (`smithery mcp publish ./server.mcpb`), which fights the zero-install
   .ts-direct design; the remote path (streamable HTTP + SmitheryBot allowlist
-  + `/.well-known/mcp/server-card.json`) doesn't fit local servers.
+  - `/.well-known/mcp/server-card.json`) doesn't fit local servers.
 
 ### Skipped
 

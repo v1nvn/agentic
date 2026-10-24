@@ -26,15 +26,20 @@ function lintSkill(skillMdPath) {
   const rel = path.relative(repoRoot, skillMdPath);
   const parsed = parseFrontmatter(fs.readFileSync(skillMdPath, 'utf8'));
   if (!parsed) {
-    errors.push(`${rel}: missing frontmatter (expected a '---'-delimited block)`);
+    errors.push(
+      `${rel}: missing frontmatter (expected a '---'-delimited block)`,
+    );
     return;
   }
   for (const key of ['name', 'description']) {
-    if (!parsed.frontmatter[key]) errors.push(`${rel}: frontmatter missing '${key}'`);
+    if (!parsed.frontmatter[key])
+      errors.push(`${rel}: frontmatter missing '${key}'`);
   }
 
   const skillDir = path.dirname(skillMdPath);
-  const refs = new Set([...parsed.body.matchAll(/\bnode\s+scripts\/([^\s"'`]+)/g)].map((m) => m[1]));
+  const refs = new Set(
+    [...parsed.body.matchAll(/\bnode\s+scripts\/([^\s"'`]+)/g)].map(m => m[1]),
+  );
   for (const scriptRel of refs) {
     if (!/\.(js|mjs)$/.test(scriptRel)) continue;
     const scriptPath = path.join(skillDir, 'scripts', scriptRel);
@@ -43,9 +48,14 @@ function lintSkill(skillMdPath) {
       errors.push(`${rel}: referenced script missing: ${scriptRepoRel}`);
       continue;
     }
-    const res = spawnSync(process.execPath, ['--check', scriptPath], { encoding: 'utf8', stdio: 'pipe' });
+    const res = spawnSync(process.execPath, ['--check', scriptPath], {
+      encoding: 'utf8',
+      stdio: 'pipe',
+    });
     if (res.status !== 0) {
-      errors.push(`${scriptRepoRel}: syntax check failed\n${(res.stderr || res.stdout).trim()}`);
+      errors.push(
+        `${scriptRepoRel}: syntax check failed\n${(res.stderr || res.stdout).trim()}`,
+      );
     }
   }
 }

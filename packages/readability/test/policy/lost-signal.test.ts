@@ -2,17 +2,29 @@ import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { assessLostSignal, NEAR_EMPTY_WORDS } from '../../src/policy/lost-signal.ts';
+import {
+  assessLostSignal,
+  NEAR_EMPTY_WORDS,
+} from '../../src/policy/lost-signal.ts';
 import { extractArticleFromHtml } from '../../src/tools/extract.ts';
 import type { StructuredContent } from '../../src/tools/output-schema.ts';
 
 const here = dirname(fileURLToPath(import.meta.url));
 
 function baselineText(fixtureId: string, url: string): string {
-  const html = readFileSync(join(here, '..', 'fixtures', fixtureId, 'saved.html'), 'utf8');
-  const result = extractArticleFromHtml({ html, baseUrl: url, cache: false, format: 'text' });
+  const html = readFileSync(
+    join(here, '..', 'fixtures', fixtureId, 'saved.html'),
+    'utf8',
+  );
+  const result = extractArticleFromHtml({
+    html,
+    baseUrl: url,
+    cache: false,
+    format: 'text',
+  });
   expect(result.isError).toBeFalsy();
-  return ((result.structuredContent as StructuredContent).content ?? '') as string;
+  return ((result.structuredContent as StructuredContent).content ??
+    '') as string;
 }
 
 describe('policy.lost-signal', () => {
@@ -44,8 +56,7 @@ describe('policy.lost-signal', () => {
 
   it('never fires on a gating signal alone', () => {
     const evidence = assessLostSignal({
-      contentText:
-        'A complete and perfectly healthy article. '.repeat(30),
+      contentText: 'A complete and perfectly healthy article. '.repeat(30),
       fallbackUsed: false,
       gated: { likely: true, reason: 'paywall overlay' },
     });
@@ -74,7 +85,9 @@ describe('policy.lost-signal', () => {
   it('fires on the metered barrier text WIRED prints in place of the article', () => {
     const evidence = assessLostSignal({
       contentText:
-        'The party was already underway when the news broke, and nobody in the room expected the announcement that came over the loudspeakers a few minutes later. '.repeat(6) +
+        'The party was already underway when the news broke, and nobody in the room expected the announcement that came over the loudspeakers a few minutes later. '.repeat(
+          6,
+        ) +
         "You've read your last free article. Subscribe to continue reading.",
       fallbackUsed: false,
     });

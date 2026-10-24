@@ -54,9 +54,7 @@ const PAGE_B = `<html><head>
 <p>Sentences with enough body text for Readability to keep them.</p>
 </article></body></html>`;
 
-function readDiagnostics(
-  result: ReturnType<typeof extractArticleFromHtml>,
-): {
+function readDiagnostics(result: ReturnType<typeof extractArticleFromHtml>): {
   cache?: { hit: boolean; normalizedHash: string; originalHash: string };
 } {
   const parsed = outputSchema.parse(result.structuredContent);
@@ -70,7 +68,10 @@ function payloadOf(result: ReturnType<typeof extractArticleFromHtml>): string {
 describe('extract cache:true — diagnostics.cache', () => {
   it('is absent when cache is not requested (goldens unaffected)', () => {
     resetCache();
-    const result = extractArticleFromHtml({ html: PAGE_A, baseUrl: 'https://x.example/' });
+    const result = extractArticleFromHtml({
+      html: PAGE_A,
+      baseUrl: 'https://x.example/',
+    });
     const diagnostics = readDiagnostics(result);
     expect(diagnostics.cache).toBeUndefined();
   });
@@ -93,7 +94,9 @@ describe('extract cache:true — diagnostics.cache', () => {
     });
     const secondDiag = readDiagnostics(second);
     expect(secondDiag.cache).toMatchObject({ hit: true });
-    expect(secondDiag.cache?.normalizedHash).toBe(firstDiag.cache?.normalizedHash);
+    expect(secondDiag.cache?.normalizedHash).toBe(
+      firstDiag.cache?.normalizedHash,
+    );
     expect(secondDiag.cache?.originalHash).toBe(firstDiag.cache?.originalHash);
     // Byte-identical payload — cache short-circuits the pipeline.
     expect(payloadOf(second)).toBe(payloadOf(first));
@@ -163,7 +166,9 @@ describe('extract cache:true — diagnostics.cache', () => {
 <p>One two three four five six seven eight nine ten.</p>
 </article></body></html>`;
 
-    expect(normalizedHashOf(pageWithJan)).not.toBe(normalizedHashOf(pageWithFeb));
+    expect(normalizedHashOf(pageWithJan)).not.toBe(
+      normalizedHashOf(pageWithFeb),
+    );
 
     // Carve-out precision: varying the BODY of a NON-ld+json script (not just
     // a nonce attribute, which the nonce-stripping rule would already equalize)
@@ -171,7 +176,9 @@ describe('extract cache:true — diagnostics.cache', () => {
     // the existing script stripping.
     const withScriptOne = `<html><body><script>console.log("a")</script></body></html>`;
     const withScriptTwo = `<html><body><script>console.log("b")</script></body></html>`;
-    expect(normalizedHashOf(withScriptOne)).toBe(normalizedHashOf(withScriptTwo));
+    expect(normalizedHashOf(withScriptOne)).toBe(
+      normalizedHashOf(withScriptTwo),
+    );
 
     // Single-quoted type attribute is also recognized as ld+json.
     const singleQuoted = `<html><head>
@@ -179,7 +186,9 @@ describe('extract cache:true — diagnostics.cache', () => {
 </head><body><article><h1>Title</h1>
 <p>One two three four five six seven eight nine ten.</p>
 </article></body></html>`;
-    expect(normalizedHashOf(singleQuoted)).not.toBe(normalizedHashOf(pageWithJan));
+    expect(normalizedHashOf(singleQuoted)).not.toBe(
+      normalizedHashOf(pageWithJan),
+    );
   });
 });
 

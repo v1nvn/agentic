@@ -106,8 +106,9 @@ describe('extract truncation contract', () => {
     });
     const first = result.content[0];
     const text = first && 'text' in first ? first.text : '';
-    const diagnostics = (result.structuredContent as { diagnostics: { truncated: boolean } })
-      .diagnostics;
+    const diagnostics = (
+      result.structuredContent as { diagnostics: { truncated: boolean } }
+    ).diagnostics;
     expect(diagnostics.truncated).toBe(true);
     expect(text).toMatch(/…\[truncated\]$/);
     expect(fenceCount(text) % 2).toBe(0);

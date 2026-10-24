@@ -9,7 +9,7 @@ describe('outline tool', () => {
     const result = outlineDocumentFromHtml({
       html,
       selectors: { include: 'main' },
-    });;
+    });
     const parsed = outlineOutput.parse(result.structuredContent);
     expect(parsed.outline.map(o => o.text)).toEqual(['Title', 'Section']);
   });

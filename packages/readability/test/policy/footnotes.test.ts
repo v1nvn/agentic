@@ -56,11 +56,16 @@ describe('policy.footnotes processFootnotes', () => {
   });
 
   it('returns null when no footnote markup signals are present', () => {
-    expect(processFootnotes('<p>Just a paragraph with a <sup>2</sup> superscript.</p>')).toBeNull();
+    expect(
+      processFootnotes(
+        '<p>Just a paragraph with a <sup>2</sup> superscript.</p>',
+      ),
+    ).toBeNull();
   });
 
   it('returns null when a sup links to a fragment but no definitions exist', () => {
-    const html = '<p>Loose ref<sup><a href="#fn-1">1</a></sup> with no list.</p>';
+    const html =
+      '<p>Loose ref<sup><a href="#fn-1">1</a></sup> with no list.</p>';
     expect(processFootnotes(html)).toBeNull();
   });
 

@@ -71,7 +71,8 @@ function setFuse(
 
 function setLimits(
   payload: Loose,
-  limits: null | undefined | Readonly<Record<string, readonly [number, number]>>,
+  limits:
+    null | undefined | Readonly<Record<string, readonly [number, number]>>,
 ): void {
   if (limits === null || limits === undefined) {
     delete payload.rate_limits;
@@ -113,46 +114,38 @@ export const CORPUS: readonly CorpusCase[] = [
     layout: '{cache-expiry}',
     picks: { 'cache-expiry': 'coldin' },
   },
-  ...[0, 1, 50, 58.4, 95, 99, 100].map(
-    (pct): CorpusCase => ({
-      name: `ramp-gauge-pct${pct}`,
-      payload: 'p1',
-      oracle: true,
-      layout: '{bar}',
-      picks: { bar: 'gauge' },
-      mutate: payload => setPct(payload, pct),
-    }),
-  ),
-  ...[0, 1, 6, 10].map(
-    (pct): CorpusCase => ({
-      name: `ramp-flat-pct${pct}`,
-      payload: 'p1',
-      oracle: true,
-      layout: '{bar}',
-      picks: { bar: 'flat' },
-      mutate: payload => setPct(payload, pct),
-    }),
-  ),
-  ...[0, 42, 2847, 3087].map(
-    (m): CorpusCase => ({
-      name: `ramp-clock-m${m}`,
-      payload: 'p1',
-      oracle: true,
-      layout: '{duration}',
-      picks: { duration: 'clock' },
-      mutate: payload => setDuration(payload, m),
-    }),
-  ),
-  ...[42, 3087].map(
-    (m): CorpusCase => ({
-      name: `ramp-hours-m${m}`,
-      payload: 'p1',
-      oracle: true,
-      layout: '{duration}',
-      picks: { duration: 'hours' },
-      mutate: payload => setDuration(payload, m),
-    }),
-  ),
+  ...[0, 1, 50, 58.4, 95, 99, 100].map((pct): CorpusCase => ({
+    name: `ramp-gauge-pct${pct}`,
+    payload: 'p1',
+    oracle: true,
+    layout: '{bar}',
+    picks: { bar: 'gauge' },
+    mutate: payload => setPct(payload, pct),
+  })),
+  ...[0, 1, 6, 10].map((pct): CorpusCase => ({
+    name: `ramp-flat-pct${pct}`,
+    payload: 'p1',
+    oracle: true,
+    layout: '{bar}',
+    picks: { bar: 'flat' },
+    mutate: payload => setPct(payload, pct),
+  })),
+  ...[0, 42, 2847, 3087].map((m): CorpusCase => ({
+    name: `ramp-clock-m${m}`,
+    payload: 'p1',
+    oracle: true,
+    layout: '{duration}',
+    picks: { duration: 'clock' },
+    mutate: payload => setDuration(payload, m),
+  })),
+  ...[42, 3087].map((m): CorpusCase => ({
+    name: `ramp-hours-m${m}`,
+    payload: 'p1',
+    oracle: true,
+    layout: '{duration}',
+    picks: { duration: 'hours' },
+    mutate: payload => setDuration(payload, m),
+  })),
   ...(
     [
       ['5m-290', '5m', 290],
@@ -170,16 +163,14 @@ export const CORPUS: readonly CorpusCase[] = [
       ['no-ttl', null, 0],
       ['no-expires', '1h', null],
     ] as const
-  ).map(
-    ([id, ttl, expiresIn]): CorpusCase => ({
-      name: `ramp-fuse-${id}`,
-      payload: 'p1',
-      oracle: true,
-      layout: '{cache-expiry}',
-      picks: { 'cache-expiry': 'fuse' },
-      mutate: payload => setFuse(payload, ttl, expiresIn),
-    }),
-  ),
+  ).map(([id, ttl, expiresIn]): CorpusCase => ({
+    name: `ramp-fuse-${id}`,
+    payload: 'p1',
+    oracle: true,
+    layout: '{cache-expiry}',
+    picks: { 'cache-expiry': 'fuse' },
+    mutate: payload => setFuse(payload, ttl, expiresIn),
+  })),
   ...(
     [
       ['5m-290', '5m', 290],
@@ -191,16 +182,14 @@ export const CORPUS: readonly CorpusCase[] = [
       ['no-ttl', null, 0],
       ['no-expires', '1h', null],
     ] as const
-  ).map(
-    ([id, ttl, expiresIn]): CorpusCase => ({
-      name: `ramp-until-${id}`,
-      payload: 'p1',
-      oracle: true,
-      layout: '{cache-expiry}',
-      picks: { 'cache-expiry': 'until' },
-      mutate: payload => setFuse(payload, ttl, expiresIn),
-    }),
-  ),
+  ).map(([id, ttl, expiresIn]): CorpusCase => ({
+    name: `ramp-until-${id}`,
+    payload: 'p1',
+    oracle: true,
+    layout: '{cache-expiry}',
+    picks: { 'cache-expiry': 'until' },
+    mutate: payload => setFuse(payload, ttl, expiresIn),
+  })),
   ...(
     [
       [
@@ -234,39 +223,31 @@ export const CORPUS: readonly CorpusCase[] = [
       ['only-five-hour', { five_hour: [41.2, 4980] } as const],
       ['none', undefined],
     ] as const
-  ).map(
-    ([id, limits]): CorpusCase => ({
-      name: `ramp-strip-${id}`,
-      payload: 'p1',
-      oracle: true,
-      layout: '{rate}',
-      picks: { rate: 'strip' },
-      mutate: payload => setLimits(payload, limits),
-    }),
-  ),
+  ).map(([id, limits]): CorpusCase => ({
+    name: `ramp-strip-${id}`,
+    payload: 'p1',
+    oracle: true,
+    layout: '{rate}',
+    picks: { rate: 'strip' },
+    mutate: payload => setLimits(payload, limits),
+  })),
 
-  ...[88, 82, 76, 66, 60, 50, 30, 24, 20].map(
-    (columns): CorpusCase => ({
-      name: `p1-cols-${columns}`,
-      payload: 'p1',
-      columns,
-    }),
-  ),
-  ...[82, 30].map(
-    (columns): CorpusCase => ({
-      name: `p3-cols-${columns}`,
-      payload: 'p3',
-      columns,
-    }),
-  ),
-  ...[250, 58, 36].map(
-    (columns): CorpusCase => ({
-      name: `p1m-cols-${columns}`,
-      payload: 'p1',
-      columns,
-      mutate: bracketModel,
-    }),
-  ),
+  ...[88, 82, 76, 66, 60, 50, 30, 24, 20].map((columns): CorpusCase => ({
+    name: `p1-cols-${columns}`,
+    payload: 'p1',
+    columns,
+  })),
+  ...[82, 30].map((columns): CorpusCase => ({
+    name: `p3-cols-${columns}`,
+    payload: 'p3',
+    columns,
+  })),
+  ...[250, 58, 36].map((columns): CorpusCase => ({
+    name: `p1m-cols-${columns}`,
+    payload: 'p1',
+    columns,
+    mutate: bracketModel,
+  })),
   { name: 'p1-style-dim', payload: 'p1', picks: { style: 'dim' } },
   { name: 'p1-style-bare', payload: 'p1', picks: { style: 'bare' } },
   { name: 'p1-nocolor', payload: 'p1', noColor: true },
@@ -304,15 +285,13 @@ export const CORPUS: readonly CorpusCase[] = [
       ['duration', 'hours'],
       ['lines', 'diffstat'],
     ] as const
-  ).map(
-    ([item, alt]): CorpusCase => ({
-      name: `seg-p1-${item}-${alt}`,
-      payload: 'p1',
-      oracle: true,
-      layout: `{${item}}`,
-      picks: { [item]: alt },
-    }),
-  ),
+  ).map(([item, alt]): CorpusCase => ({
+    name: `seg-p1-${item}-${alt}`,
+    payload: 'p1',
+    oracle: true,
+    layout: `{${item}}`,
+    picks: { [item]: alt },
+  })),
   // bar=gauge above 100%: the bar geometry clamps, the percent label does not.
   {
     name: 'seg-p1-bar-gauge150',
@@ -347,10 +326,34 @@ export const CORPUS: readonly CorpusCase[] = [
       (payload.cost as Loose).total_cost_usd = 0.125;
     },
   },
-  { name: 'seg-p4-state-pills', payload: 'p4', oracle: true, layout: '{state}', picks: { state: 'pills' } },
-  { name: 'seg-p4-pr-badge', payload: 'p4', oracle: true, layout: '{pr}', picks: { pr: 'badge' } },
-  { name: 'seg-p2-state-pills', payload: 'p2', oracle: true, layout: '{state}', picks: { state: 'pills' } },
-  { name: 'seg-p2-pr-badge', payload: 'p2', oracle: true, layout: '{pr}', picks: { pr: 'badge' } },
+  {
+    name: 'seg-p4-state-pills',
+    payload: 'p4',
+    oracle: true,
+    layout: '{state}',
+    picks: { state: 'pills' },
+  },
+  {
+    name: 'seg-p4-pr-badge',
+    payload: 'p4',
+    oracle: true,
+    layout: '{pr}',
+    picks: { pr: 'badge' },
+  },
+  {
+    name: 'seg-p2-state-pills',
+    payload: 'p2',
+    oracle: true,
+    layout: '{state}',
+    picks: { state: 'pills' },
+  },
+  {
+    name: 'seg-p2-pr-badge',
+    payload: 'p2',
+    oracle: true,
+    layout: '{pr}',
+    picks: { pr: 'badge' },
+  },
 ];
 
 let demo: DemoHome | undefined;
@@ -383,9 +386,23 @@ function renderCase(c: CorpusCase): string {
 describe('the src/render door', () => {
   it('exposes the registry in paint order with the 3 inline rung shims', () => {
     expect(ITEMS.map(entry => entry.item)).toEqual([
-      'model', 'effort', 'state', 'cwd', 'branch', 'status', 'ahead', 'pr',
-      'bar', 'tokens', 'cache-hit', 'cache-expiry', 'cost', 'duration',
-      'lines', 'rate', 'style',
+      'model',
+      'effort',
+      'state',
+      'cwd',
+      'branch',
+      'status',
+      'ahead',
+      'pr',
+      'bar',
+      'tokens',
+      'cache-hit',
+      'cache-expiry',
+      'cost',
+      'duration',
+      'lines',
+      'rate',
+      'style',
     ]);
     const byItem = new Map(ITEMS.map(entry => [entry.item, entry]));
     for (const entry of ITEMS) {
@@ -412,9 +429,7 @@ describe('the src/render door', () => {
         continue;
       }
       for (const alt of alternatives) {
-        expect(typeof SEGMENTS[item]?.[alt], `${item}=${alt}`).toBe(
-          'function',
-        );
+        expect(typeof SEGMENTS[item]?.[alt], `${item}=${alt}`).toBe('function');
       }
     }
   });

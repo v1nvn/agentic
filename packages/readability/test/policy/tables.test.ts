@@ -109,9 +109,7 @@ describe('policy.tables parseTableMatrix', () => {
 
   it('walks direct <tr> children of <table> (no thead/tbody wrapper)', () => {
     const matrix = parseTableMatrix(
-      table(
-        '<table><tr><th>H</th></tr><tr><td>D</td></tr></table>',
-      ),
+      table('<table><tr><th>H</th></tr><tr><td>D</td></tr></table>'),
     );
     expect(matrix).toEqual([['H'], ['D']]);
   });
@@ -284,10 +282,7 @@ describe('policy.tables renderTableJson', () => {
   });
 
   it('pretty-prints with a 2-space indent', () => {
-    const out = renderTableJson([
-      ['K'],
-      ['v'],
-    ]);
+    const out = renderTableJson([['K'], ['v']]);
     // JSON.stringify(records, null, 2) → array bracket at col 0, record braces at col 2.
     expect(out).toContain('[\n  {');
     expect(out).toContain('\n    "K": "v"');

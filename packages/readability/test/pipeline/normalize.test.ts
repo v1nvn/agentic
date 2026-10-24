@@ -319,15 +319,15 @@ describe('normalizeDocument: cleanChrome option', () => {
 // Long enough that a small boilerplate block is well under 25% of the body.
 const ARTICLE_PROSE =
   '<p>' +
-  'This is a substantial article paragraph that carries real content. '.repeat(40) +
+  'This is a substantial article paragraph that carries real content. '.repeat(
+    40,
+  ) +
   '</p>';
 
 describe('stripBoilerplate: curated signatures', () => {
   it('removes an aside.related-posts and reports the count', () => {
     const { document } = buildDocument(
-      `<html><body><article>${ARTICLE_PROSE.repeat(
-        3,
-      )}</article>` +
+      `<html><body><article>${ARTICLE_PROSE.repeat(3)}</article>` +
         '<aside class="related-posts"><h3>Related</h3><ul><li><a href="/a">A</a></li></ul></aside>' +
         '</body></html>',
     );
@@ -338,9 +338,7 @@ describe('stripBoilerplate: curated signatures', () => {
 
   it('removes a newsletter-signup block', () => {
     const { document } = buildDocument(
-      `<html><body><article>${ARTICLE_PROSE.repeat(
-        3,
-      )}</article>` +
+      `<html><body><article>${ARTICLE_PROSE.repeat(3)}</article>` +
         '<aside class="newsletter-signup"><h3>Subscribe</h3><form><input><button>Go</button></form></aside>' +
         '</body></html>',
     );
@@ -350,9 +348,7 @@ describe('stripBoilerplate: curated signatures', () => {
 
   it('matches tokens in id, not just class', () => {
     const { document } = buildDocument(
-      `<html><body><article>${ARTICLE_PROSE.repeat(
-        3,
-      )}</article>` +
+      `<html><body><article>${ARTICLE_PROSE.repeat(3)}</article>` +
         '<div id="read-next"><a href="/next">Next</a></div></body></html>',
     );
     expect(stripBoilerplate(document)).toBeGreaterThanOrEqual(1);
@@ -444,9 +440,7 @@ describe('stripBoilerplate: footprint guard', () => {
 describe('stripBoilerplate: integration with normalizeDocument', () => {
   it('runs regardless of cleanChrome (boilerplate is independent)', () => {
     const html =
-      `<html><body><article>${ARTICLE_PROSE.repeat(
-        3,
-      )}</article>` +
+      `<html><body><article>${ARTICLE_PROSE.repeat(3)}</article>` +
       '<aside class="newsletter"><p>small block</p></aside>' +
       '<div role="dialog">chrome</div></body></html>';
     const { document } = buildDocument(html);
@@ -460,9 +454,7 @@ describe('stripBoilerplate: integration with normalizeDocument', () => {
 
   it('reports boilerplateRemoved alongside chromeRemoved by default', () => {
     const { document } = buildDocument(
-      `<html><body><article>${ARTICLE_PROSE.repeat(
-        3,
-      )}</article>` +
+      `<html><body><article>${ARTICLE_PROSE.repeat(3)}</article>` +
         '<div role="dialog">chrome</div>' +
         '<aside class="related-post"><a href="/x">X</a></aside>' +
         '</body></html>',
@@ -474,9 +466,7 @@ describe('stripBoilerplate: integration with normalizeDocument', () => {
 
   it('is idempotent (second run removes nothing)', () => {
     const { document } = buildDocument(
-      `<html><body><article>${ARTICLE_PROSE.repeat(
-        3,
-      )}</article>` +
+      `<html><body><article>${ARTICLE_PROSE.repeat(3)}</article>` +
         '<aside class="newsletter"><p>x</p></aside></body></html>',
     );
     const first = stripBoilerplate(document);
@@ -532,7 +522,9 @@ describe('canonicalizeCodeBlocks', () => {
       '<html><body><pre class="sp-cm sp-pristine"><code>x</code></pre></body></html>',
     );
     expect(canonicalizeCodeBlocks(document)).toBe(0);
-    expect(document.querySelector('pre > code')?.getAttribute('class')).toBeNull();
+    expect(
+      document.querySelector('pre > code')?.getAttribute('class'),
+    ).toBeNull();
   });
 
   it('maps a generic lang-py code class to language-py', () => {
@@ -573,7 +565,9 @@ describe('canonicalizeCodeBlocks', () => {
       '<html><body><pre><code>x</code></pre></body></html>',
     );
     expect(canonicalizeCodeBlocks(document)).toBe(0);
-    expect(document.querySelector('pre > code')?.getAttribute('class')).toBeNull();
+    expect(
+      document.querySelector('pre > code')?.getAttribute('class'),
+    ).toBeNull();
   });
 
   it('does not throw on a pre with no code and garbage classes', () => {

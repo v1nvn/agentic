@@ -36,13 +36,13 @@ One CLI, both ways: `/statusline:lab` inside a session runs these same commands;
 runs them in a terminal. Every subcommand takes `--home <dir>` to operate on
 another home instead of `$HOME`.
 
-| Command     | Does                                                                                                                                                                                                                                                                                                                                                       |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Command     | Does                                                                                                                                                                                                                                                                                                    |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `configure` | the sole writer — writes both settings keys and deploys the bundled resolver into the data dir. Bare on a TTY: the wizard. With flags: `--theme <name>` (quiet, classic, lean, rich, custom) is the base design, item flags override it, `--layout` overrides its layout; a foreign key needs `--force` |
-| `preview`   | render the candidate bar and panel row through the same theme resolution the keys paint with, writing nothing; `--plain` strips the color escapes so glyphs survive chat                                                                                                                                                                                   |
-| `catalog`   | the themes block (`*` marks the theme the key names) then one line per item, `*` marking the resolved variant; `--themes` cuts to the block                                                                                                                                                                                                                |
-| `status`    | one row per fact — node, the renderer the install record resolves, both keys, the theme the key names, backup, captures — plus a verdict; exit 0 healthy, 1 needs action, every action row names its fix                                                                                                                                                   |
-| `restore`   | both keys back to their pre-lab values from `backup.json`, then deletes the lab data — `--dry-run` prints the plan; `--force` splices over a key changed after the takeover                                                                                                                                                                                |
+| `preview`   | render the candidate bar and panel row through the same theme resolution the keys paint with, writing nothing; `--plain` strips the color escapes so glyphs survive chat                                                                                                                                |
+| `catalog`   | the themes block (`*` marks the theme the key names) then one line per item, `*` marking the resolved variant; `--themes` cuts to the block                                                                                                                                                             |
+| `status`    | one row per fact — node, the renderer the install record resolves, both keys, the theme the key names, backup, captures — plus a verdict; exit 0 healthy, 1 needs action, every action row names its fix                                                                                                |
+| `restore`   | both keys back to their pre-lab values from `backup.json`, then deletes the lab data — `--dry-run` prints the plan; `--force` splices over a key changed after the takeover                                                                                                                             |
 
 ```sh
 npx -y @v1nvn/statusline@0.54.0 preview --theme rich --plain          # chat-safe sketch, nothing written
@@ -67,37 +67,37 @@ installed into the plugin folder by Claude Code from `package-lock.json`.
 
 ## Modules
 
-| File                                   | Role                                                                                                         |
-| -------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| `src/cli.ts`                           | commander wiring — five subcommands, help text                                                               |
-| `src/index.ts`                         | bin entry — verb dispatch, exit codes, wizard TTY deps                                                       |
-| `src/configure.ts`                     | the writer — validation, diff-from-base flags, ours-matcher, JSON splice engine, backup write, renderer sync |
-| `src/resolve.ts`                       | the settings keys — composition, ours-matching, and parsing back into decisions                              |
-| `src/restore.ts`                       | revert decision tree + explicit-path cleanup                                                                 |
-| `src/status.ts`                        | diagnostic rows + verdict — node, renderer, keys, theme                                                      |
-| `src/catalog.ts`                       | themes block + item listing, resolved picks starred                                                          |
-| `src/themes.ts`                        | the five theme bundles — layout, one variant per item, summary                                               |
-| `src/preview.ts`                       | the preview command — a candidate rendered, nothing written                                                  |
-| `src/wizard.ts` · `src/wizard-tui.ts`  | the terminal wizard — theme pass, then refinement of the pick's overrides                                    |
-| `src/payloads.ts` · `src/demo-repo.ts` | preview plumbing — fixtures anchored to the moment, in-process renders; demo git repo                        |
-| `src/render/entry.ts`                  | the renderer the launcher imports — argv to line or panel, both capture tees                                 |
-| `src/render/launcher.mjs`              | the data-dir deploy — zero deps, resolves the install record, imports its renderer source                    |
-| `src/render/install-record.ts`         | `resolveInstall` — the install record, newest usable entry wins                                              |
-| `src/render/argv.ts`                   | the renderer's argv grammar — `node:util` parseArgs, never commander                                         |
-| `src/render/layout.ts`                 | the layout grammar — brace clusters of item ids, parsed once for every door                                  |
-| `src/render/jq.ts`                     | the jq semantics both payload parsers share — `//`, `tostring`, `@tsv`                                       |
-| `src/render/theme.ts`                  | `resolvePaint` — the one theme resolution, shared by paint and display                                       |
-| `src/render/engine.ts`                 | the line engine — compose, `vlen`, the fit ladder                                                            |
-| `src/render/items.ts`                  | the item registry — 17 items, defaults, rungs, `DEFAULT_LAYOUT`                                              |
-| `src/render/segments.ts`               | the per-item segment renderers                                                                               |
-| `src/render/payload.ts`                | the stdin payload types + parse                                                                              |
-| `src/render/git.ts`                    | the git reads                                                                                                |
-| `src/render/panel.ts`                  | the agent-panel renderer — the theme's layout over the six task items, its own `vlen` and fit ladder        |
-| `src/render/facts.ts`                  | the subagent transcript read — used context and the effort actually run at, off each task's last usage line; `tokenCount` and the ask the fallbacks     |
-| `src/render/awk.ts`                    | printf-style decimal formatting on exact IEEE bits                                                           |
-| `src/render/capture.ts`                | the capture tee + `DATA_DIR`                                                                                 |
-| `src/render/index.ts`                  | the in-process barrel the CLI renders through                                                                |
-| `assets/`                              | preview fixtures — `payloads/p1–p4.json` (main surface), `ticks/multi.json` (panel)                          |
+| File                                   | Role                                                                                                                                                |
+| -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/cli.ts`                           | commander wiring — five subcommands, help text                                                                                                      |
+| `src/index.ts`                         | bin entry — verb dispatch, exit codes, wizard TTY deps                                                                                              |
+| `src/configure.ts`                     | the writer — validation, diff-from-base flags, ours-matcher, JSON splice engine, backup write, renderer sync                                        |
+| `src/resolve.ts`                       | the settings keys — composition, ours-matching, and parsing back into decisions                                                                     |
+| `src/restore.ts`                       | revert decision tree + explicit-path cleanup                                                                                                        |
+| `src/status.ts`                        | diagnostic rows + verdict — node, renderer, keys, theme                                                                                             |
+| `src/catalog.ts`                       | themes block + item listing, resolved picks starred                                                                                                 |
+| `src/themes.ts`                        | the five theme bundles — layout, one variant per item, summary                                                                                      |
+| `src/preview.ts`                       | the preview command — a candidate rendered, nothing written                                                                                         |
+| `src/wizard.ts` · `src/wizard-tui.ts`  | the terminal wizard — theme pass, then refinement of the pick's overrides                                                                           |
+| `src/payloads.ts` · `src/demo-repo.ts` | preview plumbing — fixtures anchored to the moment, in-process renders; demo git repo                                                               |
+| `src/render/entry.ts`                  | the renderer the launcher imports — argv to line or panel, both capture tees                                                                        |
+| `src/render/launcher.mjs`              | the data-dir deploy — zero deps, resolves the install record, imports its renderer source                                                           |
+| `src/render/install-record.ts`         | `resolveInstall` — the install record, newest usable entry wins                                                                                     |
+| `src/render/argv.ts`                   | the renderer's argv grammar — `node:util` parseArgs, never commander                                                                                |
+| `src/render/layout.ts`                 | the layout grammar — brace clusters of item ids, parsed once for every door                                                                         |
+| `src/render/jq.ts`                     | the jq semantics both payload parsers share — `//`, `tostring`, `@tsv`                                                                              |
+| `src/render/theme.ts`                  | `resolvePaint` — the one theme resolution, shared by paint and display                                                                              |
+| `src/render/engine.ts`                 | the line engine — compose, `vlen`, the fit ladder                                                                                                   |
+| `src/render/items.ts`                  | the item registry — 17 items, defaults, rungs, `DEFAULT_LAYOUT`                                                                                     |
+| `src/render/segments.ts`               | the per-item segment renderers                                                                                                                      |
+| `src/render/payload.ts`                | the stdin payload types + parse                                                                                                                     |
+| `src/render/git.ts`                    | the git reads                                                                                                                                       |
+| `src/render/panel.ts`                  | the agent-panel renderer — the theme's layout over the six task items, its own `vlen` and fit ladder                                                |
+| `src/render/facts.ts`                  | the subagent transcript read — used context and the effort actually run at, off each task's last usage line; `tokenCount` and the ask the fallbacks |
+| `src/render/awk.ts`                    | printf-style decimal formatting on exact IEEE bits                                                                                                  |
+| `src/render/capture.ts`                | the capture tee + `DATA_DIR`                                                                                                                        |
+| `src/render/index.ts`                  | the in-process barrel the CLI renders through                                                                                                       |
+| `assets/`                              | preview fixtures — `payloads/p1–p4.json` (main surface), `ticks/multi.json` (panel)                                                                 |
 
 ## Contracts
 

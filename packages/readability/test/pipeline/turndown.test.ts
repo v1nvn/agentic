@@ -55,7 +55,9 @@ describe('anchor absolutization', () => {
   });
 
   it('preserves the title attribute', () => {
-    const md = toMarkdown('<a href="/x" title="t">text</a>', { baseUrl: pageUrl });
+    const md = toMarkdown('<a href="/x" title="t">text</a>', {
+      baseUrl: pageUrl,
+    });
     expect(md).toContain('[text](https://example.com/x "t")');
   });
 
@@ -69,7 +71,9 @@ describe('anchor absolutization', () => {
       images: 'keep',
       baseUrl: pageUrl,
     });
-    expect(md).toContain('[![d](https://example.com/a.png)](https://example.com/lnk)');
+    expect(md).toContain(
+      '[![d](https://example.com/a.png)](https://example.com/lnk)',
+    );
   });
 
   it('returns bare content when href is empty (matches turndown default)', () => {

@@ -18,7 +18,12 @@ function fail(reason) {
 
 let recordPath;
 try {
-  recordPath = join(process.env.HOME ?? '', '.claude', 'plugins', 'installed_plugins.json');
+  recordPath = join(
+    process.env.HOME ?? '',
+    '.claude',
+    'plugins',
+    'installed_plugins.json',
+  );
   const entries = JSON.parse(readFileSync(recordPath, 'utf8'))?.plugins?.[
     'statusline@agentic'
   ];

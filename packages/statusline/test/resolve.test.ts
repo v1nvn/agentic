@@ -25,7 +25,10 @@ describe('readKeyConfig (contract 2)', () => {
 
   it('a foreign or absent main key reads as no config', () => {
     const home = homes.newHome();
-    writeSettings(home, '{"statusLine":{"type":"command","command":"~/old.sh"}}\n');
+    writeSettings(
+      home,
+      '{"statusLine":{"type":"command","command":"~/old.sh"}}\n',
+    );
     expect(readKeyConfig(home)).toEqual({ layout: null, values: {} });
     writeSettings(home, '{"model":"opus-4"}\n');
     expect(readKeyConfig(home)).toEqual({ layout: null, values: {} });
@@ -153,12 +156,16 @@ describe('the ours predicate (contract 1)', () => {
 
   it('the subagent matcher claims the flag wherever it sits', () => {
     expect(isOurSubagentCommand(subagentKeyValue(null, []))).toBe(true);
-    expect(isOurSubagentCommand(subagentKeyValue(null, ['--style=bare']))).toBe(true);
+    expect(isOurSubagentCommand(subagentKeyValue(null, ['--style=bare']))).toBe(
+      true,
+    );
     expect(isOurSubagentCommand(subagentKeyValue('lean', []))).toBe(true);
     expect(isOurSubagentCommand(mainKeyValue(null, null, []))).toBe(false);
-    expect(isOurSubagentCommand('node "$HOME/.claude/plugins/data/statusline-agentic/render.mjs" --subagent')).toBe(
-      false,
-    );
+    expect(
+      isOurSubagentCommand(
+        'node "$HOME/.claude/plugins/data/statusline-agentic/render.mjs" --subagent',
+      ),
+    ).toBe(false);
     expect(
       isOurSubagentCommand(
         'node "$HOME/.claude/plugins/data/statusline-agentic/render.mjs" --theme=lean --subagent || true',

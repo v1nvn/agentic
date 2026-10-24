@@ -43,7 +43,9 @@ describe('extract_section tool', () => {
     expect(result.isError).toBeFalsy();
     const parsed = outputSchema.parse(result.structuredContent);
     expect(parsed.content).toContain('Use a sanitizer like DOMPurify');
-    expect(parsed.content).not.toContain('Please see our Contributing document');
+    expect(parsed.content).not.toContain(
+      'Please see our Contributing document',
+    );
   });
 
   it('selector mode passes straight through to selectors.include', () => {

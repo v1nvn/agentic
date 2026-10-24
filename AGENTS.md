@@ -68,7 +68,7 @@ name or shape wins.
   `yarn npm publish` and release.yml reverts it before any commit. A home
   without a `package.json`
   (`enhansome`, `todo`) holds only its plugin surfaces. Every `npx -y
-  @v1nvn/*` line and every core dependency pin, config, manifest or `.md`
+@v1nvn/*` line and every core dependency pin, config, manifest or `.md`
   surface, is version-pinned to the train by `set-version.mjs`, which also
   regenerates the lockfiles — the per-home package-locks and the root
   `yarn.lock`, whose core descriptors the exact pins change every bump (an
@@ -90,7 +90,7 @@ name or shape wins.
   from the vendored `types/claude-code.d.ts` (engine-written, version-stamped
   on its first line) via `tsconfig.mods.json`; regenerate it from
   `.claude-plugin/types/` after an engine update. `claude plugin validate
-  <plugin root>` and `claude plugin test <plugin root>` are the mod's gates;
+<plugin root>` and `claude plugin test <plugin root>` are the mod's gates;
   read `references/mods.md` before writing one.
 - **A mod command's name is `<plugin>-<action>`, hyphenated** — the registered
   name is the whole invocation (`/tokens-usage`, `/rm-send`), so the name carries

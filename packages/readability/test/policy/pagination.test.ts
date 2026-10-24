@@ -62,7 +62,12 @@ describe('policy.pagination detectPagination', () => {
   it('absolutizes a relative href against the passed url', () => {
     const html =
       '<head><link rel="next" href="../page-2"></head><body><article><p>body</p></article></body>';
-    expect(detectPagination(doc(html, 'https://example.com/guide/'), 'https://example.com/guide/')).toEqual({
+    expect(
+      detectPagination(
+        doc(html, 'https://example.com/guide/'),
+        'https://example.com/guide/',
+      ),
+    ).toEqual({
       type: 'paginated',
       nextUrl: 'https://example.com/page-2',
     });

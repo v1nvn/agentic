@@ -66,12 +66,12 @@ about today that no anchor backs is checked against the code before it goes on t
 Every ruling is title, stake, `today` and its options. Add a picture only when a gain or
 cost cannot be checked from its fragment alone, and take the first kind that can draw it:
 
-| When the ruling turns on… | Use | Field |
-|---|---|---|
-| a code change | today's body and one body per option, shown as a diff | `bodies` |
-| an order of steps, or a balance that moves | a sequence diagram, a view per option | `seq` |
-| money or a count that moves | a ledger beside the diagram | `seq.ledger` |
-| anything else: an output or screen, states and transitions, a timeline, a number compared across options, a structure, a trade-off grid | a figure: static HTML or SVG, a view per option | `figure` |
+| When the ruling turns on…                                                                                                               | Use                                                   | Field        |
+| --------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- | ------------ |
+| a code change                                                                                                                           | today's body and one body per option, shown as a diff | `bodies`     |
+| an order of steps, or a balance that moves                                                                                              | a sequence diagram, a view per option                 | `seq`        |
+| money or a count that moves                                                                                                             | a ledger beside the diagram                           | `seq.ledger` |
+| anything else: an output or screen, states and transitions, a timeline, a number compared across options, a structure, a trade-off grid | a figure: static HTML or SVG, a view per option       | `figure`     |
 
 A chain whose options add, drop or change steps is a `seq`, not a `figure`: each option
 view draws only its delta rows on the shared lanes and ledger. A step only some options run
@@ -203,13 +203,13 @@ Then: `Written: <G1a, G2c>. Nothing is committed. <file>: <what changed>. One th
 
 `page.js` sets `var PAGE = { … };`.
 
-| Field | Req. | What to write |
-|---|---|---|
-| `eyebrow`, `title`, `sub` | title, sub | Repo and thread; two or three words; one sentence ending "Nothing is written until you rule." |
-| `key` | no | a stable slug for the topic; the composer's picks and notes persist in the browser under it. |
-| `notes` | no | `[{ html }]`: a bold lead, then "Not rulings" and what you decided; every note shows whole. |
-| `groups` | yes | `[{ id, label, quick, rulings: ["G1"] }]`: the label heads the group; `quick: true` gives the group's rulings an accept-recommended button. |
-| `rulings` | yes | One entry per id. |
+| Field                     | Req.       | What to write                                                                                                                               |
+| ------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `eyebrow`, `title`, `sub` | title, sub | Repo and thread; two or three words; one sentence ending "Nothing is written until you rule."                                               |
+| `key`                     | no         | a stable slug for the topic; the composer's picks and notes persist in the browser under it.                                                |
+| `notes`                   | no         | `[{ html }]`: a bold lead, then "Not rulings" and what you decided; every note shows whole.                                                 |
+| `groups`                  | yes        | `[{ id, label, quick, rulings: ["G1"] }]`: the label heads the group; `quick: true` gives the group's rulings an accept-recommended button. |
+| `rulings`                 | yes        | One entry per id.                                                                                                                           |
 
 A ruling: `title` (a question), `stake`, `today`, at most one of `seq`, `bodies` or `figure` —
 only when the ruling earned a picture (Step 3) — `opts` (2 to 4), and after a pushback `changed`

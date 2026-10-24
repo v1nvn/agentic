@@ -23,9 +23,13 @@ async function call(name: string, args: Record<string, unknown> = {}) {
   const client = new Client({ name: 'live-client', version: '0.0.0' });
   await client.connect(clientT);
   try {
-    return (await client.callTool({ arguments: args, name }, CallToolResultSchema, {
-      timeout: 300_000,
-    })) as CallToolResult;
+    return (await client.callTool(
+      { arguments: args, name },
+      CallToolResultSchema,
+      {
+        timeout: 300_000,
+      },
+    )) as CallToolResult;
   } finally {
     await client.close();
     await server.close();
@@ -79,22 +83,26 @@ describe.skipIf(!RUN_LIVE)('live omlx server', () => {
     expect(first?.type === 'text' ? first.text.length : 0).toBeGreaterThan(0);
   });
 
-  it('ask_structured returns parsed JSON matching the schema', { timeout: 600_000 }, async () => {
-    const result = await call('ask_structured', {
-      prompt: 'Name any two programming languages.',
-      schema: {
-        properties: {
-          languages: { items: { type: 'string' }, type: 'array' },
+  it(
+    'ask_structured returns parsed JSON matching the schema',
+    { timeout: 600_000 },
+    async () => {
+      const result = await call('ask_structured', {
+        prompt: 'Name any two programming languages.',
+        schema: {
+          properties: {
+            languages: { items: { type: 'string' }, type: 'array' },
+          },
+          required: ['languages'],
+          type: 'object',
         },
-        required: ['languages'],
-        type: 'object',
-      },
-    });
-    expect(result.isError).toBeFalsy();
-    const parsed = result.structuredContent?.result as {
-      languages?: string[];
-    };
-    expect(Array.isArray(parsed.languages)).toBe(true);
-    expect(parsed.languages?.length ?? 0).toBeGreaterThanOrEqual(1);
-  });
+      });
+      expect(result.isError).toBeFalsy();
+      const parsed = result.structuredContent?.result as {
+        languages?: string[];
+      };
+      expect(Array.isArray(parsed.languages)).toBe(true);
+      expect(parsed.languages?.length ?? 0).toBeGreaterThanOrEqual(1);
+    },
+  );
 });

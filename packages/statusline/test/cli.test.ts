@@ -117,7 +117,13 @@ describe('the runCli door', () => {
     const io = spyStdio();
     expect(await runCli(statuslineSpec(), ['--help'])).toBe(0);
     expect(io.out()).toContain('Usage: statusline');
-    for (const verb of ['catalog', 'configure', 'preview', 'restore', 'status']) {
+    for (const verb of [
+      'catalog',
+      'configure',
+      'preview',
+      'restore',
+      'status',
+    ]) {
       expect(io.out()).toContain(verb);
     }
   });

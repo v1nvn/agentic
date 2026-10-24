@@ -5,7 +5,9 @@ import { describe, expect, it, vi } from 'vitest';
 import { LAYOUT_KEY } from '../src/chrome.ts';
 import { buildPage, loadPageFile } from '../src/page.ts';
 
-const EXAMPLE = fileURLToPath(new URL('../src/example.page.js', import.meta.url));
+const EXAMPLE = fileURLToPath(
+  new URL('../src/example.page.js', import.meta.url),
+);
 const KEY = 'rulings-testril-pr251';
 const HTML = buildPage(loadPageFile(EXAMPLE));
 
@@ -23,7 +25,10 @@ function boot({ stored = {}, writeText, spy }: Boot = {}) {
     url: 'https://rulings.test/',
     beforeParse(w) {
       for (const [k, v] of Object.entries(stored)) w.localStorage.setItem(k, v);
-      if (writeText) Object.defineProperty(w.navigator, 'clipboard', { value: { writeText } });
+      if (writeText)
+        Object.defineProperty(w.navigator, 'clipboard', {
+          value: { writeText },
+        });
       if (spy) {
         const report = spy;
         Object.assign(w, {
@@ -44,7 +49,9 @@ function boot({ stored = {}, writeText, spy }: Boot = {}) {
     return el;
   };
   const shown = (id: string): string[] =>
-    [...doc.querySelectorAll(`#r-${id} .vw:not([hidden])`)].map(v => v.getAttribute('data-view') ?? '');
+    [...doc.querySelectorAll(`#r-${id} .vw:not([hidden])`)].map(
+      v => v.getAttribute('data-view') ?? '',
+    );
   const saved = (): { picks: Record<string, string> } | null =>
     JSON.parse(dom.window.localStorage.getItem(KEY) ?? 'null');
   const type = (sel: string, value: string): void => {
@@ -83,7 +90,9 @@ describe('picking and previewing', () => {
     const p = boot();
     p.$(row('G2b')).click();
     const hover = (el: HTMLElement, type: string): void => {
-      el.dispatchEvent(new p.dom.window.MouseEvent(type, { bubbles: type === 'mouseover' }));
+      el.dispatchEvent(
+        new p.dom.window.MouseEvent(type, { bubbles: type === 'mouseover' }),
+      );
     };
     hover(p.$(`${row('G2a')} .g`), 'mouseover');
     expect(p.shown('G2')).toEqual(['G2a']);
@@ -135,7 +144,9 @@ describe('picking and previewing', () => {
 
   it('marks the row whose picture is showing for assistive tech', () => {
     const p = boot();
-    expect(p.$('#r-G1 .opt[data-look="today"]').getAttribute('aria-current')).toBe('true');
+    expect(
+      p.$('#r-G1 .opt[data-look="today"]').getAttribute('aria-current'),
+    ).toBe('true');
     p.$(row('G1b')).click();
     expect(p.$(row('G1b')).getAttribute('aria-current')).toBe('true');
     expect(p.$(row('G1a')).hasAttribute('aria-current')).toBe(false);
@@ -145,7 +156,9 @@ describe('picking and previewing', () => {
     const p = boot();
     const title = p.$(`${row('G1b')} .ot-t`);
     p.doc.getSelection()?.selectAllChildren(title);
-    title.dispatchEvent(new p.dom.window.MouseEvent('click', { bubbles: true, detail: 1 }));
+    title.dispatchEvent(
+      new p.dom.window.MouseEvent('click', { bubbles: true, detail: 1 }),
+    );
     expect(p.saved()).toBeNull();
   });
 
@@ -158,13 +171,21 @@ describe('picking and previewing', () => {
 
 describe('restore on load', () => {
   it('reopens the picked option’s picture', () => {
-    const p = boot({ stored: { [KEY]: JSON.stringify({ picks: { G1: 'b' }, onotes: {}, note: '' }) } });
+    const p = boot({
+      stored: {
+        [KEY]: JSON.stringify({ picks: { G1: 'b' }, onotes: {}, note: '' }),
+      },
+    });
     expect(p.shown('G1')).toEqual(['G1b']);
     expect(p.$<HTMLInputElement>('[data-pick="G1b"] input').checked).toBe(true);
   });
 
   it('opens the first picture on a none pick', () => {
-    const p = boot({ stored: { [KEY]: JSON.stringify({ picks: { G1: 'n' }, onotes: {}, note: '' }) } });
+    const p = boot({
+      stored: {
+        [KEY]: JSON.stringify({ picks: { G1: 'n' }, onotes: {}, note: '' }),
+      },
+    });
     expect(p.shown('G1')).toEqual(['today']);
   });
 });
@@ -175,8 +196,12 @@ describe('the layout switch', () => {
     expect(p.doc.body.classList.contains('stacked')).toBe(false);
     p.$('[data-layout="stacked"]').click();
     expect(p.doc.body.classList.contains('stacked')).toBe(true);
-    expect(p.$('[data-layout="stacked"]').getAttribute('aria-pressed')).toBe('true');
-    expect(p.$('[data-layout="side"]').getAttribute('aria-pressed')).toBe('false');
+    expect(p.$('[data-layout="stacked"]').getAttribute('aria-pressed')).toBe(
+      'true',
+    );
+    expect(p.$('[data-layout="side"]').getAttribute('aria-pressed')).toBe(
+      'false',
+    );
     expect(p.dom.window.localStorage.getItem(LAYOUT_KEY)).toBe('stacked');
     const again = boot({ stored: { [LAYOUT_KEY]: 'stacked' } });
     expect(again.doc.body.classList.contains('stacked')).toBe(true);
@@ -197,12 +222,22 @@ describe('the answer', () => {
     p.type('.rnote[data-note="G1"]', 'keep it');
     p.type('.rnote[data-note="G4"]', 'ask ops first');
     p.type('#rulings-notes', 'ship Friday');
-    expect(p.$('#r-G2 [data-pick="G2a"]').classList.contains('unmet')).toBe(true);
+    expect(p.$('#r-G2 [data-pick="G2a"]').classList.contains('unmet')).toBe(
+      true,
+    );
     expect(p.$('#picks').textContent).toContain('needs G1a');
     p.$('#copy-answer').click();
-    await vi.waitFor(() => expect(p.$('#copy-answer').textContent).toBe('Copied'));
-    expect(writes).toEqual(['G1b — keep it, G2a (needs G1a), G4 — ask ops first\n\nship Friday']);
-    expect(Object.keys(p.saved() ?? {}).sort()).toEqual(['note', 'onotes', 'picks']);
+    await vi.waitFor(() =>
+      expect(p.$('#copy-answer').textContent).toBe('Copied'),
+    );
+    expect(writes).toEqual([
+      'G1b — keep it, G2a (needs G1a), G4 — ask ops first\n\nship Friday',
+    ]);
+    expect(Object.keys(p.saved() ?? {}).sort()).toEqual([
+      'note',
+      'onotes',
+      'picks',
+    ]);
   });
 
   it('the page note alone wakes Copy', () => {
@@ -217,7 +252,10 @@ describe('the answer', () => {
     p.$('[data-pick="G1b"]').click();
     p.$('#copy-answer').click();
     await vi.waitFor(
-      () => expect(p.$('#copy-answer').textContent).toBe('Copy failed. Copy the summary by hand.'),
+      () =>
+        expect(p.$('#copy-answer').textContent).toBe(
+          'Copy failed. Copy the summary by hand.',
+        ),
       { timeout: 3000 },
     );
   });
@@ -248,7 +286,11 @@ describe('the page chrome', () => {
   it('shows a one-line hint when it restores a session, and not on a fresh page', () => {
     const fresh = boot();
     expect(fresh.$('#rulings-hint').hidden).toBe(true);
-    const p = boot({ stored: { [KEY]: JSON.stringify({ picks: { G1: 'b' }, onotes: {}, note: '' }) } });
+    const p = boot({
+      stored: {
+        [KEY]: JSON.stringify({ picks: { G1: 'b' }, onotes: {}, note: '' }),
+      },
+    });
     expect(p.$('#rulings-hint').hidden).toBe(false);
     expect(p.$('#rulings-hint').textContent).toMatch(/restored/i);
   });

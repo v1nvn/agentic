@@ -68,8 +68,7 @@ describe('html_to_markdown tool contracts', () => {
       baseUrl: 'https://x.example/',
     });
     const metadata = result.structuredContent?.metadata as
-      | { estimator?: string; tokenEstimate?: number }
-      | undefined;
+      { estimator?: string; tokenEstimate?: number } | undefined;
     expect(typeof metadata?.tokenEstimate).toBe('number');
     expect(metadata?.estimator).toBe('chars/4');
   });

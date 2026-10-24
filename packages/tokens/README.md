@@ -33,10 +33,10 @@ npx -y @v1nvn/tokens@0.54.0 usage
 
 ## Usage
 
-| Invocation                    | Does                                                                                                          |
-| ----------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| `/tokens-usage`               | the full report, as a pane                                                                                    |
-| `/tokens-top`                 | this session live — context + eaters, flow, limits, agents, as a pane                                         |                                                                                    |
+| Invocation                          | Does                                                                                                          |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `/tokens-usage`                     | the full report, as a pane                                                                                    |
+| `/tokens-top`                       | this session live — context + eaters, flow, limits, agents, as a pane                                         |     |
 | `npx -y @v1nvn/tokens@0.54.0 usage` | per-model table: input/output/cache-write/cache-read tokens, cache hit rate, 24 h window + 7-day daily totals |
 
 Works for every profile writing to `~/.claude/projects` — default `claude`,
@@ -71,17 +71,17 @@ and re-vendor `types/claude-code.d.ts` (repo root) from the engine-laid
 
 ## Modules
 
-| File                 | Role                                                                         |
-| -------------------- | ---------------------------------------------------------------------------- |
-| `src/index.ts`       | bin entry (`tokens-report`) — dispatch, exit codes                           |
-| `src/cli.ts`         | the CLI surface — `usage` + `--json` parsing, pure                           |
-| `src/aggregate.ts`   | the one usage math: JSONL line → per-model/per-day accumulation              |
-| `src/scan.ts`        | the CLI's transcript walk (node-fs)                                          |
+| File                 | Role                                                                                                  |
+| -------------------- | ----------------------------------------------------------------------------------------------------- |
+| `src/index.ts`       | bin entry (`tokens-report`) — dispatch, exit codes                                                    |
+| `src/cli.ts`         | the CLI surface — `usage` + `--json` parsing, pure                                                    |
+| `src/aggregate.ts`   | the one usage math: JSONL line → per-model/per-day accumulation                                       |
+| `src/scan.ts`        | the CLI's transcript walk (node-fs)                                                                   |
 | `hooks/register.tsx` | the mod: execs the CLI into the `/tokens-usage` pane; draws the `/tokens-top` pane from engine pushes |
-| `src/format.ts`      | the report both doors render                                                 |
-| `src/text.ts`        | line model + fixed-width primitives — tokens' internal home |
-| `src/top.ts`         | the `/tokens-top` pane layout — ink-tagged segments from engine pushes       |
-| `src/index.ts` | the CLI source the mod execs — node runs it directly, nothing built |
+| `src/format.ts`      | the report both doors render                                                                          |
+| `src/text.ts`        | line model + fixed-width primitives — tokens' internal home                                           |
+| `src/top.ts`         | the `/tokens-top` pane layout — ink-tagged segments from engine pushes                                |
+| `src/index.ts`       | the CLI source the mod execs — node runs it directly, nothing built                                   |
 
 ## Contracts
 

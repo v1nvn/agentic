@@ -1,0 +1,10 @@
+# Todo threads — agent-written, git is the history.
+/progress
+/archive
+# Engine-written, regenerated from .claude-plugin/types/ after engine updates.
+/types
+# Captured page fixtures and bench baselines: input data, not source.
+packages/readability/test/fixtures
+packages/readability/test/bench/baseline
+# Harness worktrees: full repo copies, checked in their own root.
+.claude/worktrees

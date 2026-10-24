@@ -106,9 +106,10 @@ describe('tokens report render', () => {
 
 describe('hitRate units', () => {
   it('counts cacheWrite in the denominator', () => {
-    expect(
-      hitRate({ input: 0, cacheRead: 100, cacheWrite: 100 }),
-    ).toBeCloseTo(50, 9);
+    expect(hitRate({ input: 0, cacheRead: 100, cacheWrite: 100 })).toBeCloseTo(
+      50,
+      9,
+    );
   });
 
   it('scores uncached-only usage as 0%', () => {

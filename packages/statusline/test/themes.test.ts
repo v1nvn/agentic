@@ -163,15 +163,12 @@ function panelBytes(
 }
 
 describe('resolvePaint: the five themes carry their own table rows', () => {
-  it.each([...THEME_NAMES])(
-    '%s resolves to its layout and picks',
-    name => {
-      expect(resolvePaint({ theme: name })).toEqual({
-        layout: THEMES[name].layout,
-        picks: THEMES[name].variants,
-      });
-    },
-  );
+  it.each([...THEME_NAMES])('%s resolves to its layout and picks', name => {
+    expect(resolvePaint({ theme: name })).toEqual({
+      layout: THEMES[name].layout,
+      picks: THEMES[name].variants,
+    });
+  });
 
   it("custom's absence seeds contribute no bytes to the rendered line", () => {
     if (demo === undefined) {

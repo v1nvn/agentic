@@ -31,7 +31,9 @@ function fixtureUrl(fixtureDir: string): string {
   return `https://example.com/${fixtureDir.slice(fixturesRoot.length + 1)}/`;
 }
 
-function payloadText(result: ReturnType<typeof extractArticleFromHtml>): string {
+function payloadText(
+  result: ReturnType<typeof extractArticleFromHtml>,
+): string {
   const first = result.content[0];
   return first && 'text' in first ? first.text : '';
 }

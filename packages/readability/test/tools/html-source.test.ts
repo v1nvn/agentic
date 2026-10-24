@@ -46,8 +46,12 @@ describe('readHtmlFile', () => {
   });
 
   it('resolves escape sequences when unwrapping a JSON string scalar', () => {
-    const file = writeTemp('"<!DOCTYPE html><html lang=\\"en\\"><body>x</body></html>"');
-    expect(readHtmlFile(file)).toBe('<!DOCTYPE html><html lang="en"><body>x</body></html>');
+    const file = writeTemp(
+      '"<!DOCTYPE html><html lang=\\"en\\"><body>x</body></html>"',
+    );
+    expect(readHtmlFile(file)).toBe(
+      '<!DOCTYPE html><html lang="en"><body>x</body></html>',
+    );
   });
 
   it('does not unwrap a JSON object (the key holding HTML is ambiguous)', () => {

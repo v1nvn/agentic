@@ -61,7 +61,9 @@ describe('tools/list', () => {
 
   it('documents every input field on the wire', async () => {
     const tools = await listTools();
-    expect(Object.keys(byName(tools, 'ask').inputSchema.properties ?? {}).sort()).toEqual([
+    expect(
+      Object.keys(byName(tools, 'ask').inputSchema.properties ?? {}).sort(),
+    ).toEqual([
       'images',
       'max_tokens',
       'model',
@@ -71,8 +73,20 @@ describe('tools/list', () => {
       'temperature',
     ]);
     expect(
-      Object.keys(byName(tools, 'ask_structured').inputSchema.properties ?? {}).sort(),
-    ).toEqual(['images', 'max_tokens', 'model', 'prompt', 'reasoning_effort', 'schema', 'schema_name', 'system', 'temperature']);
+      Object.keys(
+        byName(tools, 'ask_structured').inputSchema.properties ?? {},
+      ).sort(),
+    ).toEqual([
+      'images',
+      'max_tokens',
+      'model',
+      'prompt',
+      'reasoning_effort',
+      'schema',
+      'schema_name',
+      'system',
+      'temperature',
+    ]);
     for (const tool of tools) {
       const properties = tool.inputSchema.properties as Record<
         string,

@@ -1,4 +1,10 @@
-import { mkdirSync, mkdtempSync, rmSync, utimesSync, writeFileSync } from 'node:fs';
+import {
+  mkdirSync,
+  mkdtempSync,
+  rmSync,
+  utimesSync,
+  writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
@@ -69,13 +75,25 @@ describe('lastReply', () => {
       [assistant([text('from explicit file')])],
       new Date('2026-01-01T12:00:00Z'),
     );
-    writeSession('newest.jsonl', [assistant([text('newest session')])], new Date());
+    writeSession(
+      'newest.jsonl',
+      [assistant([text('newest session')])],
+      new Date(),
+    );
     expect(lastReply(explicit)).toBe('from explicit file');
   });
 
   it('falls back to the newest session for the current project', () => {
-    writeSession('older.jsonl', [assistant([text('older')])], new Date('2026-01-01T12:00:00Z'));
-    writeSession('newest.jsonl', [assistant([text('newest')])], new Date('2026-09-01T12:00:00Z'));
+    writeSession(
+      'older.jsonl',
+      [assistant([text('older')])],
+      new Date('2026-01-01T12:00:00Z'),
+    );
+    writeSession(
+      'newest.jsonl',
+      [assistant([text('newest')])],
+      new Date('2026-09-01T12:00:00Z'),
+    );
     expect(lastReply()).toBe('newest');
   });
 

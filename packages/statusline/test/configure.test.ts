@@ -14,7 +14,11 @@ import { parseArgs } from '../src/cli.ts';
 import { configure, LAUNCHER } from '../src/configure.ts';
 import { DATA_DIR } from '../src/render/capture.ts';
 import { ITEMS } from '../src/render/index.ts';
-import { mainKeyValue, subagentKeyValue, renderMjsPath } from '../src/resolve.ts';
+import {
+  mainKeyValue,
+  subagentKeyValue,
+  renderMjsPath,
+} from '../src/resolve.ts';
 import {
   THEMES,
   createHomes,
@@ -458,9 +462,7 @@ describe('configure: resolver sync', () => {
     configure({ home, theme: 'lean' });
 
     expect(statSync(synced).mtimeMs).toBe(before);
-    expect(readFileSync(synced, 'utf8')).toBe(
-      readFileSync(LAUNCHER, 'utf8'),
-    );
+    expect(readFileSync(synced, 'utf8')).toBe(readFileSync(LAUNCHER, 'utf8'));
   });
 
   it('a diverged copy is refreshed on the next run — even a settings no-op (the migration rerun)', () => {
@@ -471,9 +473,7 @@ describe('configure: resolver sync', () => {
 
     configure({ home, theme: 'lean' });
 
-    expect(readFileSync(synced, 'utf8')).toBe(
-      readFileSync(LAUNCHER, 'utf8'),
-    );
+    expect(readFileSync(synced, 'utf8')).toBe(readFileSync(LAUNCHER, 'utf8'));
   });
 });
 

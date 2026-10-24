@@ -1,5 +1,8 @@
 import { buildDocument } from '../../src/pipeline/dom.ts';
-import { lintProposal, lintSelectorText } from '../../src/policy/selector-lint.ts';
+import {
+  lintProposal,
+  lintSelectorText,
+} from '../../src/policy/selector-lint.ts';
 
 const PAGE_HTML =
   '<body><nav id="site-nav">nav</nav>' +
@@ -14,7 +17,9 @@ function doc(): Document {
 
 describe('policy.selector-lint static text checks', () => {
   it('rejects :contains statically — the engine would honor it silently', () => {
-    expect(lintSelectorText('div:contains("article")')?.kind).toBe('contains-pseudo');
+    expect(lintSelectorText('div:contains("article")')?.kind).toBe(
+      'contains-pseudo',
+    );
   });
 
   it('rejects the positional pseudo family as a family', () => {
@@ -26,14 +31,22 @@ describe('policy.selector-lint static text checks', () => {
       'p:only-of-type',
       'span:first-of-type',
     ]) {
-      expect(lintSelectorText(selector)?.kind, selector).toBe('positional-pseudo');
+      expect(lintSelectorText(selector)?.kind, selector).toBe(
+        'positional-pseudo',
+      );
     }
   });
 
   it('rejects generated hash classes and ids', () => {
-    expect(lintSelectorText('div.content_1tsiE')?.kind).toBe('generated-identifier');
-    expect(lintSelectorText('.css-1a2b3c p')?.kind).toBe('generated-identifier');
-    expect(lintSelectorText('#BoxStyles_box-container__Qk3WH')?.kind).toBe('generated-identifier');
+    expect(lintSelectorText('div.content_1tsiE')?.kind).toBe(
+      'generated-identifier',
+    );
+    expect(lintSelectorText('.css-1a2b3c p')?.kind).toBe(
+      'generated-identifier',
+    );
+    expect(lintSelectorText('#BoxStyles_box-container__Qk3WH')?.kind).toBe(
+      'generated-identifier',
+    );
   });
 
   it('leaves attribute values alone — they name stems, not identifiers', () => {
@@ -61,7 +74,10 @@ describe('policy.selector-lint proposal checks against the live DOM', () => {
     const violations = lintProposal({
       document: doc(),
       detectors: ['#site-nav', '#js-article-text'],
-      scope: { include: 'div[itemprop="articleBody"]', exclude: ['.artSplitter'] },
+      scope: {
+        include: 'div[itemprop="articleBody"]',
+        exclude: ['.artSplitter'],
+      },
     });
     expect(violations).toEqual([]);
   });
@@ -73,7 +89,11 @@ describe('policy.selector-lint proposal checks against the live DOM', () => {
       scope: { include: 'div[itemprop="missing"]' },
     });
     expect(violations).toEqual([
-      { kind: 'no-match', selector: 'div[itemprop="missing"]', detail: expect.stringContaining('applySelectors') },
+      {
+        kind: 'no-match',
+        selector: 'div[itemprop="missing"]',
+        detail: expect.stringContaining('applySelectors'),
+      },
     ]);
   });
 
@@ -90,7 +110,10 @@ describe('policy.selector-lint proposal checks against the live DOM', () => {
     const violations = lintProposal({
       document: doc(),
       detectors: ['#site-nav'],
-      scope: { include: 'div[itemprop="articleBody"]', exclude: ['.never-there'] },
+      scope: {
+        include: 'div[itemprop="articleBody"]',
+        exclude: ['.never-there'],
+      },
     });
     expect(violations.map(violation => violation.kind)).toEqual(['no-match']);
     expect(violations[0]?.selector).toBe('.never-there');
@@ -105,16 +128,23 @@ describe('policy.selector-lint proposal checks against the live DOM', () => {
         exclude: ['#js-article-text'],
       },
     });
-    expect(violations.map(violation => violation.kind)).toEqual(['exclude-shadows-include']);
+    expect(violations.map(violation => violation.kind)).toEqual([
+      'exclude-shadows-include',
+    ]);
   });
 
   it('rejects an exclude identical to the include', () => {
     const violations = lintProposal({
       document: doc(),
       detectors: ['#site-nav'],
-      scope: { include: 'div#js-article-text', exclude: ['div#js-article-text'] },
+      scope: {
+        include: 'div#js-article-text',
+        exclude: ['div#js-article-text'],
+      },
     });
-    expect(violations.map(violation => violation.kind)).toEqual(['exclude-shadows-include']);
+    expect(violations.map(violation => violation.kind)).toEqual([
+      'exclude-shadows-include',
+    ]);
   });
 
   it('rejects an unparseable selector before the pipeline can throw', () => {
@@ -123,7 +153,9 @@ describe('policy.selector-lint proposal checks against the live DOM', () => {
       detectors: [],
       scope: { include: 'div[', exclude: [] },
     });
-    expect(violations.map(violation => violation.kind)).toEqual(['unparseable']);
+    expect(violations.map(violation => violation.kind)).toEqual([
+      'unparseable',
+    ]);
   });
 
   it('collects every violation, not just the first', () => {

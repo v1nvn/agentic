@@ -27,20 +27,20 @@ npx -y @v1nvn/zai@0.54.0 usage
 
 ## Usage
 
-| Invocation | Does |
-|---|---|
-| `/zai-usage` | the account's usage report, as a pane |
-| `npx -y @v1nvn/zai@0.54.0 usage` | the same report, printed bare |
+| Invocation                                          | Does                                            |
+| --------------------------------------------------- | ----------------------------------------------- |
+| `/zai-usage`                                        | the account's usage report, as a pane           |
+| `npx -y @v1nvn/zai@0.54.0 usage`                    | the same report, printed bare                   |
 | `npx -y @v1nvn/zai@0.54.0 usage --auth-token TOKEN` | same, key on the command line (visible in `ps`) |
-| `npx -y @v1nvn/zai@0.54.0 usage --auth-token=TOKEN` | `=` form — zsh quoting-safe |
-| `npx -y @v1nvn/zai@0.54.0 usage --base-url URL` | another GLM endpoint (default `api.z.ai`) |
+| `npx -y @v1nvn/zai@0.54.0 usage --auth-token=TOKEN` | `=` form — zsh quoting-safe                     |
+| `npx -y @v1nvn/zai@0.54.0 usage --base-url URL`     | another GLM endpoint (default `api.z.ai`)       |
 
 Each setting takes the first source that provides it:
 
-| Setting | Flag | zai env | Claude Code env | Default |
-|---|---|---|---|---|
-| API key | `--auth-token` | `ZAI_AUTH_TOKEN` | `ANTHROPIC_AUTH_TOKEN` ¹ | — required |
-| Base URL | `--base-url` | `ZAI_BASE_URL` | `ANTHROPIC_BASE_URL` ¹ | `https://api.z.ai` |
+| Setting  | Flag           | zai env          | Claude Code env          | Default            |
+| -------- | -------------- | ---------------- | ------------------------ | ------------------ |
+| API key  | `--auth-token` | `ZAI_AUTH_TOKEN` | `ANTHROPIC_AUTH_TOKEN` ¹ | — required         |
+| Base URL | `--base-url`   | `ZAI_BASE_URL`   | `ANTHROPIC_BASE_URL` ¹   | `https://api.z.ai` |
 
 ¹ Inherited only when the resolved base URL names a GLM host (`api.z.ai`,
 `open.bigmodel.cn`, `dev.bigmodel.cn`) — that is what proves the token belongs
@@ -70,14 +70,14 @@ and re-vendor `types/claude-code.d.ts` (repo root) from the engine-laid
 
 ## Modules
 
-| File | Role |
-|---|---|
-| `src/index.ts` | bin entry (`zai-usage`) — dispatch, exit codes |
-| `src/usage.ts` | the GLM API call and the report input it assembles |
-| `src/resolve.ts` | auth-token resolution chain |
-| `src/format.ts` | the report's lines — printed by the CLI, drawn by the pane |
+| File                 | Role                                                                       |
+| -------------------- | -------------------------------------------------------------------------- |
+| `src/index.ts`       | bin entry (`zai-usage`) — dispatch, exit codes                             |
+| `src/usage.ts`       | the GLM API call and the report input it assembles                         |
+| `src/resolve.ts`     | auth-token resolution chain                                                |
+| `src/format.ts`      | the report's lines — printed by the CLI, drawn by the pane                 |
 | `hooks/register.tsx` | the mod: registers `/zai-usage`, execs the CLI, opens its report as a pane |
-| `src/index.ts` | the CLI source the mod execs — node runs it directly, nothing built |
+| `src/index.ts`       | the CLI source the mod execs — node runs it directly, nothing built        |
 
 ## Contracts
 

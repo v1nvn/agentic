@@ -2,7 +2,9 @@ import { chunkMarkdown } from '../../src/policy/chunk.ts';
 
 describe('policy.chunk chunkMarkdown', () => {
   it('returns [] for empty input', () => {
-    expect(chunkMarkdown('', { maxTokens: 100, overlap: 0, strategy: 'char' })).toEqual([]);
+    expect(
+      chunkMarkdown('', { maxTokens: 100, overlap: 0, strategy: 'char' }),
+    ).toEqual([]);
   });
 
   it('returns [] for whitespace-only input', () => {
@@ -57,9 +59,7 @@ describe('policy.chunk chunkMarkdown', () => {
       expect(chunk.text.length).toBeLessThanOrEqual(maxTokens * 4);
     }
     // Indices are sequential 0..n-1.
-    expect(chunks.map(c => c.index)).toEqual(
-      chunks.map((_, i) => i),
-    );
+    expect(chunks.map(c => c.index)).toEqual(chunks.map((_, i) => i));
   });
 
   it('covers the input when concatenating chunk texts (ignoring overlap)', () => {
@@ -81,7 +81,9 @@ describe('policy.chunk chunkMarkdown', () => {
     });
     expect(chunks.length).toBeGreaterThan(1);
     // Every word from the input should survive in some chunk.
-    const words = new Set(chunks.flatMap(c => c.text.split(/\s+/).filter(Boolean)));
+    const words = new Set(
+      chunks.flatMap(c => c.text.split(/\s+/).filter(Boolean)),
+    );
     for (const expected of [
       'Heading',
       'first',
@@ -129,9 +131,10 @@ describe('policy.chunk chunkMarkdown', () => {
   });
 
   it('overlap>0 produces consecutive chunks whose overlap tail/head actually overlap', () => {
-    const md = Array.from({ length: 12 }, (_, i) => `paragraph number ${i + 1} with words`).join(
-      '\n\n',
-    );
+    const md = Array.from(
+      { length: 12 },
+      (_, i) => `paragraph number ${i + 1} with words`,
+    ).join('\n\n');
     const chunks = chunkMarkdown(md, {
       maxTokens: 20, // 80 chars — small enough to force several chunks
       overlap: 5, // 20 chars carried
@@ -152,7 +155,9 @@ describe('policy.chunk chunkMarkdown', () => {
   });
 
   it('does not exceed maxTokens when overlap approaches the budget', () => {
-    const md = Array.from({ length: 20 }, () => 'word word word word').join('\n\n');
+    const md = Array.from({ length: 20 }, () => 'word word word word').join(
+      '\n\n',
+    );
     const chunks = chunkMarkdown(md, {
       maxTokens: 5, // 20 chars
       overlap: 4, // 16 chars carried — close to the budget
@@ -179,7 +184,9 @@ describe('policy.chunk chunkMarkdown', () => {
   });
 
   it('token totals are consistent with the input size', () => {
-    const md = Array.from({ length: 8 }, (_, i) => `paragraph ${i + 1}`).join('\n\n');
+    const md = Array.from({ length: 8 }, (_, i) => `paragraph ${i + 1}`).join(
+      '\n\n',
+    );
     const chunks = chunkMarkdown(md, {
       maxTokens: 4,
       overlap: 0,
@@ -245,7 +252,14 @@ describe('policy.chunk chunkMarkdown', () => {
       expect(chunks[2].headingContext).toBe('B > B1');
       // No chunk splits a paragraph that belongs to a fitting section: each
       // paragraph appears whole inside exactly one chunk.
-      for (const label of ['para A1', 'para A2', 'para B1', 'para B2', 'para B1a', 'para B1b']) {
+      for (const label of [
+        'para A1',
+        'para A2',
+        'para B1',
+        'para B2',
+        'para B1a',
+        'para B1b',
+      ]) {
         const owners = chunks.filter(c => c.text.includes(para(label)));
         expect(owners).toHaveLength(1);
       }
@@ -257,7 +271,15 @@ describe('policy.chunk chunkMarkdown', () => {
         ...Array.from({ length: 50 }, (_, i) => `const x${i} = ${i};`),
         '```',
       ].join('\n');
-      const md = ['# Title', '', 'intro paragraph', '', code, '', 'outro paragraph'].join('\n');
+      const md = [
+        '# Title',
+        '',
+        'intro paragraph',
+        '',
+        code,
+        '',
+        'outro paragraph',
+      ].join('\n');
       const chunks = chunkMarkdown(md, {
         maxTokens: 500,
         overlap: 0,
@@ -278,7 +300,15 @@ describe('policy.chunk chunkMarkdown', () => {
         ...Array.from({ length: 50 }, (_, i) => `const x${i} = ${i};`),
         '```',
       ].join('\n');
-      const md = ['# Title', '', 'intro paragraph', '', code, '', 'outro paragraph'].join('\n');
+      const md = [
+        '# Title',
+        '',
+        'intro paragraph',
+        '',
+        code,
+        '',
+        'outro paragraph',
+      ].join('\n');
       // maxChars=160: the code block (~870 chars) alone overflows. Semantic
       // must NOT split the fence — it emits the block as its own chunk that
       // exceeds the budget, with both fences intact.
@@ -322,7 +352,8 @@ describe('policy.chunk chunkMarkdown', () => {
     });
 
     it('section-aligns chunks under the default strategy via the schema', async () => {
-      const { chunkTextInputSchema } = await import('../../src/tools/schemas.js');
+      const { chunkTextInputSchema } =
+        await import('../../src/tools/schemas.js');
       // The schema default flips to 'semantic' once CTX-3 lands.
       const parsed = chunkTextInputSchema.parse({ text: '## H\n\nbody' });
       expect(parsed.strategy).toBe('semantic');

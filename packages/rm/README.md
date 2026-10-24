@@ -28,11 +28,11 @@ npx -y @v1nvn/rm@0.54.0 reply.md
 
 ## Usage
 
-| Invocation | Does |
-|---|---|
-| `/rm-send` | the previous assistant reply → EPUB on the device, one dim `Sent:` row |
-| `npx -y @v1nvn/rm@0.54.0` | the same beam, printed bare |
-| `npx -y @v1nvn/rm@0.54.0 reply.md` | that file instead of the last reply |
+| Invocation                         | Does                                                                   |
+| ---------------------------------- | ---------------------------------------------------------------------- |
+| `/rm-send`                         | the previous assistant reply → EPUB on the device, one dim `Sent:` row |
+| `npx -y @v1nvn/rm@0.54.0`          | the same beam, printed bare                                            |
+| `npx -y @v1nvn/rm@0.54.0 reply.md` | that file instead of the last reply                                    |
 
 Needs `pandoc` locally and `ssh`/`scp` access to the device —
 `REMARKABLE_HOST`, default `remarkable`; the device directory is
@@ -55,19 +55,19 @@ and re-vendor `types/claude-code.d.ts` (repo root) from the engine-laid
 
 ## Modules
 
-| File | Role |
-|---|---|
-| `src/index.ts` | bin entry (`rm-send`) — dispatch, exit codes |
-| `src/send.ts` | pandoc → EPUB → scp, and the `Sent:` line |
-| `hooks/register.ts` | the mod: registers `/rm-send`, execs the CLI, shows its line |
-| `src/index.ts` | the CLI source the mod execs — node runs it directly, nothing built |
+| File                | Role                                                                |
+| ------------------- | ------------------------------------------------------------------- |
+| `src/index.ts`      | bin entry (`rm-send`) — dispatch, exit codes                        |
+| `src/send.ts`       | pandoc → EPUB → scp, and the `Sent:` line                           |
+| `hooks/register.ts` | the mod: registers `/rm-send`, execs the CLI, shows its line        |
+| `src/index.ts`      | the CLI source the mod execs — node runs it directly, nothing built |
 
 ## Contracts
 
 - One line of output on success; failures print the failing stage.
 - Nothing is left on the local machine — the EPUB streams to the device.
 - `/rm-send` is one `node <plugin root>/src/index.ts exec through the
-  session's Bash tool — the same beam `npx rm-send` runs. The one allow rule
-  it needs is `Bash(node <plugin root>/src/index.ts)`; the first run asks for
-  it once, then it is remembered. Its `Sent:` line is a dim transcript row the
+session's Bash tool — the same beam `npx rm-send`runs. The one allow rule
+it needs is`Bash(node <plugin root>/src/index.ts)`; the first run asks for
+it once, then it is remembered. Its `Sent:` line is a dim transcript row the
   model never reads.

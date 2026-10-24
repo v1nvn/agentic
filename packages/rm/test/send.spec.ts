@@ -14,7 +14,9 @@ describe('titleOf', () => {
   });
 
   it('falls back when the heading strips to nothing', () => {
-    expect(titleOf('#', new Date(2026, 8, 1, 9, 5))).toBe('Claude reply 2026-09-01 09:05');
+    expect(titleOf('#', new Date(2026, 8, 1, 9, 5))).toBe(
+      'Claude reply 2026-09-01 09:05',
+    );
   });
 });
 

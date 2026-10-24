@@ -19,9 +19,7 @@ function cell(html: string): Element {
 
 describe('policy.cellText resolveCellText', () => {
   it('normalizes whitespace and trims', () => {
-    const el = cell(
-      '<td data-cell>\n  hello\n  world  </td>',
-    );
+    const el = cell('<td data-cell>\n  hello\n  world  </td>');
     expect(resolveCellText(el)).toBe('hello world');
   });
 
@@ -72,9 +70,7 @@ describe('policy.cellText resolveCellText', () => {
       '<div data-cell><a href="https://a.com/x.pdf"><svg/></a>' +
         '<a href="https://b.com/y.pdf"><svg/></a></div>',
     );
-    expect(resolveCellText(el)).toBe(
-      'https://a.com/x.pdf https://b.com/y.pdf',
-    );
+    expect(resolveCellText(el)).toBe('https://a.com/x.pdf https://b.com/y.pdf');
   });
 
   it('uses the href when the cell itself is the anchor (grid link cell)', () => {

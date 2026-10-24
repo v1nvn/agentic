@@ -107,7 +107,10 @@ describe('detectList: no false positives on article fixtures', () => {
 describe('extract_list tool', () => {
   it('returns the detected items and diagnostics via structuredContent', () => {
     const html = readFixtureHtml('search');
-    const result = extractListFromHtml({ html, baseUrl: 'https://example.com/' });
+    const result = extractListFromHtml({
+      html,
+      baseUrl: 'https://example.com/',
+    });
     expect(result.isError).toBeFalsy();
     const structured = result.structuredContent as ExtractListStructuredContent;
     expect(structured.schemaVersion).toBe(1);
@@ -119,7 +122,10 @@ describe('extract_list tool', () => {
 
   it('returns a not-a-list result for an article page', () => {
     const html = readFixtureHtml('documentation');
-    const result = extractListFromHtml({ html, baseUrl: 'https://example.com/' });
+    const result = extractListFromHtml({
+      html,
+      baseUrl: 'https://example.com/',
+    });
     expect(result.isError).toBeFalsy();
     const structured = result.structuredContent as ExtractListStructuredContent;
     expect(structured.diagnostics.detected).toBe(false);

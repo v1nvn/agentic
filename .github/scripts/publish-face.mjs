@@ -68,11 +68,10 @@ function compile(pkg) {
   const manifest = JSON.parse(readFileSync(join(pkg, 'package.json'), 'utf8'));
   writeFileSync(join(pkg, TSCONFIG), OPTIONS);
   try {
-    const run = spawnSync(
-      'yarn',
-      ['run', '-T', 'tsc', '-p', TSCONFIG],
-      { cwd: pkg, encoding: 'utf8' },
-    );
+    const run = spawnSync('yarn', ['run', '-T', 'tsc', '-p', TSCONFIG], {
+      cwd: pkg,
+      encoding: 'utf8',
+    });
     if (run.status !== 0) {
       fail(`${pkg}: face compile failed:\n${run.stderr}`);
     }
@@ -90,7 +89,9 @@ function revert(pkg) {
   const files = walk(join(pkg, 'src'));
   const sources = new Set(files.filter(path => path.endsWith('.ts')));
   const emitted = files.filter(path => {
-    const source = path.replace(/\.js(\.map)?$/, '.ts').replace(/\.d\.ts$/, '.ts');
+    const source = path
+      .replace(/\.js(\.map)?$/, '.ts')
+      .replace(/\.d\.ts$/, '.ts');
     return source !== path && sources.has(source);
   });
   for (const path of emitted) {
@@ -101,13 +102,17 @@ function revert(pkg) {
     join(pkg, 'package.json'),
     `${JSON.stringify(flipManifest(manifest, '.js', '.ts'), null, 2)}\n`,
   );
-  console.log(`${pkg}: registry face reverted — ${emitted.length} files removed`);
+  console.log(
+    `${pkg}: registry face reverted — ${emitted.length} files removed`,
+  );
 }
 
 const argv = process.argv.slice(2);
 const reverting = argv[0] === '--revert';
 const pkg = reverting ? argv[1] : argv[0];
 if (!pkg || argv.length > 2) {
-  fail(`usage: publish-face.mjs [--revert] <package-dir> — got "${argv.join(' ')}"`);
+  fail(
+    `usage: publish-face.mjs [--revert] <package-dir> — got "${argv.join(' ')}"`,
+  );
 }
 reverting ? revert(pkg) : compile(pkg);
