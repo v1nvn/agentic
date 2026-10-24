@@ -15,6 +15,7 @@ import {
   L1_STEPS,
   L2_STEPS,
   RUNG_ORDERS,
+  specFor,
   validatePick,
 } from './items.ts';
 import { parseLayout } from './layout.ts';
@@ -70,8 +71,6 @@ function resolvePicks(
   return resolved;
 }
 
-const GIT_ITEMS = new Set(['ahead', 'branch', 'status']);
-
 export function renderStatusline(input: RenderInput): string {
   const row = parseRow(input.payload);
   const picks = resolvePicks(input.picks);
@@ -80,9 +79,9 @@ export function renderStatusline(input: RenderInput): string {
     new Set(ITEMS.map(spec => spec.item)),
   );
   const git = clusters.some(cluster =>
-    cluster.some(item => GIT_ITEMS.has(item)),
+    cluster.some(item => specFor(item)?.git === true),
   )
-    ? readGit(row.dir, { home: input.home })
+    ? readGit(row.dir, { home: input.home }, picks.status === 'icons')
     : unmeasuredFacts();
   const wrapAt = clusters.length > 2 ? 2 : 1;
 

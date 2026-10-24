@@ -65,7 +65,7 @@ export function unmeasuredFacts(): GitFacts {
   };
 }
 
-export function readGit(dir: string, env: GitEnv): GitFacts {
+export function readGit(dir: string, env: GitEnv, stashes: boolean): GitFacts {
   if (dir === '') {
     return unmeasuredFacts();
   }
@@ -116,7 +116,7 @@ export function readGit(dir: string, env: GitEnv): GitFacts {
     branch: branch === '(detached)' ? '' : branch,
     modified,
     staged,
-    stashes: lineCount(gitText(dir, ['stash', 'list'], env)),
+    stashes: stashes ? lineCount(gitText(dir, ['stash', 'list'], env)) : 0,
     untracked,
   };
 }

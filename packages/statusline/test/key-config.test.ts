@@ -138,6 +138,16 @@ describe('configure: the statusLine key official fields', () => {
       refreshInterval: 10,
     });
   });
+
+  it('a custom layout without the state item keeps the host vim indicator', () => {
+    const home = homes.newHome();
+
+    configure({ home, theme: 'rich', layout: '{model cwd}' });
+    const member = JSON.parse(readFileSync(settingsPath(home), 'utf8'))
+      .statusLine as Record<string, unknown>;
+    expect(member.hideVimModeIndicator).toBeUndefined();
+    expect(member.refreshInterval).toBe(10);
+  });
 });
 
 describe('configure: key parse-back roundtrip (contract 2)', () => {

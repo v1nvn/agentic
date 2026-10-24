@@ -61,6 +61,15 @@ export type SettingsKey = 'statusLine' | 'subagentStatusLine';
 
 export const SETTINGS_KEYS = ['statusLine', 'subagentStatusLine'] as const;
 
+// The member fields configure owns; a field outside them is the user's and
+// survives a repoint.
+const OWNED_FIELDS = new Set([
+  'command',
+  'hideVimModeIndicator',
+  'refreshInterval',
+  'type',
+]);
+
 export function readOrNull(file: string): null | string {
   try {
     return readFileSync(file, 'utf8');
@@ -134,10 +143,27 @@ function planSettings(
     const value = parsed[key];
     if (value === undefined) {
       adds.push([key, wanted[key]]);
-    } else if (JSON.stringify(value) === wanted[key]) {
       continue;
-    } else if (isOurMember(key, value) || force) {
-      repoints.push([key, wanted[key]]);
+    }
+    const wantedMember = JSON.parse(wanted[key]) as Record<string, unknown>;
+    const member = isRecord(value) ? value : {};
+    const ownedMatch =
+      Object.entries(wantedMember).every(
+        ([name, field]) => member[name] === field,
+      ) &&
+      Object.keys(member).every(
+        name => !OWNED_FIELDS.has(name) || name in wantedMember,
+      );
+    if (ownedMatch) {
+      continue;
+    }
+    if (isOurMember(key, value) || force) {
+      const foreign = Object.fromEntries(
+        Object.entries(member).filter(
+          ([name]) => !(name in wantedMember) && !OWNED_FIELDS.has(name),
+        ),
+      );
+      repoints.push([key, JSON.stringify({ ...wantedMember, ...foreign })]);
     } else {
       throw new Error(
         `settings.json ${key} is foreign — rerun with --force added to your configuration flags to take it over`,
@@ -477,7 +503,7 @@ export function configure(options: ConfigureOptions): void {
   const flags = decisionFlags(base, decisions);
   const vimPills =
     resolvePaint({ theme: options.theme, picks: decisions }).picks.state ===
-    'pills';
+      'pills' && layoutItems(layout ?? baseLayout, ITEM_IDS).includes('state');
   const plan = planSettings(
     options.home,
     {

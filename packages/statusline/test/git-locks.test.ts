@@ -14,7 +14,10 @@ import { materializeDemoRepo } from '../src/demo-repo.ts';
 import { renderStatusline } from '../src/render/engine.ts';
 import { readGit } from '../src/render/git.ts';
 
-const spawns = vi.hoisted(() => ({ names: [] as string[] }));
+const spawns = vi.hoisted(() => ({
+  args: [] as string[],
+  names: [] as string[],
+}));
 
 vi.mock('node:child_process', async importOriginal => {
   const actual = await importOriginal<typeof import('node:child_process')>();
@@ -22,6 +25,7 @@ vi.mock('node:child_process', async importOriginal => {
     ...actual,
     spawnSync: (...args: Parameters<typeof actual.spawnSync>) => {
       spawns.names.push(String(args[0]));
+      spawns.args.push(String(args[1]?.join(' ') ?? ''));
       return actual.spawnSync(...args);
     },
   };
@@ -61,7 +65,7 @@ describe('readGit', () => {
     const index = join(dir, '.git', 'index');
     const before = statSync(index);
 
-    readGit(dir, { home });
+    readGit(dir, { home }, false);
 
     // A rewrite lands by renaming a fresh .git/index.lock over the index,
     // so a replaced index is a new inode — an mtime alone could tie.
@@ -74,8 +78,11 @@ describe('readGit', () => {
     const dir = materializeDemoRepo(home);
     writeFileSync(join(dir, 'docs', 'extra1.md'), '');
     writeFileSync(join(dir, 'docs', 'extra2.md'), '');
+    const nested = join(dir, 'nested-clone');
+    mkdirSync(nested);
+    execFileSync('git', ['init', '--quiet'], { cwd: nested });
 
-    const facts = readGit(dir, { home });
+    const facts = readGit(dir, { home }, false);
     const others = execFileSync(
       'git',
       ['-C', dir, 'ls-files', '--others', '--exclude-standard'],
@@ -84,8 +91,9 @@ describe('readGit', () => {
     const lines = others.trimEnd();
     const expected = lines === '' ? 0 : lines.split('\n').length;
     expect(facts.untracked).toBe(expected);
-    // -unormal would collapse the extras' directory and read 5; -uall reads 7.
-    expect(facts.untracked).toBe(7);
+    // -unormal would collapse the extras' directory; -uall reads 8 — a
+    // nested clone counts once here, as it does for ls-files.
+    expect(facts.untracked).toBe(8);
   });
 
   it('a quiet-theme paint performs zero git spawns', () => {
@@ -107,5 +115,11 @@ describe('readGit', () => {
     spawns.names.length = 0;
     renderStatusline({ home, now: 0, payload });
     expect(spawns.names).toContain('git');
+    expect(spawns.args.some(argv => argv.includes('stash'))).toBe(false);
+
+    spawns.names.length = 0;
+    spawns.args.length = 0;
+    renderStatusline({ home, now: 0, payload, picks: { status: 'icons' } });
+    expect(spawns.args.some(argv => argv.includes('stash'))).toBe(true);
   });
 });

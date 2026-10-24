@@ -93,7 +93,8 @@ function bracketModel(payload: Loose): void {
 }
 
 function poisonFields(payload: Loose): void {
-  (payload.model as Loose).display_name = '\u001bMO\u001b7pus\u001b[31m';
+  (payload.model as Loose).display_name =
+    '\u001bMO\u001b7pus\u001b[31m\u001b[45';
   (payload.output_style as Loose).name =
     '\u001b]0;pwn\u0007explanatory\u009b31m';
   payload.worktree = { name: 'wt\u001b]8;;x\u001b\\fix' };

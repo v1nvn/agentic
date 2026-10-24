@@ -33,7 +33,7 @@ export interface Row {
 
 const CONTROL_TEXT =
   // eslint-disable-next-line no-control-regex -- a sanitizer: control bytes are its subject
-  /\x1b(?:\[[0-?]*[ -/]*[@-~]|\][^\u0007\x1b]*(?:\u0007|\x1b\\)?|[ -/]*[0-~])|[\u0000-\u001f\u007f-\u009f]/gu;
+  /\x1b(?:\[[0-?]*[ -/]*[@-~]?|\][^\u0007\x1b]*(?:\u0007|\x1b\\)?|[ -/]*[0-~])|[\u0000-\u001f\u007f-\u009f]/gu;
 
 export function stripControls(text: string): string {
   return text.replace(CONTROL_TEXT, '');
