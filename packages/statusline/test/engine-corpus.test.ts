@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process';
 import { join } from 'node:path';
 import { writeFileSync, readdirSync, rmSync } from 'node:fs';
 
@@ -16,6 +17,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 // '\n'. The panel goldens (multi-*) are the panel engine's corpus, not this
 // door.
 import { DEFAULT_LAYOUT, ITEMS } from '../src/render/index.ts';
+import { renderStatusline } from '../src/render/engine.ts';
 import { SEGMENTS } from '../src/render/segments.ts';
 import {
   createDemoHome,
@@ -90,8 +92,17 @@ function bracketModel(payload: Loose): void {
   (payload.model as Loose).display_name = 'Opus 4.5[1m]';
 }
 
-// Oracle cases ({item} one-item layouts) store the segment without the
-// trailing newline the emit adds; full-line cases store exact stdout.
+function poisonFields(payload: Loose): void {
+  (payload.model as Loose).display_name =
+    '\u001bMO\u001b7pus\u001b[31m\u001b[45';
+  (payload.output_style as Loose).name =
+    '\u001b]0;pwn\u0007explanatory\u009b31m';
+  payload.worktree = { name: 'wt\u001b]8;;x\u001b\\fix' };
+  (payload.pr as Loose).number = '48\u001b]2;evil';
+  (payload.pr as Loose).review_state = 'pending\u009c\u007f';
+}
+
+// Oracle cases ({item}) store the segment; full-line cases, exact stdout.
 export const CORPUS: readonly CorpusCase[] = [
   { name: 'p1-default', payload: 'p1' },
   { name: 'p2-default', payload: 'p2' },
@@ -301,8 +312,7 @@ export const CORPUS: readonly CorpusCase[] = [
     picks: { bar: 'gauge' },
     mutate: payload => setPct(payload, 150),
   },
-  // token ties: awk printf rounds 1.25/2.5 to even ("1.2k"/"2k"), toFixed
-  // rounds away from zero ("1.3k"/"3k").
+  // token ties: awk printf rounds 1.25/2.5 to even; toFixed away from zero.
   {
     name: 'seg-p1-tokens-tie',
     payload: 'p1',
@@ -315,8 +325,7 @@ export const CORPUS: readonly CorpusCase[] = [
       ctx.context_window_size = 2500;
     },
   },
-  // cost tie: awk printf "$%.2f" rounds 0.125 to even "$0.12"; toFixed says
-  // "$0.13".
+  // cost tie: awk printf rounds 0.125 to even ($0.12); toFixed says $0.13.
   {
     name: 'seg-p1-cost-tie',
     payload: 'p1',
@@ -354,6 +363,12 @@ export const CORPUS: readonly CorpusCase[] = [
     layout: '{pr}',
     picks: { pr: 'badge' },
   },
+  {
+    name: 'p1-scrub',
+    payload: 'p1',
+    picks: { state: 'pills', pr: 'badge' },
+    mutate: poisonFields,
+  },
 ];
 
 let demo: DemoHome | undefined;
@@ -367,6 +382,30 @@ afterAll(() => {
     rmSync(demo.home, { recursive: true, force: true });
   }
 });
+
+// C1 rides refs where ESC is refused; porcelain prints them raw.
+function poisonBranchRepo(home: string): string {
+  const repo = join(home, 'poisoned-branch');
+  const git = (args: readonly string[]): void => {
+    execFileSync('git', ['-C', repo, ...args], { stdio: 'ignore' });
+  };
+  execFileSync('git', ['init', '-q', '-b', 'main', repo], { stdio: 'ignore' });
+  git([
+    '-c',
+    'user.name=lab',
+    '-c',
+    'user.email=lab@local',
+    '-c',
+    'commit.gpgsign=false',
+    'commit',
+    '--allow-empty',
+    '-q',
+    '-m',
+    'init',
+  ]);
+  git(['checkout', '-q', '-b', 'feat\u009b31m/wt\u009d']);
+  return repo;
+}
 
 function renderCase(c: CorpusCase): string {
   if (!demo) {
@@ -464,6 +503,25 @@ describe('the src/render door', () => {
       .sort();
     const covered = CORPUS.map(c => c.name).sort();
     expect(covered).toEqual(onDisk);
+  });
+
+  it('strips the control code points a git branch carries', () => {
+    if (!demo) {
+      throw new Error('demo home not materialized');
+    }
+    const payload = {
+      ...loadPayload('p1'),
+      workspace: { current_dir: poisonBranchRepo(demo.home) },
+    };
+    const out = renderStatusline({
+      home: demo.home,
+      now: Number(DEFAULT_NOW),
+      payload: `${JSON.stringify(payload)}\n`,
+      layout: '{branch}',
+      picks: { branch: 'full' },
+      noColor: true,
+    });
+    expect(out).toBe('feat31m/wt\n');
   });
 });
 

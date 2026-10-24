@@ -57,6 +57,7 @@ npx -y @v1nvn/statusline@0.54.0 restore
 
 ```sh
 yarn workspace @v1nvn/statusline test     # vitest
+yarn workspace @v1nvn/statusline bench    # median paint cost over assets/payloads
 yarn lint && yarn typecheck               # from the repo root
 ```
 
@@ -110,8 +111,11 @@ installed into the plugin folder by Claude Code from `package-lock.json`.
   — the data-dir file is the launcher: it reads Claude Code's install record
   (`installed_plugins.json`) and imports the newest installed plugin's
   `src/render/entry.ts` with argv and stdin intact; the subagent key adds
-  `--subagent`, the one valueless flag. Key spellings are pinned byte-exact
-  by tests.
+  `--subagent`, the one valueless flag. The statusLine member adds the host
+  siblings `refreshInterval: 10`, always, and `hideVimModeIndicator: true`
+  exactly when the resolved `state` renders vim pills — absent otherwise, so
+  the host keeps its own indicator. The subagent member stays
+  `{ type, command }`. Key spellings are pinned byte-exact by tests.
 - Decisions ride argv: `--theme` first, then one `--<item>=<alt>` per pick
   that differs from the theme's own, `--layout` only when passed. Ambient
   state stays env — `NO_COLOR`, `COLUMNS`, `HOME`.

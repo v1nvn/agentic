@@ -57,7 +57,7 @@ takes one of three routes:
 The session is orchestrator and decision-maker. It reviews nothing and builds only a
 `session` unit (§Dispatch); otherwise it dispatches, commits, rules, routes findings and
 passes tiers. Its only long-running
-commands are the waits no worker may hold — the pre-flight gate, a gate past four
+commands are the waits no worker may hold — the pre-flight gate, a CI watch, a gate past four
 minutes, a ritual — started in the background. It is the one agent whose cache lasts an
 hour, so it is the cheapest place to wait and the dearest place to read, every line it reads being re-read at each wake. A reproduction
 or a script goes to the role that owns it. The owner answers only what §Deviations and
@@ -139,13 +139,15 @@ group review.
    - Gates by construction. The tactical map pins each unit's scoped gate lines (its
      components plus their dependents) and the workspace gate line — the thread file's,
      else the repo's gate from its CLAUDE.md or package scripts — with its ceiling in
-     minutes, as the pre-flight gate measured them, rounded up. The builder runs the
+     minutes, as the pre-flight gate measured them or the tactical map already records
+     them, rounded up. The builder runs the
      scoped lines while it builds and, for a ceiling of four minutes or under, the
      workspace gate as the last step before each unit's report, in the foreground with the
      Bash `timeout` set to the ceiling: a command the harness moves to the background
-     leaves a subagent polling. A longer gate outlasts a subagent's cache, so it is the
-     orchestrator's — started in the background once per group, after its last unit
-     commits and before the group review, its red result routed like a blocking finding.
+     leaves a subagent polling. A longer gate outlasts a subagent's cache, so it is fired
+     once per group, after its last unit commits and before the group review, its red
+     result routed like a blocking finding: by CI on the pushed head when the repo's CI
+     runs the workspace gate, else by the orchestrator in the background.
      A firing re-fires only for a stated cause — changed code, or a flake with the
      failure quoted.
    - Any A/B ritual the thread file names: record before, record after, both to
@@ -173,8 +175,11 @@ group review.
    §Deviations. A question the thread file dates to a unit ("ruled at 7") waits for that
    unit — the evidence it needs does not exist at launch.
 6. Preconditions before the first dispatch: commit what steps 1–5 wrote — the thread file and
-   the index — as one line; the workspace gate green at the start, fired by the orchestrator in
-   the background, its minutes written into the tactical map as the gate's ceiling; every
+   the index — as one line; the workspace gate green at the start — read from the base
+   commit's CI (`gh run list --commit <sha>`) when a green run there runs the workspace
+   gate and the tactical map already records its ceiling, because CI has already paid for
+   that proof; else fired by the orchestrator in the background, its minutes written into
+   the tactical map as the gate's ceiling; every
    unit on another thread the scope is gated on has landed there; the environment the
    scoped units need (cluster, env vars, secrets, disk, `gh` auth, quiet neighbors: file
    watchers, indexers, test-discovery runners). Any violation: stop and say so.
@@ -297,7 +302,11 @@ For each group:
 When a group's last unit closes, or the run's scope ends inside a group: write each
 landed unit's commit into its row and archive the group's landed units per the rules'
 `archive/` bullet — one commit, before the PR is marked ready. Skipped when the group
-holds the thread's final unit: the thread's close appends the whole file.
+holds the thread's final unit: the thread's close appends the whole file. The PR is
+marked ready only on green CI at its head (`gh pr checks <pr> --watch`, started in the
+background), because CI's fresh clone catches what a warm local gate hides — a stale
+lockfile, an untracked file a test needs; a red check is routed like a blocking finding.
+A repo with no CI skips this.
 
 At the run's end:
 
@@ -306,7 +315,7 @@ At the run's end:
   the thread per it — index entry included.
 - End checks when the thread file carries them: a builder writes and runs the script from
   its end-checks list, no builds.
-- Final report: PR URLs; the gate results (start → per-unit → end); the veto table
+- Final report: PR URLs; the gate results (start → per-unit → end → CI); the veto table
   (question, pick, reason, where written); every finding not fixed and why, nits
   included; owed work; units closed "probed, no landing"; remaining reds; late findings
   (for each blocking finding, whether a later unit had already built on the faulted

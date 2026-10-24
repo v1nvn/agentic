@@ -31,6 +31,14 @@ export interface Row {
   readonly wt: string;
 }
 
+const CONTROL_TEXT =
+  // eslint-disable-next-line no-control-regex -- a sanitizer: control bytes are its subject
+  /\x1b(?:\[[0-?]*[ -/]*[@-~]?|\][^\u0007\x1b]*(?:\u0007|\x1b\\)?|[ -/]*[0-~])|[\u0000-\u001f\u007f-\u009f]/gu;
+
+export function stripControls(text: string): string {
+  return text.replace(CONTROL_TEXT, '');
+}
+
 function member(source: unknown, key: string): unknown {
   return isRecord(source) ? source[key] : undefined;
 }
@@ -43,11 +51,10 @@ function field(source: unknown, path: string): unknown {
   return current;
 }
 
-// The line's bash side never saw a container in a scalar field; one reads
-// as empty text, not as JSON.
+// A container in a scalar field reads as empty text, never as JSON.
 function fieldText(value: unknown): string {
   if (typeof value === 'string') {
-    return value;
+    return stripControls(value);
   }
   if (typeof value === 'number' || typeof value === 'boolean') {
     return String(value);
@@ -63,7 +70,6 @@ function numberField(source: unknown, path: string): number {
   return Number(scalar(source, path, '0'));
 }
 
-// `${PCT%%.*}`: the used-percentage text up to its first decimal point.
 function pctField(source: unknown): number {
   const intPart = scalar(source, 'context_window.used_percentage', '0').split(
     '.',

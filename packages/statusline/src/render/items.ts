@@ -1,6 +1,7 @@
 export interface ItemSpec {
   readonly alternatives: readonly string[];
   readonly default: string;
+  readonly git?: boolean;
   readonly item: string;
 }
 
@@ -27,14 +28,21 @@ export const ITEMS: readonly ItemSpec[] = [
   {
     alternatives: ['initials', 'full', 'last', 'icon', 'none'],
     default: 'initials',
+    git: true,
     item: 'branch',
   },
   {
     alternatives: ['counts', 'icons', 'none'],
     default: 'counts',
+    git: true,
     item: 'status',
   },
-  { alternatives: ['none', 'arrows'], default: 'none', item: 'ahead' },
+  {
+    alternatives: ['none', 'arrows'],
+    default: 'none',
+    git: true,
+    item: 'ahead',
+  },
   { alternatives: ['none', 'badge'], default: 'none', item: 'pr' },
   {
     alternatives: ['flat', 'gauge', 'percent', 'none', 'flat6', 'flat4'],

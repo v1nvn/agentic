@@ -494,3 +494,49 @@ describe('configure to catalog (the scratch-home e2e)', () => {
     );
   });
 });
+
+describe('configure: the member compare', () => {
+  it('leaves a member untouched when its owned fields match — reordered keys and a foreign sibling survive', () => {
+    const home = homes.newHome();
+    const raw = `${JSON.stringify(
+      {
+        statusLine: {
+          padding: 2,
+          refreshInterval: 10,
+          type: 'command',
+          command: mainKeyValue('rich', null, []),
+          hideVimModeIndicator: true,
+        },
+        subagentStatusLine: {
+          type: 'command',
+          command: subagentKeyValue('rich', []),
+        },
+      },
+      null,
+      2,
+    )}\n`;
+    writeSettings(home, raw);
+    configure({ home, theme: 'rich' });
+    expect(readFileSync(settingsPath(home), 'utf8')).toBe(raw);
+  });
+
+  it('a repoint merges owned fields and keeps foreign siblings', () => {
+    const home = homes.newHome();
+    writeSettings(
+      home,
+      JSON.stringify({
+        statusLine: {
+          command: mainKeyValue('rich', null, []),
+          type: 'command',
+          padding: 2,
+        },
+      }),
+    );
+    configure({ home, theme: 'rich' });
+    const member = JSON.parse(readFileSync(settingsPath(home), 'utf8'))
+      .statusLine as Record<string, unknown>;
+    expect(member.refreshInterval).toBe(10);
+    expect(member.hideVimModeIndicator).toBe(true);
+    expect(member.padding).toBe(2);
+  });
+});

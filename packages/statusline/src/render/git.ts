@@ -1,5 +1,7 @@
 import { spawnSync } from 'node:child_process';
 
+import { stripControls } from './payload.ts';
+
 export interface GitFacts {
   readonly ahead: number;
   readonly behind: number;
@@ -51,8 +53,8 @@ function count(text: null | string): number {
   return Number.isFinite(parsed) ? Math.trunc(parsed) : 0;
 }
 
-export function readGit(dir: string, env: GitEnv): GitFacts {
-  const facts = {
+export function unmeasuredFacts(): GitFacts {
+  return {
     ahead: 0,
     behind: 0,
     branch: '',
@@ -61,44 +63,60 @@ export function readGit(dir: string, env: GitEnv): GitFacts {
     stashes: 0,
     untracked: 0,
   };
+}
+
+export function readGit(dir: string, env: GitEnv, stashes: boolean): GitFacts {
   if (dir === '') {
-    return facts;
+    return unmeasuredFacts();
   }
   const probe = spawnSync('git', ['-C', dir, 'rev-parse', '--git-dir'], {
     encoding: 'utf8',
     env: gitEnv(env),
   });
   if (probe.status !== 0) {
-    return facts;
+    return unmeasuredFacts();
   }
-  const status = gitText(dir, ['status', '--porcelain=v2', '--branch'], env);
+  let branch = '';
+  let ahead = 0;
+  let behind = 0;
+  let staged = 0;
+  let modified = 0;
+  let untracked = 0;
+  const status = gitText(
+    dir,
+    ['status', '--porcelain=v2', '--branch', '-uall'],
+    env,
+  );
   for (const line of (status ?? '').split('\n')) {
     if (line.startsWith(BRANCH_HEAD)) {
-      facts.branch = line.slice(BRANCH_HEAD.length);
+      branch = stripControls(line.slice(BRANCH_HEAD.length));
       continue;
     }
     const ab = BRANCH_AB.exec(line);
     if (ab !== null) {
-      facts.ahead = count(ab[1]);
-      facts.behind = count(ab[2]);
+      ahead = count(ab[1]);
+      behind = count(ab[2]);
     } else if (
       (line.startsWith('1 ') || line.startsWith('2 ')) &&
       line.length >= 4
     ) {
       if (line[2] !== '.') {
-        facts.staged += 1;
+        staged += 1;
       }
       if (line[3] !== '.') {
-        facts.modified += 1;
+        modified += 1;
       }
+    } else if (line.startsWith('? ')) {
+      untracked += 1;
     }
   }
-  if (facts.branch === '(detached)') {
-    facts.branch = '';
-  }
-  facts.untracked = lineCount(
-    gitText(dir, ['ls-files', '--others', '--exclude-standard'], env),
-  );
-  facts.stashes = lineCount(gitText(dir, ['stash', 'list'], env));
-  return facts;
+  return {
+    ahead,
+    behind,
+    branch: branch === '(detached)' ? '' : branch,
+    modified,
+    staged,
+    stashes: stashes ? lineCount(gitText(dir, ['stash', 'list'], env)) : 0,
+    untracked,
+  };
 }

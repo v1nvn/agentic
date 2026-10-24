@@ -17,6 +17,7 @@ import {
 } from './render/index.ts';
 import { isRecord } from './render/jq.ts';
 import { layoutItems } from './render/layout.ts';
+import { resolvePaint } from './render/theme.ts';
 import {
   backupPath,
   isOurMainCommand,
@@ -59,6 +60,15 @@ export function syncLauncher(home: string): void {
 export type SettingsKey = 'statusLine' | 'subagentStatusLine';
 
 export const SETTINGS_KEYS = ['statusLine', 'subagentStatusLine'] as const;
+
+// The member fields configure owns; a field outside them is the user's and
+// survives a repoint.
+const OWNED_FIELDS = new Set([
+  'command',
+  'hideVimModeIndicator',
+  'refreshInterval',
+  'type',
+]);
 
 export function readOrNull(file: string): null | string {
   try {
@@ -113,11 +123,10 @@ interface SettingsPlan {
 
 function planSettings(
   home: string,
-  commands: Readonly<Record<SettingsKey, string>>,
+  wanted: Readonly<Record<SettingsKey, string>>,
   force: boolean,
 ): SettingsPlan {
   const file = join(home, '.claude', 'settings.json');
-  const wanted = commands;
   const raw = readOrNull(file);
   if (raw === null) {
     return {
@@ -131,14 +140,30 @@ function planSettings(
   const adds: (readonly [SettingsKey, string])[] = [];
   const repoints: (readonly [SettingsKey, string])[] = [];
   for (const key of SETTINGS_KEYS) {
-    const command = wanted[key];
     const value = parsed[key];
     if (value === undefined) {
-      adds.push([key, command]);
-    } else if (memberCommand(value) === command) {
+      adds.push([key, wanted[key]]);
       continue;
-    } else if (isOurMember(key, value) || force) {
-      repoints.push([key, command]);
+    }
+    const wantedMember = JSON.parse(wanted[key]) as Record<string, unknown>;
+    const member = isRecord(value) ? value : {};
+    const ownedMatch =
+      Object.entries(wantedMember).every(
+        ([name, field]) => member[name] === field,
+      ) &&
+      Object.keys(member).every(
+        name => !OWNED_FIELDS.has(name) || name in wantedMember,
+      );
+    if (ownedMatch) {
+      continue;
+    }
+    if (isOurMember(key, value) || force) {
+      const foreign = Object.fromEntries(
+        Object.entries(member).filter(
+          ([name]) => !(name in wantedMember) && !OWNED_FIELDS.has(name),
+        ),
+      );
+      repoints.push([key, JSON.stringify({ ...wantedMember, ...foreign })]);
     } else {
       throw new Error(
         `settings.json ${key} is foreign — rerun with --force added to your configuration flags to take it over`,
@@ -148,7 +173,21 @@ function planSettings(
   return { adds, file, raw, repoints };
 }
 
-export function settingsValue(command: string): string {
+function mainSettingsValue(command: string, vimPills: boolean): string {
+  const value: Record<string, unknown> = {
+    command,
+    type: 'command',
+    refreshInterval: 10,
+  };
+  if (vimPills) {
+    // Absent, never false: the host keeps its own indicator unless ours
+    // shows the mode.
+    value.hideVimModeIndicator = true;
+  }
+  return JSON.stringify(value);
+}
+
+function subagentSettingsValue(command: string): string {
   return JSON.stringify({ command, type: 'command' });
 }
 
@@ -308,12 +347,9 @@ export function insertMembers(
 function renderMembers(
   members: readonly (readonly [string, string])[],
 ): string {
-  return members
-    .map(([key, command]) => `"${key}": ${settingsValue(command)}`)
-    .join(',\n  ');
+  return members.map(([key, value]) => `"${key}": ${value}`).join(',\n  ');
 }
 
-/** Splice each rendered value over its root member. */
 export function repointRootMembers(
   raw: string,
   entries: readonly { key: string; value: string }[],
@@ -333,10 +369,7 @@ function splicedSettings(raw: string, plan: SettingsPlan): string {
   const text = plan.adds.length > 0 ? insertMembers(raw, plan.adds) : raw;
   return repointRootMembers(
     text,
-    plan.repoints.map(([key, command]) => ({
-      key,
-      value: settingsValue(command),
-    })),
+    plan.repoints.map(([key, value]) => ({ key, value })),
   );
 }
 
@@ -378,7 +411,7 @@ function commitSettings(plan: SettingsPlan): void {
   if (plan.raw === null) {
     mkdirSync(dirname(plan.file), { recursive: true });
     const members = plan.adds
-      .map(([key, command]) => `"${key}": ${settingsValue(command)}`)
+      .map(([key, value]) => `"${key}": ${value}`)
       .join(',\n  ');
     writeFileSync(plan.file, `{\n  ${members}\n}\n`);
     return;
@@ -404,11 +437,9 @@ function themeNamed(
   return theme;
 }
 
-// Validation only: the theme name is in the table, the overrides are picks
-// the registry offers, the layout's items are known — and some layout source
-// exists. The renderer resolves theme plus overrides at paint
-// (src/render/theme.ts); the writer below records the decisions, never
-// resolved output. Returns the named theme so its caller resolves it once.
+// Validation only — the renderer resolves theme plus overrides at paint
+// (src/render/theme.ts); this returns the named theme for its caller to
+// resolve once, and records decisions, never resolved output.
 export function validateSelection(
   options: Pick<ConfigureOptions, 'layout' | 'theme' | 'variants'>,
 ): Theme | undefined {
@@ -436,9 +467,8 @@ export function validateSelection(
   return theme;
 }
 
-// A key records only the decisions that differ from the picks its base
-// already carries — registry defaults with the theme's variants over them;
-// the renderer resolves absent picks at paint.
+// A key records only decisions that differ from its base picks — registry
+// defaults with the theme's variants; the renderer resolves the rest at paint.
 function decisionFlags(
   base: Readonly<Record<string, string>>,
   decisions: Readonly<Partial<Record<string, string>>>,
@@ -471,11 +501,19 @@ export function configure(options: ConfigureOptions): void {
       ? null
       : options.layout;
   const flags = decisionFlags(base, decisions);
+  const vimPills =
+    resolvePaint({ theme: options.theme, picks: decisions }).picks.state ===
+      'pills' && layoutItems(layout ?? baseLayout, ITEM_IDS).includes('state');
   const plan = planSettings(
     options.home,
     {
-      statusLine: mainKeyValue(options.theme ?? null, layout, flags),
-      subagentStatusLine: subagentKeyValue(options.theme ?? null, flags),
+      statusLine: mainSettingsValue(
+        mainKeyValue(options.theme ?? null, layout, flags),
+        vimPills,
+      ),
+      subagentStatusLine: subagentSettingsValue(
+        subagentKeyValue(options.theme ?? null, flags),
+      ),
     },
     options.force ?? false,
   );
