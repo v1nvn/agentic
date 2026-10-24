@@ -182,6 +182,10 @@ time, so it speaks only to that model.
 
 ## References
 
+- **`references/discoverability.md`** — where each surface's demand sits, the
+  npm and GitHub faces, the free listing channels and their gates, community
+  posting law, and what gets banned. Read before changing a package manifest,
+  the repo description, or submitting anywhere.
 - **`references/npm-publishing.md`** — the release train, keyless publishing, and the one-time
   manual bootstrap a never-published package name needs. Read before cutting a release or
   adding a package.
