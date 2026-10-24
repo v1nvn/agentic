@@ -1,5 +1,7 @@
 import { spawnSync } from 'node:child_process';
 
+import { stripControls } from './payload.ts';
+
 export interface GitFacts {
   readonly ahead: number;
   readonly behind: number;
@@ -74,7 +76,7 @@ export function readGit(dir: string, env: GitEnv): GitFacts {
   const status = gitText(dir, ['status', '--porcelain=v2', '--branch'], env);
   for (const line of (status ?? '').split('\n')) {
     if (line.startsWith(BRANCH_HEAD)) {
-      facts.branch = line.slice(BRANCH_HEAD.length);
+      facts.branch = stripControls(line.slice(BRANCH_HEAD.length));
       continue;
     }
     const ab = BRANCH_AB.exec(line);

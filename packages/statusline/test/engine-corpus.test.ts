@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process';
 import { join } from 'node:path';
 import { writeFileSync, readdirSync, rmSync } from 'node:fs';
 
@@ -16,6 +17,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 // '\n'. The panel goldens (multi-*) are the panel engine's corpus, not this
 // door.
 import { DEFAULT_LAYOUT, ITEMS } from '../src/render/index.ts';
+import { renderStatusline } from '../src/render/engine.ts';
 import { SEGMENTS } from '../src/render/segments.ts';
 import {
   createDemoHome,
@@ -88,6 +90,17 @@ function setLimits(
 
 function bracketModel(payload: Loose): void {
   (payload.model as Loose).display_name = 'Opus 4.5[1m]';
+}
+
+// The degenerate values: ESC-led sequences (CSI, OSC over BEL and ST, an
+// unterminated OSC), C0, C1, and DEL, one injection family per field.
+function poisonFields(payload: Loose): void {
+  (payload.model as Loose).display_name = '\u001bMO\u001b7pus\u001b[31m';
+  (payload.output_style as Loose).name =
+    '\u001b]0;pwn\u0007explanatory\u009b31m';
+  payload.worktree = { name: 'wt\u001b]8;;x\u001b\\fi\n\tx' };
+  (payload.pr as Loose).number = '48\u001b]2;evil';
+  (payload.pr as Loose).review_state = 'pending\u009c\u007f';
 }
 
 // Oracle cases ({item} one-item layouts) store the segment without the
@@ -354,6 +367,12 @@ export const CORPUS: readonly CorpusCase[] = [
     layout: '{pr}',
     picks: { pr: 'badge' },
   },
+  {
+    name: 'p1-scrub',
+    payload: 'p1',
+    picks: { state: 'pills', pr: 'badge' },
+    mutate: poisonFields,
+  },
 ];
 
 let demo: DemoHome | undefined;
@@ -367,6 +386,30 @@ afterAll(() => {
     rmSync(demo.home, { recursive: true, force: true });
   }
 });
+
+// C1 rides refs where ESC is refused; porcelain prints them raw.
+function poisonBranchRepo(home: string): string {
+  const repo = join(home, 'poisoned-branch');
+  const git = (args: readonly string[]): void => {
+    execFileSync('git', ['-C', repo, ...args], { stdio: 'ignore' });
+  };
+  execFileSync('git', ['init', '-q', '-b', 'main', repo], { stdio: 'ignore' });
+  git([
+    '-c',
+    'user.name=lab',
+    '-c',
+    'user.email=lab@local',
+    '-c',
+    'commit.gpgsign=false',
+    'commit',
+    '--allow-empty',
+    '-q',
+    '-m',
+    'init',
+  ]);
+  git(['checkout', '-q', '-b', 'feat\u009b31m/wt\u009d']);
+  return repo;
+}
 
 function renderCase(c: CorpusCase): string {
   if (!demo) {
@@ -464,6 +507,25 @@ describe('the src/render door', () => {
       .sort();
     const covered = CORPUS.map(c => c.name).sort();
     expect(covered).toEqual(onDisk);
+  });
+
+  it('strips the control code points a git branch carries', () => {
+    if (!demo) {
+      throw new Error('demo home not materialized');
+    }
+    const payload = {
+      ...loadPayload('p1'),
+      workspace: { current_dir: poisonBranchRepo(demo.home) },
+    };
+    const out = renderStatusline({
+      home: demo.home,
+      now: Number(DEFAULT_NOW),
+      payload: `${JSON.stringify(payload)}\n`,
+      layout: '{branch}',
+      picks: { branch: 'full' },
+      noColor: true,
+    });
+    expect(out).toBe('feat31m/wt\n');
   });
 });
 
