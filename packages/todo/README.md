@@ -18,7 +18,8 @@ The verbs auto-invoke on their triggers — handoff asks, thread-file run asks, 
 asks, thread starts, fresh-repo setup. `/todo:review` and `/todo:postmortem` run only when typed; an audit runs when the owner asks — the repo, a thread, a unit — or when the rules' stamp gate fires the auditor, whose script restamps a rules-unchanged lag in place.
 
 `/todo:run` dispatches the builder and the reviewer; `/todo:review` dispatches the reviewer; an audit — the owner's ask or the stamp gate — dispatches the auditor. Each file holds its role's law; the thread file's Steps
-table sets the build tier per unit (`model`, or a `model/effort` pair like `opus/high`) and
+table sets the build tier per unit (`model`, a `model/effort` pair like `opus/high`, or
+`session` for a small riskless unit the run's session builds itself with no dispatch) and
 marks the units that get a review of their own (`review: unit`); reviews and audits carry their own tier.
 
 | Agent           | Default         | Does                                                                                            |

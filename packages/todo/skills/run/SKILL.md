@@ -53,8 +53,9 @@ takes one of three routes:
 
 ## Session frame
 
-The session is orchestrator and decision-maker only. It never builds or reviews: it
-dispatches, commits, rules, routes findings and passes tiers. Its only long-running
+The session is orchestrator and decision-maker. It reviews nothing and builds only a
+`session` unit (§Dispatch); otherwise it dispatches, commits, rules, routes findings and
+passes tiers. Its only long-running
 commands are the waits no worker may hold — the pre-flight gate, a gate past four
 minutes, a ritual — started in the background. It is the one agent whose cache lasts an
 hour, so it is the cheapest place to wait and the dearest place to read, every line it reads being re-read at each wake. A reproduction
@@ -82,14 +83,27 @@ and `effort` parameters (`sonnet/low` → `model: "sonnet"`, `effort: "low"`) an
 role file's frontmatter; a blank cell passes neither. The cell is the build's tier only —
 the orchestrator never passes its own model or a pick of its own; a different tier is a
 ruling — the owner's, or the rescue consult's — written into the unit's row before the
-dispatch. A document-unit review carries its own `sonnet/low` (§The loop 7).
+dispatch; `session` is only ever the cutter's, since dropping a unit's builder drops its
+blind eyes. A document-unit review carries its own `sonnet/low` (§The loop 7).
 
 - A session on a different model than the `**Run:**` line names says so before its first
   dispatch and continues — it cannot switch itself.
 - A `model` cell of `owner` marks a unit the run does not do: it is skipped, its
   dependents stop at it, and the final report lists it as left to the owner. A tier is
   fixed at spawn: consecutive units on one model share a builder, spawned at the highest
-  effort among them, and a unit on another model starts a fresh builder.
+  effort among them, and a unit on another model, or one after a `session` unit, starts
+  a fresh builder.
+- A `model` cell of `session` marks a unit the session builds itself — no builder, no
+  dispatch — because a small, riskless unit costs more in a worker's cold start and
+  report than in its build. The session reads only the unit's reading list and the files
+  the thread file names for it: one more is the §Deviations stop for a file the thread
+  file doesn't name, and the owner re-cuts the unit to a builder, because every read
+  lands in the dearest context. It builds on the scoped gates, fires the workspace gate
+  and the enforcement script with its log at `progress/.scratch/<slug>/gate-<unit id>.log`,
+  proves each close criterion, walks the enforcement inventory's checklist lines and
+  checks `git diff --name-only` against the unit's files, then commits. A gate still red
+  after one honest fix goes to a fresh builder at a blank tier, so the session never
+  thrashes in its own context. A group of only `session` units gets no group review.
 - A `review` cell of `unit` is a review of that unit alone, passed before the next unit
   is built.
 - A `design` consult is a `todo:reviewer` dispatched **beside the previous unit's build**
@@ -108,7 +122,9 @@ group review.
 1. Read the thread file whole, then check the tree: clean on its base (the default branch
    when it names none) — when the prompt asks for a worktree, create it on a new branch off
    that base and work there from here on. Read the repo CLAUDE.md sections that bite.
-2. Complete the thread file. One with no units in its Steps table: stop and say so. One
+2. Complete the thread file. One with no units in its Steps table, or with a `session`
+   row that also carries `review: unit`, `consult: design` or an `opus` tier: stop and
+   say so. One
    whose units lack close criteria (testable sentences) is a design, not a runnable
    thread: one `design` consult at pre-flight writes them plus an enforcement inventory,
    and the orchestrator writes its report into the Steps table and Plan section. Nothing
@@ -188,7 +204,7 @@ group review.
   a wait long enough to expire one is paid as a replacement, never dodged. The
   orchestrator sets no timer: a worker's report, a background command's exit or the
   owner's answer is what wakes it.
-- The orchestrator never opens a source file to understand it. It reads reports, gate
+- Outside a `session` unit, the orchestrator never opens a source file to understand it. It reads reports, gate
   output, `git diff` and `git show` diffs, and the diff classes the thread file flags as
   silent-failure carriers (migrations, wire bodies, signatures).
 
@@ -201,8 +217,9 @@ For each group:
    `progress/.scratch/<slug>/gate-<unit id>.log` as the brief names it, and reports green with
    the tree uncommitted — or reports red with the failing line and its diagnosis,
    which the orchestrator routes like a blocking finding. Where the enforcement inventory
-   names checkables, the group's first builder writes the enforcement script from it into
-   `progress/.scratch/<slug>/`, and every builder after runs it.
+   names checkables, the group's first worker — a builder, or the session on a `session`
+   unit — writes the enforcement script from it into `progress/.scratch/<slug>/`, and
+   every one after runs it.
 2. **Commit.** In the wake of that report the orchestrator commits the unit as one commit
    (one line naming the unit's id, no co-author trailer) and appends to or opens the PR,
    because auto mode refuses a worker's commit. The lockfile, README and docs the gate
@@ -223,7 +240,8 @@ For each group:
    units' rows in the thread file and, for units landed in an earlier sitting, in
    `archive/<slug>.md` under the group's heading.
 5. **Fix round.** Every `blocking` finding of the group review, with its `nit` findings,
-   goes to one fresh builder in one brief, at the highest tier among the faulted units;
+   goes to one fresh builder in one brief, at the highest tier among the faulted units (a
+   `session` unit counts as blank);
    the orchestrator commits the round as one commit naming every faulted unit's id, on a
    green gate. A fix to a finding on a unit that carries a unit review is re-reviewed
    once, by a fresh reviewer over the fix diff; every other fix stands on its gate. A
@@ -243,7 +261,7 @@ For each group:
    posted only after a reviewer consult's read-only trace of the code it rests on, so
    every option it offers is buildable. Fold the group's scratch into the thread file per
    the rules and delete it.
-7. **Document and dataset units** — nothing compiles, no gate — are the one exception to
+7. **Dispatched document and dataset units** — nothing compiles, no gate — are the one exception to
    one builder and one review per group: each gets its own builder, skips the gate, and
    gets its own review at `sonnet/low` — none under a `**Run:**` line that names no
    review. Its reviewer checks the deliverable against the close criterion as written (a
