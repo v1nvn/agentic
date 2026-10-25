@@ -1,7 +1,7 @@
 {
   "name": "notify",
   "description": "Native macOS banners when Claude needs you or a turn truly finishes \u2014 the repo, the session, and the message itself",
-  "version": "0.55.0",
+  "version": "0.55.1",
   "author": {
     "name": "v1nvn",
     "email": "v1n@outlook.com"

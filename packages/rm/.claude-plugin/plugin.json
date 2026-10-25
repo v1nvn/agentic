@@ -1,6 +1,6 @@
 {
   "name": "rm",
-  "version": "0.55.0",
+  "version": "0.55.1",
   "description": "Beam the last Claude reply to the reMarkable as EPUB \u2014 zero-token /rm-send.",
   "author": {
     "name": "v1nvn",

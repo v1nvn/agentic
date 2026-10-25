@@ -1,6 +1,6 @@
 {
   "name": "@v1nvn/statusline",
-  "version": "0.55.0",
+  "version": "0.55.1",
   "description": "Browse statusline variants and configure the live status line and agent panel — the statusline CLI behind the statusline plugin.",
   "type": "module",
   "bin": "./src/index.ts",
@@ -39,6 +39,6 @@
     "node": ">=23.6"
   },
   "dependencies": {
-    "@v1nvn/agentic-core": "0.55.0"
+    "@v1nvn/agentic-core": "0.55.1"
   }
 }
