@@ -81,7 +81,11 @@ describe('configure: the settings splice preserves owner bytes', () => {
       spinnerTipsEnabled: false,
       permissions: { allow: ['Bash(git status:ro)'] },
       env: {},
-      statusLine: { command: MAIN_COMMAND, type: 'command' },
+      statusLine: {
+        command: MAIN_COMMAND,
+        refreshInterval: 10,
+        type: 'command',
+      },
       subagentStatusLine: { command: SUB_COMMAND, type: 'command' },
     });
   });
@@ -133,6 +137,7 @@ describe('configure: --force over foreign commands carrying braces', () => {
     const settings = JSON.parse(after);
     expect(settings.statusLine).toEqual({
       command: MAIN_COMMAND,
+      refreshInterval: 10,
       type: 'command',
     });
     expect(settings.subagentStatusLine).toEqual({
@@ -159,6 +164,7 @@ describe('configure: --force over foreign commands carrying braces', () => {
     expect(settings.env).toEqual({ statusLine: 'legacy' });
     expect(settings.statusLine).toEqual({
       command: MAIN_COMMAND,
+      refreshInterval: 10,
       type: 'command',
     });
     expect(settings.model).toBe('opus-4');
