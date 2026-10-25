@@ -104,7 +104,8 @@ blind eyes. A document-unit review carries its own `sonnet/low` (§The loop 7).
   proves each close criterion, walks the enforcement inventory's checklist lines and
   checks `git diff --name-only` against the unit's files, then commits. A gate still red
   after one honest fix goes to a fresh builder at a blank tier, so the session never
-  thrashes in its own context. A group of only `session` units gets no group review.
+  thrashes in its own context. A group of only `session` units still gets its group
+  review, which is what weighs a `session` unit against a builder's.
 - A `review` cell of `unit` is a review of that unit alone, passed before the next unit
   is built.
 - A `design` consult is a `todo:reviewer` dispatched **beside the previous unit's build**

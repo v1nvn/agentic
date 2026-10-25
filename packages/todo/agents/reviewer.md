@@ -56,3 +56,7 @@ finding whose severity the code cannot settle is a `nit` with one line saying wh
 settle it. Work a review finds that no unit carries is reported as outside every unit.
 A consult answers its questions with options and one recommendation each. No praise, no
 summary of what is fine.
+
+A review ends with a fenced `findings` block, one line per finding — `<unit id>
+<blocking|nit> <file:line>`, `outside` for a finding outside every unit — and an empty
+block when there are none: findings are counted per unit from it.
