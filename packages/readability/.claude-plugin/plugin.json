@@ -1,6 +1,6 @@
 {
   "name": "readability",
-  "version": "0.54.0",
+  "version": "0.55.0",
   "description": "Read a live URL to clean Markdown via the readability MCP server \u2014 the host shell fetches with curl, the server never touches the network.",
   "author": {
     "name": "v1nvn",

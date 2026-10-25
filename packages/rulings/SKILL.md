@@ -128,14 +128,14 @@ is vague or names nothing the owner can check, rewrite it.
 
 ```sh
 D=~/.claude/rulings/<topic>
-npx -y @v1nvn/rulings@0.54.0 "$D" --new --no-open    # first time: seeds page.js from the example
+npx -y @v1nvn/rulings@0.55.0 "$D" --new --no-open    # first time: seeds page.js from the example
 ```
 
 Write `$D/page.js` whole from the fields table below — keep the example's shape, replace all
 content — then build once; a second build only on red:
 
 ```sh
-npx -y @v1nvn/rulings@0.54.0 "$D"
+npx -y @v1nvn/rulings@0.55.0 "$D"
 ```
 
 Errors block and nothing is written. The rebuild opens the page for the owner. When the owner
