@@ -1,6 +1,6 @@
 {
   "name": "omlx",
-  "version": "0.55.1",
+  "version": "0.55.2",
   "description": "Delegate bulk work \u2014 commit messages, docstrings, summarization, extraction, image description \u2014 to a local omlx inference server. Free, private, unlimited.",
   "author": {
     "name": "v1nvn",
