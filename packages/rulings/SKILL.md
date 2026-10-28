@@ -74,9 +74,9 @@ cost cannot be checked from its fragment alone, and take the first kind that can
 | anything else: an output or screen, states and transitions, a timeline, a number compared across options, a structure, a trade-off grid | a figure: static HTML or SVG, a view per option       | `figure`     |
 
 A chain whose options add, drop or change steps is a `seq`, not a `figure`: each option
-view draws only its delta rows on the shared lanes and ledger. A step only some options run
-(`in: ["a"]`) keeps its chain number everywhere: today draws it as a quiet dashed row tagged
-`only in a`, and the option's view draws it for real.
+view draws the whole chain, its own steps banded and today's text kept under a step it
+rewrites. A step only some options run (`in: ["a"]`) keeps its chain number everywhere:
+other views draw it as a quiet row tagged `only in a` with its text.
 
 The card around a figure is its frame: draw no border, card or background of your own. Before
 drawing a figure, load the `artifact-diagramming` skill — and `dataviz` for a chart,
@@ -242,7 +242,8 @@ seq: {
 
 `f`, `t`: lane indexes (`f === t` is a note). `k`: `call`, `money`, `store`, `check` (dashed),
 `fail`. `s`: a smaller second line. `b`: ledger values after the step (`null` keeps the last).
-`o.<letter>`: what that option changes: `x`, `s`, `b`, `n` (a note), or `a: "del"`. `in`: the
+`o.<letter>`, `in` and `caps.<letter>` never name the option marked `today`: its view is the
+base chain and `cap`. `o.<letter>`: what that option changes: `x`, `s`, `b`, `n` (a note), or `a: "del"`. `in`: the
 step exists only in those options. `caps.<letter>`: that option's caption; write one for every
 option view.
 

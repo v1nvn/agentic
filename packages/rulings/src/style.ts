@@ -162,6 +162,9 @@ text.sub { font-size: 11px; fill: var(--muted); }
 .ghostrule { stroke: var(--rule); stroke-width: 1.2; stroke-dasharray: 4 4; }
 .ghosttag { font: 500 11px var(--mono); fill: var(--muted); }
 .gone { opacity: 0.42; }
+.same { opacity: 0.55; }
+svg text.was { font-size: 11px; fill: var(--muted); }
+.was .old { text-decoration: line-through; }
 .strike { stroke: var(--o); stroke-width: 1.6; }
 svg text.note { font-size: 11px; font-weight: 500; fill: var(--o); }
 

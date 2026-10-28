@@ -260,6 +260,14 @@ export function validatePage(input: unknown): Verdict {
     }
     return (target.opts ?? []).some(x => x.k === m[2]);
   }
+  function isToday(ref: string): boolean {
+    const m = /^(G\d+)([a-z])$/.exec(ref);
+    return (
+      m !== null &&
+      m[1] in R &&
+      (R[m[1]].opts ?? []).some(x => x.k === m[2] && x.today === true)
+    );
+  }
   function checkSeq(d: Seq, where: string, owner: string): void {
     const L = d.lanes.length;
     req(d.cap, `${where}.cap (the caption: its conclusion in <b>…</b>)`);
@@ -271,7 +279,8 @@ export function validatePage(input: unknown): Verdict {
       );
     }
     function viewOk(v: string): boolean {
-      return optionExists(LETTER.test(v) ? owner + v : v);
+      const ref = LETTER.test(v) ? owner + v : v;
+      return optionExists(ref) && !isToday(ref);
     }
     for (const [i, st] of d.steps.entries()) {
       const at = `${where}.steps[${i}]`;
@@ -284,12 +293,16 @@ export function validatePage(input: unknown): Verdict {
       }
       for (const v of st.in ?? []) {
         if (!viewOk(v)) {
-          errors.push(`${at}.in names "${v}", which is not a live option`);
+          errors.push(
+            `${at}.in names "${v}", which is not a live option that is not today`,
+          );
         }
       }
       for (const [v, ov] of Object.entries(st.o ?? {})) {
         if (!viewOk(v)) {
-          errors.push(`${at}.o names "${v}", which is not a live option`);
+          errors.push(
+            `${at}.o names "${v}", which is not a live option that is not today`,
+          );
         }
         if (ov.b !== undefined && ov.b.length !== nb) {
           errors.push(
@@ -300,7 +313,9 @@ export function validatePage(input: unknown): Verdict {
     }
     for (const [v, cap] of Object.entries(d.caps ?? {})) {
       if (!viewOk(v)) {
-        errors.push(`${where}.caps names "${v}", which is not a live option`);
+        errors.push(
+          `${where}.caps names "${v}", which is not a live option that is not today`,
+        );
       }
       conclusionFirst(cap, `${where}.caps.${v}`);
     }

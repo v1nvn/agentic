@@ -66,39 +66,23 @@ describe('seq view', () => {
     expect(html).toContain('All 20 paid leaf blocks have an owner.');
   });
 
-  it('renders every skipped chain number as a quiet ghost row, not a gap', () => {
+  it('draws the whole chain in an option view, today’s text under a rewritten step', () => {
     const P = example();
     const nums = (html: string): string[] =>
       [...html.matchAll(/class="num"[^>]*>(\d+)<\/text>/g)].map(m => m[1]);
     const today = drawn(seqView, P.rulings.G4, 'G4', 'today');
     expect(nums(today)).toEqual(['1', '2', '3', '4']);
-    expect(today).toContain('class="ghost"');
-    expect(today).toContain('only in a');
+    expect(today).toMatch(/class="ghosttag"[^>]*>only in a: \S/);
     const a = drawn(seqView, P.rulings.G4, 'G4', 'G4a');
     expect(nums(a)).toEqual(['1', '2', '3', '4']);
-    expect(a).toContain('class="ghost"');
-    expect(a).toContain('as today');
-    expect(nums(drawn(seqView, P.rulings.G1, 'G1', 'G1b'))).toEqual([
-      '1',
-      '2',
-      '3',
-      '4',
-      '5',
-    ]);
-  });
-
-  it('draws only an option’s delta rows, at their true chain numbers', () => {
-    const P = example();
-    const html = drawn(seqView, P.rulings.G1, 'G1', 'G1b');
-    expect(html).toContain('bands [30, 40) and [40, 50)');
-    expect(html).toContain('holder half goes to Paul’s leaf band');
-    expect(html).not.toContain('pays 2,400 for the reader');
-    expect(html).not.toContain('reader rows land [40, 50)');
-    expect(html).not.toContain('reads leaf rows [40, 50) and pays');
-    const nums = [...html.matchAll(/class="num"[^>]*>(\d+)<\/text>/g)].map(
-      m => m[1],
-    );
-    expect(nums).toEqual(['1', '2', '3', '4', '5']);
+    expect(a).not.toContain('class="ghost"');
+    const b = drawn(seqView, P.rulings.G1, 'G1', 'G1b');
+    expect(nums(b)).toEqual(['1', '2', '3', '4', '5']);
+    expect(b).toContain('class="same"');
+    expect(b).toContain('pays 2,400 for the reader');
+    expect(b).toContain('reads leaf rows [40, 50) and pays');
+    expect(b).toContain('bands [30, 40) and [40, 50)');
+    expect(b).toMatch(/class="was"[^>]*>was <tspan class="old">\S/);
   });
 
   it('omits the svg aria-label when no caption resolves', () => {
@@ -114,36 +98,6 @@ describe('seq view', () => {
     };
     expect(drawn(seqView, q, 'G9', 'G9a')).not.toContain('aria-label');
     expect(drawn(seqView, q, 'G9', 'today')).not.toContain('aria-label');
-  });
-
-  it('threads the ledger through undrawn steps so drawn balances are true', () => {
-    const q: Ruling = {
-      opts: [
-        { c: 'c', g: 'g', k: 'a', rec: true, t: 'a' },
-        { c: 'c', g: 'g', k: 'b', t: 'b' },
-      ],
-      seq: {
-        lanes: ['l', 'r'],
-        ledger: ['n'],
-        start: [0],
-        steps: [
-          { f: 0, k: 'store', t: 1, x: 'base write', b: [5] },
-          {
-            f: 0,
-            k: 'call',
-            t: 1,
-            x: 'tweak',
-            o: { a: { x: 'tweaked for a' }, b: { x: 'tweaked' } },
-          },
-          { f: 1, k: 'check', t: 0, x: 'read', o: { b: { b: [null] } } },
-        ],
-      },
-    };
-    const html = drawn(seqView, q, 'G9', 'G9b');
-    expect(html).not.toContain('base write');
-    expect(html).toMatch(
-      />read<\/text>(?:<\/g>)+<text class="bal"[^>]*>5<\/text>/,
-    );
   });
 
   it('draws new and gone tags for in and del overlays', () => {

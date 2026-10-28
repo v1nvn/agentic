@@ -358,11 +358,16 @@ describe('refinements fire on crafted-red fixtures', () => {
     );
   });
 
-  it('seq views name live options', () => {
+  it('seq views name live options that are not today', () => {
     const P = loadExample();
     P.rulings.G1.seq.steps[1].o = { z: { x: 'no such view' } };
-    expect(allText(validatePage(P))).toContain(
-      'G1.seq.steps[1].o names "z", which is not a live option',
+    P.rulings.G1.seq.caps.a = '<b>Never shown.</b>';
+    const text = allText(validatePage(P));
+    expect(text).toContain(
+      'G1.seq.steps[1].o names "z", which is not a live option that is not today',
+    );
+    expect(text).toContain(
+      'G1.seq.caps names "a", which is not a live option that is not today',
     );
   });
 
