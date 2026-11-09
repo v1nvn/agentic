@@ -4,8 +4,8 @@ import vm from 'node:vm';
 
 import type { Page, Ruling } from './schema.ts';
 
+import { decisionHtml } from './card.ts';
 import { chromeScript, composerHtml } from './chrome.ts';
-import { decideHtml } from './decide.ts';
 import { esc, stripTags } from './html.ts';
 import { pageCss } from './style.ts';
 
@@ -24,74 +24,80 @@ export function loadPageFile(pageFile: string): unknown {
   return ctx.PAGE;
 }
 
-function rulingSection(P: Page, id: string): string {
-  const q = P.rulings[id];
-  const head = `<section class="ruling" id="r-${id}"><span class="rid">${id}</span><h3>${q.title ?? ''}</h3>`;
-  if (q.merged !== undefined) {
-    return `${head}<p class="lede">Merged into ${q.merged}. ${q.changed ?? ''}</p></section>`;
-  }
+function rulingSection(id: string, q: Ruling): string {
   return (
-    head +
-    `<p class="lede"><span class="stake">${q.stake ?? ''}</span> ${q.today ?? ''}</p>` +
-    decideHtml(q, id) +
+    `<section class="ruling" id="r-${id}"><span class="rid">${id}</span><h3>${q.title ?? ''}</h3>` +
+    (q.changed
+      ? `<p class="changed"><span class="lbl">Changed</span>${q.changed}</p>`
+      : '') +
+    `<p class="stake"><b>${q.stake ?? ''}</b></p>` +
+    decisionHtml(q, id) +
     '</section>'
   );
 }
 
-function isLive(q: Ruling): boolean {
-  return q.merged === undefined;
+function chip(id: string, q: Ruling, live: boolean): string {
+  const t = esc(stripTags(q.title ?? ''));
+  const ruled =
+    q.ruled === undefined
+      ? ''
+      : `<span class="got">${q.ruled === 'n' ? 'n' : esc(q.ruled + ', ' + stripTags((q.opts ?? []).find(o => o.k === q.ruled)?.t ?? ''))}</span>`;
+  const inner = `<span class="id">${id}</span><span>${t}${ruled}</span>`;
+  return live
+    ? `<a class="chip live" href="#r-${id}">${inner}</a>`
+    : `<span class="chip">${inner}</span>`;
 }
 
-function sideHtml(P: Page): string {
-  const ruleable = Object.values(P.rulings).filter(isLive).length;
-  const groups = P.groups
-    .map(
-      g =>
-        `<div class="sg"><h2><span>${esc(g.label ?? '')}</span><span>${g.rulings.length}</span></h2>` +
-        g.rulings
-          .map(id => {
-            const q = P.rulings[id];
-            return (
-              `<a class="rl${isLive(q) ? '' : ' merged'}" href="#r-${id}"><span class="gid">${id}</span>` +
-              `<span class="t">${esc(stripTags(q.title ?? ''))}</span></a>`
-            );
-          })
-          .join('') +
-        '</div>',
-    )
-    .join('');
-  return (
-    '<nav class="side" aria-label="Rulings">' +
-    '<div class="layout" role="group" aria-label="Layout">' +
-    '<button type="button" data-layout="side" aria-pressed="true">Side by side</button>' +
-    '<button type="button" data-layout="stacked" aria-pressed="false">Stacked</button></div>' +
-    `<a class="scount" id="ruled-count" href="#rulings-composer">0 of ${ruleable} ruled</a>${groups}</nav>`
-  );
+function lane(label: string, items: string[]): string {
+  return items.length === 0
+    ? ''
+    : `<div class="lane"><span class="lbl">${label}</span>${items.join('')}</div>`;
 }
 
-function groupHtml(P: Page, g: Page['groups'][number]): string {
-  const picks = g.rulings
-    .filter(id => isLive(P.rulings[id]))
-    .map(
-      id =>
-        id + ((P.rulings[id].opts ?? []).find(o => o.rec === true)?.k ?? ''),
-    );
+function mapHtml(P: Page): string {
+  const all = Object.entries(P.rulings);
+  const roots = [
+    ...new Set(
+      all.flatMap(([, q]) =>
+        q.opts === undefined && q.after ? [q.after] : [],
+      ),
+    ),
+  ];
   return (
-    `<div class="ghead"><h2>${esc(g.label ?? '')}</h2>` +
-    (g.quick === true
-      ? `<button type="button" class="quick" data-picks="${picks.join(' ')}">Accept recommended</button>`
-      : '') +
-    '</div>' +
-    g.rulings.map(id => rulingSection(P, id)).join('')
+    '<nav class="map" aria-label="Rulings by round">' +
+    lane(
+      'Ruled',
+      all
+        .filter(([, q]) => q.ruled !== undefined)
+        .map(([id, q]) => chip(id, q, false)),
+    ) +
+    lane(
+      'Rule now',
+      all
+        .filter(([, q]) => q.opts !== undefined && q.ruled === undefined)
+        .map(([id, q]) => chip(id, q, true)),
+    ) +
+    roots
+      .map(r =>
+        lane(
+          `After ${r}`,
+          all
+            .filter(([, q]) => q.opts === undefined && q.after === r)
+            .map(([id, q]) => chip(id, q, false)),
+        ),
+      )
+      .join('') +
+    '</nav>'
   );
 }
 
 // Call only after validatePage returns green — the cast is what the green verdict proved.
 export function buildPage(input: unknown): string {
   const P = input as Page;
-  const notes = (P.notes ?? [])
-    .map(n => `<p class="note">${n.html ?? ''}</p>`)
-    .join('');
+  const open = Object.entries(P.rulings).filter(
+    ([, q]) => q.opts !== undefined && q.ruled === undefined,
+  );
+  const decided = (P.decided ?? []).map(d => `<li>${d}</li>`).join('');
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -102,18 +108,17 @@ export function buildPage(input: unknown): string {
 ${pageCss}</style>
 </head>
 <body${P.key ? ` data-key="${esc(P.key)}"` : ''}>
-${sideHtml(P)}
-<a class="where" id="rulings-where" hidden></a>
-<main class="doc"><div class="doc-in">
+<main class="doc">
 <header class="mast">
 <div class="eyebrow">${esc(P.eyebrow ?? '')}</div>
 <h1>${esc(P.title ?? '')}</h1>
-<p class="sub">${P.sub ?? ''}</p>
+${P.sub ? `<p class="sub">${P.sub}</p>` : ''}
 </header>
-<div class="notes">${notes}</div>
-${P.groups.map(g => groupHtml(P, g)).join('')}
+${mapHtml(P)}
+${open.map(([id, q]) => rulingSection(id, q)).join('\n')}
+${decided ? `<section class="decided"><h2 class="lbl">Decided without you</h2><ul>${decided}</ul></section>` : ''}
 ${composerHtml()}
-</div></main>
+</main>
 ${chromeScript()}
 </body>
 </html>

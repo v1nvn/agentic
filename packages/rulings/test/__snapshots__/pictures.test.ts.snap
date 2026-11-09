@@ -16,8 +16,8 @@ exports[`bodies view > pins the sketch body: state chip, no diff 1`] = `
 )</pre>"
 `;
 
-exports[`bodies view > pins the today stage: shown once, what label, cap cites the real quiet, no diff 1`] = `
-"From <code>core/src/cli.ts:139-189</code>, the walk and its caller. Each option below marks only the lines it changes.
+exports[`bodies view > pins the today stage: shown once, what label, no diff 1`] = `
+"The walk core runs on every command, and its caller. Each option marks only the lines it changes.
 <div class="btag"><span>built today</span><b>The quiet walk core runs on every command, today.</b></div><pre><span class="token keyword">function</span> <span class="token function">quiet</span><span class="token punctuation">(</span>
   command<span class="token operator">:</span> Command<span class="token punctuation">,</span>
   <span class="token function-variable function">onUsageError</span><span class="token operator">:</span> <span class="token punctuation">(</span>command<span class="token operator">:</span> Command<span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token keyword">void</span><span class="token punctuation">,</span>
@@ -71,15 +71,7 @@ exports[`bodies view > pins the today stage: shown once, what label, cap cites t
 <span class="token punctuation">}</span></pre>"
 `;
 
-exports[`figure view > pins the today stage and an option stage: markup inserted as written, cap 1`] = `
-"<b>Today the receipt has no line for the 10 blocks that paid nobody.</b>
-<div class="fig"><div style="font: var(--s)/1.5 var(--mono); width: 300px"><div style="font: 500 var(--s) var(--sans); color: var(--muted); padding-bottom: 6px">Receipt</div><div style="display: flex; justify-content: space-between; gap: 32px; padding: 6px 0; border-top: 1px solid var(--rule)"><span>Reader [40, 50)</span><span>2,400</span></div><div style="display: flex; justify-content: space-between; gap: 32px; padding: 6px 0; border-top: 1px solid var(--rule); color: var(--muted)"><span>Paid to owners</span><span>1,200</span></div></div></div>"
-`;
-
-exports[`figure view > pins the today stage and an option stage: markup inserted as written, cap 2`] = `
-"<b>The receipt names the 10 blocks that paid nobody.</b>
-<div class="fig"><div style="font: var(--s)/1.5 var(--mono); width: 300px"><div style="font: 500 var(--s) var(--sans); color: var(--muted); padding-bottom: 6px">Receipt</div><div style="display: flex; justify-content: space-between; gap: 32px; padding: 6px 0; border-top: 1px solid var(--rule)"><span>Reader [40, 50)</span><span>2,400</span></div><div style="display: flex; justify-content: space-between; gap: 32px; padding: 6px 0; border-top: 1px solid var(--rule); color: var(--muted)"><span>Paid to owners</span><span>1,200</span></div><div style="display: flex; justify-content: space-between; gap: 32px; padding: 6px 0; border-top: 1px solid var(--rule); color: var(--o); font-weight: 500"><span>10 blocks with no owner</span><span>0</span></div></div></div>"
-`;
+exports[`figure strip > draws a panel per view, today first, markup inserted as written 1`] = `"<p class="vcap"><b>Today the receipt has no line for the 10 blocks that paid nobody.</b></p><div class="strip" style="--n:2"><div class="panel today" data-k="b"><div class="ph"><span class="disc">b</span>Today</div><div class="fig"><div style="font: var(--s)/1.5 var(--mono); width: 300px"><div style="font: 500 var(--s) var(--sans); color: var(--muted); padding-bottom: 6px">Receipt</div><div style="display: flex; justify-content: space-between; gap: 32px; padding: 6px 0; border-top: 1px solid var(--rule)"><span>Reader [40, 50)</span><span>2,400</span></div><div style="display: flex; justify-content: space-between; gap: 32px; padding: 6px 0; border-top: 1px solid var(--rule); color: var(--muted)"><span>Paid to owners</span><span>1,200</span></div></div></div></div><div class="panel" data-k="a"><div class="ph"><span class="disc">a</span>Add an unowned line</div><div class="fig"><div style="font: var(--s)/1.5 var(--mono); width: 300px"><div style="font: 500 var(--s) var(--sans); color: var(--muted); padding-bottom: 6px">Receipt</div><div style="display: flex; justify-content: space-between; gap: 32px; padding: 6px 0; border-top: 1px solid var(--rule)"><span>Reader [40, 50)</span><span>2,400</span></div><div style="display: flex; justify-content: space-between; gap: 32px; padding: 6px 0; border-top: 1px solid var(--rule); color: var(--muted)"><span>Paid to owners</span><span>1,200</span></div><div style="display: flex; justify-content: space-between; gap: 32px; padding: 6px 0; border-top: 1px solid var(--rule); color: var(--o); font-weight: 500"><span>10 blocks with no owner</span><span>0</span></div></div></div><p class="pc"><b>The receipt names the 10 blocks that paid nobody.</b></p></div></div>"`;
 
 exports[`seq view > pins the option stage: overlay expansion, changed tag, band, per-view cap 1`] = `
 "<b>All 20 paid leaf blocks have an owner.</b> The read pays Paul.

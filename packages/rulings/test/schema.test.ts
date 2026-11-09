@@ -20,172 +20,233 @@ function loadExample(): any {
 
 const allText = (r: { errors: string[] }) => r.errors.join('\n');
 
-describe('unknown keys reject', () => {
+const errorsOf = (P: any) => validatePage(P).errors;
+
+describe('the example', () => {
+  it('validates green', () => {
+    expect(errorsOf(loadExample())).toEqual([]);
+  });
+});
+
+describe('the retired fields reject at the schema door', () => {
   it.each([
-    ['page keys plural', (P: any) => (P.keys = 'rulings-example')],
-    ['ruling when', (P: any) => (P.rulings.G1.when = 'G2a')],
-    ['opt withdrawn', (P: any) => (P.rulings.G1.opts[0].withdrawn = 'reason')],
-    ['ruling fix', (P: any) => (P.rulings.G1.fix = 'x')],
-    ['ruling context', (P: any) => (P.rulings.G1.context = 'x')],
-    ['ruling story', (P: any) => (P.rulings.G1.story = 'x')],
-    ['ruling odds', (P: any) => (P.rulings.G1.odds = 'x')],
-    ['ruling extra', (P: any) => (P.rulings.G1.extra = 'x')],
-    ['ruling before', (P: any) => (P.rulings.G1.before = 'x')],
+    ['groups', (P: any) => (P.groups = [])],
+    ['notes', (P: any) => (P.notes = [])],
+    ['today', (P: any) => (P.rulings.G5.today = 'x')],
+    ['g', (P: any) => (P.rulings.G5.opts[0].g = 'x')],
+    ['needs', (P: any) => (P.rulings.G5.opts[0].needs = 'G1a')],
+    ['merged', (P: any) => (P.rulings.G5.merged = 'G1')],
+  ])('%s', (key, edit) => {
+    const P = loadExample();
+    edit(P);
+    expect(allText(validatePage(P))).toContain(key);
+  });
+});
+
+describe('the scorecard', () => {
+  it('every option answers every row', () => {
+    const P = loadExample();
+    delete P.rulings.G5.rows[1].marks.b;
+    expect(allText(validatePage(P))).toContain('G5.rows[1] has no mark for b');
+  });
+
+  it('a row that marks every option the same goes', () => {
+    const P = loadExample();
+    P.rulings.G5.rows[1].marks.b[0] = 'cost';
+    expect(allText(validatePage(P))).toContain(
+      'G5.rows[1] marks every option the same',
+    );
+  });
+
+  it('a ruling has a row on the stake', () => {
+    const P = loadExample();
+    P.rulings.G5.rows[0].on = 'beyond';
+    expect(allText(validatePage(P))).toContain('G5 has no row on the stake');
+  });
+
+  it('every option carries a cost', () => {
+    const P = loadExample();
+    P.rulings.G5.rows[1].marks.a = ['mixed', 'Reads stop for a minute.'];
+    expect(allText(validatePage(P))).toContain('G5a has no cost in any row');
+  });
+
+  it('a mark names a live option', () => {
+    const P = loadExample();
+    P.rulings.G5.rows[0].marks.z = ['gain', 'x'];
+    expect(allText(validatePage(P))).toContain(
+      'G5.rows[0].marks.z names no live option',
+    );
+  });
+
+  it('a mark is gain, mixed or cost', () => {
+    const P = loadExample();
+    P.rulings.G5.rows[0].marks.a[0] = 'win';
+    expect(errorsOf(P).length).toBeGreaterThan(0);
+  });
+
+  it('a reason uses words the owner can check', () => {
+    const P = loadExample();
+    P.rulings.G5.rows[0].marks.a[1] = 'A cleaner start.';
+    expect(allText(validatePage(P))).toContain(
+      'a word the owner cannot check ("cleaner")',
+    );
+  });
+
+  it('why is required', () => {
+    const P = loadExample();
+    delete P.rulings.G5.why;
+    expect(allText(validatePage(P))).toContain('G5.why');
+  });
+});
+
+describe('plain words on the reading line', () => {
+  it.each([
     [
-      'body from',
-      (P: any) => (P.rulings.G2.bodies.today.from = 'src/cli.ts:8'),
+      'stake',
+      (P: any) => (P.rulings.G5.stake = 'The <code>start_check</code> fails.'),
     ],
-  ])('%s', (_name, mutate) => {
+    [
+      'title',
+      (P: any) => (P.rulings.G5.title = 'Does <code>serve</code> stop?'),
+    ],
+    [
+      'option title',
+      (P: any) => (P.rulings.G5.opts[0].t = 'Return <code>Err</code>'),
+    ],
+    [
+      'row label',
+      (P: any) => (P.rulings.G5.rows[0].label = 'The <code>log</code> line'),
+    ],
+    [
+      'reason',
+      (P: any) =>
+        (P.rulings.G5.rows[0].marks.a[1] = 'Uses <code>bail!</code>.'),
+    ],
+    ['why', (P: any) => (P.rulings.G5.why = 'a, because <code>x</code>.')],
+    [
+      'decided line',
+      (P: any) => (P.decided[0] = 'The <code>band</code> is fine.'),
+    ],
+    [
+      'picture caption',
+      (P: any) =>
+        (P.rulings.G2.bodies.a.cap = 'Drops <code>exitOverride</code>.'),
+    ],
+  ])('<code> in a %s rejects', (_, edit) => {
     const P = loadExample();
-    (mutate as (page: any) => void)(P);
-    const r = validatePage(P);
-    expect(r.errors.length).toBeGreaterThan(0);
+    edit(P);
+    expect(allText(validatePage(P))).toContain('carries <code>');
+  });
+
+  it('a file:line anchor rejects', () => {
+    const P = loadExample();
+    P.rulings.G5.rows[0].marks.a[1] = 'As daemon/src/start.rs:41 does.';
+    expect(allText(validatePage(P))).toContain('cites daemon/src/start.rs:41');
   });
 });
 
-describe('the interactive fields admit', () => {
-  it('a page with key and a group with quick parse green', () => {
+describe('rounds', () => {
+  it('a waiting ruling is a title and after alone', () => {
     const P = loadExample();
-    P.key = 'rulings-example';
-    P.groups[0].quick = true;
-    expect(validatePage(P).errors).toEqual([]);
-    const Q = loadExample();
-    expect(validatePage(Q).errors).toEqual([]);
+    P.rulings.G3.stake = 'x';
+    expect(allText(validatePage(P))).toContain(
+      'a waiting ruling is a title and after alone, not stake',
+    );
   });
 
-  it('an empty page key rejects', () => {
+  it('a ruling without options waits on something', () => {
     const P = loadExample();
-    P.key = '';
-    expect(allText(validatePage(P))).toContain('key');
+    delete P.rulings.G3.after;
+    expect(allText(validatePage(P))).toContain(
+      'G3 has no options and waits on nothing',
+    );
+  });
+
+  it('after names another ruling on the page', () => {
+    const P = loadExample();
+    P.rulings.G3.after = 'G9';
+    expect(allText(validatePage(P))).toContain('G3.after names G9');
+  });
+
+  it('a written ruling never rests on an unruled one', () => {
+    const P = loadExample();
+    P.rulings.G5.after = 'G1';
+    expect(allText(validatePage(P))).toContain(
+      'G5 is written but rests on G1, which is not ruled',
+    );
+  });
+
+  it('a ruling waiting on a ruled one is written now', () => {
+    const P = loadExample();
+    P.rulings.G1.ruled = 'a';
+    expect(allText(validatePage(P))).toContain(
+      'G3 waits on G1, which is ruled',
+    );
+  });
+
+  it('ruled names one of its options or n', () => {
+    const P = loadExample();
+    P.rulings.G5.ruled = 'z';
+    expect(allText(validatePage(P))).toContain('G5.ruled names z');
   });
 });
 
-describe('the grown example parses green', () => {
-  it('carries key, w, cap, what, needs and one merged ruling with zero errors', () => {
-    const P = loadExample();
-    expect(P.key).toBeTruthy();
-    expect(P.rulings.G2.opts[1].w).toBeTruthy();
-    expect(P.rulings.G2.bodies.today.what).toBeTruthy();
-    expect(P.rulings.G2.bodies.today.cap).toBeTruthy();
-    expect(P.rulings.G2.opts[0].needs).toBe('G1a');
-    expect(P.rulings.G3.merged).toBe('G1');
-    const r = validatePage(P);
-    expect(r.errors).toEqual([]);
-  });
-});
-
-describe('refinements fire on crafted-red fixtures', () => {
+describe('options', () => {
   it('needs exactly one recommended option', () => {
     const P = loadExample();
-    delete P.rulings.G1.opts[0].rec;
+    P.rulings.G5.opts[1].rec = true;
     expect(allText(validatePage(P))).toContain(
-      'G1 needs exactly one recommended option, has 0',
-    );
-    const Q = loadExample();
-    Q.rulings.G1.opts[1].rec = true;
-    expect(allText(validatePage(Q))).toContain(
-      'G1 needs exactly one recommended option, has 2',
+      'G5 needs exactly one recommended option, has 2',
     );
   });
 
   it('two live options minimum, four maximum', () => {
     const P = loadExample();
-    P.rulings.G1.opts = [P.rulings.G1.opts[0]];
+    P.rulings.G5.opts = [P.rulings.G5.opts[0]];
     expect(allText(validatePage(P))).toContain(
-      'G1 needs at least two live options, has 1',
-    );
-    const Q = loadExample();
-    for (const k of ['c', 'd', 'e']) {
-      const clone = structuredClone(Q.rulings.G1.opts[1]);
-      clone.k = k;
-      delete clone.rec;
-      Q.rulings.G1.opts.push(clone);
-    }
-    expect(allText(validatePage(Q))).toContain(
-      'G1 has 5 live options; four is the limit',
+      'G5 needs at least two live options, has 1',
     );
   });
 
-  it('at most one option is today', () => {
+  it('a cut option keeps its letter out of reuse', () => {
     const P = loadExample();
-    P.rulings.G1.opts[1].today = true;
-    expect(allText(validatePage(P))).toContain(
-      'G1: only one option can be today',
-    );
+    P.rulings.G6.cut[0].k = 'a';
+    expect(allText(validatePage(P))).toContain('G6: letter a is used twice');
   });
 
-  it('title ends in a question mark', () => {
+  it('a cut names the must it breaks', () => {
     const P = loadExample();
-    P.rulings.G1.title = 'Who owns a leaf block inside its reader’s window';
+    delete P.rulings.G6.must;
     expect(allText(validatePage(P))).toContain(
-      'G1.title must be the decision as a question',
+      'G6 cuts an option but names no must',
     );
   });
 
-  it('stake names no code internal', () => {
+  it('letter n stays reserved', () => {
     const P = loadExample();
-    P.rulings.G1.stake += ' It shows in <code>pool_list</code>.';
-    expect(allText(validatePage(P))).toContain(
-      'G1.stake names an internal thing',
-    );
+    P.rulings.G5.opts[1].k = 'n';
+    expect(allText(validatePage(P))).toContain('letter n is reserved');
   });
 
-  it('vague words in gain and cost', () => {
+  it('the title is a question', () => {
     const P = loadExample();
-    P.rulings.G1.opts[0].g = 'cleaner and more robust';
+    P.rulings.G5.title = 'Refuse on a failed check';
     expect(allText(validatePage(P))).toContain(
-      'uses a word the owner cannot check',
+      'G5.title must be the decision as a question',
     );
   });
 
-  it('every caption opens with its conclusion', () => {
+  it('more than ten rulings to rule on one page', () => {
     const P = loadExample();
-    P.rulings.G1.seq.cap = 'Today 10 paid leaf blocks have no owner.';
+    for (let i = 10; i < 16; i++)
+      P.rulings[`G${i}`] = structuredClone(P.rulings.G5);
     expect(allText(validatePage(P))).toContain(
-      'G1.seq.cap must open with its conclusion in <b>…</b>',
+      '11 rulings to rule on one page',
     );
   });
+});
 
-  it('a caption opening with the option label rejects, on both per-view caption homes', () => {
-    const P = loadExample();
-    P.rulings.G1.seq.caps = {
-      b: '<b>Option b: all 20 paid leaf blocks have an owner.</b> The read pays Paul.',
-    };
-    expect(allText(validatePage(P))).toContain(
-      'G1.seq.caps.b opens with an option label',
-    );
-    const Q = loadExample();
-    delete Q.rulings.G4.seq;
-    Q.rulings.G4.figure = {
-      cap: '<b>Today a crash loses the window.</b>',
-      views: {
-        a: {
-          cap: '<b>Option a: the daemon re-arms from Postgres.</b>',
-          html: '<p>window read from Postgres</p>',
-        },
-        b: { html: '<p>the read re-arms</p>' },
-      },
-    };
-    expect(allText(validatePage(Q))).toContain(
-      'G4.figure.views.a.cap opens with an option label',
-    );
-  });
-
-  it('a figure ruling-level caption opening with the option label rejects', () => {
-    const Q = loadExample();
-    delete Q.rulings.G4.seq;
-    Q.rulings.G4.figure = {
-      cap: '<b>Option a: the daemon re-arms from Postgres.</b>',
-      views: {
-        a: { html: '<p>window read from Postgres</p>' },
-        b: { html: '<p>the read re-arms</p>' },
-      },
-    };
-    expect(allText(validatePage(Q))).toContain(
-      'G4.figure.cap opens with an option label',
-    );
-  });
-
+describe('pictures', () => {
   it.each([
     ['<p>ok<script>alert(1)</script></p>', 'runs script'],
     ['<svg><rect onclick="x()"/></svg>', 'runs script'],
@@ -230,9 +291,7 @@ describe('refinements fire on crafted-red fixtures', () => {
 
   it('two rulings never draw the same steps', () => {
     const P = loadExample();
-    P.rulings.G4.seq.ledger = structuredClone(P.rulings.G1.seq.ledger);
-    P.rulings.G4.seq.start = structuredClone(P.rulings.G1.seq.start);
-    P.rulings.G4.seq.steps = structuredClone(P.rulings.G1.seq.steps);
+    P.rulings.G4.seq = structuredClone(P.rulings.G1.seq);
     expect(allText(validatePage(P))).toContain(
       'G1.seq and G4.seq draw the same steps',
     );
@@ -254,175 +313,55 @@ describe('refinements fire on crafted-red fixtures', () => {
 
   it('a picture without a today view fails its today option', () => {
     const P = loadExample();
-    P.rulings.G4 = {
-      title: 'Who re-arms a reader’s window after a daemon restart?',
-      stake: '<b>Roughly 1 daemon restart a week lands mid-read.</b>',
-      today: 'The window lives only in the daemon’s memory.',
-      opts: [
-        {
-          k: 'a',
-          rec: true,
-          t: 'Re-arm on start',
-          g: 'The window survives a restart.',
-          c: 'One more table the daemon owns.',
-        },
-        {
-          k: 'b',
-          today: true,
-          t: 'Re-arm in the read',
-          g: 'No daemon change at all.',
-          c: 'Every read pays one extra write.',
-        },
-      ],
-      figure: {
-        cap: '<b>Today a crash loses the window.</b>',
-        views: {
-          b: { html: '<p>the read re-arms the window</p>' },
-        },
-      },
-    };
+    delete P.rulings.G6.figure.views.today;
     expect(allText(validatePage(P))).toContain(
-      'G4b is today, but the picture has no today view',
-    );
-  });
-
-  it('ledger widths match', () => {
-    const P = loadExample();
-    P.rulings.G1.seq.start = [0, 0];
-    expect(allText(validatePage(P))).toContain(
-      'G1.seq.start must hold one value per ledger column (3)',
-    );
-    const Q = loadExample();
-    Q.rulings.G1.seq.steps[1].b = [10, 10];
-    expect(allText(validatePage(Q))).toContain(
-      'G1.seq.steps[1].b must hold one value per ledger column (3)',
-    );
-  });
-
-  it('ruling ids and group references close', () => {
-    const P = loadExample();
-    P.groups = [P.groups[0]];
-    expect(allText(validatePage(P))).toContain(
-      'G2 is in PAGE.rulings but in no group',
-    );
-    const Q = loadExample();
-    Q.groups[1].rulings = ['G9'];
-    expect(allText(validatePage(Q))).toContain(
-      'G9 is in group code but not in PAGE.rulings',
-    );
-    const M = loadExample();
-    M.groups[0].rulings = ['G1', 'G3', 'G1'];
-    expect(allText(validatePage(M))).toContain('G1 is in two groups');
-  });
-
-  it('needs references close', () => {
-    const P = loadExample();
-    P.rulings.G2.opts[0].needs = 'G9z';
-    expect(allText(validatePage(P))).toContain(
-      'G2a.needs "G9z" is not a live option on this page',
-    );
-  });
-
-  it('letter n stays reserved', () => {
-    const P = loadExample();
-    P.rulings.G1.opts[1].k = 'n';
-    P.rulings.G1.seq.caps = {};
-    expect(allText(validatePage(P))).toContain('letter n is reserved');
-  });
-
-  it('a merged ruling names a real, unmerged ruling', () => {
-    const P = loadExample();
-    P.rulings.G3.merged = 'G9';
-    expect(allText(validatePage(P))).toContain(
-      'G3.merged names G9, which is not a ruling',
-    );
-    const Q = loadExample();
-    Q.rulings.G4 = { title: 'Chain?', merged: 'G3', changed: 'one too far' };
-    Q.groups[0].rulings.push('G4');
-    expect(allText(validatePage(Q))).toContain(
-      'G4 is merged into G3, which is itself merged',
+      'G6b is today, but the picture has no today view',
     );
   });
 
   it('one picture kind per ruling', () => {
     const P = loadExample();
-    P.rulings.G1.bodies = { today: { code: 'x' } };
-    expect(allText(validatePage(P))).toContain('G1 has both a seq and bodies');
-  });
-
-  it('a body key names a live option that is not today', () => {
-    const P = loadExample();
-    P.rulings.G2.bodies.z = { code: 'x' };
+    P.rulings.G2.figure = structuredClone(P.rulings.G6.figure);
     expect(allText(validatePage(P))).toContain(
-      'G2.bodies.z names no live option that is not today',
+      'G2 has both bodies and a figure',
     );
   });
 
-  it('seq views name live options that are not today', () => {
+  it('every caption opens with its conclusion', () => {
     const P = loadExample();
-    P.rulings.G1.seq.steps[1].o = { z: { x: 'no such view' } };
-    P.rulings.G1.seq.caps.a = '<b>Never shown.</b>';
-    const text = allText(validatePage(P));
-    expect(text).toContain(
-      'G1.seq.steps[1].o names "z", which is not a live option that is not today',
+    P.rulings.G1.seq.caps.b = 'All 20 paid leaf blocks have an owner.';
+    expect(allText(validatePage(P))).toContain(
+      'G1.seq.caps.b must open with its conclusion',
     );
-    expect(text).toContain(
-      'G1.seq.caps names "a", which is not a live option that is not today',
+  });
+
+  it('a caption opening with the option label rejects', () => {
+    const P = loadExample();
+    P.rulings.G6.figure.views.a.cap = '<b>Option a: a line</b> is added.';
+    expect(allText(validatePage(P))).toContain('opens with an option label');
+  });
+
+  it('ledger widths match', () => {
+    const P = loadExample();
+    P.rulings.G1.seq.steps[1].b = [10];
+    expect(allText(validatePage(P))).toContain(
+      'G1.seq.steps[1].b must hold one value per ledger column (3)',
     );
   });
 
   it('step lanes stay in range', () => {
     const P = loadExample();
-    P.rulings.G1.seq.steps[0].f = 9;
+    P.rulings.G1.seq.steps[0].t = 9;
     expect(allText(validatePage(P))).toContain(
       'G1.seq.steps[0] f and t must be lane indexes 0…3',
     );
   });
 
-  it('more than ten rulings on one page', () => {
+  it('seq views name live options that are not today', () => {
     const P = loadExample();
-    for (let i = 6; i <= 12; i++) {
-      P.rulings[`G${i}`] = structuredClone(P.rulings.G2);
-      P.groups[1].rulings.push(`G${i}`);
-    }
+    P.rulings.G1.seq.steps[1].o.a = { x: 'today rewritten' };
     expect(allText(validatePage(P))).toContain(
-      '11 rulings on one page; past ten',
+      'names "a", which is not a live option that is not today',
     );
-  });
-});
-
-describe('shape rejects at the schema door', () => {
-  it('a bad group id, ruling id, option letter, overlay tag, state and lang all reject', () => {
-    const cases: [(P: any) => void, string][] = [
-      [P => (P.groups[0].id = 'Money'), 'slug'],
-      [
-        P => (P.rulings.X1 = { title: 'x', stake: 's', today: 't', opts: [] }),
-        'G1',
-      ],
-      [P => (P.rulings.G1.opts[0].k = 'A'), 'letter'],
-      [P => (P.rulings.G1.seq.steps[1].o.b.a = 'swap'), 'chg'],
-      [P => (P.rulings.G2.bodies.b.state = 'dream'), 'state'],
-      [P => (P.rulings.G2.bodies.today.lang = 'rust'), 'lang'],
-      [P => (P.rulings.G2.opts[0].needs = 7), 'needs'],
-    ];
-    for (const [mutate] of cases) {
-      const P = loadExample();
-      mutate(P);
-      expect(validatePage(P).errors.length).toBeGreaterThan(0);
-    }
-  });
-
-  it('a step in names at least one option', () => {
-    const P = loadExample();
-    P.rulings.G4.seq.steps[1].in = [];
-    expect(allText(validatePage(P))).toContain('G4.seq.steps.1.in');
-  });
-
-  it('a needs array closes every entry', () => {
-    const P = loadExample();
-    P.rulings.G2.opts[0].needs = ['G1a', 'G1b'];
-    expect(validatePage(P).errors).toEqual([]);
-    P.rulings.G2.opts[0].needs = ['G1a', 'G9z'];
-    expect(allText(validatePage(P))).toContain('G9z');
   });
 });

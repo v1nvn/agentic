@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest';
 
 import { bodiesOption, bodiesToday } from '../src/bodies.ts';
 import type { Stage } from '../src/html.ts';
-import { figureView } from '../src/figure.ts';
+import { figureStrip } from '../src/figure.ts';
 import { seqView } from '../src/seq.ts';
 import { validatePage, type Page, type Ruling } from '../src/schema.ts';
 import { pageCss } from '../src/style.ts';
@@ -30,7 +30,7 @@ function example(): Page {
 }
 
 describe('the example page', () => {
-  it('validates green with two seq rulings, a bodies ruling, a table-only ruling and a figure ruling', () => {
+  it('validates green with two seq rulings, a bodies ruling, a ruling without a picture, a figure ruling and a waiting ruling', () => {
     const P = example();
     expect(P.rulings.G1.seq).toBeTruthy();
     expect(P.rulings.G2.bodies).toBeTruthy();
@@ -40,6 +40,7 @@ describe('the example page', () => {
     expect(P.rulings.G5.bodies).toBeFalsy();
     expect(P.rulings.G5.figure).toBeFalsy();
     expect(P.rulings.G6.figure).toBeTruthy();
+    expect(P.rulings.G3.opts).toBeUndefined();
     expect(validatePage(P).errors).toEqual([]);
   });
 });
@@ -88,8 +89,8 @@ describe('seq view', () => {
   it('omits the svg aria-label when no caption resolves', () => {
     const q: Ruling = {
       opts: [
-        { c: 'c', g: 'g', k: 'a', rec: true, t: 'a' },
-        { c: 'c', g: 'g', k: 'b', t: 'b' },
+        { k: 'a', rec: true, t: 'a' },
+        { k: 'b', t: 'b' },
       ],
       seq: {
         lanes: ['l', 'r'],
@@ -116,12 +117,11 @@ describe('seq view', () => {
 });
 
 describe('bodies view', () => {
-  it('pins the today stage: shown once, what label, cap cites the real quiet, no diff', () => {
+  it('pins the today stage: shown once, what label, no diff', () => {
     const P = example();
     const html = drawn(bodiesToday, P.rulings.G2);
     expect(html).toMatchSnapshot();
     expect(html).toContain('The quiet walk core runs on every command, today.');
-    expect(html).toContain('<code>core/src/cli.ts:139-189</code>');
     expect(html).not.toContain('diff vs today');
     expect(html).toContain('<div class="btag"><span>built today</span>');
     expect(html).not.toContain('data-pick');
@@ -150,16 +150,18 @@ describe('bodies view', () => {
   });
 });
 
-describe('figure view', () => {
-  it('pins the today stage and an option stage: markup inserted as written, cap', () => {
+describe('figure strip', () => {
+  it('draws a panel per view, today first, markup inserted as written', () => {
     const q = example().rulings.G6;
-    expect(drawn(figureView, q, 'today')).toMatchSnapshot();
-    const a = drawn(figureView, q, 'G6a');
-    expect(a).toMatchSnapshot();
-    expect(a).toContain(
-      '<b>The receipt names the 10 blocks that paid nobody.</b>\n<div class="fig"><div style=',
+    const html = figureStrip(q, q.opts ?? []);
+    expect(html).toMatchSnapshot();
+    expect(html.indexOf('panel today')).toBeLessThan(
+      html.indexOf('Add an unowned line'),
     );
-    expect(a).not.toContain('data-pick');
+    expect(html).toContain(
+      '<p class="pc"><b>The receipt names the 10 blocks that paid nobody.</b></p>',
+    );
+    expect(html).not.toContain('data-pick');
   });
 });
 
@@ -184,8 +186,8 @@ describe('the picture surfaces', () => {
     );
     const q: Ruling = {
       opts: [
-        { c: 'c', g: 'g', k: 'a', rec: true, t: 'a' },
-        { c: 'c', g: 'g', k: 'b', t: 'b' },
+        { k: 'a', rec: true, t: 'a' },
+        { k: 'b', t: 'b' },
       ],
       seq: {
         lanes: ['l', 'r'],

@@ -1,13 +1,12 @@
 # Architecture
 
 Rulings is a quick bridge between the agent and whoever rules. The decision
-turns on code the reader does not hold in their head — rarely the whole system,
-often not even the part being worked — and the page closes that gap with
-evidence: how the part works today, and what each option changes. The evidence
-is title, stake, `today` and lettered options for every ruling; a picture — a
-code diff, a sequence diagram, a free HTML or SVG figure — joins only when a gain or
-cost cannot be checked from the options alone. The reader gets it, rules in chat,
-and nothing is written until the ruling lands.
+turns on code the reader does not hold in their head, and the page closes that
+gap with what the reader judges by: what each option gains and costs on a real
+case. Every ruling is a question, a stake, and a scorecard of options marked on
+the outcomes that separate them; a picture of the case joins only when a mark's
+reason cannot be checked alone. The reader gets it, rules, and nothing is
+written until the ruling lands.
 
 The floors a change may not regress:
 
@@ -16,13 +15,17 @@ The floors a change may not regress:
 - **The page is earned by evidence, not count.** A decision the reader can rule
   from one line is asked in chat; the page holds the forks that turn on code the
   reader does not hold, one or many.
-- **Comprehensible alone.** No conversation is needed to read it — every claim
-  a ruling rests on is on the page.
-- **Evenly argued.** Every option carries its own gain and cost of the same
-  weight; exactly one recommendation; an option not worth arguing goes in the
-  notes.
+- **Gain and cost lead.** The scorecard is the ruling's body; everything else
+  on the page serves it. The reader meets the trade before any mechanism.
+- **One round at a time.** A ruling that changes with another's pick waits,
+  named, until that pick lands; the page never argues a question that may not
+  survive the round.
+- **Plain words on the reading line.** No code and no anchors where the reader
+  reads; the evidence is the agent's, checked before it reaches the page.
+- **Evenly argued.** Every option is marked on every row, every option shows a
+  cost, exactly one recommendation, and the why names the rows that decided.
 - **Evidence, not assertion.** Nothing invented; an unmeasured number is a
-  placeholder; one quantity, one number. The before/after is on a real case; a
-  picture that could be prose is a fault.
+  placeholder; one quantity, one number. A picture that could be a row is a
+  fault.
 - **Self-rendering and closed.** No server, never published; the answer returns
   to chat; nothing is written to the repo before the ruling lands.

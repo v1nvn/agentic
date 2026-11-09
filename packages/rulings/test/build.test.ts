@@ -21,75 +21,43 @@ const EXAMPLE = fileURLToPath(
 );
 
 const PLAIN_PAGE = `var PAGE = {
-  title: "One small ruling?",
-  sub: "What the rebuild owes.",
-  groups: [{ id: "one", label: "The only group", rulings: ["G1"] }],
-  rulings: {
-    G1: {
-      title: "Keep the plain door?",
-      stake: "About 3 rebuilds a week pay for a second path.",
-      today: "Today the builder writes one file through one door.",
-      bodies: {
-        today: { lang: "js", code: "let a = 1;\\nlet b = 2;" },
-        a: { lang: "js", code: "let a = 2;\\nlet b = 2;" },
-        b: { lang: "js", code: "let a = 1;\\nlet b = 3;" }
-      },
-      opts: [
-        { k: "a", rec: true, t: "Change a", g: "a is right more often", c: "one more moving part" },
-        { k: "b", t: "Change b", g: "b is cheaper here", c: "the test doubles" }
-      ]
-    }
-  }
-};`;
-
-const TABLE_PAGE = `var PAGE = {
-  title: "One small ruling?",
-  sub: "What the rebuild owes.",
-  groups: [{ id: "one", label: "The only group", rulings: ["G1"] }],
-  rulings: {
-    G1: {
-      title: "Ship the ruling as a bare table?",
-      stake: "About 3 rulings a month draw an empty box for a table-only answer.",
-      today: "Today every ruling draws a picture box, even when no picture earned it.",
-      opts: [
-        { k: "a", rec: true, t: "Bare table", g: "a table-only ruling renders bare", c: "the row carries the how line", w: "the gain names the file, the row says why" },
-        { k: "b", today: true, t: "Keep the box", g: "the frame is always there", c: "an empty bordered box", w: "the empty frame is the cost the owner sees" }
-      ]
-    }
-  }
-};`;
-
-const FIGURE_PAGE = `var PAGE = {
-  title: "One small ruling?",
-  sub: "What the rebuild owes.",
-  groups: [{ id: "one", label: "The only group", rulings: ["G1"] }],
+  title: "One small ruling",
   rulings: {
     G1: {
       title: "Refuse to serve when the start check fails?",
       stake: "About 2 starts a month hide a doubted ledger behind a log line.",
-      today: "Today the daemon checks its ledger once and serves either way.",
-      figure: {
-        cap: "<b>Today a failed check is a log line; the daemon serves anyway.</b>",
-        views: {
-          today: { html: '<svg viewBox="0 0 200 40"><text x="8" y="24" fill="var(--ink)">start → serve reads</text></svg>' },
-          a: {
-            cap: "<b>A failed check stops the daemon before its first read.</b>",
-            html: '<svg viewBox="0 0 200 40"><text x="8" y="24" fill="var(--o)">start → exit non-zero</text></svg>'
-          }
-        }
-      },
       opts: [
-        { k: "a", rec: true, t: "Refuse to serve", g: "the on-call sees the exit, not a log line", c: "one flaky check stops every read" },
-        { k: "b", today: true, t: "Keep serving", g: "reads continue through a flaky check", c: "the only sign is a log line" }
-      ]
-    }
+        { k: "a", rec: true, t: "Refuse to serve" },
+        { k: "b", today: true, t: "Keep serving" }
+      ],
+      rows: [
+        { on: "stake", label: "A doubted ledger is seen", marks: { a: ["gain", "The on-call sees the exit."], b: ["cost", "A log line."] } },
+        { on: "beyond", label: "Reads during a flaky check", marks: { a: ["cost", "They stop."], b: ["gain", "They continue."] } }
+      ],
+      why: "a, because <i>a doubted ledger is seen</i>; it pays in <i>reads during a flaky check</i>."
+    },
+    G2: { title: "Who restarts the daemon after a refusal?", after: "G1" }
   }
 };`;
 
+const RULED_PAGE = PLAIN_PAGE.replace(
+  'G1: {\n      title',
+  'G1: {\n      ruled: "a",\n      title',
+).replace(
+  'G2: { title: "Who restarts the daemon after a refusal?", after: "G1" }',
+  `G2: {
+      title: "Who restarts the daemon after a refusal?",
+      after: "G1",
+      stake: "Each refusal waits for a human; about 2 a month.",
+      opts: [{ k: "a", rec: true, t: "The on-call" }, { k: "b", t: "A supervisor" }],
+      rows: [{ on: "stake", label: "Time to serve again", marks: { a: ["cost", "Until paged."], b: ["gain", "Seconds."] } },
+             { on: "beyond", label: "New moving parts", marks: { a: ["gain", "None."], b: ["cost", "A supervisor to run."] } }],
+      why: "a, because <i>new moving parts</i>; it pays in <i>time to serve again</i>."
+    }`,
+);
+
 const RED_PAGE = `var PAGE = {
   title: "A red page",
-  sub: "s",
-  groups: [{ id: "g", label: "G", rulings: ["G1"] }],
   rulings: { G1: { title: "t?", from: "abc123" } }
 };`;
 
@@ -104,95 +72,98 @@ function pageDir(text: string): string {
   return dir;
 }
 
+function sectionOf(html: string, id: string): string {
+  const at = html.indexOf(`<section class="ruling" id="r-${id}">`);
+  return at < 0 ? '' : html.slice(at, html.indexOf('</section>', at));
+}
+function built(text: string): string {
+  const dir = pageDir(text);
+  expect(main([dir, '--no-open'])).toBe(0);
+  return readFileSync(join(dir, 'index.html'), 'utf8');
+}
+
 describe('the emitted page', () => {
   it('pins the example full HTML', () => {
     expect(buildPage(loadPageFile(EXAMPLE))).toMatchSnapshot();
   });
 
-  it('gives every live ruling one decision card and the merged ruling none', () => {
-    const html = buildPage(loadPageFile(EXAMPLE));
-    expect(html.match(/<div class="decide/g)).toHaveLength(5);
-    expect(sectionOf(html, 'G3')).not.toContain('class="decide');
-    expect(sectionOf(html, 'G3')).toContain('<p class="lede">Merged into G1. ');
+  it('opens with the round map: what to rule now, then what waits on which pick', () => {
+    const html = built(PLAIN_PAGE);
+    const map = html.slice(
+      html.indexOf('<nav class="map"'),
+      html.indexOf('</nav>'),
+    );
+    expect(map).toContain(
+      '<span class="lbl">Rule now</span><a class="chip live" href="#r-G1">',
+    );
+    expect(map).toContain(
+      '<span class="lbl">After G1</span><span class="chip">',
+    );
+    expect(sectionOf(html, 'G2')).toBe('');
   });
 
-  it('draws a view per live option beside the options, one shown per card', () => {
-    const g1 = sectionOf(buildPage(loadPageFile(EXAMPLE)), 'G1');
+  it('moves a ruled ruling into the Ruled lane with its pick, and writes no card for it', () => {
+    const html = built(RULED_PAGE);
+    expect(html).toContain(
+      '<span class="lbl">Ruled</span><span class="chip"><span class="id">G1</span>',
+    );
+    expect(html).toContain('<span class="got">a, Refuse to serve</span>');
+    expect(sectionOf(html, 'G1')).toBe('');
+    expect(sectionOf(html, 'G2')).toContain('class="card"');
+  });
+
+  it('groups rows on the stake before rows beyond it, whatever order they were written in', () => {
+    const rows = /( +\{ on: "stake".*\}),\n( +\{ on: "beyond".*\})\n/;
+    const swapped = PLAIN_PAGE.replace(rows, '$2,\n$1\n');
+    expect(swapped).not.toBe(PLAIN_PAGE);
+    const html = built(swapped);
+    const g1 = sectionOf(html, 'G1');
+    expect(g1.indexOf('On the stake')).toBeLessThan(
+      g1.indexOf('A doubted ledger is seen'),
+    );
+    expect(g1.indexOf('A doubted ledger is seen')).toBeLessThan(
+      g1.indexOf('Beyond the stake'),
+    );
+  });
+
+  it('gives each ruling one radio group: a pick per option and none', () => {
+    const g1 = sectionOf(built(PLAIN_PAGE), 'G1');
     expect(
-      [...g1.matchAll(/<div class="vw[^"]*" data-view="([^"]+)"/g)].map(
+      [...g1.matchAll(/<input type="radio" name="G1" value="(\w)"/g)].map(
         m => m[1],
       ),
-    ).toEqual(['today', 'G1b']);
-    expect(g1.match(/<div class="vw[^"]*" data-view="[^"]+">/g)).toHaveLength(
-      1,
-    );
-    expect(g1).toContain(
-      '<label class="opt" data-pick="G1a" data-look="today">',
-    );
-    expect(g1).toContain('<label class="opt" data-pick="G1b" data-look="G1b">');
+    ).toEqual(['a', 'b', 'n']);
   });
 
-  it('options are one radio group per ruling, the none row included', () => {
-    const g1 = sectionOf(buildPage(loadPageFile(EXAMPLE)), 'G1');
-    const names = [...g1.matchAll(/<input type="radio" name="([^"]+)"/g)].map(
-      m => m[1],
-    );
-    expect(names.length).toBeGreaterThan(1);
-    expect(new Set(names)).toEqual(new Set(['G1']));
-  });
-
-  it('opens the view with its caption beside the option disc', () => {
-    const g1 = sectionOf(buildPage(loadPageFile(EXAMPLE)), 'G1');
-    expect(g1).toContain(
-      '<div class="vh"><span class="disc">b</span><p class="vcap"><b>All 20 paid leaf blocks have an owner.</b> The read pays Paul.</p></div>',
-    );
-  });
-
-  it('adds a Today row only when no option keeps today', () => {
+  it('draws a figure as a strip of panels and seq or bodies as one switched view', () => {
     const html = buildPage(loadPageFile(EXAMPLE));
-    expect(sectionOf(html, 'G2')).toContain(
-      'aria-label="Show today’s picture"',
+    expect(sectionOf(html, 'G6')).toContain(
+      '<div class="strip" style="--n:2">',
     );
-    expect(sectionOf(html, 'G1')).not.toContain(
-      'aria-label="Show today’s picture"',
-    );
+    expect(sectionOf(html, 'G6')).not.toContain('class="vw"');
+    const g2 = sectionOf(html, 'G2');
+    expect(
+      [...g2.matchAll(/class="vw" data-view="(\w+)"/g)].map(m => m[1]),
+    ).toEqual(['today', 'G2a', 'G2b']);
+    expect(
+      [...g2.matchAll(/class="vw" data-view="\w+"( hidden)?/g)].map(
+        m => m[1] ?? '',
+      ),
+    ).toEqual(['', ' hidden', ' hidden']);
   });
 
-  it('builds a table-only ruling bare: no view, rows that only pick', () => {
-    const dir = pageDir(TABLE_PAGE);
-    expect(main([dir, '--no-open'])).toBe(0);
-    const html = readFileSync(join(dir, 'index.html'), 'utf8');
-    expect(html).toContain('<div class="decide bare">');
-    expect(html).not.toContain('class="view"');
-    expect(html).not.toMatch(/class="opt"[^>]*data-look/);
-    expect(html).toContain(
-      '<span class="w">the gain names the file, the row says why</span>',
+  it('shows a cut option struck, with the must above it', () => {
+    const g6 = sectionOf(buildPage(loadPageFile(EXAMPLE)), 'G6');
+    expect(g6.indexOf('<p class="must">')).toBeLessThan(
+      g6.indexOf('<p class="cut">'),
     );
+    expect(g6).toContain('c (<s>A separate report of unowned blocks</s>)');
   });
 
-  it('a figure ruling inlines its markup and writes nothing beside index.html', () => {
-    const dir = pageDir(FIGURE_PAGE);
-    expect(main([dir, '--no-open'])).toBe(0);
-    expect(readdirSync(dir).sort()).toEqual(['index.html', 'page.js']);
-    const html = readFileSync(join(dir, 'index.html'), 'utf8');
-    expect(html).toContain(
-      '<div class="fig"><svg viewBox="0 0 200 40"><text x="8" y="24" fill="var(--o)">start → exit non-zero</text></svg></div>',
-    );
-    expect(html).not.toMatch(/<script src=|https?:\/\/|src="\/|href="\//);
-  });
-});
-
-function sectionOf(html: string, id: string): string {
-  const at = html.indexOf(`<section class="ruling" id="r-${id}">`);
-  return html.slice(at, html.indexOf('</section>', at));
-}
-
-describe('no folds', () => {
-  it('shows every word and every line: no fold, no expander anywhere', () => {
+  it('lists what was decided without the owner after the rulings', () => {
     const html = buildPage(loadPageFile(EXAMPLE));
-    expect(html).not.toMatch(/<details|<summary|show all \d+ lines|>the rest</);
-    expect(sectionOf(html, 'G1')).toContain(
-      'called a <b>band</b>. A read pays half its fee to the band, which stops where the reader’s window starts.</p>',
+    expect(html.indexOf('Decided without you')).toBeGreaterThan(
+      html.indexOf('id="r-G6"'),
     );
   });
 });

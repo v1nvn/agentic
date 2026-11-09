@@ -6,7 +6,7 @@ const LANGS = ['ts', 'js', 'json', 'bash', 'markup', 'css'] as const;
 const VAGUE =
   /\b(more flexible|flexibility|cleaner|more robust|scalable|future[- ]proof|best practice|more maintainable|more elegant)\b/i;
 const OPTION_CAPTION = /^<b>\s*option\s+[a-z]\s*[:—-]/i;
-const SLUG = /^[a-z][a-z0-9-]*$/;
+const ANCHOR = /[\w./-]+\.[a-z]{1,5}:\d+/i;
 const RULING_ID = /^G\d+$/;
 const LETTER = /^[a-z]$/;
 const VOID_TAGS = new Set([
@@ -77,44 +77,50 @@ const figure = z.strictObject({
 });
 
 const opt = z.strictObject({
-  c: z.string().optional(),
-  g: z.string().optional(),
   k: z.string().regex(LETTER, {
     message: 'option letter must be one lowercase letter',
   }),
-  needs: z.union([z.string(), z.array(z.string())]).optional(),
   rec: z.boolean().optional(),
   t: z.string().optional(),
   today: z.boolean().optional(),
-  w: z.string().optional(),
+});
+
+const cut = z.strictObject({
+  k: z.string().regex(LETTER, {
+    message: 'option letter must be one lowercase letter',
+  }),
+  t: z.string().optional(),
+  why: z.string().optional(),
+});
+
+export const MARKS = ['gain', 'mixed', 'cost'] as const;
+
+const row = z.strictObject({
+  label: z.string().optional(),
+  marks: z.record(z.string(), z.tuple([z.enum(MARKS), z.string()])),
+  on: z.enum(['stake', 'beyond']),
 });
 
 const ruling = z.strictObject({
+  after: z.string().regex(RULING_ID).optional(),
   bodies: z.record(z.string(), body).optional(),
   changed: z.string().optional(),
+  cut: z.array(cut).optional(),
   figure: figure.optional(),
-  merged: z.string().regex(RULING_ID).optional(),
+  must: z.array(z.string()).optional(),
   opts: z.array(opt).optional(),
-  stake: z.string().optional(),
+  rows: z.array(row).optional(),
+  ruled: z.string().regex(LETTER).optional(),
   seq: seq.optional(),
+  stake: z.string().optional(),
   title: z.string().optional(),
-  today: z.string().optional(),
-});
-
-const group = z.strictObject({
-  id: z.string().regex(SLUG, { message: 'must be a lowercase slug' }),
-  label: z.string().optional(),
-  quick: z.boolean().optional(),
-  rulings: z
-    .array(z.string().regex(RULING_ID, { message: 'must look like G1, G2, …' }))
-    .min(1),
+  why: z.string().optional(),
 });
 
 const pageSchema = z.strictObject({
+  decided: z.array(z.string()).optional(),
   eyebrow: z.string().optional(),
-  groups: z.array(group).min(1),
   key: z.string().min(1).optional(),
-  notes: z.array(z.strictObject({ html: z.string().optional() })).optional(),
   rulings: z.record(
     z.string().regex(RULING_ID, { message: 'must look like G1, G2, …' }),
     ruling,
@@ -124,6 +130,7 @@ const pageSchema = z.strictObject({
 });
 
 export type Opt = z.infer<typeof opt>;
+export type Row = z.infer<typeof row>;
 export type Body = z.infer<typeof body>;
 export type Figure = z.infer<typeof figure>;
 export type Overlay = z.infer<typeof overlay>;
@@ -254,11 +261,7 @@ export function validatePage(input: unknown): Verdict {
     if (!m) {
       return false;
     }
-    const target = R[m[1]];
-    if (!(m[1] in R) || target.merged !== undefined) {
-      return false;
-    }
-    return (target.opts ?? []).some(x => x.k === m[2]);
+    return m[1] in R && (R[m[1]].opts ?? []).some(x => x.k === m[2]);
   }
   function isToday(ref: string): boolean {
     const m = /^(G\d+)([a-z])$/.exec(ref);
@@ -322,40 +325,15 @@ export function validatePage(input: unknown): Verdict {
   }
 
   req(P.title, 'PAGE.title');
-  req(P.sub, 'PAGE.sub');
-  for (const [i, n] of (P.notes ?? []).entries()) {
-    req(n.html, `notes[${i}].html`);
+  for (const [i, d] of (P.decided ?? []).entries()) {
+    req(d, `decided[${i}]`);
   }
 
-  const seen: Record<string, string> = {};
-  const gids = new Set<string>();
-  for (const g of P.groups) {
-    if (gids.has(g.id)) {
-      errors.push(`group id "${g.id}" is used twice`);
-    }
-    gids.add(g.id);
-    req(g.label, `group ${g.id}.label`);
-    for (const id of g.rulings) {
-      if (seen[id]) {
-        errors.push(`${id} is in two groups (${seen[id]}, ${g.id})`);
-      }
-      seen[id] = g.id;
-      if (!(id in R)) {
-        errors.push(`${id} is in group ${g.id} but not in PAGE.rulings`);
-      }
-    }
-  }
-  for (const id of Object.keys(R)) {
-    if (!seen[id]) {
-      errors.push(`${id} is in PAGE.rulings but in no group`);
-    }
-  }
-
-  const live = Object.entries(R).filter(([, q]) => q.merged === undefined);
-  for (let i = 0; i < live.length; i++) {
-    for (let j = i + 1; j < live.length; j++) {
-      const [ai, A] = live[i];
-      const [bj, B] = live[j];
+  const written = Object.entries(R).filter(([, q]) => q.opts !== undefined);
+  for (let i = 0; i < written.length; i++) {
+    for (let j = i + 1; j < written.length; j++) {
+      const [ai, A] = written[i];
+      const [bj, B] = written[j];
       const fa = flow(A);
       if (fa !== '' && fa === flow(B)) {
         errors.push(
@@ -365,86 +343,111 @@ export function validatePage(input: unknown): Verdict {
     }
   }
 
+  function plain(v: string | undefined, what: string): void {
+    const t = v ?? '';
+    if (t.includes('<code>')) {
+      errors.push(
+        `${what} carries <code>; say what the owner sees, in plain words`,
+      );
+    }
+    const anchor = ANCHOR.exec(stripTags(t));
+    if (anchor) {
+      errors.push(
+        `${what} cites ${anchor[0]}; anchors are your evidence, not the owner's reading`,
+      );
+    }
+  }
+  function checkable(v: string | undefined, what: string): void {
+    const hit = VAGUE.exec(v ?? '');
+    if (hit) {
+      errors.push(`${what} uses a word the owner cannot check ("${hit[0]}")`);
+    }
+  }
+
+  plain(P.sub, 'PAGE.sub');
+  for (const [i, d] of (P.decided ?? []).entries()) {
+    plain(d, `decided[${i}]`);
+  }
+
   for (const [id, q] of Object.entries(R)) {
     req(q.title, `${id}.title`);
-    if (q.merged !== undefined) {
-      const target = R[q.merged];
-      if (!(q.merged in R)) {
-        errors.push(`${id}.merged names ${q.merged}, which is not a ruling`);
-      } else if (target.merged !== undefined) {
-        errors.push(`${id} is merged into ${q.merged}, which is itself merged`);
-      }
-      req(q.changed, `${id}.changed (say why it merged)`);
-      continue;
-    }
+    plain(q.title, `${id}.title`);
     if (!blank(q.title) && !/\?\s*$/.test(stripTags(q.title ?? ''))) {
       errors.push(
         `${id}.title must be the decision as a question, ending in ?`,
       );
     }
-    req(q.stake, `${id}.stake (who loses what, how often, who would notice)`);
-    req(
-      q.today,
-      `${id}.today (how this part works today, in plain words, up to where it breaks)`,
-    );
-    if ((q.stake ?? '').includes('<code>')) {
-      errors.push(
-        `${id}.stake names an internal thing; put it in today and say what the owner sees`,
-      );
+    if (q.after !== undefined) {
+      const root = R[q.after];
+      if (!(q.after in R) || q.after === id) {
+        errors.push(
+          `${id}.after names ${q.after}, which is not another ruling on this page`,
+        );
+      } else if (q.opts === undefined && root.ruled !== undefined) {
+        errors.push(
+          `${id} waits on ${q.after}, which is ruled; write ${id} now, under that pick`,
+        );
+      } else if (q.opts !== undefined && root.ruled === undefined) {
+        errors.push(
+          `${id} is written but rests on ${q.after}, which is not ruled; leave ${id} as a title with after until ${q.after} is ruled`,
+        );
+      }
     }
-    const pictures: [string, unknown][] = [
-      ['a seq', q.seq],
-      ['bodies', q.bodies],
-      ['a figure', q.figure],
-    ];
-    const present = pictures.filter(([, v]) => v !== undefined);
-    if (present.length > 1) {
-      errors.push(
-        `${id} has both ${present[0]?.[0]} and ${present[1]?.[0]}; one picture per ruling`,
-      );
-    }
-    const pictured = present.length > 0;
-    if (q.seq !== undefined) {
-      checkSeq(q.seq, `${id}.seq`, id);
+    if (q.opts === undefined) {
+      if (q.after === undefined) {
+        errors.push(
+          `${id} has no options and waits on nothing; write its options, or name the ruling it waits on in after`,
+        );
+      }
+      const extra = Object.keys(q).filter(k => !['after', 'title'].includes(k));
+      if (extra.length > 0) {
+        errors.push(
+          `${id} waits on ${q.after ?? 'a pick'}; a waiting ruling is a title and after alone, not ${extra.join(', ')}`,
+        );
+      }
+      continue;
     }
 
-    const opts = q.opts ?? [];
-    const B = q.bodies ?? {};
-    for (const [k, b] of Object.entries(B)) {
-      if (k !== 'today' && !opts.some(o => o.k === k && o.today !== true)) {
-        errors.push(`${id}.bodies.${k} names no live option that is not today`);
-      }
-      req(b.code, `${id}.bodies.${k}.code`);
-      const todayCode = 'today' in B ? B.today.code : undefined;
-      if (k !== 'today' && todayCode !== undefined && b.code !== undefined) {
-        const delta = diffLines(todayCode, b.code);
-        const changed = delta
-          .filter(p => p.added || p.removed)
-          .reduce((a, p) => a + p.count, 0);
-        if (changed === 0) {
-          errors.push(
-            `${id}.bodies.${k} is identical to today; an option that changes nothing is not an option`,
-          );
-        }
-      }
+    req(q.stake, `${id}.stake (who loses what, on a real value)`);
+    plain(q.stake, `${id}.stake`);
+    req(q.why, `${id}.why (the recommendation, in the rows' own labels)`);
+    plain(q.why, `${id}.why`);
+    for (const [i, m] of (q.must ?? []).entries()) {
+      req(m, `${id}.must[${i}]`);
+      plain(m, `${id}.must[${i}]`);
     }
-    if (q.figure !== undefined) {
-      req(
-        q.figure.cap,
-        `${id}.figure.cap (the caption: its conclusion in <b>…</b>)`,
-      );
-      conclusionFirst(q.figure.cap, `${id}.figure.cap`);
-      for (const [k, v] of Object.entries(q.figure.views)) {
-        const at = `${id}.figure.views.${k}`;
-        if (k !== 'today' && !opts.some(o => o.k === k && o.today !== true)) {
-          errors.push(`${at} names no live option that is not today`);
-        }
-        req(v.html, `${at}.html (the figure markup)`);
-        for (const f of figureFaults(v.html)) {
-          errors.push(`${at}.html ${f}`);
-        }
-        conclusionFirst(v.cap, `${at}.cap`);
+    plain(q.changed, `${id}.changed`);
+
+    const opts = q.opts;
+    const letters = new Set<string>();
+    for (const o of [...opts, ...(q.cut ?? [])]) {
+      if (o.k === 'n') {
+        errors.push(
+          `${id}: letter n is reserved for the "none of these fit" answer`,
+        );
       }
+      if (letters.has(o.k)) {
+        errors.push(`${id}: letter ${o.k} is used twice`);
+      }
+      letters.add(o.k);
+      req(o.t, `${id + o.k}.t (the option's title)`);
+      plain(o.t, `${id + o.k}.t`);
+    }
+    for (const c of q.cut ?? []) {
+      req(c.why, `${id + c.k}.why (the must it breaks, and how)`);
+      plain(c.why, `${id + c.k}.why`);
+    }
+    if ((q.cut ?? []).length > 0 && (q.must ?? []).length === 0) {
+      errors.push(`${id} cuts an option but names no must it breaks`);
+    }
+    if (
+      q.ruled !== undefined &&
+      q.ruled !== 'n' &&
+      !opts.some(o => o.k === q.ruled)
+    ) {
+      errors.push(
+        `${id}.ruled names ${q.ruled}, which is not one of its options or n`,
+      );
     }
     if (opts.length < 2) {
       errors.push(`${id} needs at least two live options, has ${opts.length}`);
@@ -461,65 +464,134 @@ export function validatePage(input: unknown): Verdict {
     if (opts.filter(o => o.today === true).length > 1) {
       errors.push(`${id}: only one option can be today`);
     }
-    const views = q.seq !== undefined ? seqViews(q.seq, id) : [];
-    const D = q.figure?.views ?? {};
-    const letters = new Set<string>();
-    for (const o of opts) {
-      const nm = id + o.k;
-      if (o.k === 'n') {
+
+    const rows = q.rows ?? [];
+    if (!rows.some(r => r.on === 'stake')) {
+      errors.push(
+        `${id} has no row on the stake: what the ruling exists to fix, marked for every option`,
+      );
+    }
+    const costs = new Set<string>();
+    for (const [i, r] of rows.entries()) {
+      const at = `${id}.rows[${i}]`;
+      req(r.label, `${at}.label (an outcome the owner can check)`);
+      plain(r.label, `${at}.label`);
+      checkable(r.label, `${at}.label`);
+      for (const o of opts) {
+        const m = o.k in r.marks ? r.marks[o.k] : undefined;
+        if (m === undefined) {
+          errors.push(
+            `${at} has no mark for ${o.k}; every option answers every row`,
+          );
+          continue;
+        }
+        req(m[1], `${at}.marks.${o.k} reason`);
+        plain(m[1], `${at}.marks.${o.k}`);
+        checkable(m[1], `${at}.marks.${o.k}`);
+        if (m[0] === 'cost') {
+          costs.add(o.k);
+        }
+      }
+      for (const k of Object.keys(r.marks)) {
+        if (!opts.some(o => o.k === k)) {
+          errors.push(`${at}.marks.${k} names no live option`);
+        }
+      }
+      const marked = opts.filter(o => o.k in r.marks);
+      const kinds = new Set(marked.map(o => r.marks[o.k][0]));
+      if (kinds.size === 1 && marked.length === opts.length) {
         errors.push(
-          `${id}: letter n is reserved for the "none of these fit" answer`,
+          `${at} marks every option the same; a row that separates nothing goes`,
         );
       }
-      if (letters.has(o.k)) {
-        errors.push(`${id}: letter ${o.k} is used twice`);
+    }
+    for (const o of opts) {
+      if (rows.length > 0 && !costs.has(o.k)) {
+        errors.push(
+          `${id + o.k} has no cost in any row; name what it costs, or cut it as beaten by another option`,
+        );
       }
-      letters.add(o.k);
-      req(o.t, `${nm}.t (the option's title)`);
-      req(o.g, `${nm}.g (gain)`);
-      req(o.c, `${nm}.c (cost)`);
-      if (pictured) {
+    }
+
+    const pictures: [string, unknown][] = [
+      ['a seq', q.seq],
+      ['bodies', q.bodies],
+      ['a figure', q.figure],
+    ];
+    const present = pictures.filter(([, v]) => v !== undefined);
+    if (present.length > 1) {
+      errors.push(
+        `${id} has both ${present[0]?.[0]} and ${present[1]?.[0]}; one picture per ruling`,
+      );
+    }
+    if (q.seq !== undefined) {
+      checkSeq(q.seq, `${id}.seq`, id);
+      plain(q.seq.cap, `${id}.seq.cap`);
+      for (const [k, cap] of Object.entries(q.seq.caps ?? {})) {
+        plain(cap, `${id}.seq.caps.${k}`);
+      }
+    }
+    const B = q.bodies ?? {};
+    for (const [k, b] of Object.entries(B)) {
+      if (k !== 'today' && !opts.some(o => o.k === k && o.today !== true)) {
+        errors.push(`${id}.bodies.${k} names no live option that is not today`);
+      }
+      req(b.code, `${id}.bodies.${k}.code`);
+      plain(b.cap, `${id}.bodies.${k}.cap`);
+      plain(b.what, `${id}.bodies.${k}.what`);
+      const todayCode = 'today' in B ? B.today.code : undefined;
+      if (k !== 'today' && todayCode !== undefined && b.code !== undefined) {
+        const changed = diffLines(todayCode, b.code)
+          .filter(p => p.added || p.removed)
+          .reduce((a, p) => a + p.count, 0);
+        if (changed === 0) {
+          errors.push(
+            `${id}.bodies.${k} is identical to today; an option that changes nothing is not an option`,
+          );
+        }
+      }
+    }
+    if (q.figure !== undefined) {
+      conclusionFirst(q.figure.cap, `${id}.figure.cap`);
+      plain(q.figure.cap, `${id}.figure.cap`);
+      for (const [k, v] of Object.entries(q.figure.views)) {
+        const at = `${id}.figure.views.${k}`;
+        if (k !== 'today' && !opts.some(o => o.k === k && o.today !== true)) {
+          errors.push(`${at} names no live option that is not today`);
+        }
+        req(v.html, `${at}.html (the figure markup)`);
+        for (const f of figureFaults(v.html)) {
+          errors.push(`${at}.html ${f}`);
+        }
+        conclusionFirst(v.cap, `${at}.cap`);
+        plain(v.cap, `${at}.cap`);
+      }
+    }
+    if (present.length > 0) {
+      const views = q.seq !== undefined ? seqViews(q.seq, id) : [];
+      const D = q.figure?.views ?? {};
+      for (const o of opts) {
         const shown =
           o.today === true
             ? q.seq !== undefined || 'today' in B || 'today' in D
             : views.includes(id + o.k) || o.k in B || o.k in D;
         if (!shown) {
           errors.push(
-            nm +
+            id +
+              o.k +
               (o.today === true
                 ? ' is today, but the picture has no today view'
                 : ` has no picture of its own: give it a view in the seq, bodies.${o.k} or a figure view`),
           );
         }
       }
-      for (const [kind, text] of [
-        ['gain', o.g],
-        ['cost', o.c],
-      ] as const) {
-        if (blank(text)) {
-          continue;
-        }
-        const hit = VAGUE.exec(text ?? '');
-        if (hit) {
-          errors.push(
-            `${nm} ${kind} uses a word the owner cannot check ("${hit[0]}")`,
-          );
-        }
-      }
-      const needs = typeof o.needs === 'string' ? [o.needs] : (o.needs ?? []);
-      for (const n of needs) {
-        if (!optionExists(n)) {
-          errors.push(
-            `${nm}.needs "${n}" is not a live option on this page (write it like "G7a")`,
-          );
-        }
-      }
     }
   }
 
-  if (live.length > 10) {
+  const open = written.filter(([, q]) => q.ruled === undefined).length;
+  if (open > 10) {
     errors.push(
-      `${live.length} rulings on one page; past ten, decide the smallest ones yourself`,
+      `${open} rulings to rule on one page; past ten, decide the smallest ones yourself`,
     );
   }
   return { errors };

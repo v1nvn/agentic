@@ -1,5 +1,3 @@
-import type { Opt } from './schema.ts';
-
 export interface Stage {
   body: string;
   cap: string;
@@ -15,8 +13,4 @@ export function esc(s: unknown): string {
 
 export function stripTags(s: string): string {
   return s.replace(/<[^>]*>/g, '');
-}
-
-export function needsOf(o: Opt): string[] {
-  return typeof o.needs === 'string' ? [o.needs] : (o.needs ?? []);
 }

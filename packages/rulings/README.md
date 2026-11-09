@@ -1,15 +1,17 @@
 # rulings
 
-Put decisions the owner must make on one local HTML page — each ruling
-self-contained: the question, its stake, how its part works today, and
-lettered options with gain, cost and a recommendation beside a picture that
-joins only when one earns it. Clicking an option picks it and shows its
-picture — a second click unpicks; hovering previews a picture without picking.
-The owner adds a note per ruling and copies the
-composed answer; the sidebar's layout switch sets the picture beside or under the options, remembered across pages — a sequence diagram, too wide to sit beside them, always sits under, at a fixed text size that scrolls sideways in a narrow pane;
-picks persist under the page's `key`. The plugin is the `/rulings:consult`
-skill; the CLI builds and rebuilds the page it opens. The plugin's goal and its
-non-regression floors live in [ARCHITECTURE.md](ARCHITECTURE.md).
+Put decisions the owner must make on one local HTML page. Each ruling is a
+question, its stake on a real case, and a scorecard: rows are outcomes, columns
+are lettered options, each cell a gain, mixed or cost mark with its reason —
+rows on the stake first, rows beyond it after — then one line on why the
+recommendation wins. A picture of the case joins only when one earns it. A
+round map at the top shows what to rule now and which rulings wait on which
+pick. Clicking anywhere in an option's column, or its Pick button, picks it; a
+second click unpicks; hovering a column previews its picture. The owner adds a
+note per ruling and copies the composed answer; picks persist under the page's
+`key`. The plugin is the `/rulings:consult` skill; the CLI builds and rebuilds
+the page it opens. The plugin's goal and its non-regression floors live in
+[ARCHITECTURE.md](ARCHITECTURE.md).
 
 Install as a Claude Code plugin: `claude plugin install rulings@agentic`.
 
@@ -32,15 +34,16 @@ is remembered.
 ## Skill
 
 `/rulings:consult` is the plugin's one skill. From the model's seat: decide it is a page
-(the owner asked, or must rule on evidence they do not hold), read the
-code and write `page.js`, run the pinned `npx` line above through the session's Bash tool
-until it exits green and the page opens, announce the path and the recommendation in chat
-without repeating the page, then read the answer back. The owner picks on the page — an option
-(a second click unpicks), None of these fit, a quick group's accept-recommended, while hovering
-only previews a picture — and pastes the composer's copied
-answer (picks with the ruling's note, unmet needs, the page note), or types picks (`G1a`, `G2n`, `G6 note: …`) in chat; both
-read verbatim. Pushback updates `page.js` and rebuilds with `--no-open` for a reload;
-a decision the owner can rule from one line never reaches the page — it goes through AskUserQuestion.
+(the owner asked, or must rule on evidence they do not hold), sort the rulings into what
+stands now and what waits on another pick, read the code and write `page.js`, run the pinned
+`npx` line above until it exits green and the page opens, announce the path and the
+recommendation in chat without repeating the page, then read the answer back. The owner picks
+on the page and pastes the composer's copied answer (picks with each ruling's note, then the
+page note), or types picks (`G1a`, `G2n`, `G6 note: …`) in chat; both read verbatim. Once a
+round is ruled, the waiting rulings are written under those picks and the page rebuilds with
+`--no-open` for a reload. A decision the owner can rule from one line never reaches the page
+— it goes through AskUserQuestion. The picture kinds and their fields live in
+[references/pictures.md](references/pictures.md).
 
 ## Layout
 
@@ -50,9 +53,10 @@ packages/rulings/                   the builder CLI, pure TS — the plugin root
   src/index.ts                      the CLI entry
   src/cli.ts, page.ts               the command door and the page assembly
   src/schema.ts                     the page schema — one typed door
-  src/seq.ts, bodies.ts, figure.ts  the three picture emitters (seq SVG, prism diff, free HTML/SVG)
-  src/decide.ts                     the decision card: options beside the picture views
+  src/card.ts                       the decision: must, cut, picture, scorecard, why, note
+  src/seq.ts, bodies.ts, figure.ts  the three picture emitters (seq SVG, prism diff, figure strip)
   src/chrome.ts                     the composer and the page's one script
   src/style.ts                      the page stylesheet (light-only)
+  references/pictures.md            the picture kinds, read only when a ruling earns one
   test/                             the vitest suite
 ```
