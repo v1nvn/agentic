@@ -110,7 +110,7 @@ stake's real case drawn once per option. Before writing one, read
 state does not carry between calls. The first time, seed `page.js` from the example:
 
 ```sh
-npx -y @v1nvn/rulings@0.55.2 <dir> --new --no-open
+npx -y @v1nvn/rulings@0.56.0 <dir> --new --no-open
 ```
 
 When `<dir>/page.js` already exists, edit it instead; `--new` refuses to overwrite it. Write
@@ -118,7 +118,7 @@ When `<dir>/page.js` already exists, edit it instead; `--new` refuses to overwri
 content — then build once; a second build only on red:
 
 ```sh
-npx -y @v1nvn/rulings@0.55.2 <dir>
+npx -y @v1nvn/rulings@0.56.0 <dir>
 ```
 
 Errors block and nothing is written; each error says what to change. The build opens the page
