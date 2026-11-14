@@ -17,7 +17,7 @@ the rules and the verbs; every repo carries data only.
 The verbs auto-invoke on their triggers — handoff asks, thread-file run asks, what's-next
 asks, thread starts, fresh-repo setup. `/todo:review` and `/todo:postmortem` run only when typed; an audit runs when the owner asks — the repo, a thread, a unit — or when the rules' stamp gate fires the auditor, whose script restamps a rules-unchanged lag in place.
 
-The owner opens each session. A thread is built one group at a time: `/todo:run <thread> <group>` in a fresh session per group, `/todo:review <pr>` in a fresh session per PR, `/todo:review <thread>` once every group has merged, then the close. The owner routes review findings — fixing them in the review session or pasting them into the group's run session.
+The owner opens each session. A thread is built one group at a time: `/todo:run <thread> <group>` in a fresh session per group, `/todo:review <pr>` in a fresh session per PR, `/todo:review <thread>` before the last group's PR merges, then the close. The owner routes review findings — fixing them in the review session or pasting them into the group's run session.
 
 An audit — the owner's ask or the stamp gate — dispatches the one agent:
 

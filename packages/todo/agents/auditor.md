@@ -42,7 +42,7 @@ A thread or unit that does not resolve: say so and stop.
 ## Fixes
 
 - **Mechanical** — the shape is wrong and the content is not in doubt: fix it in place. Context past two sentences moves into a thread file in the rules' shape; triage on an entry for an unstarted thread is dropped, or replaced by where it is recorded; a file whose content its entry could hold folds back into the entry and is deleted.
-- **Older Steps shape** — per-unit `model`, `review` or `consult` cells, a `**Run:**` line, `session` units: reshape into the rules' group sections. The groups the `**Run:**` line names, or the whole thread as one group, are mechanical; a tier is mechanical when every unit of the group carried the same one, and proposed otherwise. Units are never re-cut.
+- **Older Steps shape** — per-unit `model`, `review` or `consult` cells, a `**Run:**` line, `session` units: reshape into the rules' group sections. Mechanical: the groups the `**Run:**` line names, else the whole thread as one group; the group's tier when every unit with a `model` carried the same one, blank when none did; a unit whose `model` was `owner` starts its unit cell with `(owner)`; `review` cells and `session` drop. Proposed: a tier across units that carried different ones, and for each `consult: design` unit a **Consults** line naming it with the open picks its text leaves, as questions. Units are never re-cut.
 - **Judgment** — which of two claims is true, whether a thread landed, whether a file is a thread, a report or a record: propose the fix with the evidence for it in the report; it is applied only on the owner's word.
 
 An audit of a thread ends by writing the running version — the one the rules' shape example shows — into its `**Todo:**` stamp.

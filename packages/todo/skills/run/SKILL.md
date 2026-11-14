@@ -16,12 +16,13 @@ here read.
 1. Resolve the arguments: a thread file path, then a group id as the thread heads it. No group
    given: the first group whose units have not all landed. A path or a group that does not
    resolve, or a group whose tier is `owner`: say so and stop.
-2. Run the rules' stamp gate, fold any scratch notes found, then read the thread file whole and
-   the repo's CLAUDE.md or AGENTS.md sections that bite.
-3. Branch. A branch for this group whose commits name its units is a resume: check it out
-   clean and continue at the first unit with no commit. Otherwise branch from the group's
-   **Base** — the default branch when it names none — on a new branch `<slug>-<group id>`.
-   A dirty tree: say so and stop.
+2. Branch, on a clean tree — a dirty one: say so and stop. A branch `<slug>-<group id>` that
+   exists is a resume: check it out, and continue at the first unit with no commit. Otherwise
+   branch it from the group's **Base**, the default branch when it names none. From here the
+   thread file is the branch's copy.
+3. Run the rules' stamp gate and fold any scratch notes found, committing what either changed
+   as one line on the branch; then read the thread file whole and the repo's CLAUDE.md or
+   AGENTS.md sections that bite.
 4. The session runs on another model than the group's tier: say so in one line and continue —
    a session cannot switch itself; the owner restarts it to change tier.
 5. Preconditions: the workspace gate green at the base — read from the base commit's CI
@@ -34,8 +35,8 @@ here read.
 ## Consults
 
 Before the unit a consult names builds, dispatch one read-only Agent (`subagent_type: "Plan"`)
-per consult, its `model` and `effort` the group's tier. Its brief names the thread file, the unit, the code the unit names and the
-consult's exact questions, and asks for options with one recommendation each. Take each
+per consult, its `model` and `effort` the group's tier. Its brief names the thread file, the
+unit, the code the unit names and the consult's exact questions, and asks for options with one recommendation each. Take each
 recommendation through §Stops. Every finding that names a way the unit could fail becomes a
 named test or a close criterion in the unit's row before the unit builds — a finding left as
 prose ships untested.
@@ -44,6 +45,8 @@ prose ships untested.
 
 For each unit, in order:
 
+- A unit marked `(owner)` is the owner's to do — a decision, a live action. Stop at it through
+  §Stops, saying what the owner must do or rule, and continue once they say it is done.
 - Read its row, the sections it points at and its reading list. Re-read the source behind any
   anchor before relying on it.
 - Build compiler- and test-driven. Write no bridge code: the old path is deleted in the same
@@ -107,13 +110,14 @@ Report each finding as fixed, refuted with its evidence, or stopped.
 At the group's first commit, push and open the PR as a draft with its base named explicitly
 (`gh pr create --draft --base <base>`); each later commit pushes. Never push to the default branch,
 never merge. After the last unit, watch CI at the head (`gh pr checks <pr> --watch`, in the
-background); a red check is fixed like a red gate. Mark the PR ready on green CI.
+background); a red check is fixed like a red gate. Mark the PR ready on green CI, or at the
+last unit when the repo has no CI.
 
 ## Context
 
 When the context passes about half the window, or the owner calls it, commit what is green,
 run `/todo:handoff`, and commit its fold on the branch, so the fresh session's
-`/todo:run <thread> <group>` finds a clean tree and resumes per §Open 3.
+`/todo:run <thread> <group>` finds a clean tree and resumes per §Open 2.
 
 ## Red lines
 
@@ -129,7 +133,7 @@ run `/todo:handoff`, and commit its fold on the branch, so the fresh session's
 
 Fold the scratch notes into the thread per the rules — each landed unit's commit in its row,
 Current state rewritten — and set Next step to `/todo:review <pr>`; for the thread's last
-group, to `/todo:review <thread>` once every group's PR has merged, then the close. Commit the
+group, to `/todo:review <thread>` while its PR is still open, then the merges and the close. Commit the
 fold on the branch and push.
 
 Report: the PR URL; gates from base to each unit to CI; every pick taken (question, pick,

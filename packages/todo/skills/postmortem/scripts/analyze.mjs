@@ -233,10 +233,10 @@ function main(transcript, suiteSrc) {
     end: completions.get(id) ?? end,
     label: s.label,
   }));
-  const orchRuns = toolRuns(ev);
-  const questions = orchRuns.filter(r => r.name === 'AskUserQuestion');
+  const sessionRuns = toolRuns(ev);
+  const questions = sessionRuns.filter(r => r.name === 'AskUserQuestion');
   ownerWait += questions.reduce((a, r) => a + r.dur, 0);
-  const fgTools = orchRuns
+  const fgTools = sessionRuns
     .filter(
       r =>
         !(
@@ -313,7 +313,7 @@ function main(transcript, suiteSrc) {
   }
 
   const stalls = [
-    ...stalled(orchRuns).map(r => ({ who: SESSION, r })),
+    ...stalled(sessionRuns).map(r => ({ who: SESSION, r })),
     ...workers.flatMap(w => stalled(w.runs).map(r => ({ who: w.desc, r }))),
   ];
   const stallTime = spanUnion(
@@ -385,8 +385,8 @@ function main(transcript, suiteSrc) {
   console.log('\n## Bash time by category\n');
   const cats = new Map();
   for (const { who, bash } of [
-    { who: SESSION, bash: bashOf(orchRuns) },
-    ...workers.map(w => ({ who: 'workers', bash: w.bash })),
+    { who: SESSION, bash: bashOf(sessionRuns) },
+    ...workers.map(w => ({ who: 'subagents', bash: w.bash })),
   ]) {
     for (const b of bash) {
       const k = `${who}: ${
@@ -409,7 +409,7 @@ function main(transcript, suiteSrc) {
   console.log('\n## files read by two or more agents\n');
   const readers = new Map();
   for (const { desc, runs } of [
-    { desc: SESSION, runs: orchRuns },
+    { desc: SESSION, runs: sessionRuns },
     ...workers,
   ]) {
     for (const r of runs.filter(x => x.name === 'Read')) {
@@ -439,7 +439,10 @@ function main(transcript, suiteSrc) {
     const seg = base.split(';').find(s => SUITE.test(s)) ?? base;
     return seg.split('|')[0].trim();
   };
-  const agents = [{ desc: SESSION, bash: bashOf(orchRuns) }, ...workers];
+  const agents = [
+    { desc: SESSION, bash: bashOf(sessionRuns), runs: sessionRuns },
+    ...workers,
+  ];
   for (const { who, r } of stalls) {
     flag(
       `stalled tool result: ${who} — \`${String(r.input.command).slice(0, 60)}\` returned after ${fmt(r.dur)} at ${hhmm(r.start)}; counted in stalls, not work`,
@@ -468,8 +471,17 @@ function main(transcript, suiteSrc) {
     for (const [key, runs] of clusters) {
       for (let i = 1; i < runs.length; i++) {
         if (runs[i].start - runs[i - 1].start >= 300000) continue;
+        const changed = w.runs.some(
+          r =>
+            r.start > runs[i - 1].start &&
+            r.start < runs[i].start &&
+            (EDITS.has(r.name) ||
+              (r.name === 'Bash' &&
+                !SUITE.test(String(r.input.command ?? '')))),
+        );
+        if (changed) continue;
         flag(
-          `re-fired: ${w.desc} re-ran \`${key.slice(0, 60)}\` ${((runs[i].start - runs[i - 1].start) / 1000).toFixed(0)}s after a green run at ${hhmm(runs[i - 1].start)}`,
+          `re-fired: ${w.desc} re-ran \`${key.slice(0, 60)}\` ${((runs[i].start - runs[i - 1].start) / 1000).toFixed(0)}s after its last run at ${hhmm(runs[i - 1].start)}, nothing changed between`,
           'refire',
         );
       }

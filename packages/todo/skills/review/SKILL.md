@@ -17,8 +17,8 @@ the owner routes each finding — fixing it in this session, or pasting it into 
   then `git fetch origin <base> <head>`; the diff is `git diff origin/<base>...origin/<head>`
   and the base commit is `git merge-base origin/<base> origin/<head>`.
 - **A thread** — a `progress/<slug>.md` path or its slug, live or in `archive/`: every group's
-  PR, found by the unit ids in commit subjects and the branch names
-  (`gh pr list --state all --search <unit id>`). The diff runs from the first group's base
+  PR, found by its branch `<slug>-<group id>`
+  (`gh pr list --state all --head <slug>-<group id>`). The diff runs from the first group's base
   commit to the last group's head, or to the default branch once all have merged.
 - Anything that does not resolve: say so and stop.
 
