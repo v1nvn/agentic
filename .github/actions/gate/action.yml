@@ -33,8 +33,10 @@ runs:
     - name: Unit tests
       run: yarn test
       shell: bash
+    # Pinned: after 2.1.319, `plugin validate` type-checks hooks modules without
+    # allowImportingTsExtensions (TS5097) though the engine loads their .ts imports.
     - name: Install Claude Code CLI
-      run: npm install -g @anthropic-ai/claude-code
+      run: npm install -g @anthropic-ai/claude-code@2.1.319
       shell: bash
     - name: Mod engine tests
       run: yarn test:mods

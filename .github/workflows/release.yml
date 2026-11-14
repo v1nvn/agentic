@@ -55,7 +55,7 @@ jobs:
       - name: Bump the train version
         run: node .github/scripts/set-version.mjs --bump "${{ inputs.bump }}" --no-locks
       - name: Install Claude Code CLI
-        run: npm install -g @anthropic-ai/claude-code
+        run: npm install -g @anthropic-ai/claude-code@2.1.319
       - name: Validate plugin + marketplace manifests
         run: |
           claude plugin validate .claude-plugin/marketplace.json
