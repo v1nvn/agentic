@@ -70,7 +70,7 @@ description: The work-tracking rules — TODO.md is the index, progress/<slug>.m
 ## Current state
 ## Next step
 ## Steps
-### <first unit id> · <PR title> · <model/effort>
+### <first unit id> · <PR title> · <tier>
 - **Base:** <the branch or group the PR stacks on>
 - **Consults:** <unit id>: <the exact questions>
 - **Stops:** <a measure's bar, a fork for the owner>
@@ -99,7 +99,7 @@ description: The work-tracking rules — TODO.md is the index, progress/<slug>.m
 
 **Starting a thread.** A thread starts via `/todo:new` the moment it is picked up — the index is maintained at start, not after the fact: a picked-up thread with no `→ progress/<slug>.md` pointer is a broken index — the trivial task above excepted. A slug already in `archive/` or `progress/` is taken: a successor thread adds a suffix (`<slug>-2`).
 
-**Closing a thread.** A thread closes once its last group's PR has merged and `/todo:review <thread>` has reviewed every group's PR against the Goal, so fixes after review are written into the live file before it is archived: owed work posted to the owner first, the thread file appended verbatim to `archive/<slug>.md` and deleted, one commit. A thread with no PR closes the same way when its goal is met. **Deferrals do not ride along:** owed work and cuts the owner still wants earn one `TODO.md` entry per goal — its successor, minted via `/todo:new` — before the thread closes; the rest is dropped with the file.
+**Closing a thread.** A session closes a thread by hand once its last group's PR has merged and `/todo:review <thread>` has reviewed every group's PR against the Goal, so fixes after review are written into the live file before it is archived: owed work posted to the owner first, the thread file appended verbatim to `archive/<slug>.md` and deleted, one commit. A thread with no PR closes the same way when its goal is met. **Deferrals do not ride along:** owed work and cuts the owner still wants earn one `TODO.md` entry per goal — its successor, minted via `/todo:new` — before the thread closes; the rest is dropped with the file.
 
 **Stamp gate.** Before working an existing thread, and before any fold in a sitting that has not yet run it, compare its `**Todo:**` stamp to the running version (the one in the shape above). A stamp behind the running version, or none, trips it: with a stamp, run this skill's `scripts/stamp-gate.mjs <stamp>` — `rules unchanged`, restamp the thread to the running version and work on; a diff, dispatch one `todo:auditor` (its own tier, one `Agent` call, never a brief the session writes) with the thread and the diff, before any work starts; `unresolved`, or no stamp at all, the same dispatch with no diff — every clause. A stamp ahead of it means the install is older than the thread: say so, leave the stamp, and stop until the owner updates the plugin. An audit of the thread — the auditor, from this gate or the owner's ask — is the gate's own path and never trips it.
 

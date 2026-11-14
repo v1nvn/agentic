@@ -1,6 +1,6 @@
 ---
 name: run
-description: Build one group of a progress/<slug>.md thread file — every unit of one PR, one commit each, through its gates to an open PR with green CI. Use when the user points at a thread file and asks to run or build it ("run progress/x.md", "build group R4 of x"), or pastes review findings into a session building a group.
+description: Build one group of a progress/<slug>.md thread file — every unit of one PR, one commit each, through its gates to an open PR with green CI. Use when the user points at a thread file and asks to run or build it ("run progress/x.md", "build group R4 of x"), or pastes review findings into a session building a group. Not for reviewing a PR (`/todo:review`) or working a standing thread.
 argument-hint: <thread> [group]
 ---
 
@@ -9,7 +9,7 @@ the meanings of thread, group, unit and owed work.
 
 This session is the group's builder. It builds every unit itself, end to end, and opens the
 PR. It hands no unit to a subagent: a unit built out of this session's sight lands code nobody
-here read. The only dispatch is a read-only consult.
+here read.
 
 ## Open
 
@@ -20,19 +20,21 @@ here read. The only dispatch is a read-only consult.
    the repo's CLAUDE.md or AGENTS.md sections that bite.
 3. Branch. A branch for this group whose commits name its units is a resume: check it out
    clean and continue at the first unit with no commit. Otherwise branch from the group's
-   **Base** — the default branch when it names none — on a new branch named for the thread
-   and the group. A dirty tree: say so and stop.
+   **Base** — the default branch when it names none — on a new branch `<slug>-<group id>`.
+   A dirty tree: say so and stop.
 4. The session runs on another model than the group's tier: say so in one line and continue —
    a session cannot switch itself; the owner restarts it to change tier.
 5. Preconditions: the workspace gate green at the base — read from the base commit's CI
    (`gh run list --commit <sha>`) when a green run there runs it, else fired here — its
    minutes written into the tactical map as the gate's ceiling; the environment the units need
    (services, env vars, secrets, disk, `gh` auth). Any violation: say so and stop.
+6. An open question in the Plan that the group's units rest on goes to the owner through
+   §Stops before the first unit builds.
 
 ## Consults
 
 Before the unit a consult names builds, dispatch one read-only Agent (`subagent_type: "Plan"`)
-per consult. Its brief names the thread file, the unit, the code the unit names and the
+per consult, its `model` and `effort` the group's tier. Its brief names the thread file, the unit, the code the unit names and the
 consult's exact questions, and asks for options with one recommendation each. Take each
 recommendation through §Stops. Every finding that names a way the unit could fail becomes a
 named test or a close criterion in the unit's row before the unit builds — a finding left as
@@ -55,18 +57,20 @@ For each unit, in order:
   scoped gate lines while building, never wider.
 - A unit that adds a migration, a registry entry, a route or a config key proves the system
   reaches it: a test or command that fails while it is unregistered.
-- Last: the workspace gate and the enforcement script once, logged to
+- Last: the workspace gate and `enforce.sh` once, logged to
   `progress/.scratch/<slug>/gate-<unit id>.log`. A command past the Bash timeout runs in the
   background and its exit wakes the session; never poll with `sleep`. A gate re-fires only for
   a stated cause — changed code, or a flake with its failure quoted; an edit to comments alone
   re-runs only the cheap checks.
 - Prove each close criterion — its grep, test or gate line — walk the enforcement inventory's
-  checklist lines, and check `git diff --name-only` against the files the thread names.
+  checklist lines, and check `git diff --name-only` against the files the thread names. The
+  inventory's checkable lines are a script the group's first unit writes to
+  `progress/.scratch/<slug>/enforce.sh` and every unit after runs with the gate.
 - Commit the unit: one conventional line naming its id, no trailer. The lockfile, README and
   docs the gate exercises ride that commit.
 - Stop only processes this session started, by the PID it recorded.
 
-A measure the thread names — a ritual's before and after, or a group's **Stops** bar — is
+A measure the thread names — a before and after, or a group's **Stops** bar — is
 recorded to `progress/.scratch/<slug>/`, its first input's log checked before the rest run. A
 run already recorded for the same input and invocation is not paid twice. Probes tune against
 a frozen snapshot, never a live corpus. A rig that holds the machine is announced before it
@@ -100,16 +104,16 @@ Report each finding as fixed, refuted with its evidence, or stopped.
 
 ## PR
 
-At the group's first commit, push and open the PR with its base named explicitly
-(`gh pr create --base <base>`); each later commit pushes. Never push to the default branch,
+At the group's first commit, push and open the PR as a draft with its base named explicitly
+(`gh pr create --draft --base <base>`); each later commit pushes. Never push to the default branch,
 never merge. After the last unit, watch CI at the head (`gh pr checks <pr> --watch`, in the
 background); a red check is fixed like a red gate. Mark the PR ready on green CI.
 
 ## Context
 
-When the context passes about half the window, or the owner calls it, commit what is green
-and run `/todo:handoff`: its pointer is `/todo:run <thread> <group>`, and the fresh session
-resumes per §Open 3.
+When the context passes about half the window, or the owner calls it, commit what is green,
+run `/todo:handoff`, and commit its fold on the branch, so the fresh session's
+`/todo:run <thread> <group>` finds a clean tree and resumes per §Open 3.
 
 ## Red lines
 

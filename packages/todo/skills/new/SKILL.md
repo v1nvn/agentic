@@ -69,10 +69,12 @@ the owner kept. An index entry with no file needs no notes.
 A thread with Steps is cut here into groups and units, because a `/todo:run` session builds one
 whole group from the thread alone. Per the rules' group and unit tests, and per group:
 
-- **Tier** — one model for the group, the highest any of its units needs.
+- **Tier** — one model or `model/effort` pair for the group, the highest any of its units
+  needs; `owner` for a group of decisions the run must not build.
 - **Consults** — for each unit that sets a design rule, a resource budget, or a seam a later
   unit or group relies on: the exact questions a read-only consult answers before it builds.
-- **Stops** — every measure the design rests on, with its bar and what a miss does.
+- **Stops** — every measure the design rests on, with its bar; a miss stops the build for the
+  owner.
 - **Review lens** — what the review weighs beyond regressions, seams and simplification.
 - **Rig** — what the group measures with, ready on the branch, how to run it, and what it
   shares that breaks a second run beside it (a port, a wallet, a fixture directory).

@@ -17,13 +17,13 @@ read by eye.
 
 ## Frontmatter
 
-| Check           | Rule                                                                                                                                                                      |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `name`          | kebab-case, ≤ 64 chars, matches the invocation name the README and AGENTS.md use                                                                                          |
-| `description`   | ≤ 1024 chars; aim well under 100–200 words                                                                                                                                |
-| Keys            | Claude Code keys are valid here: `when_to_use`, `argument-hint`, `disable-model-invocation`. `quick_validate.py` rejects them — it targets claude.ai uploads, not plugins |
-| `<` `>`         | Allowed in descriptions here (`<url>`, `<slug>`); `quick_validate.py` bans them for claude.ai uploads only                                                                |
-| `argument-hint` | Only when the skill takes arguments; a literal `(no args)` shows up in the menu as noise                                                                                  |
+| Check           | Rule                                                                                                                                                                                                                                                                                        |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`          | kebab-case, ≤ 64 chars, matches the invocation name the README and AGENTS.md use                                                                                                                                                                                                            |
+| `description`   | ≤ 1024 chars; aim well under 100–200 words                                                                                                                                                                                                                                                  |
+| Keys            | Upstream-valid: `name`, `description`, `license`, `allowed-tools`, `metadata`, `compatibility` (≤ 500 chars). Claude Code keys are valid here too: `when_to_use`, `argument-hint`, `disable-model-invocation`; `quick_validate.py` rejects them — it targets claude.ai uploads, not plugins |
+| `<` `>`         | Allowed in descriptions here (`<url>`, `<slug>`); `quick_validate.py` bans them for claude.ai uploads only                                                                                                                                                                                  |
+| `argument-hint` | Only when the skill takes arguments; a literal `(no args)` shows up in the menu as noise                                                                                                                                                                                                    |
 
 ## Description
 
@@ -38,6 +38,10 @@ read by eye.
 - A judgment trigger ("evidence the user does not hold") carries an explicit negative
   boundary naming the near-misses. A changed trigger sweeps every other statement of the
   old rule — body steps, fallback paths, the README — in the same change.
+- Every auto-invoked description names the nearest sibling skill it is not, so adjacent asks
+  route to the right one.
+- A description for a one-step action will not trigger: Claude consults skills only for
+  non-trivial tasks.
 - A `disable-model-invocation: true` skill needs no trigger text — only the owner invokes it.
 
 ## Body
@@ -57,6 +61,9 @@ read by eye.
   runs overwrite.
 - Sample output carries no machine-specific paths or personal data.
 - Lack of surprise: the body does nothing the description would not lead a user to expect.
+- A rule is stated as the general principle, never as the fix for the one case that surfaced
+  it.
+- Lean: a line that changes no run's behavior is deleted.
 
 ## Promoting findings
 

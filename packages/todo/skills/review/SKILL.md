@@ -5,6 +5,8 @@ argument-hint: <pr | thread>
 disable-model-invocation: true
 ---
 
+Load `/todo:rules` first — the thread shapes this review reads live there.
+
 Review blind, print the findings, and stop. Never edit a tracked file, commit, push or post:
 the owner routes each finding — fixing it in this session, or pasting it into the group's
 `/todo:run` session.
@@ -44,21 +46,21 @@ context.
   - each checklist line of the enforcement inventory;
   - what the units do together that no single unit shows.
 - Weigh the group's **Review lens**.
-- A thread review adds what one PR does to another's code, and re-runs the Goal's measure the
-  thread's Plan names on the final head, against its bar.
+- A thread review adds what one PR does to another's code, re-runs the Goal's measure the
+  thread's Plan names on the final head against its bar, and runs the Plan's end checks.
 
 Every finding is verified against the code before it is printed. Where reading cannot settle
 it — memory held, a race, a retry, a byte budget — reproduce it: a test or the group's
 **Rig**, every command under a `timeout`, a probe still running at ten minutes stopped and
-reported as unsettled. A file written for a reproduction is deleted before the report; the tree
-ends as it began.
+reported as unsettled. A reproduction runs on the head in its own worktree
+(`git worktree add <dir from mktemp -d> origin/<head>`), removed before the report, so the
+tree this session started in ends as it began.
 
 ## Report
 
 Findings only, most severe first, each
 `file:line — finding — evidence (the read or the reproduction's output) — blocking | nit`.
-`blocking` is wrong behavior, a broken seam, money, a test that could not fail, an unasked
-deviation, a file outside the thread, an old path left in place, or a tracking reference in
-code. `nit` is what the thread's or the repo's standing rules flag in simplification, naming,
-comments or docs — never taste. A finding outside every unit says so. No praise, no summary of
+`blocking` is every core check above, a missed close criterion, and a Goal measure past its
+bar — except a comment that restates the code. `nit` is that comment, and what the thread's or
+the repo's standing rules flag in simplification, naming or docs — never taste. A finding outside every unit says so. No praise, no summary of
 what is fine. Then stop.
