@@ -66,3 +66,23 @@ the owner kept. An index entry with no file needs no notes.
   entries as the evidence they are, `open:` entries as open questions.
 - The fold deletes the notes it read, per the rules.
 - Which repo receives the thread is the owner's call. Placement is never derived.
+
+## Cutting groups
+
+A thread with Steps is cut here into groups and units, because a `/todo:run` session builds one
+whole group from the thread alone. Per the rules' group and unit tests, and per group:
+
+- **Tier** — one model for the group, the highest any of its units needs.
+- **Consults** — for each unit that sets a design rule, a resource budget, or a seam a later
+  unit or group relies on: the exact questions a read-only consult answers before it builds.
+- **Stops** — every measure the design rests on, with its bar and what a miss does.
+- **Review lens** — what the review weighs beyond regressions, seams and simplification.
+- **Rig** — what the group measures with, ready on the branch, how to run it, and what it
+  shares that breaks a second run beside it (a port, a wallet, a fixture directory).
+- **Plan** — the tactical map's cheap-check lines beside the workspace gate, and the Goal's
+  measure the thread review re-runs.
+
+Before the mint ends, read the thread as a fresh builder would. Every value a unit relies on —
+a threshold, a timeout, a limit — is in the thread with its source and its arithmetic; every
+test, file or helper the thread cites exists on the base branch; nothing the sitting decided
+lives only in the conversation. A gap is filled, or written as an open question.
