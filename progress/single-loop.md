@@ -36,6 +36,11 @@ Build R1.
 
 ## Steps
 
+### R1 · todo: roles up a level, threads cut by PR · opus/high
+
+- **Review lens:** every surface states the same rule once; nothing names a retired door, role
+  or cell.
+
 | id | unit | close criteria |
 | --- | --- | --- |
 | R1 | Rules: the thread file cut by group — a group section per PR carrying its tier, consults, stop rules, review lens and rig; units `id · unit · close criteria`; the `**Run:**` line, per-unit `model`/`review`/`consult` cells, `session` units and their alternation removed; builder scratch files removed; a thread closes after its last PR merges and its thread review ran, the whole file archived at close | `rules/SKILL.md` names no `session` unit, no `**Run:**` line, no `review: unit`, no `-builder.md` file; its thread-file shape shows group sections; `claude plugin validate packages/todo` passes |
