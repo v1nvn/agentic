@@ -1,6 +1,6 @@
 ---
 name: new
-description: Start a work-tracking thread — the TODO.md index entry always, and progress/<slug>.md folded from the sitting's notes when the entry needs one. Use when the session opened a new thread of work ("start a thread on X", "add a line for X"), the moment a sitting picks up work that has no entry or whose entry now needs a file, when closing one thread mints its successors in the same edit, or when the owner types /todo:new to close a brainstorm. Inside an open /todo:brainstorm, only the owner's typed /todo:new starts it.
+description: Start a work-tracking thread — the TODO.md index entry always, and progress/<slug>.md folded from the sitting's notes when the entry needs one. Use when the session opened a new thread of work ("start a thread on X", "add a line for X"), the moment a sitting picks up work that has no entry or whose entry now needs a file, or when closing one thread mints its successors in the same edit.
 argument-hint: [title]
 ---
 
@@ -16,7 +16,6 @@ is written always; `progress/<slug>.md` only when the rules say the entry gets o
 
 - The moment a sitting picks up work that has no entry, or whose entry now needs a file
   — not after the fact. Mid-sitting, the moment the owner says "open the thread".
-- Inside a `/todo:brainstorm`, only when the owner types `/todo:new`.
 - A thread's close mints its successors — one per goal kept — from owed work the owner
   kept, in the same edit that closes the predecessor, never a separate sitting.
 - A sitting that only parked blocked work owes a thread too: the file then holds the
@@ -25,9 +24,7 @@ is written always; `progress/<slug>.md` only when the rules say the entry gets o
 ## The notes
 
 A thread file is folded from notes, never written from recall. The notes are the
-brainstorm's `progress/.scratch/brainstorm-<session id>.md` this sitting wrote or resumed,
-else the work's own `progress/.scratch/<slug>.md`. A sitting with neither writes them
-first, in the rules' talk-entry form, from its record — the owner's messages, your
+work's own `progress/.scratch/<slug>.md`. A sitting without them writes them first, in the rules' talk-entry form, from its record — the owner's messages, your
 reports, the tool results — then folds them; a successor's notes are the owed-work lines
 the owner kept. An index entry with no file needs no notes.
 
