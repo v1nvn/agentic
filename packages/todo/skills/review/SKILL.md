@@ -1,59 +1,66 @@
 ---
 name: review
-description: Review a pull request's whole diff and fix the findings the owner picks on the PR branch.
-argument-hint: <pr>
+description: Blind review of one pull request, or of every PR a thread landed, read against the thread's plan — prints verified findings and stops.
+argument-hint: <pr | thread>
 disable-model-invocation: true
 ---
 
-Review one pull request end to end. The argument names a PR in the current repo — a
-number, a URL or a branch. One that does not resolve, or a PR already merged or
-closed: say so and stop.
+Load `/todo:rules` first — the thread shapes this review reads live there.
+
+Review blind, print the findings, and stop. Never edit a tracked file, commit, push or post:
+the owner routes each finding — fixing it in this session, or pasting it into the group's
+`/todo:run` session.
 
 ## Gather
 
-- `gh pr view <pr> --json number,title,state,baseRefName,headRefName,isCrossRepository`
-  names the base and the head; `git fetch origin <base> <head>`, and the diff under
-  review is `git diff origin/<base>...origin/<head>`.
-- A PR a `/todo:run` run opened has its thread file in `progress/<slug>.md` while the
-  thread is live and its landed rows in `archive/<slug>.md` — the whole thread file once
-  the thread closed — matched by the branch name or the unit ids in its commits.
-  Its rows are the review's context. Several candidates, or none:
-  the diff is the whole context.
+- **A PR** — a number, a URL or a branch: `gh pr view <pr> --json number,state,baseRefName,headRefName`,
+  then `git fetch origin <base> <head>`; the diff is `git diff origin/<base>...origin/<head>`
+  and the base commit is `git merge-base origin/<base> origin/<head>`.
+- **A thread** — a `progress/<slug>.md` path or its slug, live or in `archive/`: every group's
+  PR, found by its branch `<slug>-<group id>`
+  (`gh pr list --state all --head <slug>-<group id>`). The diff runs from the first group's base
+  commit to the last group's head, or to the default branch once all have merged.
+- Anything that does not resolve: say so and stop.
 
-The session reads no source and no diff itself; the reviewers do.
+The review is blind. Its plan is the thread file as it stood at the base commit
+(`git show <base sha>:progress/<slug>.md`), because the builder writes into the thread while
+it builds; never the thread at the head, the PR's description, or a builder's session or
+report. Gate logs at `progress/.scratch/<slug>/gate-<unit id>.log` are read when present: a
+criterion a test proves is proven by its log. A PR no thread built has the diff as its whole
+context.
 
 ## Review
 
-Dispatch two fresh `todo:reviewer`s in one message, so they run in parallel, each on a
-branch review — the brief names the diff command above, the thread-file path when there is
-one, and its lens:
+- Run every unit's close criteria — its greps and counts — with raw output.
+- Check the core:
+  - an unasked deviation from the thread's plan;
+  - a test that could not fail: green with the behavior it names reverted, or crossing a seam
+    only with a value where two readings coincide;
+  - money and seams: both ends agree on unit and meaning;
+  - the one-way rule: the old path deleted in the same change;
+  - a new type, field or name where an existing one does the job;
+  - a migration, registry entry, route or config key nothing reaches;
+  - a test weakened to pass;
+  - comments that restate the code; tracking references (unit ids, thread names) in code;
+  - files the thread does not name;
+  - each checklist line of the enforcement inventory;
+  - what the units do together that no single unit shows.
+- Weigh the group's **Review lens**.
+- A thread review adds what one PR does to another's code, re-runs the Goal's measure the
+  thread's Plan names on the final head against its bar, and runs the Plan's end checks.
 
-- regressions, critical issues and simplification (DRY, YAGNI);
-- money, seams, migrations and the doors the units share.
-
-A reviewer whose report comes back empty or malformed is re-dispatched once.
+Every finding is verified against the code before it is printed. Where reading cannot settle
+it — memory held, a race, a retry, a byte budget — reproduce it: a test or the group's
+**Rig**, every command under a `timeout`, a probe still running at ten minutes stopped and
+reported as unsettled. A reproduction runs on the head in its own worktree
+(`git worktree add <dir from mktemp -d> origin/<head>`), removed before the report, so the
+tree this session started in ends as it began.
 
 ## Report
 
-One list, `blocking` before `nit`, each `file:line — finding — lens`; a finding both
-reviewers raised appears once, under both lenses. Then stop: the owner picks what to fix — all, `blocking` only, or named
-findings.
-
-## Fix
-
-On the owner's pick, check the tree: it must be the PR's head branch, clean, and equal
-to `origin/<head>`; a cross-repository PR cannot be pushed to. Otherwise say so and
-stop.
-
-Dispatch one fresh `todo:builder`. Its brief names the PR branch, the picked findings,
-its scratch file `progress/.scratch/review-<pr>-builder.md`, its gate log
-`progress/.scratch/review-<pr>-gate.log`, and the workspace gate
-line with its ceiling — the thread file's, else the repo's gate from its CLAUDE.md or package
-scripts. The builder fires a gate whose ceiling is four minutes or under; a longer or
-unmeasured gate the session fires in the background once the builder stops, and a red
-result goes to a replacement builder with the failure in its brief. Items the builder
-reports as stopped go back to the owner with its options.
-
-Commit only what landed on a green gate — one conventional line, no trailer — push to
-the PR branch, never to its base, and delete the scratch file and the gate log. The fix diff gets no
-further review; the closing line names the commit and the findings left unfixed.
+Findings only, most severe first, each
+`file:line — finding — evidence (the read or the reproduction's output) — blocking | nit`.
+`blocking` is every core check above, a missed close criterion, and a Goal measure past its
+bar — except a comment that restates the code. `nit` is that comment, and what the thread's or
+the repo's standing rules flag in simplification, naming or docs — never taste. A finding outside every unit says so. No praise, no summary of
+what is fine. Then stop.

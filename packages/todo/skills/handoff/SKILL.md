@@ -27,6 +27,9 @@ facts.
    <next step>. <One line: anything a fresh session would otherwise get wrong.>
    ```
 
+   A group still building hands off as `/todo:run <thread> <group>`, which resumes on the
+   group's branch.
+
 ## Case 2 — no thread (throwaway work, cross-repo handoff, or a non-repo cwd)
 
 Print a self-contained block the user pastes into the fresh session. Include only what
@@ -38,9 +41,6 @@ a cold session cannot reconstruct from the target repo in under a minute:
 - Constraints and decisions learned this session that the target repo does not record:
   commands that work, the trap that was hit, the approach that was rejected and why.
 - Open questions for the user.
-
-A brainstorm's notes (`progress/.scratch/brainstorm-*.md`) stay where they are: name the
-file at the top of the block, so the fresh session resumes it with `/todo:brainstorm`.
 
 Keep it tight. Never invent next steps that were not agreed — if the next step is
 undecided, say so and list the options with a recommendation.

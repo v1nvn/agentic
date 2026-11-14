@@ -37,16 +37,11 @@
   must not accrete.
 - **todo — board pane or band** · [packages/todo]
   Wanted: a zero-token always-visible board; the cost is an island parser of shapes `todo:rules` defines in prose. Unruled — held in the archived consult, archive/mods-port.md.
-- **todo:run — whether the orchestrator loop leaves the model** · [packages/todo] → progress/run-orchestrator-loop.md
-- **todo:run — fold subagents into the session, measured on real runs** · HIGH · [packages/todo] → progress/single-loop.md
-- **todo:run — re-measure under the role agents** · HIGH
-  Wanted: a fresh `/todo:run` of `progress/audit-refactor.md` whose `/todo:postmortem` per-unit wall, tokens and minutes to first edit sit beside the baseline recorded in archive/run-costs.md.
+- **todo — roles move up a level; threads cut by PR** · HIGH · [packages/todo] → progress/single-loop.md
 - **Grill — interview pass on unit authoring** · [packages/todo] → progress/grill.md
 
 ## Parked
 
-- **todo:run — silent worker hang watchdog** · [packages/todo] — revisit when a run hangs on a deadlocked worker
-  With no timer, nothing wakes the orchestrator when a worker's tool call deadlocks; wanted: one background sleep whose exit notifies, and no model turns between.
 - **Panel row — per-task cache and cost** · LOW · [packages/statusline] — revisit when Claude Code ships them in the tick
   The tick carries neither; the only door today is a 3-hop transcript mine.
 - **Panel row — retire the transcript-derived used-context reader** · LOW · [packages/statusline] → progress/tokencount-reader.md — revisit when a Claude Code changelog entry fixes subagentStatusLine's tokenCount
