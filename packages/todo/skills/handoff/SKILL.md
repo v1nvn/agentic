@@ -27,6 +27,9 @@ facts.
    <next step>. <One line: anything a fresh session would otherwise get wrong.>
    ```
 
+   A group still building hands off as `/todo:run <thread> <group>`, which resumes on the
+   group's branch.
+
 ## Case 2 — no thread (throwaway work, cross-repo handoff, or a non-repo cwd)
 
 Print a self-contained block the user pastes into the fresh session. Include only what

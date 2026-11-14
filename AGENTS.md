@@ -161,10 +161,9 @@ time, so it speaks only to that model.
   (never add a second skill, keep a version pinned) is noise in a `SKILL.md`.
 - **Emphasis is earned by a reason.** State a constraint plainly with its _because_; caps and
   `NEVER` are for contract facts and routing, not for steering behavior.
-- **todo: `/todo:run` is the primary skill.** It is the battle-tested one; `rules` defines
-  the thread-file shape `run` consumes, the `agents/` role files carry the law `run`
-  dispatches, and every other todo skill stays in sync with all three — a change to one
-  lands in the others in the same change.
+- **todo: `/todo:run` is the primary skill.** `rules` defines the thread-file shape `run`
+  and `review` consume, and every other todo skill stays in sync with the three — a change
+  to one lands in the others in the same change.
 - **A subagent is steered by its role file and its brief, never by hooks.** Hooks that
   block, rewrite or inject into a worker's calls are regressions waiting to happen.
 - **Promotion out of a thread is rare and strict.** A rule reaches a consumer repo's

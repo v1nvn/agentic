@@ -1,6 +1,6 @@
 ---
 name: postmortem
-description: Read a finished run's session transcripts and report where the time and money went and which run rules were broken — the time tree across orchestrator, workers and background rituals, the token ledger and cost, totals per 100 changed lines, and mechanical waste shapes.
+description: Read a finished build or review session's transcripts and report where the time and money went and which run rules were broken — the time tree across the session, its subagents and background commands, the token ledger and cost, totals per 100 changed lines, and mechanical waste shapes.
 argument-hint: [session-id]
 disable-model-invocation: true
 ---
@@ -11,27 +11,26 @@ to the thread file, not to the tracking files.
 ## Find the session
 
 The argument names a session id; no argument takes the newest session in this project.
-The transcript is `~/.claude/projects/<slug>/<id>.jsonl`; its workers are
+The transcript is `~/.claude/projects/<slug>/<id>.jsonl`; its subagents are
 `<id>/subagents/agent-*.jsonl`, each with an `agent-*.meta.json` beside it carrying
 `description` and `model`. If the id doesn't resolve, stop and say so.
 
 ## Measure
 
 Run `node ${CLAUDE_PLUGIN_ROOT}/skills/postmortem/scripts/analyze.mjs <transcript> <gate-pattern>`.
-The gate pattern is required: the autopsied repo's suite command — the gate line the
-run's thread file pinned, else derived from the repo as a run derives it (`run/SKILL.md`,
-Open.4). It prints markdown:
+The gate pattern is required: the autopsied repo's suite command — the workspace gate line
+the thread's tactical map pins, else the repo's gate from its CLAUDE.md or package scripts. It prints markdown:
 
-- the time tree: wall, owner wait (owner questions included), stalls, orchestrator generation, every worker's wall split
+- the time tree: wall, owner wait (owner questions included), stalls, session generation, every subagent's wall split
   into generation and tools, every background span with how much of it overlapped work;
-- per worker: type, the model and effort it ran at, wall, minutes from spawn to its
+- per subagent: type, the model and effort it ran at, wall, minutes from spawn to its
   first edit (the context it had to build before working), generation, tool time, model calls, median turn gap;
-- the token ledger per agent, orchestrator included: input, cache read and write,
+- the token ledger per agent, the session included: input, cache read and write,
   output, first-call context (the spawn's entry cost), peak context, cache hit; the
   read : write ratio and the standing-context share;
 - cost from the harness `cost-state` record, per model — absent while the session
   is still live;
-- Bash time by category for the orchestrator and the workers, and every workspace-gate
+- Bash time by category for the session and its subagents, and every workspace-gate
   firing with its duration;
 - files two or more agents read;
 - violation candidates, as many as the transcripts carry, each with the rule it breaks, or, where none applies (a stalled host, a lever), saying so.

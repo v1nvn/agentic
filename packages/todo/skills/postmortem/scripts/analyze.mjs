@@ -10,19 +10,13 @@ const SLEEP = /\bsleep\b/;
 const CACHE_TTL = 300000;
 const EDITS = new Set(['Edit', 'Write', 'NotebookEdit']);
 const TOLLED = new Set(['attachment', 'meta', 'queue']);
-const ORCHESTRATOR = 'orchestrator';
+const SESSION = 'session';
 const BASH_TIMEOUT = 120000;
 const STALL_SLACK = 60000;
 const RULE = {
-  foregroundSuite:
-    'run: the orchestrator starts every long-running command in the background',
   stalled: 'a stalled host, not a rule',
-  reviewerSuite: 'reviewer: never run a build or a test suite',
-  sleepPoll: 'builder: never poll with `sleep`',
-  orchSleep:
-    'run: the orchestrator sets no timer — a report, a background exit or the owner is what wakes it',
-  reshape: 'builder: never re-run a suite to re-shape its output',
-  coldResume: 'run: a worker idle five minutes is never resumed',
+  sleepPoll: 'run: never poll with `sleep`',
+  refire: 'run: a gate re-fires only for a stated cause',
   serializedTail: 'a lever, not a rule: other work could have run beside it',
 };
 
@@ -254,7 +248,7 @@ function main(transcript, suiteSrc) {
     .reduce((a, r) => a + r.dur, 0);
 
   // A gap before an assistant message that background work fully covered is
-  // orchestrator wait, not generation.
+  // session wait, not generation.
   let gen = 0;
   let wait = 0;
   for (const [i, e] of ev.entries()) {
@@ -295,12 +289,6 @@ function main(transcript, suiteSrc) {
         }
       }
       const runs = toolRuns(wev);
-      const resumes = [];
-      for (const [i, e] of wev.entries()) {
-        if (i === 0 || !['user_other', 'human'].includes(kind(e))) continue;
-        const idle = ts(e.timestamp) - ts(wev[i - 1].timestamp);
-        if (idle >= CACHE_TTL) resumes.push({ at: ts(e.timestamp), idle });
-      }
       workers.push({
         desc: meta.description ?? '?',
         type: meta.agentType ?? '?',
@@ -316,7 +304,6 @@ function main(transcript, suiteSrc) {
         gaps,
         runs,
         bash: bashOf(runs),
-        resumes,
         usage: ledger(wev),
         firstEdit: Math.min(
           ...runs.filter(r => EDITS.has(r.name)).map(r => r.start - w0),
@@ -326,7 +313,7 @@ function main(transcript, suiteSrc) {
   }
 
   const stalls = [
-    ...stalled(orchRuns).map(r => ({ who: ORCHESTRATOR, r })),
+    ...stalled(orchRuns).map(r => ({ who: SESSION, r })),
     ...workers.flatMap(w => stalled(w.runs).map(r => ({ who: w.desc, r }))),
   ];
   const stallTime = spanUnion(
@@ -335,12 +322,12 @@ function main(transcript, suiteSrc) {
 
   console.log('# postmortem\n');
   console.log(
-    `session ${basename(transcript)}  wall ${fmt(wall)}  owner wait ${fmt(ownerWait)}  stalls ${fmt(stallTime)}  orchestrator gen ${fmt(gen)}  orchestrator wait ${fmt(wait)}  foreground tools ${fmt(fgTools)}\n`,
+    `session ${basename(transcript)}  wall ${fmt(wall)}  owner wait ${fmt(ownerWait)}  stalls ${fmt(stallTime)}  session gen ${fmt(gen)}  session wait ${fmt(wait)}  foreground tools ${fmt(fgTools)}\n`,
   );
 
-  console.log('## workers\n');
+  console.log('## subagents\n');
   console.log(
-    '| start-end | wall | to first edit | gen | tools | type | model | effort | calls | median gap | worker |',
+    '| start-end | wall | to first edit | gen | tools | type | model | effort | calls | median gap | subagent |',
   );
   console.log('|---|---|---|---|---|---|---|---|---|---|---|');
   const byStart = [...workers].sort((a, b) => a.start - b.start);
@@ -355,7 +342,7 @@ function main(transcript, suiteSrc) {
     '| agent | calls | input | cache rd | cache cr | out | 1st ctx | max ctx | hit |',
   );
   console.log('|---|---|---|---|---|---|---|---|---|');
-  const rows = [{ desc: ORCHESTRATOR, usage: ledger(ev) }, ...byStart];
+  const rows = [{ desc: SESSION, usage: ledger(ev) }, ...byStart];
   const total = {
     calls: 0,
     input: 0,
@@ -398,7 +385,7 @@ function main(transcript, suiteSrc) {
   console.log('\n## Bash time by category\n');
   const cats = new Map();
   for (const { who, bash } of [
-    { who: ORCHESTRATOR, bash: bashOf(orchRuns) },
+    { who: SESSION, bash: bashOf(orchRuns) },
     ...workers.map(w => ({ who: 'workers', bash: w.bash })),
   ]) {
     for (const b of bash) {
@@ -422,7 +409,7 @@ function main(transcript, suiteSrc) {
   console.log('\n## files read by two or more agents\n');
   const readers = new Map();
   for (const { desc, runs } of [
-    { desc: ORCHESTRATOR, runs: orchRuns },
+    { desc: SESSION, runs: orchRuns },
     ...workers,
   ]) {
     for (const r of runs.filter(x => x.name === 'Read')) {
@@ -452,28 +439,14 @@ function main(transcript, suiteSrc) {
     const seg = base.split(';').find(s => SUITE.test(s)) ?? base;
     return seg.split('|')[0].trim();
   };
-  const orchBash = bashOf(orchRuns);
-  const orchSuites = orchBash.filter(b => !b.bg && SUITE.test(b.cmd));
-  if (orchSuites.length) {
-    flag(
-      `orchestrator ran a suite in the foreground: ${orchSuites.length} run(s), ${fmt(orchSuites.reduce((a, b) => a + b.dur, 0))}`,
-      'foregroundSuite',
-    );
-  }
-  const orchSleeps = orchBash.filter(b => SLEEP.test(b.cmd));
-  if (orchSleeps.length) {
-    flag(
-      `orchestrator sleep: ${orchSleeps.length} call(s), ${fmt(orchSleeps.reduce((a, b) => a + b.dur, 0))} total — first at ${hhmm(orchSleeps[0].start)}: ${orchSleeps[0].cmd.slice(0, 60)}`,
-      'orchSleep',
-    );
-  }
+  const agents = [{ desc: SESSION, bash: bashOf(orchRuns) }, ...workers];
   for (const { who, r } of stalls) {
     flag(
       `stalled tool result: ${who} — \`${String(r.input.command).slice(0, 60)}\` returned after ${fmt(r.dur)} at ${hhmm(r.start)}; counted in stalls, not work`,
       'stalled',
     );
   }
-  for (const w of workers) {
+  for (const w of agents) {
     const suites = w.bash.filter(b => SUITE.test(b.cmd));
     const sleeps = w.bash
       .filter(b => SLEEP.test(b.cmd))
@@ -482,18 +455,6 @@ function main(transcript, suiteSrc) {
       flag(
         `sleep poll: ${w.desc} slept ${sleeps.length} times, ${fmt(sleeps.reduce((a, b) => a + b.dur, 0))} total — first at ${hhmm(sleeps[0].start)}: ${sleeps[0].cmd.slice(0, 60)}`,
         'sleepPoll',
-      );
-    }
-    if (/review/i.test(`${w.type} ${w.desc}`) && suites.length) {
-      flag(
-        `suite run by a reviewer: ${w.desc} — ${suites.length} run(s), ${fmt(suites.reduce((a, b) => a + b.dur, 0))}`,
-        'reviewerSuite',
-      );
-    }
-    for (const { at, idle } of w.resumes) {
-      flag(
-        `cold resume: ${w.desc} continued at ${hhmm(at)} after ${fmt(idle)} idle`,
-        'coldResume',
       );
     }
     const clusters = new Map();
@@ -508,8 +469,8 @@ function main(transcript, suiteSrc) {
       for (let i = 1; i < runs.length; i++) {
         if (runs[i].start - runs[i - 1].start >= 300000) continue;
         flag(
-          `re-run to re-shape: ${w.desc} re-ran \`${key.slice(0, 60)}\` ${((runs[i].start - runs[i - 1].start) / 1000).toFixed(0)}s after a green run at ${hhmm(runs[i - 1].start)}`,
-          'reshape',
+          `re-fired: ${w.desc} re-ran \`${key.slice(0, 60)}\` ${((runs[i].start - runs[i - 1].start) / 1000).toFixed(0)}s after a green run at ${hhmm(runs[i - 1].start)}`,
+          'refire',
         );
       }
     }
@@ -545,7 +506,7 @@ function main(transcript, suiteSrc) {
 
   if (!flagged) console.log('(none)');
   console.log(
-    '\nmeasure limits: thinking is encrypted (generation = gap before an assistant message); parallel tools overlap; owner wait folds attachments before a human message and counts owner questions; a foreground Bash result past its timeout counts as a stall; a gap background work fully covered counts as orchestrator wait, partial coverage stays in gen; transcript token sums run below cost-state, which counts retries.',
+    '\nmeasure limits: thinking is encrypted (generation = gap before an assistant message); parallel tools overlap; owner wait folds attachments before a human message and counts owner questions; a foreground Bash result past its timeout counts as a stall; a gap background work fully covered counts as session wait, partial coverage stays in gen; transcript token sums run below cost-state, which counts retries.',
   );
 }
 
