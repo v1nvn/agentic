@@ -1,6 +1,6 @@
 # todo — roles move up a level; threads cut by PR
 
-**Todo:** 0.55.2
+**Todo:** 0.56.0
 
 ## Goal
 
@@ -17,9 +17,11 @@ The todo plugin works the way the owner ran the testril capacity rework by hand:
 
 ## Current state
 
-- Every unit is built on branch `todo-rework`, not pushed: R1–R7 one commit each, plus one
-  fix commit from the skill review against `references/skill-review.md` and the upstream
-  skill-creator, which also promoted four upstream rules into that reference.
+- Every unit is built: R1–R7 one commit each, one fix commit from the skill review against
+  `references/skill-review.md` and the upstream skill-creator (which also promoted four
+  upstream rules into that reference), and one from a blind review of the branch.
+- A pick taken mid-build: R2's criterion as cut said `run/SKILL.md` dispatches no agent; the
+  Design's consults run as a read-only agent, so the criterion was rewritten to allow it.
 - Gates green after every commit: `build-skills.mjs`, `claude plugin validate packages/todo`,
   prettier, eslint on the postmortem script. The reworked postmortem ran on a real builder
   session and flagged its re-fired gates and sleep polls.
@@ -28,8 +30,6 @@ The todo plugin works the way the owner ran the testril capacity rework by hand:
 - The trial's ledger (42 units) and the design's evidence are kept in
   `progress/.scratch/single-loop/` and `progress/.scratch/single-loop/rework/`.
 - Owed work:
-  - The release step: removing `/todo:brainstorm` and changing `/todo:run`'s arguments break
-    the surface; the owner picks major or minor.
   - Skill-review findings older than this thread, left as found: the stamp gate's "never a
     brief the session writes" against the auditor's diff brief; no failure branch where a
     skill loads `/todo:rules`; `/todo:new`'s `[title]` path skips the slug check; the
@@ -37,12 +37,11 @@ The todo plugin works the way the owner ran the testril capacity rework by hand:
     proposed.
   - `progress/asks-audit.md` and `progress/grill.md` overlap this rework (review verifies, a
     consult before a stop, unit authoring); the owner rules what they keep.
-  - The parked "silent worker hang watchdog" entry names workers that no longer exist.
 
 ## Next step
 
-Owner: push `todo-rework` and open its PR, run `/todo:review <pr>` in a fresh session, merge,
-then close this thread and run the Plan's measure on the first threads cut in the new shape.
+Merge the PR and cut a minor release (owner), then close this thread and run the Plan's
+measure on the first threads cut in the new shape.
 
 ## Steps
 
@@ -51,15 +50,15 @@ then close this thread and run the Plan's measure on the first threads cut in th
 - **Review lens:** every surface states the same rule once; nothing names a retired door, role
   or cell.
 
-| id | unit | close criteria |
-| --- | --- | --- |
-| R1 | Rules: the thread file cut by group — a group section per PR carrying its tier, consults, stop rules, review lens and rig; units `id · unit · close criteria`; the `**Run:**` line, per-unit `model`/`review`/`consult` cells, `session` units and their alternation removed; builder scratch files removed; a thread closes after its last PR merges and its thread review ran, the whole file archived at close | `rules/SKILL.md` names no `session` unit, no `**Run:**` line, no `review: unit`, no `-builder.md` file; its thread-file shape shows group sections; `claude plugin validate packages/todo` passes. Landed: 97dab74, fixes 821750a |
-| R2 | `/todo:run <thread> <group>` is the builder: one group end to end in its own session — consults first with each finding turned into a named test or close criterion, every unit built in order by the session itself, cheap checks before the gate, gates and rigs of any length, stops to the owner directly on the thread's stop rules and the floor, push, PR, CI; pasted findings verified then fixed; a big group continues through `/todo:handoff`. `agents/builder.md` deleted | `agents/builder.md` is gone; `run/SKILL.md` dispatches only a read-only consult and is under half its 324 lines; validate passes (the README, auditor and review stop naming the builder in R3 and R5). Landed: 6f161f8, fixes 821750a |
-| R3 | `/todo:review <pr>` and `/todo:review <thread>` are blind: the thread read at the base commit, the diff and the gate logs, never a builder's account; findings verified against the code, a reproduction run under a time bound where the claim needs one, nothing edited; findings printed and the review stops; the thread form reviews every group's PR against the Goal and re-runs the Goal's measure. `agents/reviewer.md` deleted | `agents/reviewer.md` is gone; no skill names `todo:reviewer`; `review/SKILL.md` has no fix step and names the base-commit read; validate passes. Landed: b269d55, fixes 821750a |
-| R4 | `/todo:new` cuts groups and units: what is one PR, what is one unit, their sizes; writes each group's consults with their exact questions, stop rules, review lens and rig; checks before it ends that the thread carries everything a fresh builder needs | `new/SKILL.md` names each group field and the completeness check; validate passes. Landed: 44d778c, fixes 821750a |
-| R5 | The other surfaces say the same thing: `handoff`, `status`, `postmortem` (skill and its violation labels), the auditor, the README, and AGENTS.md's todo lines | `grep -rn -E "todo:builder\|todo:reviewer\|session unit\|orchestrator\|-builder\.md" packages/todo AGENTS.md` prints nothing outside the postmortem's measure of old runs; validate passes; prettier passes. Landed: 8209ef9, fixes 821750a |
-| R6 | `/todo:brainstorm` removed; what its real use in the two weeks before this thread showed worth keeping folds into `/todo:new` | `skills/brainstorm/` is gone; no surface names `/todo:brainstorm`; validate passes. Landed: a6c2dc5 |
-| R7 | Tracking: `progress/run-orchestrator-loop.md` closes — its question has no loop left to ask about; the index entry "re-measure under the role agents" goes for the same reason | The file is appended to `archive/run-orchestrator-loop.md` and deleted; `TODO.md` has neither entry and this thread's entry carries this title. Landed: 357c706 |
+| id  | unit                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | close criteria                                                                                                                                                                                                                                       |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| R1  | Rules: the thread file cut by group — a group section per PR carrying its tier, consults, stop rules, review lens and rig; units `id · unit · close criteria`; the `**Run:**` line, per-unit `model`/`review`/`consult` cells, `session` units and their alternation removed; builder scratch files removed; a thread closes after its last PR merges and its thread review ran, the whole file archived at close                                                                     | `rules/SKILL.md` names no `session` unit, no `**Run:**` line, no `review: unit`, no `-builder.md` file; its thread-file shape shows group sections; `claude plugin validate packages/todo` passes. Landed: be6032d, fixes 7885199, c45579a           |
+| R2  | `/todo:run <thread> <group>` is the builder: one group end to end in its own session — consults first with each finding turned into a named test or close criterion, every unit built in order by the session itself, cheap checks before the gate, gates and rigs of any length, stops to the owner directly on the thread's stop rules and the floor, push, PR, CI; pasted findings verified then fixed; a big group continues through `/todo:handoff`. `agents/builder.md` deleted | `agents/builder.md` is gone; `run/SKILL.md` dispatches only a read-only consult and is under half its 324 lines; validate passes (the README, auditor and review stop naming the builder in R3 and R5). Landed: cc98042, fixes 7885199, c45579a      |
+| R3  | `/todo:review <pr>` and `/todo:review <thread>` are blind: the thread read at the base commit, the diff and the gate logs, never a builder's account; findings verified against the code, a reproduction run under a time bound where the claim needs one, nothing edited; findings printed and the review stops; the thread form reviews every group's PR against the Goal and re-runs the Goal's measure. `agents/reviewer.md` deleted                                              | `agents/reviewer.md` is gone; no skill names `todo:reviewer`; `review/SKILL.md` has no fix step and names the base-commit read; validate passes. Landed: 9aa62c7, fixes 7885199, c45579a                                                             |
+| R4  | `/todo:new` cuts groups and units: what is one PR, what is one unit, their sizes; writes each group's consults with their exact questions, stop rules, review lens and rig; checks before it ends that the thread carries everything a fresh builder needs                                                                                                                                                                                                                            | `new/SKILL.md` names each group field and the completeness check; validate passes. Landed: d627482, fixes 7885199, c45579a                                                                                                                           |
+| R5  | The other surfaces say the same thing: `handoff`, `status`, `postmortem` (skill and its violation labels), the auditor, the README, and AGENTS.md's todo lines                                                                                                                                                                                                                                                                                                                        | `grep -rn -E "todo:builder\|todo:reviewer\|session unit\|orchestrator\|-builder\.md" packages/todo AGENTS.md` prints nothing outside the postmortem's measure of old runs; validate passes; prettier passes. Landed: 9e04bab, fixes 7885199, c45579a |
+| R6  | `/todo:brainstorm` removed; what its real use in the two weeks before this thread showed worth keeping folds into `/todo:new`                                                                                                                                                                                                                                                                                                                                                         | `skills/brainstorm/` is gone; no surface names `/todo:brainstorm`; validate passes. Landed: e3d9c93                                                                                                                                                  |
+| R7  | Tracking: `progress/run-orchestrator-loop.md` closes — its question has no loop left to ask about; the index entry "re-measure under the role agents" goes for the same reason                                                                                                                                                                                                                                                                                                        | The file is appended to `archive/run-orchestrator-loop.md` and deleted; `TODO.md` has neither entry and this thread's entry carries this title. Landed: 28a7468                                                                                      |
 
 ## Plan
 
